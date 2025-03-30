@@ -12,7 +12,7 @@ import {
   SidebarHeader,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const menuItems = [
   {
@@ -38,6 +38,8 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+
   return (
     <Sidebar className="border-r border-white/20">
       <SidebarHeader className="px-6 py-3">
@@ -52,10 +54,13 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link to={item.url} className="flex items-center">
+                    <button 
+                      onClick={() => navigate(item.url)} 
+                      className="flex items-center w-full text-left"
+                    >
                       <item.icon className="mr-3 h-5 w-5" />
                       <span>{item.title}</span>
-                    </Link>
+                    </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
