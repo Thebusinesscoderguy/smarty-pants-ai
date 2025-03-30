@@ -90,25 +90,41 @@ const Features = () => {
   };
 
   const simulateAIResponse = (userMessage: string, timeElapsed: number): string => {
-    const isSlowResponse = timeElapsed > 15;
+    const isQuiz = userMessage.toLowerCase().includes('quiz') || 
+                   /^(test|exam|practice|exercise|problem|question)/i.test(userMessage);
     
-    if (userMessage.toLowerCase().includes('quiz')) {
-      if (userMessage.toLowerCase().includes('math') || userMessage.toLowerCase().includes('+')) {
+    if (isQuiz) {
+      const isSlowResponse = timeElapsed > 15;
+      
+      if (userMessage.toLowerCase().includes('math') || 
+          userMessage.toLowerCase().includes('+') || 
+          /[0-9\+\-\*\/\=]/.test(userMessage)) {
         return isSlowResponse 
           ? "Let's work through this math problem step by step. First, can you tell me what you think the answer might be?" 
           : "Great job with the math! Do you want to try a harder problem?";
       }
       
-      if (userMessage.toLowerCase().includes('spell')) {
+      if (userMessage.toLowerCase().includes('spell') || 
+          userMessage.toLowerCase().includes('spelling')) {
         return isSlowResponse 
           ? "Let's practice spelling more. Can you spell 'elephant'? It's a bit trickier." 
-          : "Your spelling is excellent! Let's move to something more challenging.";
+          : "Your spelling is excellent! Let's move on to something more challenging.";
       }
+      
+      return isSlowResponse
+        ? "I notice you're taking your time with this question. Would you like me to explain it in more detail or provide additional examples?"
+        : "You seem to be handling this quiz well! Let's try the next question.";
     }
     
-    return isSlowResponse
-      ? "I notice you're taking your time with this topic. Would you like me to explain it in more detail or provide additional examples?"
-      : "You seem to understand this well! Shall we move on to the next concept?";
+    if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
+      return "Hello! How can I help with your learning today?";
+    }
+    
+    if (userMessage.toLowerCase().includes('help') || userMessage.toLowerCase().includes('how')) {
+      return "I can help you learn various subjects through conversations and quizzes. Just tell me what subject you're interested in!";
+    }
+    
+    return "I'm here to help you learn. Would you like to start a quiz on a particular subject?";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
