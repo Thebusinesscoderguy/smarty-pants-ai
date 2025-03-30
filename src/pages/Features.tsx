@@ -3,7 +3,6 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { Send } from 'lucide-react';
 
 interface Message {
