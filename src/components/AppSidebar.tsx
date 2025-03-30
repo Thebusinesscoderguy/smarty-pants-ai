@@ -1,5 +1,5 @@
 
-import { MessageSquare, Mic, Timer, LogOut } from 'lucide-react';
+import { MessageSquare, Mic, Timer, LogOut, FileUp } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +19,11 @@ const menuItems = [
   {
     title: "Chat",
     icon: MessageSquare,
+    url: "/features",
+  },
+  {
+    title: "Study Materials",
+    icon: FileUp,
     url: "/features",
   },
   {
