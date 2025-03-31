@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LoginModal from '@/components/LoginModal';
 import SignupModal from '@/components/SignupModal';
+import ApiKeyForm from '@/components/ApiKeyForm';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
@@ -17,9 +18,12 @@ const Index = () => {
         <h1 className="text-xl font-bold">Teachly</h1>
         <div className="space-x-4">
           {user ? (
-            <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-              <Link to="/features">Dashboard</Link>
-            </Button>
+            <>
+              <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
+                <Link to="/features">Dashboard</Link>
+              </Button>
+              <ApiKeyForm />
+            </>
           ) : (
             <>
               <Button variant="outline" className="text-white border-white/30 hover:bg-white/10" onClick={() => setIsLoginOpen(true)}>
