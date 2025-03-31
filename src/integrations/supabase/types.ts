@@ -9,7 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      files: {
+        Row: {
+          created_at: string | null
+          file_path: string
+          file_type: string
+          filename: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_path: string
+          file_type: string
+          filename: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_path?: string
+          file_type?: string
+          filename?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          file_url: string | null
+          id: string
+          is_from_user: boolean | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          is_from_user?: boolean | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          is_from_user?: boolean | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      token_usage: {
+        Row: {
+          created_at: string | null
+          feature: string
+          id: string
+          tokens_used: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          feature: string
+          id?: string
+          tokens_used: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          feature?: string
+          id?: string
+          tokens_used?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

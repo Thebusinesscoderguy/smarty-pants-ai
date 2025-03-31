@@ -9,6 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { FcGoogle } from 'react-icons/fc';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -19,12 +21,64 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Signup attempted with:', { email, password });
-    onClose();
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sign up successful",
+        description: "Check your email for a confirmation link.",
+      });
+      
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: "Sign up failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/features`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Sign up failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -64,8 +118,12 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
               required
             />
           </div>
-          <Button type="submit" className="w-full bg-white text-black hover:bg-gray-200">
-            Sign Up
+          <Button 
+            type="submit" 
+            className="w-full bg-white text-black hover:bg-gray-200"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating account..." : "Sign Up"}
           </Button>
           
           <div className="relative flex justify-center text-xs uppercase my-4">
@@ -79,6 +137,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
             type="button" 
             variant="outline" 
             className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
+            onClick={handleGoogleSignUp}
           >
             <FcGoogle className="mr-2 h-4 w-4" />
             Sign up with Google

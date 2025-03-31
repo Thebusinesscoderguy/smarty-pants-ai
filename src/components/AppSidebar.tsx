@@ -14,37 +14,65 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { useNavigate } from 'react-router-dom';
-
-const menuItems = [
-  {
-    title: "Chat",
-    icon: MessageSquare,
-    url: "/features",
-  },
-  {
-    title: "Study Materials",
-    icon: FileUp,
-    url: "/features",
-  },
-  {
-    title: "Voice Messages",
-    icon: Mic,
-    url: "/voice",
-  },
-  {
-    title: "Token Usage",
-    icon: Timer,
-    url: "/tokens",
-  },
-  {
-    title: "Log Out",
-    icon: LogOut,
-    url: "/",
-  },
-];
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
 
 export function AppSidebar() {
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
+
+  const handleNavigation = (url: string) => {
+    if (url === '/logout') {
+      handleLogout();
+    } else {
+      navigate(url);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const menuItems = [
+    {
+      title: "Chat",
+      icon: MessageSquare,
+      url: "/features",
+    },
+    {
+      title: "Study Materials",
+      icon: FileUp,
+      url: "/features",
+    },
+    {
+      title: "Voice Messages",
+      icon: Mic,
+      url: "/voice",
+    },
+    {
+      title: "Token Usage",
+      icon: Timer,
+      url: "/tokens",
+    },
+    {
+      title: "Log Out",
+      icon: LogOut,
+      url: "/logout",
+    },
+  ];
 
   return (
     <SidebarProvider>
@@ -62,7 +90,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <button 
-                        onClick={() => navigate(item.url)} 
+                        onClick={() => handleNavigation(item.url)} 
                         className="flex items-center w-full text-left"
                       >
                         <item.icon className="mr-3 h-5 w-5" />

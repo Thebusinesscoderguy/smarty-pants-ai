@@ -9,6 +9,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { FcGoogle } from 'react-icons/fc';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -18,12 +21,56 @@ interface LoginModalProps {
 const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempted with:', { email, password });
-    onClose();
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Login successful",
+        description: "Welcome back to Teachly!",
+      });
+
+      onClose();
+      navigate('/features');
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/features`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -53,8 +100,12 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               required
             />
           </div>
-          <Button type="submit" className="w-full bg-white text-black hover:bg-gray-200">
-            Log In
+          <Button 
+            type="submit" 
+            className="w-full bg-white text-black hover:bg-gray-200"
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Log In"}
           </Button>
           
           <div className="relative flex justify-center text-xs uppercase my-4">
@@ -68,6 +119,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             type="button" 
             variant="outline" 
             className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
+            onClick={handleGoogleSignIn}
           >
             <FcGoogle className="mr-2 h-4 w-4" />
             Sign in with Google
