@@ -10,8 +10,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Book, BookOpen, CheckCircle, Terminal, Medal, FileText } from 'lucide-react';
+import { ChevronDown, Book, BookOpen, CheckCircle, Terminal, Medal, FileText, MessageSquare, Mic, FileUp } from 'lucide-react';
 import LoginModal from '@/components/LoginModal';
 import SignupModal from '@/components/SignupModal';
 
@@ -23,7 +22,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header/Navigation */}
-      <header className="py-6 px-8 flex justify-between items-center border-b border-white/10 backdrop-blur-sm bg-black/50 fixed w-full z-10">
+      <header className="py-6 px-8 flex justify-between items-center border-b border-white/10 bg-black/80 backdrop-blur-sm sticky top-0 z-10">
         <h1 className="text-3xl font-bold">Teachly</h1>
         <div className="flex gap-4">
           <Button 
@@ -43,7 +42,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="h-screen w-full flex items-center justify-center relative pt-20">
+      <section className="min-h-screen w-full flex items-center justify-center relative py-16">
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-purple-900/20 to-black"></div>
         <div className="max-w-5xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center z-10 px-8">
           <div className="flex flex-col space-y-6">
@@ -79,7 +78,7 @@ const Index = () => {
               <AccordionItem value="item-2" className="border-white/20">
                 <AccordionTrigger className="text-left">How much does it cost?</AccordionTrigger>
                 <AccordionContent>
-                  We offer a Free Trial and a Student Plan. The Student Plan is $16/month with a 7-day free trial available.
+                  We offer a Free Trial and a Student Plan. The Student Plan is $16/month with a 14-day free trial available. You're billed at the end of each month.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="border-white/20">
@@ -91,19 +90,64 @@ const Index = () => {
               <AccordionItem value="item-4" className="border-white/20">
                 <AccordionTrigger className="text-left">Can I try before subscribing?</AccordionTrigger>
                 <AccordionContent>
-                  Yes, you can try our core features without signing up, or start a 7-day free trial for full access to all premium features.
+                  Yes, you can start a 14-day free trial with full access to all premium features. No credit card required to start.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
           </div>
         </div>
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <ChevronDown className="h-8 w-8 text-white/50" />
+      </section>
+
+      {/* All-in-One Experience Section */}
+      <section className="py-20 px-8 bg-gradient-to-b from-black to-purple-950/30">
+        <div className="max-w-5xl mx-auto text-center mb-16">
+          <h2 className="text-4xl font-bold mb-6">All-in-One Learning Experience</h2>
+          <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            Ask questions, upload materials, or use voice - Teachly processes everything in one seamless conversation.
+          </p>
+        </div>
+        
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <Card className="bg-white/5 border-white/10 text-white hover:bg-white/10 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Text Conversations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Type your questions and get personalized AI responses that adapt to your learning style and knowledge level.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10 text-white hover:bg-white/10 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileUp className="h-5 w-5" />
+                Study Materials
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Upload your textbooks, notes, or assignments and get AI help that understands your specific curriculum.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10 text-white hover:bg-white/10 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mic className="h-5 w-5" />
+                Voice Interactions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Speak naturally and get voice responses. Perfect for auditory learners or when you need hands-free learning.</p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       {/* Tabbed Content Section */}
-      <section className="py-20 px-8 bg-gradient-to-b from-black to-purple-950/30">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12">Discover Teachly</h2>
           
@@ -240,7 +284,7 @@ const Index = () => {
                     </div>
                     <div>
                       <h4 className="text-xl font-semibold">Ask Questions</h4>
-                      <p className="text-white/80">Type in your questions, no matter how complex or simple, and get instant answers.</p>
+                      <p className="text-white/80">Type in your questions, speak naturally, or reference uploaded materials - all in one conversation.</p>
                     </div>
                   </div>
                   
@@ -281,7 +325,7 @@ const Index = () => {
       </section>
 
       {/* Plans Section */}
-      <section className="py-20 px-8 bg-black">
+      <section className="py-20 px-8 bg-gradient-to-b from-black to-purple-950/30">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4">Choose Your Plan</h2>
           <p className="text-center text-white/80 mb-12 max-w-2xl mx-auto">
@@ -293,7 +337,7 @@ const Index = () => {
               <CardHeader>
                 <CardTitle>Free Trial</CardTitle>
                 <CardDescription className="text-white/70">
-                  Try out the platform for a limited time
+                  Try out the full Student Plan for two weeks
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -301,15 +345,19 @@ const Index = () => {
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-400" />
-                    <span>Basic question answering</span>
+                    <span>Full access to all features</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-400" />
-                    <span>Limited adaptive quizzes</span>
+                    <span>Unlimited AI conversations</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-400" />
-                    <span>Platform exploration</span>
+                    <span>Study materials upload</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span>Voice interactions</span>
                   </li>
                 </ul>
               </CardContent>
@@ -327,7 +375,7 @@ const Index = () => {
               <CardHeader>
                 <CardTitle>Student Plan</CardTitle>
                 <CardDescription className="text-white/70">
-                  Full access for individual learners
+                  Billed at the end of each month
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -356,9 +404,11 @@ const Index = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-white text-black hover:bg-gray-200">
-                  Get Started
-                </Button>
+                <Link to="/pricing" className="w-full">
+                  <Button className="w-full bg-white text-black hover:bg-gray-200">
+                    Get Started
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           </div>
@@ -366,7 +416,7 @@ const Index = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 px-8 bg-gradient-to-t from-black to-purple-950/30">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Learning Experience?</h2>
           <p className="text-xl text-white/80 mb-8">
@@ -377,7 +427,7 @@ const Index = () => {
               className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 h-auto"
               onClick={() => setIsSignupOpen(true)}
             >
-              Start Your Journey
+              Start Your 14-Day Free Trial
             </Button>
             <Link to="/features">
               <Button 
@@ -394,7 +444,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-12 px-8 border-t border-white/10 bg-black">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div>
               <h3 className="text-xl font-bold mb-4">Teachly</h3>
               <p className="text-white/60">
@@ -402,44 +452,27 @@ const Index = () => {
               </p>
             </div>
             
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-white/60">
-                <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">Testimonials</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Case Studies</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Resources</h4>
-              <ul className="space-y-2 text-white/60">
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-white/60">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Partners</a></li>
-              </ul>
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <h4 className="text-lg font-semibold mb-4">Product</h4>
+                <ul className="space-y-2 text-white/60">
+                  <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
+                  <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-semibold mb-4">Legal</h4>
+                <ul className="space-y-2 text-white/60">
+                  <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
+                </ul>
+              </div>
             </div>
           </div>
           
           <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/60">© 2024 Teachly • All rights reserved</p>
-            <div className="flex gap-6 text-white/60">
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Cookies</a>
-            </div>
+            <p className="text-white/60">© 2025 Teachly • All rights reserved</p>
           </div>
         </div>
       </footer>

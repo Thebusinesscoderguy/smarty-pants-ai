@@ -50,7 +50,7 @@ export function AppSidebar() {
     <SidebarProvider>
       <Sidebar className="border-r border-white/20">
         <SidebarHeader className="px-6 py-3">
-          <h1 className="text-xl font-bold">EduAI</h1>
+          <h1 className="text-xl font-bold">Teachly</h1>
           <SidebarTrigger className="ml-auto" />
         </SidebarHeader>
         <SidebarContent>

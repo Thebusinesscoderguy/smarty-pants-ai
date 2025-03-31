@@ -65,6 +65,16 @@ const Pricing = () => {
               <p className="font-medium">No credit card required for trial</p>
               <p className="text-sm text-white/70">Cancel anytime before the trial ends</p>
             </div>
+
+            <div className="bg-purple-900/20 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">How billing works:</h4>
+              <ul className="text-left text-sm space-y-2">
+                <li>• Your 14-day trial gives you full access to all features</li>
+                <li>• If you decide to continue, billing begins after your trial ends</li>
+                <li>• You're only charged at the end of each month of service</li>
+                <li>• Cancel anytime with no hidden fees or commitments</li>
+              </ul>
+            </div>
           </CardContent>
           <CardFooter>
             <Button className="w-full bg-white text-black hover:bg-gray-200 flex items-center justify-center gap-2">
@@ -77,7 +87,7 @@ const Pricing = () => {
         <div className="mt-8 max-w-md text-center">
           <h3 className="text-xl font-semibold mb-2">100% Satisfaction Guarantee</h3>
           <p className="text-white/70 mb-6">
-            If you're not completely satisfied with your experience within the first 30 days, contact us for a full refund.
+            If you're not completely satisfied with your experience within the first 30 days after your trial, contact us for a full refund.
           </p>
           <Link to="/features">
             <Button variant="outline" className="border-white/30 hover:bg-white/10">
