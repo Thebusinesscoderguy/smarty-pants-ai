@@ -72,12 +72,52 @@ const Index = () => {
               <p className="text-white/70">Upload your notes and documents, and our AI will help you understand and quiz you on the content.</p>
             </div>
           </div>
+          
+          <div className="mt-24 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Why Choose Teachly in 2025?</h2>
+            <div className="grid md:grid-cols-2 gap-8 mt-12">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <h3 className="text-xl font-semibold mb-4">Personalized Learning Path</h3>
+                <p className="text-white/70">Our AI analyzes your learning style, strengths, and weaknesses to create a custom curriculum that evolves as you progress.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
+                <p className="text-white/70">Get immediate, constructive feedback on your work that helps you understand mistakes and improve faster.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <h3 className="text-xl font-semibold mb-4">Interactive Practice</h3>
+                <p className="text-white/70">Engage with dynamic exercises that adapt to your skill level, making learning both challenging and enjoyable.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <h3 className="text-xl font-semibold mb-4">Learn Anywhere</h3>
+                <p className="text-white/70">Access your personalized learning experience on any device, with progress synced automatically across platforms.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-24 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">What Our Users Say</h2>
+            <div className="grid md:grid-cols-3 gap-6 mt-12">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left">
+                <p className="text-white/70 italic mb-4">"Teachly helped me master complex subjects in half the time it would have taken with traditional methods. The AI tutor feels like it really understands how I learn."</p>
+                <p className="text-white font-semibold">- Sarah K., Medical Student</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left">
+                <p className="text-white/70 italic mb-4">"As someone with ADHD, focusing on studying has always been challenging. Teachly's interactive approach keeps me engaged and actually makes learning fun."</p>
+                <p className="text-white font-semibold">- Marcus T., Software Engineer</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left">
+                <p className="text-white/70 italic mb-4">"I've tried dozens of learning platforms, but none compare to how Teachly adapts to my specific needs. It's like having a personal tutor available 24/7."</p>
+                <p className="text-white font-semibold">- Leila M., Business Analyst</p>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 
       <footer className="w-full px-4 md:px-6 py-6 border-t border-white/10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/60 text-sm">© 2023 Teachly. All rights reserved.</p>
+          <p className="text-white/60 text-sm">© 2025 Teachly. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-white/60 hover:text-white text-sm">Terms</a>
             <a href="#" className="text-white/60 hover:text-white text-sm">Privacy</a>
