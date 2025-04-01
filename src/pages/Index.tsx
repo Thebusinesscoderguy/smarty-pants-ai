@@ -660,38 +660,44 @@ const Index = () => {
           </div>
           
           <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Join Our Learning Communities</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Frequently Asked Questions</h2>
             <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12">
-              Connect with peers who share your interests and learn together in our interactive, supportive communities led by expert mentors.
+              Find answers to common questions about using Teachly and maximizing your learning experience.
             </p>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-blue-900/60 to-blue-800/40 border border-white/10 rounded-lg p-6 hover:border-blue-500/50 transition-all duration-300">
-                <h3 className="text-xl font-semibold mb-4">Code Creators</h3>
-                <p className="text-white/70 mb-3">Build projects together with passionate developers. Weekly coding challenges and live review sessions.</p>
-                <div className="flex justify-between items-center">
-                  <p className="text-blue-400">5,200+ members</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-blue-500/50 transition-all duration-300 text-left">
+                <h3 className="text-xl font-semibold mb-4">How do I set up my API keys?</h3>
+                <p className="text-white/70 mb-3">Once logged in, you can click the "Manage API Keys" button in the dashboard to access the API key form. There, you can enter your Google and PayPal credentials securely.</p>
+                <div className="flex justify-end">
                   <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Explore
+                    Learn More
                   </Button>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-900/60 to-purple-800/40 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300">
-                <h3 className="text-xl font-semibold mb-4">Global Languages</h3>
-                <p className="text-white/70 mb-3">Daily conversation groups with native speakers. Cultural exchanges and personalized feedback.</p>
-                <div className="flex justify-between items-center">
-                  <p className="text-purple-400">8,400+ members</p>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300 text-left">
+                <h3 className="text-xl font-semibold mb-4">How does voice learning work?</h3>
+                <p className="text-white/70 mb-3">Click on the "Open Voice Messages" button after logging in to access our voice learning feature. You can record questions and receive spoken responses from our AI tutor.</p>
+                <div className="flex justify-end">
                   <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Explore
+                    Learn More
                   </Button>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-green-900/60 to-green-800/40 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300">
-                <h3 className="text-xl font-semibold mb-4">Data Explorers</h3>
-                <p className="text-white/70 mb-3">Analyze real datasets with industry experts. Monthly workshops and collaborative research projects.</p>
-                <div className="flex justify-between items-center">
-                  <p className="text-green-400">3,800+ members</p>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300 text-left">
+                <h3 className="text-xl font-semibold mb-4">What content can Teachly help me with?</h3>
+                <p className="text-white/70 mb-3">Teachly can assist with a wide range of subjects including mathematics, science, languages, programming, and more. Our AI adapts to your specific learning needs.</p>
+                <div className="flex justify-end">
                   <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Explore
+                    Learn More
+                  </Button>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 text-left">
+                <h3 className="text-xl font-semibold mb-4">Is my data secure?</h3>
+                <p className="text-white/70 mb-3">Yes, we take data security seriously. Your learning data and API keys are encrypted and stored securely. We never share your information with third parties.</p>
+                <div className="flex justify-end">
+                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
+                    Learn More
                   </Button>
                 </div>
               </div>
