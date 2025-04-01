@@ -1,16 +1,470 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LoginModal from '@/components/LoginModal';
 import SignupModal from '@/components/SignupModal';
 import ApiKeyForm from '@/components/ApiKeyForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { Mic, Square, Play, Pause, MessageSquare } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+interface VoiceMessage {
+  id?: string;
+  text: string;
+  timestamp: Date;
+  audioUrl?: string;
+  isPlaying?: boolean;
+}
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
 
 const Index = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const { user } = useAuth();
+  
+  // Voice messaging state
+  const [showVoiceSection, setShowVoiceSection] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioData, setAudioData] = useState<Blob | null>(null);
+  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+
+  // Text chat state
+  const [showChatSection, setShowChatSection] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
+      timestamp: new Date(),
+    },
+  ]);
+  const [input, setInput] = useState('');
+
+  // Fetch messages on component mount
+  useEffect(() => {
+    if (user && showVoiceSection) {
+      fetchMessages();
+    }
+  }, [user, showVoiceSection]);
+
+  const fetchMessages = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', 'voice')
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const formattedMessages = data.map(msg => ({
+          id: msg.id,
+          text: msg.content,
+          timestamp: new Date(msg.created_at),
+          audioUrl: msg.file_url,
+          isPlaying: false
+        }));
+        
+        setVoiceMessages(formattedMessages);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error fetching messages",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Start recording
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+      
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioData(audioBlob);
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result?.toString().split(',')[1];
+          
+          if (base64Audio) {
+            await processVoiceToText(base64Audio);
+          }
+        };
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      
+      // Start timer
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prevTime => prevTime + 1);
+      }, 1000);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Could not access microphone: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Stop recording
+  const handleStopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      // Clear timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+
+  // Process voice to text
+  const processVoiceToText = async (audioBase64: string) => {
+    if (!user) {
+      toast({
+        title: "Not logged in",
+        description: "Please log in to use voice messages",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      const response = await supabase.functions.invoke('voice-to-text', {
+        body: { audio: audioBase64 },
+      });
+      
+      if (response.error) throw new Error(response.error.message);
+      
+      const transcribedText = response.data.text;
+      
+      // Save user message to database
+      let userMessageId = null;
+      let audioUrl = null;
+      
+      if (user) {
+        // Save message to database
+        userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null);
+        
+        // Upload audio file to storage
+        if (audioData) {
+          audioUrl = await uploadAudioFile(audioData, userMessageId);
+          
+          // Update message with file URL
+          await supabase
+            .from('messages')
+            .update({ file_url: audioUrl })
+            .eq('id', userMessageId);
+        }
+      }
+      
+      const newUserMessage: VoiceMessage = {
+        id: userMessageId,
+        text: transcribedText,
+        timestamp: new Date(),
+        audioUrl: audioUrl,
+      };
+      
+      setVoiceMessages(prev => [...prev, newUserMessage]);
+      scrollToBottom();
+      
+      // Get AI response
+      await getAIResponse(transcribedText);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to process voice: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Get AI response
+  const getAIResponse = async (userMessage: string) => {
+    try {
+      // Simulate AI processing (in a real app, you would call an AI service)
+      const aiResponse = `I've processed your voice message: "${userMessage}". How can I help you further?`;
+      
+      let aiMessageId = null;
+      let audioUrl = null;
+      
+      if (user) {
+        // Convert AI response to speech
+        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+          body: { text: aiResponse, voice: 'alloy' },
+        });
+        
+        if (voiceResponse.error) throw new Error(voiceResponse.error.message);
+        
+        const base64Audio = voiceResponse.data.audioContent;
+        const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
+        
+        // Save AI response to database
+        aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, false);
+        
+        // Upload audio file
+        audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
+        
+        // Update message with file URL
+        await supabase
+          .from('messages')
+          .update({ file_url: audioUrl })
+          .eq('id', aiMessageId);
+      }
+      
+      const aiMessage: VoiceMessage = {
+        id: aiMessageId,
+        text: aiResponse,
+        timestamp: new Date(),
+        audioUrl: audioUrl,
+      };
+      
+      setVoiceMessages(prev => [...prev, aiMessage]);
+      scrollToBottom();
+      
+      // Auto-play the AI response
+      setTimeout(() => {
+        if (aiMessageId) {
+          handlePlayAudio(aiMessageId);
+        }
+      }, 500);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to get AI response: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Upload audio file to storage
+  const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
+    if (!user) return null;
+    
+    try {
+      const filePath = `${user.id}/${messageId}.webm`;
+      
+      const { data, error } = await supabase.storage
+        .from('study_materials')
+        .upload(filePath, audioBlob, {
+          contentType: 'audio/webm',
+          upsert: true,
+        });
+      
+      if (error) throw error;
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('study_materials')
+        .getPublicUrl(filePath);
+      
+      return urlData.publicUrl;
+      
+    } catch (error: any) {
+      console.error("Error uploading audio:", error);
+      return null;
+    }
+  };
+
+  // Save message to database
+  const saveMessageToDatabase = async (
+    content: string, 
+    type: string, 
+    fileUrl: string | null,
+    isFromUser: boolean = true
+  ): Promise<string> => {
+    if (!user) throw new Error("User not authenticated");
+    
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          user_id: user.id,
+          content,
+          type,
+          file_url: fileUrl,
+          is_from_user: isFromUser,
+        })
+        .select('id')
+        .single();
+      
+      if (error) throw error;
+      
+      // Track token usage
+      await supabase.from('token_usage').insert({
+        user_id: user.id,
+        tokens_used: Math.ceil(content.length / 4),
+        feature: 'voice',
+      });
+      
+      return data.id;
+    } catch (error: any) {
+      console.error("Error saving message:", error);
+      throw error;
+    }
+  };
+
+  // Convert base64 to blob
+  const base64ToBlob = (base64: string, mimeType: string): Blob => {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+    
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    
+    return new Blob(byteArrays, { type: mimeType });
+  };
+
+  // Play audio
+  const handlePlayAudio = (messageId: string) => {
+    // Create audio element if it doesn't exist
+    if (!audioRefs.current[messageId]) {
+      const message = voiceMessages.find(m => m.id === messageId);
+      
+      if (message?.audioUrl) {
+        const audio = new Audio(message.audioUrl);
+        audioRefs.current[messageId] = audio;
+        
+        audio.onended = () => {
+          setVoiceMessages(messages => 
+            messages.map(m => 
+              m.id === messageId ? { ...m, isPlaying: false } : m
+            )
+          );
+        };
+      }
+    }
+    
+    const audio = audioRefs.current[messageId];
+    
+    if (audio) {
+      // Stop all other playing audios
+      Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
+        if (id !== messageId && audioElement) {
+          audioElement.pause();
+          audioElement.currentTime = 0;
+          
+          setVoiceMessages(messages => 
+            messages.map(m => 
+              m.id === id ? { ...m, isPlaying: false } : m
+            )
+          );
+        }
+      });
+      
+      // Play this audio
+      audio.play();
+      
+      setVoiceMessages(messages => 
+        messages.map(m => 
+          m.id === messageId ? { ...m, isPlaying: true } : m
+        )
+      );
+    }
+  };
+
+  // Pause audio
+  const handlePauseAudio = (messageId: string) => {
+    const audio = audioRefs.current[messageId];
+    
+    if (audio) {
+      audio.pause();
+      
+      setVoiceMessages(messages => 
+        messages.map(m => 
+          m.id === messageId ? { ...m, isPlaying: false } : m
+        )
+      );
+    }
+  };
+
+  // Handle sending a text message
+  const handleSendMessage = () => {
+    if (!input.trim()) return;
+
+    const userMessage: Message = {
+      role: 'user',
+      content: input,
+      timestamp: new Date(),
+    };
+    
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    
+    // Simulate AI response
+    setTimeout(() => {
+      const aiResponse = `Thank you for your message: "${input}". I'm here to help you learn.`;
+      
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, assistantMessage]);
+    }, 1000);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -46,11 +500,33 @@ const Index = () => {
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
-            <div className="mt-8">
+            <div className="mt-8 space-x-4">
               {user ? (
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200">
-                  <Link to="/features">Go to Dashboard</Link>
-                </Button>
+                <>
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-black hover:bg-gray-200"
+                    onClick={() => {
+                      setShowVoiceSection(!showVoiceSection);
+                      setShowChatSection(false);
+                    }}
+                  >
+                    <Mic className="mr-2 h-4 w-4" />
+                    {showVoiceSection ? "Hide Voice Messages" : "Open Voice Messages"}
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="border-white/30 hover:bg-white/10"
+                    onClick={() => {
+                      setShowChatSection(!showChatSection);
+                      setShowVoiceSection(false);
+                    }}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    {showChatSection ? "Hide Text Chat" : "Open Text Chat"}
+                  </Button>
+                </>
               ) : (
                 <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
                   Get Started
@@ -58,6 +534,125 @@ const Index = () => {
               )}
             </div>
           </div>
+
+          {showVoiceSection && user && (
+            <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Voice Messages</h2>
+              
+              <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
+                {voiceMessages.length > 0 ? (
+                  voiceMessages.map((message, index) => (
+                    <Card 
+                      key={index}
+                      className="p-4 bg-white/5 border-white/20"
+                    >
+                      <p className="mb-2">{message.text}</p>
+                      <div className="flex items-center justify-between">
+                        {message.audioUrl && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="border-white/30 hover:bg-white/10"
+                            onClick={() => message.isPlaying 
+                              ? handlePauseAudio(message.id!) 
+                              : handlePlayAudio(message.id!)
+                            }
+                          >
+                            {message.isPlaying ? (
+                              <>
+                                <Pause className="h-4 w-4 mr-1" />
+                                Pause
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-4 w-4 mr-1" />
+                                Play
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        <span className="text-xs text-white/50">
+                          {message.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-white/70 text-center py-4">No voice messages yet. Start recording to begin.</p>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              <div className="flex justify-center">
+                {isRecording ? (
+                  <div className="flex flex-col items-center">
+                    <div className="mb-2 text-red-500 animate-pulse">
+                      Recording... {recordingTime}s
+                    </div>
+                    <Button 
+                      onClick={handleStopRecording}
+                      variant="destructive"
+                      size="lg"
+                      className="rounded-full w-16 h-16 flex items-center justify-center"
+                    >
+                      <Square className="h-6 w-6" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleStartRecording}
+                    className="bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
+                  >
+                    <Mic className="h-6 w-6" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {showChatSection && user && (
+            <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Text Chat</h2>
+              
+              <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
+                {messages.map((message, index) => (
+                  <div 
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <Card 
+                      className={`max-w-[80%] p-3 ${
+                        message.role === 'user' 
+                          ? 'bg-white/10 text-white border-white/20' 
+                          : 'bg-white/5 text-white border-white/20'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <div className="text-xs text-white/50 mt-1">
+                        {message.timestamp.toLocaleTimeString()}
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex gap-2">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your message..."
+                  className="flex-1 bg-transparent border-white/30 focus-visible:ring-white"
+                />
+                <Button 
+                  onClick={handleSendMessage}
+                  className="bg-white text-black hover:bg-gray-200"
+                >
+                  Send
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-3 gap-6 mt-16">
             <div className="bg-white/5 border border-white/10 rounded-lg p-6">
@@ -100,19 +695,25 @@ const Index = () => {
           </div>
           
           <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">What Our Users Say</h2>
-            <div className="grid md:grid-cols-3 gap-6 mt-12">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left">
-                <p className="text-white/70 italic mb-4">"Teachly helped me master complex subjects in half the time it would have taken with traditional methods. The AI tutor feels like it really understands how I learn."</p>
-                <p className="text-white font-semibold">- Sarah K., Medical Student</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Teachly Learning Communities</h2>
+            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12">
+              Join thousands of learners in our subject-focused communities where you can collaborate, share resources, and grow together.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4">Programming Hub</h3>
+                <p className="text-white/70 mb-3">Master coding languages with peer programming sessions and expert mentors from the industry.</p>
+                <p className="text-blue-400">5,200+ members</p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left">
-                <p className="text-white/70 italic mb-4">"As someone with ADHD, focusing on studying has always been challenging. Teachly's interactive approach keeps me engaged and actually makes learning fun."</p>
-                <p className="text-white font-semibold">- Marcus T., Software Engineer</p>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4">Language Learners</h3>
+                <p className="text-white/70 mb-3">Practice conversation with native speakers and AI tutors specialized in your target language.</p>
+                <p className="text-blue-400">8,400+ members</p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left">
-                <p className="text-white/70 italic mb-4">"I've tried dozens of learning platforms, but none compare to how Teachly adapts to my specific needs. It's like having a personal tutor available 24/7."</p>
-                <p className="text-white font-semibold">- Leila M., Business Analyst</p>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4">Data Science Lab</h3>
+                <p className="text-white/70 mb-3">Collaborate on real-world projects and learn cutting-edge analysis techniques from industry leaders.</p>
+                <p className="text-blue-400">3,800+ members</p>
               </div>
             </div>
           </div>
