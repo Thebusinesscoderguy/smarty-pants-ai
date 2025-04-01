@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -31,7 +30,6 @@ const Index = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const { user } = useAuth();
   
-  // Voice messaging state
   const [showVoiceSection, setShowVoiceSection] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -43,7 +41,6 @@ const Index = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
-  // Text chat state
   const [showChatSection, setShowChatSection] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -54,7 +51,6 @@ const Index = () => {
   ]);
   const [input, setInput] = useState('');
 
-  // Fetch messages on component mount
   useEffect(() => {
     if (user && showVoiceSection) {
       fetchMessages();
@@ -98,7 +94,6 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Start recording
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -114,7 +109,6 @@ const Index = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioData(audioBlob);
         
-        // Convert to base64
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
@@ -125,14 +119,12 @@ const Index = () => {
           }
         };
         
-        // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
       
       mediaRecorderRef.current.start();
       setIsRecording(true);
       
-      // Start timer
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
         setRecordingTime(prevTime => prevTime + 1);
@@ -147,13 +139,11 @@ const Index = () => {
     }
   };
 
-  // Stop recording
   const handleStopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
-      // Clear timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -161,7 +151,6 @@ const Index = () => {
     }
   };
 
-  // Process voice to text
   const processVoiceToText = async (audioBase64: string) => {
     if (!user) {
       toast({
@@ -181,19 +170,15 @@ const Index = () => {
       
       const transcribedText = response.data.text;
       
-      // Save user message to database
       let userMessageId = null;
       let audioUrl = null;
       
       if (user) {
-        // Save message to database
         userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null);
         
-        // Upload audio file to storage
         if (audioData) {
           audioUrl = await uploadAudioFile(audioData, userMessageId);
           
-          // Update message with file URL
           await supabase
             .from('messages')
             .update({ file_url: audioUrl })
@@ -211,7 +196,6 @@ const Index = () => {
       setVoiceMessages(prev => [...prev, newUserMessage]);
       scrollToBottom();
       
-      // Get AI response
       await getAIResponse(transcribedText);
       
     } catch (error: any) {
@@ -223,17 +207,14 @@ const Index = () => {
     }
   };
 
-  // Get AI response
   const getAIResponse = async (userMessage: string) => {
     try {
-      // Simulate AI processing (in a real app, you would call an AI service)
       const aiResponse = `I've processed your voice message: "${userMessage}". How can I help you further?`;
       
       let aiMessageId = null;
       let audioUrl = null;
       
       if (user) {
-        // Convert AI response to speech
         const voiceResponse = await supabase.functions.invoke('text-to-voice', {
           body: { text: aiResponse, voice: 'alloy' },
         });
@@ -243,13 +224,10 @@ const Index = () => {
         const base64Audio = voiceResponse.data.audioContent;
         const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
         
-        // Save AI response to database
         aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, false);
         
-        // Upload audio file
         audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
         
-        // Update message with file URL
         await supabase
           .from('messages')
           .update({ file_url: audioUrl })
@@ -266,7 +244,6 @@ const Index = () => {
       setVoiceMessages(prev => [...prev, aiMessage]);
       scrollToBottom();
       
-      // Auto-play the AI response
       setTimeout(() => {
         if (aiMessageId) {
           handlePlayAudio(aiMessageId);
@@ -282,7 +259,6 @@ const Index = () => {
     }
   };
 
-  // Upload audio file to storage
   const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
     if (!user) return null;
     
@@ -298,7 +274,6 @@ const Index = () => {
       
       if (error) throw error;
       
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('study_materials')
         .getPublicUrl(filePath);
@@ -311,7 +286,6 @@ const Index = () => {
     }
   };
 
-  // Save message to database
   const saveMessageToDatabase = async (
     content: string, 
     type: string, 
@@ -335,7 +309,6 @@ const Index = () => {
       
       if (error) throw error;
       
-      // Track token usage
       await supabase.from('token_usage').insert({
         user_id: user.id,
         tokens_used: Math.ceil(content.length / 4),
@@ -349,7 +322,6 @@ const Index = () => {
     }
   };
 
-  // Convert base64 to blob
   const base64ToBlob = (base64: string, mimeType: string): Blob => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
@@ -369,9 +341,7 @@ const Index = () => {
     return new Blob(byteArrays, { type: mimeType });
   };
 
-  // Play audio
   const handlePlayAudio = (messageId: string) => {
-    // Create audio element if it doesn't exist
     if (!audioRefs.current[messageId]) {
       const message = voiceMessages.find(m => m.id === messageId);
       
@@ -392,7 +362,6 @@ const Index = () => {
     const audio = audioRefs.current[messageId];
     
     if (audio) {
-      // Stop all other playing audios
       Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
         if (id !== messageId && audioElement) {
           audioElement.pause();
@@ -406,7 +375,6 @@ const Index = () => {
         }
       });
       
-      // Play this audio
       audio.play();
       
       setVoiceMessages(messages => 
@@ -417,7 +385,6 @@ const Index = () => {
     }
   };
 
-  // Pause audio
   const handlePauseAudio = (messageId: string) => {
     const audio = audioRefs.current[messageId];
     
@@ -432,7 +399,6 @@ const Index = () => {
     }
   };
 
-  // Handle sending a text message
   const handleSendMessage = () => {
     if (!input.trim()) return;
 
@@ -445,7 +411,6 @@ const Index = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     
-    // Simulate AI response
     setTimeout(() => {
       const aiResponse = `Thank you for your message: "${input}". I'm here to help you learn.`;
       
@@ -695,25 +660,40 @@ const Index = () => {
           </div>
           
           <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Teachly Learning Communities</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Join Our Learning Communities</h2>
             <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12">
-              Join thousands of learners in our subject-focused communities where you can collaborate, share resources, and grow together.
+              Connect with peers who share your interests and learn together in our interactive, supportive communities led by expert mentors.
             </p>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4">Programming Hub</h3>
-                <p className="text-white/70 mb-3">Master coding languages with peer programming sessions and expert mentors from the industry.</p>
-                <p className="text-blue-400">5,200+ members</p>
+              <div className="bg-gradient-to-br from-blue-900/60 to-blue-800/40 border border-white/10 rounded-lg p-6 hover:border-blue-500/50 transition-all duration-300">
+                <h3 className="text-xl font-semibold mb-4">Code Creators</h3>
+                <p className="text-white/70 mb-3">Build projects together with passionate developers. Weekly coding challenges and live review sessions.</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-blue-400">5,200+ members</p>
+                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
+                    Explore
+                  </Button>
+                </div>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4">Language Learners</h3>
-                <p className="text-white/70 mb-3">Practice conversation with native speakers and AI tutors specialized in your target language.</p>
-                <p className="text-blue-400">8,400+ members</p>
+              <div className="bg-gradient-to-br from-purple-900/60 to-purple-800/40 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300">
+                <h3 className="text-xl font-semibold mb-4">Global Languages</h3>
+                <p className="text-white/70 mb-3">Daily conversation groups with native speakers. Cultural exchanges and personalized feedback.</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-purple-400">8,400+ members</p>
+                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
+                    Explore
+                  </Button>
+                </div>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4">Data Science Lab</h3>
-                <p className="text-white/70 mb-3">Collaborate on real-world projects and learn cutting-edge analysis techniques from industry leaders.</p>
-                <p className="text-blue-400">3,800+ members</p>
+              <div className="bg-gradient-to-br from-green-900/60 to-green-800/40 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300">
+                <h3 className="text-xl font-semibold mb-4">Data Explorers</h3>
+                <p className="text-white/70 mb-3">Analyze real datasets with industry experts. Monthly workshops and collaborative research projects.</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-green-400">3,800+ members</p>
+                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
+                    Explore
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
