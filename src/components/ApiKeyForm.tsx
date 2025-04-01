@@ -17,7 +17,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Key, PaypalIcon, Lock } from 'lucide-react';
+import { Key, CreditCard, Lock } from 'lucide-react';
 import { 
   Form, 
   FormControl, 
@@ -121,7 +121,7 @@ const ApiKeyForm = () => {
           render={({ field }) => (
             <FormItem className="space-y-2">
               <FormLabel className="flex items-center">
-                <PaypalIcon className="mr-2 h-4 w-4" />
+                <CreditCard className="mr-2 h-4 w-4" />
                 PayPal Client ID
               </FormLabel>
               <FormControl>
