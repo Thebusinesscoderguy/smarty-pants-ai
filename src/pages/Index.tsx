@@ -693,8 +693,8 @@ const Index = () => {
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">How does Teachly protect my privacy?</h3>
-                <p className="text-white/70 mb-3">All your learning data is encrypted and stored securely. We follow strict data protection standards and never share your personal information with third parties without consent.</p>
+                <h3 className="text-xl font-semibold mb-4">Can I use Teachly on mobile devices?</h3>
+                <p className="text-white/70 mb-3">Yes! Teachly is fully responsive and works on all devices including smartphones and tablets. Your learning progress syncs across all platforms automatically.</p>
                 <div className="flex justify-end">
                   <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
                     Learn More
