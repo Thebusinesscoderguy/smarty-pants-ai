@@ -15,6 +15,15 @@ interface PayPalApiConfig {
 
 export type ApiConfig = GoogleApiConfig | PayPalApiConfig;
 
+// Type guard functions to narrow down the type
+function isGoogleConfig(config: ApiConfig): config is GoogleApiConfig {
+  return (config as GoogleApiConfig).apiKey !== undefined;
+}
+
+function isPayPalConfig(config: ApiConfig): config is PayPalApiConfig {
+  return (config as PayPalApiConfig).clientId !== undefined;
+}
+
 export async function getApiConfig(service: ServiceType): Promise<ApiConfig | null> {
   try {
     console.log(`Fetching API config for ${service}...`);
@@ -66,11 +75,11 @@ export async function testApiConnections(): Promise<boolean> {
   
   // Test Google API connectivity
   const googleConfig = await getApiConfig('google');
-  const googleConnected = !!googleConfig?.apiKey;
+  const googleConnected = googleConfig ? isGoogleConfig(googleConfig) && !!googleConfig.apiKey : false;
   
   // Test PayPal API connectivity
   const paypalConfig = await getApiConfig('paypal');
-  const paypalConnected = !!paypalConfig?.clientId && paypalConfig?.hasSecret;
+  const paypalConnected = paypalConfig ? isPayPalConfig(paypalConfig) && !!paypalConfig.clientId && paypalConfig.hasSecret : false;
   
   const allConnected = googleConnected && paypalConnected;
   

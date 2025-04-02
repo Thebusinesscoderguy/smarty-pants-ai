@@ -28,6 +28,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
+import { getApiConfig } from '@/utils/apiService';
 
 const apiKeySchema = z.object({
   googleApiKey: z.string().min(1, "Google API Key is required"),
