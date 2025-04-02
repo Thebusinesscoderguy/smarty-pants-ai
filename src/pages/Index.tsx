@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { testApiConnections } from '@/utils/apiService';
 
 interface VoiceMessage {
   id?: string;
@@ -56,6 +57,12 @@ const Index = () => {
       fetchMessages();
     }
   }, [user, showVoiceSection]);
+
+  useEffect(() => {
+    if (user) {
+      testApiConnections();
+    }
+  }, [user]);
 
   const fetchMessages = async () => {
     if (!user) return;

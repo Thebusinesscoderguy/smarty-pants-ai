@@ -21,7 +21,10 @@ serve(async (req) => {
   try {
     const { service } = await req.json() as { service: ServiceType };
     
+    console.log(`Edge function called: get-api-service for ${service}`);
+    
     if (!service || !['google', 'paypal'].includes(service)) {
+      console.error(`Invalid service specified: ${service}`);
       return new Response(
         JSON.stringify({ error: 'Invalid service specified' }),
         {
@@ -36,6 +39,37 @@ serve(async (req) => {
     
     // Get the appropriate API key based on the requested service
     const apiConfig = await getServiceConfig(service);
+    
+    // Verify that required environment variables exist
+    if (service === 'google' && !apiConfig.apiKey) {
+      console.error('GOOGLE_API_KEY environment variable is not set');
+      return new Response(
+        JSON.stringify({ error: 'Google API key is not configured' }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+    
+    if (service === 'paypal' && (!apiConfig.clientId || !apiConfig.hasSecret)) {
+      console.error('PAYPAL_CLIENT_ID or PAYPAL_SECRET_KEY environment variable is not set');
+      return new Response(
+        JSON.stringify({ error: 'PayPal API credentials are not fully configured' }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+    
+    console.log(`Successfully retrieved config for ${service}`);
     
     return new Response(
       JSON.stringify(apiConfig),

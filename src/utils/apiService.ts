@@ -17,6 +17,7 @@ export type ApiConfig = GoogleApiConfig | PayPalApiConfig;
 
 export async function getApiConfig(service: ServiceType): Promise<ApiConfig | null> {
   try {
+    console.log(`Fetching API config for ${service}...`);
     const { data, error } = await supabase.functions.invoke('get-api-service', {
       body: { service },
     });
@@ -31,6 +32,22 @@ export async function getApiConfig(service: ServiceType): Promise<ApiConfig | nu
       return null;
     }
 
+    if (!data) {
+      console.warn(`No API config data returned for ${service}`);
+      toast({
+        title: "Warning",
+        description: `No ${service} API configuration found`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    console.log(`Successfully retrieved ${service} API config`);
+    toast({
+      title: "Success",
+      description: `${service} API configuration loaded successfully`,
+    });
+    
     return data;
   } catch (error) {
     console.error("Error fetching API config:", error);
@@ -41,4 +58,36 @@ export async function getApiConfig(service: ServiceType): Promise<ApiConfig | nu
     });
     return null;
   }
+}
+
+// Function to test API connections on app startup
+export async function testApiConnections(): Promise<boolean> {
+  console.log("Testing API connections...");
+  
+  // Test Google API connectivity
+  const googleConfig = await getApiConfig('google');
+  const googleConnected = !!googleConfig?.apiKey;
+  
+  // Test PayPal API connectivity
+  const paypalConfig = await getApiConfig('paypal');
+  const paypalConnected = !!paypalConfig?.clientId && paypalConfig?.hasSecret;
+  
+  const allConnected = googleConnected && paypalConnected;
+  
+  console.log(`API connections status: Google=${googleConnected}, PayPal=${paypalConnected}`);
+  
+  if (allConnected) {
+    toast({
+      title: "API Connections",
+      description: "All API services connected successfully!",
+    });
+  } else {
+    toast({
+      title: "API Connection Warning",
+      description: `Some API connections failed: ${!googleConnected ? 'Google, ' : ''}${!paypalConnected ? 'PayPal' : ''}`,
+      variant: "destructive",
+    });
+  }
+  
+  return allConnected;
 }

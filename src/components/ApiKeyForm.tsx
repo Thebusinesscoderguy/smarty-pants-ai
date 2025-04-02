@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +42,10 @@ const ApiKeyForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const { user } = useAuth();
+  const [apiStatus, setApiStatus] = useState({
+    google: false,
+    paypal: false
+  });
 
   const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
@@ -54,15 +57,32 @@ const ApiKeyForm = () => {
     },
   });
 
+  useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        const googleConfig = await getApiConfig('google');
+        const paypalConfig = await getApiConfig('paypal');
+        
+        setApiStatus({
+          google: !!googleConfig?.apiKey,
+          paypal: !!paypalConfig?.clientId && paypalConfig?.hasSecret
+        });
+      } catch (error) {
+        console.error("Error checking API status:", error);
+      }
+    };
+    
+    if (user) {
+      checkApiStatus();
+    }
+  }, [user]);
+
   const handleSubmit = async (values: ApiKeyFormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Here we would normally submit to a secure backend
-      // For now we'll just simulate success and show a toast
       console.log('API Keys received securely:', values);
       
-      // Store securely in localStorage (in a real app, this would be handled by a backend)
       if (user) {
         localStorage.setItem('api_keys', JSON.stringify({
           userId: user.id,
@@ -202,7 +222,6 @@ const ApiKeyForm = () => {
     </Form>
   );
 
-  // Check if API keys already exist in localStorage
   const apiKeysExist = () => {
     if (!user) return false;
     const storedKeys = localStorage.getItem('api_keys');
@@ -216,24 +235,49 @@ const ApiKeyForm = () => {
     }
   };
 
+  const allApisConfigured = apiStatus.google && apiStatus.paypal;
+
   return (
     <>
       <Card className="p-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-white/10 text-white mb-8 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">API Configuration</h2>
-          {apiKeysExist() && (
+          {allApisConfigured ? (
             <span className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-medium">
-              ✓ Keys Configured
+              ✓ All APIs Connected
+            </span>
+          ) : apiKeysExist() ? (
+            <span className="bg-yellow-500/20 text-yellow-300 px-3 py-1 rounded-full text-xs font-medium">
+              ⚠ Partial Connection
+            </span>
+          ) : (
+            <span className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-medium">
+              ✗ Not Connected
             </span>
           )}
+        </div>
+        
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${apiStatus.google ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span>Google API</span>
+            </div>
+            <div className="flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${apiStatus.paypal ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span>PayPal API</span>
+            </div>
+          </div>
         </div>
         
         {!showForm ? (
           <div>
             <p className="mb-4">
-              {apiKeysExist() 
-                ? "Your API keys are configured. You can update them if needed."
-                : "To enable all functionality, please add your Google API key and PayPal credentials."}
+              {allApisConfigured 
+                ? "All API services are configured and working properly."
+                : apiKeysExist()
+                ? "Some API connections are not working. Please update your configurations."
+                : "To enable all functionality, please add your API keys."}
             </p>
             <Button 
               onClick={() => setShowForm(true)}
