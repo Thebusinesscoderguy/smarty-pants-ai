@@ -66,8 +66,8 @@ const ApiKeyForm = () => {
         const paypalConfig = await getApiConfig('paypal');
         
         setApiStatus({
-          google: googleConfig ? isGoogleConfig(googleConfig) && !!googleConfig.apiKey : false,
-          paypal: paypalConfig ? isPayPalConfig(paypalConfig) && !!paypalConfig.clientId && paypalConfig.hasSecret : false
+          google: googleConfig && isGoogleConfig(googleConfig) ? !!googleConfig.apiKey : false,
+          paypal: paypalConfig && isPayPalConfig(paypalConfig) ? !!paypalConfig.clientId && !!paypalConfig.hasSecret : false
         });
       } catch (error) {
         console.error("Error checking API status:", error);

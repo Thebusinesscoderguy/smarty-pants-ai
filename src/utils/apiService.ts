@@ -16,11 +16,11 @@ interface PayPalApiConfig {
 export type ApiConfig = GoogleApiConfig | PayPalApiConfig;
 
 // Type guard functions to narrow down the type
-function isGoogleConfig(config: ApiConfig): config is GoogleApiConfig {
+export function isGoogleConfig(config: ApiConfig): config is GoogleApiConfig {
   return (config as GoogleApiConfig).apiKey !== undefined;
 }
 
-function isPayPalConfig(config: ApiConfig): config is PayPalApiConfig {
+export function isPayPalConfig(config: ApiConfig): config is PayPalApiConfig {
   return (config as PayPalApiConfig).clientId !== undefined;
 }
 
