@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FcGoogle } from 'react-icons/fc';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/features');
+    }
+  }, [user, loading, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setAuthError(null);
 
     try {
       if (isSignUp) {
@@ -43,6 +55,8 @@ const Auth = () => {
         navigate('/features');
       }
     } catch (error: any) {
+      console.error("Authentication error:", error);
+      setAuthError(error.message);
       toast({
         title: "Error",
         description: error.message,
@@ -55,6 +69,9 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsLoading(true);
+      setAuthError(null);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -64,13 +81,26 @@ const Auth = () => {
       
       if (error) throw error;
     } catch (error: any) {
+      console.error("Google auth error:", error);
+      setAuthError(error.message || "Failed to authenticate with Google");
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Google Sign In Failed",
+        description: error.message || "Please ensure Google auth is configured in Supabase",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <p>Checking authentication status...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-black text-white items-center justify-center">
@@ -81,6 +111,12 @@ const Auth = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {authError && (
+            <div className="mb-4 p-3 bg-red-900/50 border border-red-800 rounded-md text-sm">
+              {authError}
+            </div>
+          )}
+
           <form onSubmit={handleAuth} className="space-y-4">
             <div className="space-y-2">
               <Input
@@ -132,10 +168,15 @@ const Auth = () => {
               variant="outline" 
               className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
               onClick={handleGoogleSignIn}
+              disabled={isLoading}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
               Sign in with Google
             </Button>
+            
+            <div className="text-xs text-center mt-4 text-white/50">
+              <p>If you're seeing authentication errors with Google Sign In, please ensure Google authentication is enabled in your Supabase project.</p>
+            </div>
           </form>
         </CardContent>
       </Card>
