@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +29,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { getApiConfig } from '@/utils/apiService';
+import { getApiConfig, isGoogleConfig, isPayPalConfig } from '@/utils/apiService';
 
 const apiKeySchema = z.object({
   googleApiKey: z.string().min(1, "Google API Key is required"),
@@ -65,8 +66,8 @@ const ApiKeyForm = () => {
         const paypalConfig = await getApiConfig('paypal');
         
         setApiStatus({
-          google: !!googleConfig?.apiKey,
-          paypal: !!paypalConfig?.clientId && paypalConfig?.hasSecret
+          google: googleConfig ? isGoogleConfig(googleConfig) && !!googleConfig.apiKey : false,
+          paypal: paypalConfig ? isPayPalConfig(paypalConfig) && !!paypalConfig.clientId && paypalConfig.hasSecret : false
         });
       } catch (error) {
         console.error("Error checking API status:", error);
