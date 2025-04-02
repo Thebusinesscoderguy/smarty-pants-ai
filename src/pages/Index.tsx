@@ -666,8 +666,8 @@ const Index = () => {
             </p>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-blue-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">How do I set up my API keys?</h3>
-                <p className="text-white/70 mb-3">Once logged in, you can click the "Manage API Keys" button in the dashboard to access the API key form. There, you can enter your Google and PayPal credentials securely.</p>
+                <h3 className="text-xl font-semibold mb-4">How does adaptive learning work?</h3>
+                <p className="text-white/70 mb-3">Our AI system analyzes your learning patterns and adjusts the difficulty and pace of content to match your individual needs, creating a personalized experience that evolves as you progress.</p>
                 <div className="flex justify-end">
                   <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
                     Learn More
@@ -693,8 +693,8 @@ const Index = () => {
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">Is my data secure?</h3>
-                <p className="text-white/70 mb-3">Yes, we take data security seriously. Your learning data and API keys are encrypted and stored securely. We never share your information with third parties.</p>
+                <h3 className="text-xl font-semibold mb-4">How does Teachly protect my privacy?</h3>
+                <p className="text-white/70 mb-3">All your learning data is encrypted and stored securely. We follow strict data protection standards and never share your personal information with third parties without consent.</p>
                 <div className="flex justify-end">
                   <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
                     Learn More
