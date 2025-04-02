@@ -1,15 +1,12 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { FaPaypal } from 'react-icons/fa';
 import { CheckCircle } from 'lucide-react';
-
 const Pricing = () => {
-  return (
-    <div className="flex flex-col min-h-screen bg-black text-white">
+  return <div className="flex flex-col min-h-screen bg-black text-white">
       <header className="py-6 text-center">
-        <h1 className="text-3xl font-bold">EduAI</h1>
+        <h1 className="text-3xl font-bold">Teachly</h1>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
@@ -85,14 +82,10 @@ const Pricing = () => {
         </Card>
 
         <div className="mt-8 max-w-md text-center">
-          <h3 className="text-xl font-semibold mb-2">100% Satisfaction Guarantee</h3>
-          <p className="text-white/70 mb-6">
-            If you're not completely satisfied with your experience within the first 30 days after your trial, contact us for a full refund.
-          </p>
+          
+          
           <Link to="/features">
-            <Button variant="outline" className="border-white/30 hover:bg-white/10">
-              Continue to App
-            </Button>
+            
           </Link>
         </div>
       </main>
@@ -100,8 +93,6 @@ const Pricing = () => {
       <footer className="py-6 text-center text-sm text-white/70">
         © 2025 EduAI
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Pricing;
