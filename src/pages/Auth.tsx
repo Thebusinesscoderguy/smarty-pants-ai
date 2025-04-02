@@ -72,20 +72,41 @@ const Auth = () => {
       setIsLoading(true);
       setAuthError(null);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Log the redirect URL for debugging
+      const redirectUrl = `${window.location.origin}/features`;
+      console.log("Google auth redirect URL:", redirectUrl);
+      console.log("Current origin:", window.location.origin);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/features`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            prompt: 'select_account', // Forces Google to show the account selection screen
+          }
         },
       });
       
       if (error) throw error;
+      
+      console.log("OAuth sign-in initiated successfully:", data);
     } catch (error: any) {
       console.error("Google auth error:", error);
-      setAuthError(error.message || "Failed to authenticate with Google");
+      
+      // More detailed error information
+      const errorMessage = error.message || "Failed to authenticate with Google";
+      setAuthError(errorMessage);
+      
+      let helpText = "Please ensure Google auth is configured correctly in Supabase and Google Cloud Console.";
+      if (errorMessage.includes("redirect_uri_mismatch")) {
+        helpText = "There's a mismatch in redirect URLs. Make sure the callback URL in Google Cloud Console matches exactly with the one in Supabase.";
+      } else if (errorMessage.includes("invalid_client")) {
+        helpText = "Client ID or Secret may be incorrect. Verify these values in your Supabase settings.";
+      }
+      
       toast({
         title: "Google Sign In Failed",
-        description: error.message || "Please ensure Google auth is configured in Supabase",
+        description: `${errorMessage}. ${helpText}`,
         variant: "destructive",
       });
     } finally {
@@ -175,7 +196,12 @@ const Auth = () => {
             </Button>
             
             <div className="text-xs text-center mt-4 text-white/50">
-              <p>If you're seeing authentication errors with Google Sign In, please ensure Google authentication is enabled in your Supabase project.</p>
+              <p>If you're seeing authentication errors with Google Sign In, please ensure:</p>
+              <ul className="list-disc list-inside mt-1 text-left">
+                <li>Google authentication is enabled in your Supabase project</li>
+                <li>Your callback URL in Google Cloud Console is <code className="bg-black/40 px-1">https://twfzlbockonxopuindaw.supabase.co/auth/v1/callback</code></li>
+                <li>Your site URL in Supabase matches your application URL</li>
+              </ul>
             </div>
           </form>
         </CardContent>
