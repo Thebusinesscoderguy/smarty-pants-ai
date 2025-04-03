@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ const Auth = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !loading) {
-      navigate('/features');
+      navigate('/pricing');
     }
   }, [user, loading, navigate]);
 
@@ -52,7 +51,7 @@ const Auth = () => {
         
         if (error) throw error;
         
-        navigate('/features');
+        navigate('/pricing');
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -72,8 +71,8 @@ const Auth = () => {
       setIsLoading(true);
       setAuthError(null);
       
-      // Log the redirect URL for debugging
-      const redirectUrl = `${window.location.origin}/features`;
+      // Update the redirect URL to point to the pricing page
+      const redirectUrl = `${window.location.origin}/pricing`;
       console.log("Google auth redirect URL:", redirectUrl);
       console.log("Current origin:", window.location.origin);
       

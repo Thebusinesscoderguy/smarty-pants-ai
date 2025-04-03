@@ -1,4 +1,3 @@
-
 import { MessageSquare, Mic, Timer, LogOut, FileUp } from 'lucide-react';
 import {
   Sidebar,
@@ -32,7 +31,7 @@ export function AppSidebar() {
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/');
+      navigate('/pricing');
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
