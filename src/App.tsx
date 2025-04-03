@@ -30,8 +30,8 @@ const AuthRedirectHandler = ({ children }: { children: React.ReactNode }) => {
     const handleHashRedirect = async () => {
       if (location.hash && location.hash.includes('access_token')) {
         try {
-          // Process the hash parameters
-          const { data, error } = await supabase.auth.getSessionFromUrl();
+          // Process the hash parameters - using signInWithOAuth().redirect() result
+          const { data, error } = await supabase.auth.getSession();
           
           if (error) {
             console.error('Error getting session from URL:', error);
