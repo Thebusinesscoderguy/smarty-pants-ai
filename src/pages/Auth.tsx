@@ -71,15 +71,13 @@ const Auth = () => {
       setIsLoading(true);
       setAuthError(null);
       
-      // Update the redirect URL to point to the pricing page
-      const redirectUrl = `${window.location.origin}/pricing`;
-      console.log("Google auth redirect URL:", redirectUrl);
-      console.log("Current origin:", window.location.origin);
+      // Keep consistent with the redirectTo URL used in AuthContext
+      console.log("Google auth initiated");
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl,
+          redirectTo: `${window.location.origin}`, // Just redirect to root, the AuthContext will handle the navigation
           queryParams: {
             prompt: 'select_account', // Forces Google to show the account selection screen
           }
@@ -88,7 +86,6 @@ const Auth = () => {
       
       if (error) throw error;
       
-      console.log("OAuth sign-in initiated successfully:", data);
     } catch (error: any) {
       console.error("Google auth error:", error);
       
