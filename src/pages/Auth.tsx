@@ -18,7 +18,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (user && !loading) {
       navigate('/pricing');
@@ -71,15 +70,14 @@ const Auth = () => {
       setIsLoading(true);
       setAuthError(null);
       
-      // Keep consistent with the redirectTo URL used in AuthContext
       console.log("Google auth initiated");
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`, // Just redirect to root, the AuthContext will handle the navigation
+          redirectTo: `${window.location.origin}`,
           queryParams: {
-            prompt: 'select_account', // Forces Google to show the account selection screen
+            prompt: 'select_account',
           }
         },
       });
@@ -89,7 +87,6 @@ const Auth = () => {
     } catch (error: any) {
       console.error("Google auth error:", error);
       
-      // More detailed error information
       const errorMessage = error.message || "Failed to authenticate with Google";
       setAuthError(errorMessage);
       
