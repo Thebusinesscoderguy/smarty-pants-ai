@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -68,11 +70,12 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      setIsRedirecting(true);
       setAuthError(null);
       
       console.log("Google auth initiated");
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin,
@@ -80,6 +83,13 @@ const Auth = () => {
       });
       
       if (error) throw error;
+      
+      console.log("Redirect URL:", data?.url);
+      
+      // If we got here with a URL, redirect the browser
+      if (data?.url) {
+        window.location.href = data.url;
+      }
       
     } catch (error: any) {
       console.error("Google auth error:", error);
@@ -93,6 +103,7 @@ const Auth = () => {
         variant: "destructive",
       });
       setIsLoading(false);
+      setIsRedirecting(false);
     }
   };
 
@@ -101,6 +112,16 @@ const Auth = () => {
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <p>Checking authentication status...</p>
+      </div>
+    );
+  }
+
+  if (isRedirecting) {
+    return (
+      <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <p>Redirecting to Google for authentication...</p>
+        <p className="text-sm text-white/60 mt-4">If you're not redirected within a few seconds, please check your popup blocker.</p>
       </div>
     );
   }
@@ -178,11 +199,13 @@ const Auth = () => {
             </Button>
             
             <div className="text-xs text-center mt-4 text-white/50">
-              <p>If you're seeing authentication errors with Google Sign In, please ensure:</p>
+              <p>For Google Sign In to work correctly:</p>
               <ul className="list-disc list-inside mt-1 text-left">
-                <li>Google authentication is enabled in your Supabase project</li>
-                <li>Your callback URL in Google Cloud Console is <code className="bg-black/40 px-1">https://twfzlbockonxopuindaw.supabase.co/auth/v1/callback</code></li>
-                <li>Your site URL in Supabase matches your application URL</li>
+                <li>Make sure your application URL is added to authorized redirect URLs in Google Cloud Console.</li>
+                <li>For local testing: add <code className="bg-black/40 px-1">http://localhost:5173</code> to authorized origins in Google Cloud Console.</li>
+                <li>For production: add your public domain to authorized origins.</li>
+                <li>The callback URL in Google Cloud Console should be <code className="bg-black/40 px-1">https://twfzlbockonxopuindaw.supabase.co/auth/v1/callback</code></li>
+                <li>The site URL in Supabase must match your application URL.</li>
               </ul>
             </div>
           </form>
