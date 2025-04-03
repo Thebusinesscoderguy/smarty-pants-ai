@@ -8,7 +8,6 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  handleOAuthCallback: (hash: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,27 +16,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Function to handle OAuth callback (used by app components with router access)
-  const handleOAuthCallback = async (hash: string): Promise<boolean> => {
-    if (hash && hash.includes('access_token')) {
-      try {
-        // Process the URL hash to extract the session
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          return false;
-        } else if (data?.session) {
-          console.log('Successfully authenticated from OAuth provider');
-          return true;
-        }
-      } catch (error) {
-        console.error('Error processing auth callback:', error);
-      }
-    }
-    return false;
-  };
 
   useEffect(() => {
     // Set up auth state listener first
@@ -67,7 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signOut, handleOAuthCallback }}>
+    <AuthContext.Provider value={{ session, user, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,6 +8,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
@@ -22,24 +24,51 @@ const queryClient = new QueryClient();
 const AuthRedirectHandler = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { handleOAuthCallback } = useAuth();
+  const { loading } = useAuth();
 
   useEffect(() => {
-    // Handle OAuth redirects
-    const processHash = async () => {
+    const handleHashRedirect = async () => {
       if (location.hash && location.hash.includes('access_token')) {
-        const success = await handleOAuthCallback(location.hash);
-        if (success) {
-          // Clear the hash from the URL
-          window.history.replaceState({}, document.title, location.pathname);
-          // Navigate to pricing page after successful auth
-          navigate('/pricing');
+        try {
+          // Process the hash parameters
+          const { data, error } = await supabase.auth.getSessionFromUrl();
+          
+          if (error) {
+            console.error('Error getting session from URL:', error);
+            toast({
+              title: "Authentication failed",
+              description: error.message,
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          if (data.session) {
+            console.log('Successfully authenticated from OAuth provider');
+            // Clear the hash from the URL and navigate to pricing
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate('/pricing');
+            
+            toast({
+              title: "Successfully signed in",
+              description: "Welcome back!",
+            });
+          }
+        } catch (error: any) {
+          console.error('Error processing auth redirect:', error);
+          toast({
+            title: "Authentication error",
+            description: error.message || "Failed to process authentication",
+            variant: "destructive",
+          });
         }
       }
     };
 
-    processHash();
-  }, [location.hash, navigate, handleOAuthCallback, location.pathname]);
+    if (!loading) {
+      handleHashRedirect();
+    }
+  }, [location.hash, navigate, loading]);
 
   return <>{children}</>;
 };

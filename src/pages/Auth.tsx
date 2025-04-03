@@ -75,10 +75,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
-          queryParams: {
-            prompt: 'select_account',
-          }
+          redirectTo: window.location.origin,
         },
       });
       
@@ -90,19 +87,11 @@ const Auth = () => {
       const errorMessage = error.message || "Failed to authenticate with Google";
       setAuthError(errorMessage);
       
-      let helpText = "Please ensure Google auth is configured correctly in Supabase and Google Cloud Console.";
-      if (errorMessage.includes("redirect_uri_mismatch")) {
-        helpText = "There's a mismatch in redirect URLs. Make sure the callback URL in Google Cloud Console matches exactly with the one in Supabase.";
-      } else if (errorMessage.includes("invalid_client")) {
-        helpText = "Client ID or Secret may be incorrect. Verify these values in your Supabase settings.";
-      }
-      
       toast({
         title: "Google Sign In Failed",
-        description: `${errorMessage}. ${helpText}`,
+        description: errorMessage,
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
