@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -80,7 +79,7 @@ const Voice = () => {
           timestamp: new Date(msg.created_at),
           audioUrl: msg.type === 'voice' ? msg.file_url : undefined,
           fileUrl: msg.type === 'file' ? msg.file_url : undefined,
-          fileName: msg.type === 'file' ? msg.file_name : undefined,
+          fileName: msg.file_name || (msg.type === 'file' ? 'Attachment' : undefined),
           isPlaying: false,
           isFromUser: msg.is_from_user,
           type: msg.type as 'text' | 'voice' | 'file'
@@ -700,4 +699,3 @@ const Voice = () => {
 };
 
 export default Voice;
-
