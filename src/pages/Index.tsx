@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { testApiConnections } from '@/utils/apiService';
-
 interface VoiceMessage {
   id?: string;
   text: string;
@@ -19,18 +18,17 @@ interface VoiceMessage {
   audioUrl?: string;
   isPlaying?: boolean;
 }
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
-
 const Index = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
-  const { user } = useAuth();
-  
+  const {
+    user
+  } = useAuth();
   const [showVoiceSection, setShowVoiceSection] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -40,43 +38,36 @@ const Index = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-
+  const audioRefs = useRef<{
+    [key: string]: HTMLAudioElement | null;
+  }>({});
   const [showChatSection, setShowChatSection] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([{
+    role: 'assistant',
+    content: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
+    timestamp: new Date()
+  }]);
   const [input, setInput] = useState('');
-
   useEffect(() => {
     if (user && showVoiceSection) {
       fetchMessages();
     }
   }, [user, showVoiceSection]);
-
   useEffect(() => {
     if (user) {
       testApiConnections();
     }
   }, [user]);
-
   const fetchMessages = async () => {
     if (!user) return;
-    
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('type', 'voice')
-        .order('created_at', { ascending: true });
-      
+      const {
+        data,
+        error
+      } = await supabase.from('messages').select('*').eq('user_id', user.id).eq('type', 'voice').order('created_at', {
+        ascending: true
+      });
       if (error) throw error;
-      
       if (data && data.length > 0) {
         const formattedMessages = data.map(msg => ({
           id: msg.id,
@@ -85,7 +76,6 @@ const Index = () => {
           audioUrl: msg.file_url,
           isPlaying: false
         }));
-        
         setVoiceMessages(formattedMessages);
       }
     } catch (error: any) {
@@ -96,47 +86,42 @@ const Index = () => {
       });
     }
   };
-
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: 'smooth'
+    });
   };
-
   const handleStartRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
-      
-      mediaRecorderRef.current.ondataavailable = (event) => {
+      mediaRecorderRef.current.ondataavailable = event => {
         audioChunksRef.current.push(event.data);
       };
-      
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: 'audio/webm'
+        });
         setAudioData(audioBlob);
-        
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
           const base64Audio = reader.result?.toString().split(',')[1];
-          
           if (base64Audio) {
             await processVoiceToText(base64Audio);
           }
         };
-        
         stream.getTracks().forEach(track => track.stop());
       };
-      
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
         setRecordingTime(prevTime => prevTime + 1);
       }, 1000);
-      
     } catch (error: any) {
       toast({
         title: "Error",
@@ -145,19 +130,16 @@ const Index = () => {
       });
     }
   };
-
   const handleStopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
     }
   };
-
   const processVoiceToText = async (audioBase64: string) => {
     if (!user) {
       toast({
@@ -167,44 +149,34 @@ const Index = () => {
       });
       return;
     }
-    
     try {
       const response = await supabase.functions.invoke('voice-to-text', {
-        body: { audio: audioBase64 },
+        body: {
+          audio: audioBase64
+        }
       });
-      
       if (response.error) throw new Error(response.error.message);
-      
       const transcribedText = response.data.text;
-      
       let userMessageId = null;
       let audioUrl = null;
-      
       if (user) {
         userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null);
-        
         if (audioData) {
           audioUrl = await uploadAudioFile(audioData, userMessageId);
-          
-          await supabase
-            .from('messages')
-            .update({ file_url: audioUrl })
-            .eq('id', userMessageId);
+          await supabase.from('messages').update({
+            file_url: audioUrl
+          }).eq('id', userMessageId);
         }
       }
-      
       const newUserMessage: VoiceMessage = {
         id: userMessageId,
         text: transcribedText,
         timestamp: new Date(),
-        audioUrl: audioUrl,
+        audioUrl: audioUrl
       };
-      
       setVoiceMessages(prev => [...prev, newUserMessage]);
       scrollToBottom();
-      
       await getAIResponse(transcribedText);
-      
     } catch (error: any) {
       toast({
         title: "Error",
@@ -213,50 +185,40 @@ const Index = () => {
       });
     }
   };
-
   const getAIResponse = async (userMessage: string) => {
     try {
       const aiResponse = `I've processed your voice message: "${userMessage}". How can I help you further?`;
-      
       let aiMessageId = null;
       let audioUrl = null;
-      
       if (user) {
         const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-          body: { text: aiResponse, voice: 'alloy' },
+          body: {
+            text: aiResponse,
+            voice: 'alloy'
+          }
         });
-        
         if (voiceResponse.error) throw new Error(voiceResponse.error.message);
-        
         const base64Audio = voiceResponse.data.audioContent;
         const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
-        
         aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, false);
-        
         audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
-        
-        await supabase
-          .from('messages')
-          .update({ file_url: audioUrl })
-          .eq('id', aiMessageId);
+        await supabase.from('messages').update({
+          file_url: audioUrl
+        }).eq('id', aiMessageId);
       }
-      
       const aiMessage: VoiceMessage = {
         id: aiMessageId,
         text: aiResponse,
         timestamp: new Date(),
-        audioUrl: audioUrl,
+        audioUrl: audioUrl
       };
-      
       setVoiceMessages(prev => [...prev, aiMessage]);
       scrollToBottom();
-      
       setTimeout(() => {
         if (aiMessageId) {
           handlePlayAudio(aiMessageId);
         }
       }, 500);
-      
     } catch (error: any) {
       toast({
         title: "Error",
@@ -265,201 +227,153 @@ const Index = () => {
       });
     }
   };
-
   const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
     if (!user) return null;
-    
     try {
       const filePath = `${user.id}/${messageId}.webm`;
-      
-      const { data, error } = await supabase.storage
-        .from('study_materials')
-        .upload(filePath, audioBlob, {
-          contentType: 'audio/webm',
-          upsert: true,
-        });
-      
+      const {
+        data,
+        error
+      } = await supabase.storage.from('study_materials').upload(filePath, audioBlob, {
+        contentType: 'audio/webm',
+        upsert: true
+      });
       if (error) throw error;
-      
-      const { data: urlData } = supabase.storage
-        .from('study_materials')
-        .getPublicUrl(filePath);
-      
+      const {
+        data: urlData
+      } = supabase.storage.from('study_materials').getPublicUrl(filePath);
       return urlData.publicUrl;
-      
     } catch (error: any) {
       console.error("Error uploading audio:", error);
       return null;
     }
   };
-
-  const saveMessageToDatabase = async (
-    content: string, 
-    type: string, 
-    fileUrl: string | null,
-    isFromUser: boolean = true
-  ): Promise<string> => {
+  const saveMessageToDatabase = async (content: string, type: string, fileUrl: string | null, isFromUser: boolean = true): Promise<string> => {
     if (!user) throw new Error("User not authenticated");
-    
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          user_id: user.id,
-          content,
-          type,
-          file_url: fileUrl,
-          is_from_user: isFromUser,
-        })
-        .select('id')
-        .single();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('messages').insert({
+        user_id: user.id,
+        content,
+        type,
+        file_url: fileUrl,
+        is_from_user: isFromUser
+      }).select('id').single();
       if (error) throw error;
-      
       await supabase.from('token_usage').insert({
         user_id: user.id,
         tokens_used: Math.ceil(content.length / 4),
-        feature: 'voice',
+        feature: 'voice'
       });
-      
       return data.id;
     } catch (error: any) {
       console.error("Error saving message:", error);
       throw error;
     }
   };
-
   const base64ToBlob = (base64: string, mimeType: string): Blob => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
-    
     for (let offset = 0; offset < byteCharacters.length; offset += 512) {
       const slice = byteCharacters.slice(offset, offset + 512);
-      
       const byteNumbers = new Array(slice.length);
       for (let i = 0; i < slice.length; i++) {
         byteNumbers[i] = slice.charCodeAt(i);
       }
-      
       const byteArray = new Uint8Array(byteNumbers);
       byteArrays.push(byteArray);
     }
-    
-    return new Blob(byteArrays, { type: mimeType });
+    return new Blob(byteArrays, {
+      type: mimeType
+    });
   };
-
   const handlePlayAudio = (messageId: string) => {
     if (!audioRefs.current[messageId]) {
       const message = voiceMessages.find(m => m.id === messageId);
-      
       if (message?.audioUrl) {
         const audio = new Audio(message.audioUrl);
         audioRefs.current[messageId] = audio;
-        
         audio.onended = () => {
-          setVoiceMessages(messages => 
-            messages.map(m => 
-              m.id === messageId ? { ...m, isPlaying: false } : m
-            )
-          );
+          setVoiceMessages(messages => messages.map(m => m.id === messageId ? {
+            ...m,
+            isPlaying: false
+          } : m));
         };
       }
     }
-    
     const audio = audioRefs.current[messageId];
-    
     if (audio) {
       Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
         if (id !== messageId && audioElement) {
           audioElement.pause();
           audioElement.currentTime = 0;
-          
-          setVoiceMessages(messages => 
-            messages.map(m => 
-              m.id === id ? { ...m, isPlaying: false } : m
-            )
-          );
+          setVoiceMessages(messages => messages.map(m => m.id === id ? {
+            ...m,
+            isPlaying: false
+          } : m));
         }
       });
-      
       audio.play();
-      
-      setVoiceMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: true } : m
-        )
-      );
+      setVoiceMessages(messages => messages.map(m => m.id === messageId ? {
+        ...m,
+        isPlaying: true
+      } : m));
     }
   };
-
   const handlePauseAudio = (messageId: string) => {
     const audio = audioRefs.current[messageId];
-    
     if (audio) {
       audio.pause();
-      
-      setVoiceMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: false } : m
-        )
-      );
+      setVoiceMessages(messages => messages.map(m => m.id === messageId ? {
+        ...m,
+        isPlaying: false
+      } : m));
     }
   };
-
   const handleSendMessage = () => {
     if (!input.trim()) return;
-
     const userMessage: Message = {
       role: 'user',
       content: input,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
-    
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
-    
     setTimeout(() => {
       const aiResponse = `Thank you for your message: "${input}". I'm here to help you learn.`;
-      
       const assistantMessage: Message = {
         role: 'assistant',
         content: aiResponse,
-        timestamp: new Date(),
+        timestamp: new Date()
       };
-      
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
     }, 1000);
   };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
-
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+  return <div className="min-h-screen bg-black text-white flex flex-col">
       <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
         <h1 className="text-xl font-bold">Teachly</h1>
         <div className="space-x-4">
-          {user ? (
-            <>
+          {user ? <>
               <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
                 <Link to="/features">Dashboard</Link>
               </Button>
               <ApiKeyForm />
-            </>
-          ) : (
-            <>
+            </> : <>
               <Button variant="outline" className="text-white border-white/30 hover:bg-white/10" onClick={() => setIsLoginOpen(true)}>
                 Log in
               </Button>
               <Button className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
                 Sign up
               </Button>
-            </>
-          )}
+            </>}
         </div>
       </header>
 
@@ -473,158 +387,86 @@ const Index = () => {
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
             <div className="mt-8 space-x-4">
-              {user ? (
-                <>
-                  <Button 
-                    size="lg" 
-                    className="bg-white text-black hover:bg-gray-200"
-                    onClick={() => {
-                      setShowVoiceSection(!showVoiceSection);
-                      setShowChatSection(false);
-                    }}
-                  >
+              {user ? <>
+                  <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={() => {
+                setShowVoiceSection(!showVoiceSection);
+                setShowChatSection(false);
+              }}>
                     <Mic className="mr-2 h-4 w-4" />
                     {showVoiceSection ? "Hide Voice Messages" : "Open Voice Messages"}
                   </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="border-white/30 hover:bg-white/10"
-                    onClick={() => {
-                      setShowChatSection(!showChatSection);
-                      setShowVoiceSection(false);
-                    }}
-                  >
+                  <Button size="lg" variant="outline" className="border-white/30 hover:bg-white/10" onClick={() => {
+                setShowChatSection(!showChatSection);
+                setShowVoiceSection(false);
+              }}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     {showChatSection ? "Hide Text Chat" : "Open Text Chat"}
                   </Button>
-                </>
-              ) : (
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
+                </> : <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
                   Get Started
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
 
-          {showVoiceSection && user && (
-            <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
+          {showVoiceSection && user && <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
               <h2 className="text-2xl font-bold mb-4">Voice Messages</h2>
               
               <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
-                {voiceMessages.length > 0 ? (
-                  voiceMessages.map((message, index) => (
-                    <Card 
-                      key={index}
-                      className="p-4 bg-white/5 border-white/20"
-                    >
+                {voiceMessages.length > 0 ? voiceMessages.map((message, index) => <Card key={index} className="p-4 bg-white/5 border-white/20">
                       <p className="mb-2">{message.text}</p>
                       <div className="flex items-center justify-between">
-                        {message.audioUrl && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="border-white/30 hover:bg-white/10"
-                            onClick={() => message.isPlaying 
-                              ? handlePauseAudio(message.id!) 
-                              : handlePlayAudio(message.id!)
-                            }
-                          >
-                            {message.isPlaying ? (
-                              <>
+                        {message.audioUrl && <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10" onClick={() => message.isPlaying ? handlePauseAudio(message.id!) : handlePlayAudio(message.id!)}>
+                            {message.isPlaying ? <>
                                 <Pause className="h-4 w-4 mr-1" />
                                 Pause
-                              </>
-                            ) : (
-                              <>
+                              </> : <>
                                 <Play className="h-4 w-4 mr-1" />
                                 Play
-                              </>
-                            )}
-                          </Button>
-                        )}
+                              </>}
+                          </Button>}
                         <span className="text-xs text-white/50">
                           {message.timestamp.toLocaleTimeString()}
                         </span>
                       </div>
-                    </Card>
-                  ))
-                ) : (
-                  <p className="text-white/70 text-center py-4">No voice messages yet. Start recording to begin.</p>
-                )}
+                    </Card>) : <p className="text-white/70 text-center py-4">No voice messages yet. Start recording to begin.</p>}
                 <div ref={messagesEndRef} />
               </div>
               
               <div className="flex justify-center">
-                {isRecording ? (
-                  <div className="flex flex-col items-center">
+                {isRecording ? <div className="flex flex-col items-center">
                     <div className="mb-2 text-red-500 animate-pulse">
                       Recording... {recordingTime}s
                     </div>
-                    <Button 
-                      onClick={handleStopRecording}
-                      variant="destructive"
-                      size="lg"
-                      className="rounded-full w-16 h-16 flex items-center justify-center"
-                    >
+                    <Button onClick={handleStopRecording} variant="destructive" size="lg" className="rounded-full w-16 h-16 flex items-center justify-center">
                       <Square className="h-6 w-6" />
                     </Button>
-                  </div>
-                ) : (
-                  <Button 
-                    onClick={handleStartRecording}
-                    className="bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
-                  >
+                  </div> : <Button onClick={handleStartRecording} className="bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center">
                     <Mic className="h-6 w-6" />
-                  </Button>
-                )}
+                  </Button>}
               </div>
-            </div>
-          )}
+            </div>}
 
-          {showChatSection && user && (
-            <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
+          {showChatSection && user && <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
               <h2 className="text-2xl font-bold mb-4">Text Chat</h2>
               
               <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
-                {messages.map((message, index) => (
-                  <div 
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <Card 
-                      className={`max-w-[80%] p-3 ${
-                        message.role === 'user' 
-                          ? 'bg-white/10 text-white border-white/20' 
-                          : 'bg-white/5 text-white border-white/20'
-                      }`}
-                    >
+                {messages.map((message, index) => <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <Card className={`max-w-[80%] p-3 ${message.role === 'user' ? 'bg-white/10 text-white border-white/20' : 'bg-white/5 text-white border-white/20'}`}>
                       <p className="whitespace-pre-wrap">{message.content}</p>
                       <div className="text-xs text-white/50 mt-1">
                         {message.timestamp.toLocaleTimeString()}
                       </div>
                     </Card>
-                  </div>
-                ))}
+                  </div>)}
               </div>
               
               <div className="flex gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="flex-1 bg-transparent border-white/30 focus-visible:ring-white"
-                />
-                <Button 
-                  onClick={handleSendMessage}
-                  className="bg-white text-black hover:bg-gray-200"
-                >
+                <Input value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." className="flex-1 bg-transparent border-white/30 focus-visible:ring-white" />
+                <Button onClick={handleSendMessage} className="bg-white text-black hover:bg-gray-200">
                   Send
                 </Button>
               </div>
-            </div>
-          )}
+            </div>}
 
           <div className="grid md:grid-cols-3 gap-6 mt-16">
             <div className="bg-white/5 border border-white/10 rounded-lg p-6">
@@ -676,36 +518,28 @@ const Index = () => {
                 <h3 className="text-xl font-semibold mb-4">How does adaptive learning work?</h3>
                 <p className="text-white/70 mb-3">Our AI system analyzes your learning patterns and adjusts the difficulty and pace of content to match your individual needs, creating a personalized experience that evolves as you progress.</p>
                 <div className="flex justify-end">
-                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Learn More
-                  </Button>
+                  
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300 text-left">
                 <h3 className="text-xl font-semibold mb-4">How does voice learning work?</h3>
                 <p className="text-white/70 mb-3">Click on the "Open Voice Messages" button after logging in to access our voice learning feature. You can record questions and receive spoken responses from our AI tutor.</p>
                 <div className="flex justify-end">
-                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Learn More
-                  </Button>
+                  
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300 text-left">
                 <h3 className="text-xl font-semibold mb-4">What content can Teachly help me with?</h3>
                 <p className="text-white/70 mb-3">Teachly can assist with a wide range of subjects including mathematics, science, languages, programming, and more. Our AI adapts to your specific learning needs.</p>
                 <div className="flex justify-end">
-                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Learn More
-                  </Button>
+                  
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 text-left">
                 <h3 className="text-xl font-semibold mb-4">Can I use Teachly on mobile devices?</h3>
                 <p className="text-white/70 mb-3">Yes! Teachly is fully responsive and works on all devices including smartphones and tablets. Your learning progress syncs across all platforms automatically.</p>
                 <div className="flex justify-end">
-                  <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10">
-                    Learn More
-                  </Button>
+                  
                 </div>
               </div>
             </div>
@@ -726,8 +560,6 @@ const Index = () => {
 
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
