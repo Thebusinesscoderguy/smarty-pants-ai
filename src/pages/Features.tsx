@@ -1,10 +1,11 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, FileUp, X } from 'lucide-react';
+import AIAvatar from '@/components/AIAvatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -34,6 +35,10 @@ const Features = () => {
   const [isQuizMode, setIsQuizMode] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showUploadSection, setShowUploadSection] = useState(false);
+  
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [avatarStyle, setAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
+  const [avatarEmotion, setAvatarEmotion] = useState<'neutral' | 'happy' | 'confused' | 'excited'>('neutral');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -82,7 +87,6 @@ const Features = () => {
     
     lastUserMessageTimeRef.current = new Date();
     
-    // Check if this is a quiz-related message
     const isQuizRequest = input.toLowerCase().includes('quiz') || 
                   /^(test|exam|practice|exercise|problem|question)/i.test(input);
     
@@ -98,6 +102,9 @@ const Features = () => {
     
     setUploadedFiles([]);
     setShowUploadSection(false);
+
+    setAvatarEmotion('neutral');
+    setIsSpeaking(false);
     
     setTimeout(() => {
       const aiResponse = simulateAIResponse(input, timeSinceLastAnswer, isQuizRequest);
@@ -116,11 +123,24 @@ const Features = () => {
       if (!isQuizRequest) {
         setIsTimerActive(false);
       }
+
+      setIsSpeaking(true);
+      
+      setTimeout(() => {
+        setIsSpeaking(false);
+        
+        if (aiResponse.includes("Great job")) {
+          setAvatarEmotion('happy');
+        } else if (aiResponse.includes("Let's work through")) {
+          setAvatarEmotion('confused');
+        } else {
+          setAvatarEmotion('neutral');
+        }
+      }, aiResponse.length * 50);
     }, 1000);
   };
 
   const simulateAIResponse = (userMessage: string, timeElapsed: number, isQuizRequest: boolean): string => {
-    // If not in quiz mode, don't consider the time elapsed
     if (!isQuizRequest) {
       if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
         return "Hello! How can I help with your learning today?";
@@ -137,7 +157,6 @@ const Features = () => {
       return "I'm here to help you learn. Would you like to start a quiz on a particular subject or upload some study materials?";
     }
     
-    // For quiz requests, use time-based adaptation
     const isSlowResponse = timeElapsed > 15;
     
     if (userMessage.toLowerCase().includes('math') || 
@@ -191,114 +210,152 @@ const Features = () => {
     fileInputRef.current?.click();
   };
 
+  const handleAvatarStyleChange = (value: string) => {
+    setAvatarStyle(value as 'teacher' | 'casual' | 'professional' | 'friendly');
+  };
+
   return (
     <div className="flex min-h-screen bg-black text-white">
       <AppSidebar />
       
       <div className="flex-1 flex flex-col max-h-screen">
-        <header className="p-4 border-b border-white/20">
+        <header className="p-4 border-b border-white/20 flex justify-between items-center">
           <h1 className="text-xl font-bold">Chat with EduAI</h1>
+          <div className="flex items-center space-x-2">
+            <Select value={avatarStyle} onValueChange={handleAvatarStyleChange}>
+              <SelectTrigger className="bg-transparent border-white/20 w-40">
+                <SelectValue placeholder="Avatar style" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-900 border-white/20">
+                <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="casual">Casual</SelectItem>
+                <SelectItem value="professional">Professional</SelectItem>
+                <SelectItem value="friendly">Friendly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </header>
         
         <main className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message, index) => (
-              <div 
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <Card 
-                  className={`max-w-[80%] p-3 ${
-                    message.role === 'user' 
-                      ? 'bg-white/10 text-white border-white/20' 
-                      : 'bg-white/5 text-white border-white/20'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                  <div className="text-xs text-white/50 mt-1">
-                    {message.timestamp.toLocaleTimeString()}
-                  </div>
-                </Card>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          
-          {isQuizMode && (
-            <div className="px-4 py-2 text-white/70 text-sm border-t border-white/20">
-              Time since last answer: {timeSinceLastAnswer} seconds
+          <div className="grid grid-cols-1 lg:grid-cols-4 h-full">
+            <div className="hidden lg:flex lg:col-span-1 bg-gray-900/30 p-4 flex-col items-center justify-center">
+              <AIAvatar 
+                isSpeaking={isSpeaking}
+                avatarStyle={avatarStyle}
+                emotion={avatarEmotion}
+                className="w-full mb-4"
+              />
+              {isQuizMode && (
+                <div className="px-4 py-2 bg-white/5 rounded-md text-white/70 text-sm mt-4">
+                  Time: {timeSinceLastAnswer} seconds
+                </div>
+              )}
             </div>
-          )}
-          
-          {showUploadSection && (
-            <div className="p-4 border-t border-white/10 bg-white/5">
-              <div className="mb-2 flex justify-between items-center">
-                <h3 className="font-medium">Upload Study Materials</h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={toggleUploadSection}
-                  className="h-6 w-6 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-3">
-                {uploadedFiles.map((file, index) => (
-                  <div key={index} className="bg-white/10 text-sm rounded px-2 py-1 flex items-center gap-1">
-                    <span className="truncate max-w-[150px]">{file.name}</span>
-                    <button 
-                      onClick={() => removeFile(file.name)}
-                      className="text-white/70 hover:text-white"
+            
+            <div className="col-span-1 lg:col-span-3 flex-1 flex flex-col">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="lg:hidden flex justify-center mb-4">
+                  <AIAvatar 
+                    isSpeaking={isSpeaking}
+                    avatarStyle={avatarStyle}
+                    emotion={avatarEmotion}
+                    className="w-48 h-48"
+                  />
+                </div>
+                
+                {messages.map((message, index) => (
+                  <div 
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <Card 
+                      className={`max-w-[80%] p-3 ${
+                        message.role === 'user' 
+                          ? 'bg-white/10 text-white border-white/20' 
+                          : 'bg-white/5 text-white border-white/20'
+                      }`}
                     >
-                      <X className="h-3 w-3" />
-                    </button>
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <div className="text-xs text-white/50 mt-1">
+                        {message.timestamp.toLocaleTimeString()}
+                      </div>
+                    </Card>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
               
-              <Button 
-                onClick={triggerFileInput} 
-                variant="outline" 
-                size="sm"
-                className="w-full border-dashed border-white/30"
-              >
-                Select files to upload
-              </Button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                className="hidden"
-                multiple
-              />
-            </div>
-          )}
-          
-          <div className="p-4 border-t border-white/20">
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 rounded-full border border-white/30 flex-shrink-0"
-                onClick={toggleUploadSection}
-              >
-                <FileUp className="h-5 w-5" />
-              </Button>
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type here..."
-                className="flex-1 bg-transparent border-white/30 focus-visible:ring-white"
-              />
-              <Button 
-                onClick={handleSendMessage}
-                className="bg-white text-black hover:bg-gray-200 flex-shrink-0"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              {showUploadSection && (
+                <div className="p-4 border-t border-white/10 bg-white/5">
+                  <div className="mb-2 flex justify-between items-center">
+                    <h3 className="font-medium">Upload Study Materials</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={toggleUploadSection}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="bg-white/10 text-sm rounded px-2 py-1 flex items-center gap-1">
+                        <span className="truncate max-w-[150px]">{file.name}</span>
+                        <button 
+                          onClick={() => removeFile(file.name)}
+                          className="text-white/70 hover:text-white"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    onClick={triggerFileInput} 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full border-dashed border-white/30"
+                  >
+                    Select files to upload
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    multiple
+                  />
+                </div>
+              )}
+              
+              <div className="p-4 border-t border-white/20">
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full border border-white/30 flex-shrink-0"
+                    onClick={toggleUploadSection}
+                  >
+                    <FileUp className="h-5 w-5" />
+                  </Button>
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type here..."
+                    className="flex-1 bg-transparent border-white/30 focus-visible:ring-white"
+                  />
+                  <Button 
+                    onClick={handleSendMessage}
+                    className="bg-white text-black hover:bg-gray-200 flex-shrink-0"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </main>

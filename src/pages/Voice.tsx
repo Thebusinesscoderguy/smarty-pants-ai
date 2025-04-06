@@ -1,12 +1,13 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Mic, Square, Play, Pause } from 'lucide-react';
+import { Mic, Square, Play, Pause, UserCircle2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import AIAvatar from '@/components/AIAvatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface VoiceMessage {
   id?: string;
@@ -33,7 +34,10 @@ const Voice = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
-  // Fetch messages on component mount
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [avatarStyle, setAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
+  const [avatarEmotion, setAvatarEmotion] = useState<'neutral' | 'happy' | 'confused' | 'excited'>('neutral');
+
   useEffect(() => {
     if (user) {
       fetchMessages();
@@ -77,7 +81,6 @@ const Voice = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Start recording
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -93,7 +96,6 @@ const Voice = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioData(audioBlob);
         
-        // Convert to base64
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
@@ -104,14 +106,12 @@ const Voice = () => {
           }
         };
         
-        // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
       
       mediaRecorderRef.current.start();
       setIsRecording(true);
       
-      // Start timer
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
         setRecordingTime(prevTime => prevTime + 1);
@@ -126,13 +126,11 @@ const Voice = () => {
     }
   };
 
-  // Stop recording
   const handleStopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
-      // Clear timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -140,7 +138,6 @@ const Voice = () => {
     }
   };
 
-  // Process voice to text
   const processVoiceToText = async (audioBase64: string) => {
     try {
       const response = await supabase.functions.invoke('voice-to-text', {
@@ -151,15 +148,12 @@ const Voice = () => {
       
       const transcribedText = response.data.text;
       
-      // Save user message to database
       const userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null);
       
-      // Upload audio file to storage
       let audioUrl = null;
       if (audioData) {
         audioUrl = await uploadAudioFile(audioData, userMessageId);
         
-        // Update message with file URL
         await supabase
           .from('messages')
           .update({ file_url: audioUrl })
@@ -176,7 +170,6 @@ const Voice = () => {
       setMessages(prev => [...prev, newUserMessage]);
       scrollToBottom();
       
-      // Get AI response
       await getAIResponse(transcribedText);
       
     } catch (error: any) {
@@ -188,13 +181,13 @@ const Voice = () => {
     }
   };
 
-  // Get AI response
   const getAIResponse = async (userMessage: string) => {
     try {
-      // Simulate AI processing (in a real app, you would call an AI service)
+      setAvatarEmotion('neutral');
+      setIsSpeaking(false);
+      
       const aiResponse = `I've processed your voice message: "${userMessage}". How can I help you further?`;
       
-      // Convert AI response to speech
       const voiceResponse = await supabase.functions.invoke('text-to-voice', {
         body: { text: aiResponse, voice: 'alloy' },
       });
@@ -204,13 +197,10 @@ const Voice = () => {
       const base64Audio = voiceResponse.data.audioContent;
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
       
-      // Save AI response to database
       const aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, false);
       
-      // Upload audio file
       const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
       
-      // Update message with file URL
       await supabase
         .from('messages')
         .update({ file_url: audioUrl })
@@ -226,7 +216,6 @@ const Voice = () => {
       setMessages(prev => [...prev, aiMessage]);
       scrollToBottom();
       
-      // Auto-play the AI response
       setTimeout(() => {
         if (aiMessageId) {
           handlePlayAudio(aiMessageId);
@@ -242,7 +231,6 @@ const Voice = () => {
     }
   };
 
-  // Upload audio file to storage
   const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
     try {
       const filePath = `${user?.id}/${messageId}.webm`;
@@ -256,7 +244,6 @@ const Voice = () => {
       
       if (error) throw error;
       
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('study_materials')
         .getPublicUrl(filePath);
@@ -269,7 +256,6 @@ const Voice = () => {
     }
   };
 
-  // Save message to database
   const saveMessageToDatabase = async (
     content: string, 
     type: string, 
@@ -291,7 +277,6 @@ const Voice = () => {
       
       if (error) throw error;
       
-      // Track token usage
       await supabase.from('token_usage').insert({
         user_id: user?.id,
         tokens_used: Math.ceil(content.length / 4),
@@ -305,7 +290,6 @@ const Voice = () => {
     }
   };
 
-  // Convert base64 to blob
   const base64ToBlob = (base64: string, mimeType: string): Blob => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
@@ -325,9 +309,7 @@ const Voice = () => {
     return new Blob(byteArrays, { type: mimeType });
   };
 
-  // Play audio
   const handlePlayAudio = (messageId: string) => {
-    // Create audio element if it doesn't exist
     if (!audioRefs.current[messageId]) {
       const message = messages.find(m => m.id === messageId);
       
@@ -335,12 +317,21 @@ const Voice = () => {
         const audio = new Audio(message.audioUrl);
         audioRefs.current[messageId] = audio;
         
+        audio.onplay = () => {
+          setIsSpeaking(true);
+        };
+        
         audio.onended = () => {
+          setIsSpeaking(false);
           setMessages(messages => 
             messages.map(m => 
               m.id === messageId ? { ...m, isPlaying: false } : m
             )
           );
+        };
+        
+        audio.onpause = () => {
+          setIsSpeaking(false);
         };
       }
     }
@@ -348,7 +339,6 @@ const Voice = () => {
     const audio = audioRefs.current[messageId];
     
     if (audio) {
-      // Stop all other playing audios
       Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
         if (id !== messageId && audioElement) {
           audioElement.pause();
@@ -362,7 +352,6 @@ const Voice = () => {
         }
       });
       
-      // Play this audio
       audio.play();
       
       setMessages(messages => 
@@ -373,12 +362,12 @@ const Voice = () => {
     }
   };
 
-  // Pause audio
   const handlePauseAudio = (messageId: string) => {
     const audio = audioRefs.current[messageId];
     
     if (audio) {
       audio.pause();
+      setIsSpeaking(false);
       
       setMessages(messages => 
         messages.map(m => 
@@ -386,6 +375,10 @@ const Voice = () => {
         )
       );
     }
+  };
+
+  const handleAvatarStyleChange = (value: string) => {
+    setAvatarStyle(value as 'teacher' | 'casual' | 'professional' | 'friendly');
   };
 
   return (
@@ -398,44 +391,80 @@ const Voice = () => {
         </header>
         
         <main className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message, index) => (
-              <Card 
-                key={index}
-                className="p-4 bg-white/5 border-white/20"
-              >
-                <p className="mb-2">{message.text}</p>
-                <div className="flex items-center justify-between">
-                  {message.audioUrl && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="border-white/30 hover:bg-white/10"
-                      onClick={() => message.isPlaying 
-                        ? handlePauseAudio(message.id!) 
-                        : handlePlayAudio(message.id!)
-                      }
-                    >
-                      {message.isPlaying ? (
-                        <>
-                          <Pause className="h-4 w-4 mr-1" />
-                          Pause
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4 mr-1" />
-                          Play
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  <span className="text-xs text-white/50">
-                    {message.timestamp.toLocaleTimeString()}
-                  </span>
-                </div>
-              </Card>
-            ))}
-            <div ref={messagesEndRef} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+            <div className="col-span-1 flex flex-col items-center space-y-4">
+              <AIAvatar 
+                isSpeaking={isSpeaking}
+                isListening={isRecording}
+                avatarStyle={avatarStyle}
+                emotion={avatarEmotion}
+                className="w-full"
+              />
+              
+              <div className="w-full">
+                <label className="text-sm text-white/70 mb-1 block">Avatar Style</label>
+                <Select value={avatarStyle} onValueChange={handleAvatarStyleChange}>
+                  <SelectTrigger className="w-full bg-white/5 border-white/20">
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-white/20">
+                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="friendly">Friendly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="col-span-1 md:col-span-2 flex-1 overflow-y-auto space-y-4">
+              {messages.map((message, index) => (
+                <Card 
+                  key={index}
+                  className="p-4 bg-white/5 border-white/20"
+                >
+                  <div className="flex items-start gap-3">
+                    {message.audioUrl ? (
+                      <div className="flex-shrink-0">
+                        <UserCircle2 className="h-8 w-8 text-white/70" />
+                      </div>
+                    ) : null}
+                    <div className="flex-1">
+                      <p className="mb-2">{message.text}</p>
+                      <div className="flex items-center justify-between">
+                        {message.audioUrl && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="border-white/30 hover:bg-white/10"
+                            onClick={() => message.isPlaying 
+                              ? handlePauseAudio(message.id!) 
+                              : handlePlayAudio(message.id!)
+                            }
+                          >
+                            {message.isPlaying ? (
+                              <>
+                                <Pause className="h-4 w-4 mr-1" />
+                                Pause
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-4 w-4 mr-1" />
+                                Play
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        <span className="text-xs text-white/50">
+                          {message.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
           
           <div className="p-4 border-t border-white/20 flex flex-col items-center">
