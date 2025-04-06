@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -21,6 +22,18 @@ interface Message {
   fileName?: string;
   isFromUser: boolean;
   type: 'text' | 'voice' | 'file';
+}
+
+// Add an interface that matches the database schema
+interface MessageFromDB {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  is_from_user: boolean;
+  type: string;
+  file_url: string | null;
+  file_name?: string | null; // Make file_name optional as it might not be in the type definition
 }
 
 const Voice = () => {
@@ -73,7 +86,7 @@ const Voice = () => {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const formattedMessages = data.map(msg => ({
+        const formattedMessages = data.map((msg: MessageFromDB) => ({
           id: msg.id,
           text: msg.content,
           timestamp: new Date(msg.created_at),
