@@ -1,5 +1,5 @@
 
-import { MessageSquare, LogOut } from 'lucide-react';
+import { MessageSquare, LogOut, User } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -53,6 +53,11 @@ export function AppSidebar() {
       title: "Chat",
       icon: MessageSquare,
       url: "/voice",
+    },
+    {
+      title: "Avatar",
+      icon: User,
+      url: "/avatar",
     },
     {
       title: "Log Out",
