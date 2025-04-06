@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -9,9 +8,6 @@ import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import AIAvatar from '@/components/AIAvatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AvatarStyle } from '@/components/AIAvatar';
 
 interface Message {
   id?: string;
@@ -70,8 +66,7 @@ const Voice = () => {
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
 
-  // New state for avatar and description
-  const [currentAvatarStyle, setCurrentAvatarStyle] = useState<AvatarStyle>('teacher');
+  // New state for description
   const [description, setDescription] = useState('');
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
 
@@ -459,6 +454,63 @@ const Voice = () => {
     }
   };
 
+  const handleVoiceResponse = async () => {
+    try {
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: { text: "I'm listening. What would you like to talk about?", voice: 'alloy' },
+      });
+      
+      if (response.error) throw new Error(response.error.message);
+      
+      const base64Audio = response.data.audioContent;
+      const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
+      
+      const aiMessageId = await saveMessageToDatabase(
+        "I'm listening. What would you like to talk about?", 
+        'voice', 
+        null, 
+        null, 
+        false, 
+        10, 
+        'ai_response'
+      );
+      
+      const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
+      
+      await supabase
+        .from('messages')
+        .update({ file_url: audioUrl })
+        .eq('id', aiMessageId);
+      
+      const aiMessage: Message = {
+        id: aiMessageId,
+        text: "I'm listening. What would you like to talk about?",
+        timestamp: new Date(),
+        audioUrl: audioUrl,
+        isFromUser: false,
+        type: 'voice',
+        tokenCount: 10
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      setOutputTokens(prev => prev + 10);
+      setTotalTokensUsed(prev => prev + 10);
+      
+      setTimeout(() => {
+        if (aiMessageId) {
+          handlePlayAudio(aiMessageId);
+        }
+      }, 500);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to generate voice response: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
     try {
       const filePath = `${user?.id}/${messageId}.webm`;
@@ -642,7 +694,7 @@ const Voice = () => {
           </div>
         </header>
         
-        <main className="flex-1 flex flex-col p-4 overflow-hidden">
+        <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-3xl mx-auto w-full">
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
             {messages.map((message, index) => (
               <Card 
@@ -660,7 +712,7 @@ const Voice = () => {
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="mb-2">{message.text}</p>
+                    <p className="mb-2 text-lg font-medium">{message.text}</p>
                     {message.description && (
                       <div className="bg-white/5 border border-white/10 rounded p-2 mb-2">
                         <div className="flex gap-2 items-center text-blue-400">
@@ -722,15 +774,6 @@ const Voice = () => {
             <div ref={messagesEndRef} />
           </div>
           
-          {/* AI Avatar display */}
-          <div className="mx-auto mb-4 w-full max-w-md">
-            <AIAvatar 
-              isSpeaking={!!activeSpeakingMessage} 
-              avatarStyle={currentAvatarStyle}
-              className="mx-auto"
-            />
-          </div>
-          
           <div className="border-t border-white/20 pt-4 space-y-4">
             {file && (
               <div className="flex items-center gap-2 bg-white/10 p-2 rounded">
@@ -747,23 +790,6 @@ const Voice = () => {
             )}
             
             <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <Select 
-                  value={currentAvatarStyle} 
-                  onValueChange={(value: AvatarStyle) => setCurrentAvatarStyle(value)}
-                >
-                  <SelectTrigger className="w-[180px] bg-white/5 border-white/20">
-                    <SelectValue placeholder="Select avatar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="casual">Casual</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="friendly">Friendly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
               <Input
                 placeholder="Add a description (optional)..."
                 className="bg-white/5 border-white/20"
@@ -779,9 +805,9 @@ const Voice = () => {
                 onKeyDown={handleKeyPress}
               />
               
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Button
-                  className="flex-1 bg-white text-black hover:bg-gray-200"
+                  className="bg-white text-black hover:bg-gray-200 w-full"
                   onClick={handleSendTextMessage}
                   disabled={!textMessage.trim()}
                 >
@@ -799,7 +825,7 @@ const Voice = () => {
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 border-white/30 hover:bg-white/10"
+                  className="border-white/30 hover:bg-white/10 w-full"
                 >
                   <Paperclip className="h-4 w-4 mr-2" />
                   {file ? 'Change File' : 'Attach File'}
@@ -808,28 +834,36 @@ const Voice = () => {
                 {file && (
                   <Button
                     onClick={handleFileUpload}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    className="bg-purple-600 hover:bg-purple-700 w-full"
                   >
                     <Send className="h-4 w-4 mr-2" />
                     Send File
                   </Button>
                 )}
                 
+                <Button
+                  onClick={handleVoiceResponse}
+                  className="bg-blue-500 hover:bg-blue-600 w-full text-white font-semibold"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Voice Response
+                </Button>
+                
                 {isRecording ? (
                   <Button 
                     onClick={handleStopRecording}
                     variant="destructive"
-                    className="flex-1 flex items-center justify-center"
+                    className="w-full flex items-center justify-center"
                   >
-                    <div className="animate-pulse mr-1">●</div>
-                    <span className="font-bold">{recordingTime}s • STOP RECORDING</span>
+                    <div className="animate-pulse mr-1 text-white">●</div>
+                    <span className="font-bold text-white">{recordingTime}s • STOP RECORDING</span>
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleStartRecording}
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold"
+                    className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-lg w-full"
                   >
-                    <Mic className="h-4 w-4 mr-2" />
+                    <Mic className="h-5 w-5 mr-2" />
                     Record Voice
                   </Button>
                 )}
