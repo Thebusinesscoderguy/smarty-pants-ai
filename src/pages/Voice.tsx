@@ -1,13 +1,17 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Mic, Square, Play, Pause, UserCircle2, Send, Paperclip } from 'lucide-react';
+import { Mic, Square, Play, Pause, UserCircle2, Send, Paperclip, MessageCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import AIAvatar from '@/components/AIAvatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AvatarStyle } from '@/components/AIAvatar';
 
 interface Message {
   id?: string;
@@ -20,6 +24,7 @@ interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice' | 'file';
   tokenCount?: number;
+  description?: string;
 }
 
 // Interface that matches the database schema
@@ -32,6 +37,7 @@ interface MessageFromDB {
   type: string;
   file_url: string | null;
   file_name?: string | null;
+  description?: string | null;
 }
 
 const Voice = () => {
@@ -63,6 +69,11 @@ const Voice = () => {
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
+
+  // New state for avatar and description
+  const [currentAvatarStyle, setCurrentAvatarStyle] = useState<AvatarStyle>('teacher');
+  const [description, setDescription] = useState('');
+  const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -130,7 +141,8 @@ const Voice = () => {
           isPlaying: false,
           isFromUser: msg.is_from_user,
           type: msg.type as 'text' | 'voice' | 'file',
-          tokenCount: Math.ceil(msg.content.length / 4)
+          tokenCount: Math.ceil(msg.content.length / 4),
+          description: msg.description || undefined
         }));
         
         setMessages(prev => [prev[0], ...formattedMessages]);
@@ -228,7 +240,16 @@ const Voice = () => {
       const transcribedText = response.data.text;
       const tokenCount = Math.ceil(transcribedText.length / 4);
       
-      const userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null, null, true, tokenCount, 'user_input');
+      const userMessageId = await saveMessageToDatabase(
+        transcribedText, 
+        'voice', 
+        null, 
+        null, 
+        true, 
+        tokenCount, 
+        'user_input',
+        description
+      );
       
       let audioUrl = null;
       if (audioData) {
@@ -247,12 +268,14 @@ const Voice = () => {
         audioUrl: audioUrl,
         isFromUser: true,
         type: 'voice',
-        tokenCount: tokenCount
+        tokenCount: tokenCount,
+        description: description || undefined
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
+      setDescription('');
       
       await getAIResponse(transcribedText);
       
@@ -270,7 +293,16 @@ const Voice = () => {
     
     try {
       const tokenCount = Math.ceil(textMessage.length / 4);
-      const userMessageId = await saveMessageToDatabase(textMessage, 'text', null, null, true, tokenCount, 'user_input');
+      const userMessageId = await saveMessageToDatabase(
+        textMessage, 
+        'text', 
+        null, 
+        null, 
+        true, 
+        tokenCount, 
+        'user_input',
+        description
+      );
       
       const newUserMessage: Message = {
         id: userMessageId,
@@ -278,11 +310,13 @@ const Voice = () => {
         timestamp: new Date(),
         isFromUser: true,
         type: 'text',
-        tokenCount: tokenCount
+        tokenCount: tokenCount,
+        description: description || undefined
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setTextMessage('');
+      setDescription('');
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
       
@@ -304,7 +338,16 @@ const Voice = () => {
       const messageText = `Uploaded file: ${file.name}`;
       const tokenCount = Math.ceil(messageText.length / 4);
       
-      const userMessageId = await saveMessageToDatabase(messageText, 'file', fileUrl, file.name, true, tokenCount, 'user_input');
+      const userMessageId = await saveMessageToDatabase(
+        messageText, 
+        'file', 
+        fileUrl, 
+        file.name, 
+        true, 
+        tokenCount, 
+        'user_input',
+        description
+      );
       
       const newUserMessage: Message = {
         id: userMessageId,
@@ -314,11 +357,13 @@ const Voice = () => {
         fileName: file.name,
         isFromUser: true,
         type: 'file',
-        tokenCount: tokenCount
+        tokenCount: tokenCount,
+        description: description || undefined
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setFile(null);
+      setDescription('');
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
       
@@ -446,7 +491,8 @@ const Voice = () => {
     fileName: string | null = null,
     isFromUser: boolean = true,
     tokenCount: number = 0,
-    feature: string = 'unified_chat'
+    feature: string = 'unified_chat',
+    description: string | null = null
   ): Promise<string> => {
     try {
       const { data, error } = await supabase
@@ -458,6 +504,7 @@ const Voice = () => {
           file_url: fileUrl,
           file_name: fileName,
           is_from_user: isFromUser,
+          description: description
         })
         .select('id')
         .single();
@@ -510,6 +557,7 @@ const Voice = () => {
               m.id === messageId ? { ...m, isPlaying: false } : m
             )
           );
+          setActiveSpeakingMessage(null);
         };
         
         audio.onpause = () => {
@@ -535,6 +583,7 @@ const Voice = () => {
       });
       
       audio.play();
+      setActiveSpeakingMessage(messageId);
       
       setMessages(messages => 
         messages.map(m => 
@@ -549,6 +598,7 @@ const Voice = () => {
     
     if (audio) {
       audio.pause();
+      setActiveSpeakingMessage(null);
       
       setMessages(messages => 
         messages.map(m => 
@@ -611,6 +661,14 @@ const Voice = () => {
                   </div>
                   <div className="flex-1">
                     <p className="mb-2">{message.text}</p>
+                    {message.description && (
+                      <div className="bg-white/5 border border-white/10 rounded p-2 mb-2">
+                        <div className="flex gap-2 items-center text-blue-400">
+                          <MessageCircle className="h-4 w-4" />
+                          <p className="text-sm">{message.description}</p>
+                        </div>
+                      </div>
+                    )}
                     {message.type === 'file' && message.fileUrl && (
                       <div className="bg-white/10 p-2 rounded mb-2">
                         <a 
@@ -664,6 +722,15 @@ const Voice = () => {
             <div ref={messagesEndRef} />
           </div>
           
+          {/* AI Avatar display */}
+          <div className="mx-auto mb-4 w-full max-w-md">
+            <AIAvatar 
+              isSpeaking={!!activeSpeakingMessage} 
+              avatarStyle={currentAvatarStyle}
+              className="mx-auto"
+            />
+          </div>
+          
           <div className="border-t border-white/20 pt-4 space-y-4">
             {file && (
               <div className="flex items-center gap-2 bg-white/10 p-2 rounded">
@@ -680,6 +747,30 @@ const Voice = () => {
             )}
             
             <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <Select 
+                  value={currentAvatarStyle} 
+                  onValueChange={(value: AvatarStyle) => setCurrentAvatarStyle(value)}
+                >
+                  <SelectTrigger className="w-[180px] bg-white/5 border-white/20">
+                    <SelectValue placeholder="Select avatar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="friendly">Friendly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Input
+                placeholder="Add a description (optional)..."
+                className="bg-white/5 border-white/20"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              
               <Textarea 
                 placeholder="Type your message here..."
                 className="bg-white/5 border-white/20 resize-none min-h-[150px]"
@@ -731,12 +822,12 @@ const Voice = () => {
                     className="flex-1 flex items-center justify-center"
                   >
                     <div className="animate-pulse mr-1">●</div>
-                    {recordingTime}s
+                    <span className="font-bold">{recordingTime}s • STOP RECORDING</span>
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleStartRecording}
-                    className="flex-1 bg-white/10 hover:bg-white/20 border border-white/30"
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold"
                   >
                     <Mic className="h-4 w-4 mr-2" />
                     Record Voice
