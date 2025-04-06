@@ -52,7 +52,7 @@ const AuthRedirectHandler = ({ children }: { children: React.ReactNode }) => {
             console.log('Successfully authenticated from OAuth provider');
             // Clear the hash from the URL and navigate to pricing
             window.history.replaceState({}, document.title, window.location.pathname);
-            navigate('/pricing');
+            navigate('/features');
             
             toast({
               title: "Successfully signed in",

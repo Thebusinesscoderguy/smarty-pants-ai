@@ -1,3 +1,4 @@
+
 import { MessageSquare, Mic, Timer, LogOut, FileUp } from 'lucide-react';
 import {
   Sidebar,
@@ -12,7 +13,7 @@ import {
   SidebarTrigger,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 
@@ -24,6 +25,8 @@ export function AppSidebar() {
     if (url === '/logout') {
       handleLogout();
     } else {
+      // Add logging to debug navigation issues
+      console.log(`Navigating to: ${url}`);
       navigate(url);
     }
   };
@@ -91,6 +94,7 @@ export function AppSidebar() {
                       <button 
                         onClick={() => handleNavigation(item.url)} 
                         className="flex items-center w-full text-left"
+                        data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
                       >
                         <item.icon className="mr-3 h-5 w-5" />
                         <span>{item.title}</span>

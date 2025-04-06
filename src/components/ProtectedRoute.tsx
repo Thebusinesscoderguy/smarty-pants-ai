@@ -1,7 +1,8 @@
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,6 +10,16 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    // This helps debug protected route issues
+    console.log('Protected Route Status:', {
+      path: location.pathname,
+      isLoading: loading,
+      isAuthenticated: !!user,
+    });
+  }, [loading, user, location.pathname]);
 
   if (loading) {
     return (
@@ -20,9 +31,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    console.log('User not authenticated, redirecting to auth page');
+    return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
+  console.log('User authenticated, rendering protected content');
   return <>{children}</>;
 };
 
