@@ -34,7 +34,7 @@ const Avatar = () => {
   const [currentAvatarStyle, setCurrentAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
   const [textMessage, setTextMessage] = useState('');
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
-  const [twoWayConversation, setTwoWayConversation] = useState(false);
+  const [twoWayConversation, setTwoWayConversation] = useState(true);
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const monthlyLimit = 5000;
   
