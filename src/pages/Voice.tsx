@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -685,6 +686,7 @@ const Voice = () => {
         </header>
         
         <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-3xl mx-auto w-full">
+          {/* Voice recording button moved to top */}
           <div className="mb-6 flex justify-center">
             {isRecording ? (
               <Button 
@@ -799,7 +801,7 @@ const Voice = () => {
               <div className="flex gap-2">
                 <Textarea 
                   placeholder="Type your message here..."
-                  className="bg-white/5 border-white/20 resize-none min-h-[100px]"
+                  className="bg-white/5 border-white/20 resize-none min-h-[100px] text-lg"
                   value={textMessage}
                   onChange={(e) => setTextMessage(e.target.value)}
                   onKeyDown={handleKeyPress}
@@ -807,6 +809,7 @@ const Voice = () => {
                 <Button
                   className="self-end bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={handleVoiceResponse}
+                  title="Get voice response"
                 >
                   <Play className="h-4 w-4" />
                 </Button>

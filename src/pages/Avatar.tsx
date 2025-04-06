@@ -26,15 +26,7 @@ interface Message {
 
 const Avatar = () => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      text: "Welcome to the Avatar Interaction Page! Type a message below to see the avatar speak.",
-      timestamp: new Date(),
-      isFromUser: false,
-      type: 'text',
-      tokenCount: 20
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -426,7 +418,34 @@ const Avatar = () => {
             </div>
             <h1 className="text-xl font-bold">Avatar Interactions</h1>
           </div>
+          
           <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2 mr-4">
+              <Select 
+                value={currentAvatarStyle} 
+                onValueChange={(value: 'teacher' | 'casual' | 'professional' | 'friendly') => setCurrentAvatarStyle(value)}
+              >
+                <SelectTrigger className="w-[160px] bg-white/5 border-white/20">
+                  <SelectValue placeholder="Avatar Style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="teacher">Teacher</SelectItem>
+                  <SelectItem value="casual">Casual</SelectItem>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="friendly">Friendly</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="conversation-mode"
+                  checked={twoWayConversation}
+                  onCheckedChange={setTwoWayConversation}
+                />
+                <Label htmlFor="conversation-mode">Two-way</Label>
+              </div>
+            </div>
+            
             <Button 
               variant="outline" 
               size="sm"
@@ -437,104 +456,70 @@ const Avatar = () => {
           </div>
         </header>
         
-        <main className="flex-1 flex flex-col p-4 overflow-hidden">
-          <Card className="mb-4 p-4 bg-white/5 border-white/20">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="space-y-2">
-                <h2 className="text-lg font-medium">Avatar Settings</h2>
-                <div className="flex items-center gap-4">
-                  <Select 
-                    value={currentAvatarStyle} 
-                    onValueChange={(value: 'teacher' | 'casual' | 'professional' | 'friendly') => setCurrentAvatarStyle(value)}
-                  >
-                    <SelectTrigger className="w-[180px] bg-white/5 border-white/20">
-                      <SelectValue placeholder="Select avatar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="teacher">Teacher</SelectItem>
-                      <SelectItem value="casual">Casual</SelectItem>
-                      <SelectItem value="professional">Professional</SelectItem>
-                      <SelectItem value="friendly">Friendly</SelectItem>
-                    </SelectContent>
-                  </Select>
+        <main className="flex-1 flex flex-col overflow-hidden relative">
+          {/* AI Avatar display - covers full screen */}
+          <div className="absolute inset-0 flex items-center justify-center z-0">
+            <AIAvatar 
+              isSpeaking={!!activeSpeakingMessage} 
+              avatarStyle={currentAvatarStyle}
+              className="w-full h-full"
+            />
+          </div>
+          
+          {/* Text input positioned at the bottom */}
+          <div className="mt-auto relative z-10 p-4 bg-gradient-to-t from-black to-transparent">
+            <div className="max-w-3xl mx-auto w-full">
+              <div className="border-t border-white/20 pt-4 space-y-4">
+                {isRecording && (
+                  <div className="flex justify-center my-2">
+                    <Button 
+                      onClick={handleStopRecording}
+                      variant="destructive"
+                      className="animate-pulse"
+                    >
+                      Recording... {recordingTime}s <Square className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="flex gap-2">
+                  <Textarea 
+                    placeholder={messages.length === 0 ? "The avatar will respond when you send a message..." : "Type your message here..."}
+                    className="bg-white/5 border-white/20 resize-none min-h-[100px]"
+                    value={textMessage}
+                    onChange={(e) => setTextMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                  />
                   
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="conversation-mode"
-                      checked={twoWayConversation}
-                      onCheckedChange={setTwoWayConversation}
-                    />
-                    <Label htmlFor="conversation-mode">Two-way conversation</Label>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      className="h-1/2 bg-blue-500 hover:bg-blue-600"
+                      onClick={handleStartRecording}
+                      disabled={isRecording}
+                      title="Record voice message"
+                    >
+                      <Mic className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      className="h-1/2 bg-green-600 hover:bg-green-700"
+                      onClick={handleSendTextMessage}
+                      disabled={!textMessage.trim()}
+                      title="Send message"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
               
-              <div className="text-center text-white/70">
-                {twoWayConversation ? 
-                  "Both you and the AI will use avatars during conversation" :
-                  "Only the AI will use an avatar during conversation"
-                }
+              {/* Hidden messages for state management */}
+              <div className="sr-only">
+                {messages.map((message, index) => (
+                  <div key={index}>{message.text}</div>
+                ))}
+                <div ref={messagesEndRef} />
               </div>
-            </div>
-          </Card>
-          
-          {/* AI Avatar display - takes full width and height */}
-          <div className="flex-1 flex items-center justify-center mb-4">
-            <AIAvatar 
-              isSpeaking={!!activeSpeakingMessage} 
-              avatarStyle={currentAvatarStyle}
-              className="w-full h-full max-h-[60vh]"
-            />
-          </div>
-          
-          {/* Messages history - hidden visually but maintains scroll position */}
-          <div className="sr-only">
-            {messages.map((message, index) => (
-              <div key={index}>{message.text}</div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          
-          <div className="border-t border-white/20 pt-4 space-y-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <Textarea 
-                  placeholder="Type your message here..."
-                  className="bg-white/5 border-white/20 resize-none min-h-[100px]"
-                  value={textMessage}
-                  onChange={(e) => setTextMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                />
-                
-                <Button
-                  className="self-end bg-purple-600 hover:bg-purple-700"
-                  onClick={handleStartRecording}
-                  disabled={isRecording}
-                >
-                  <Mic className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              {isRecording && (
-                <div className="flex justify-center my-2">
-                  <Button 
-                    onClick={handleStopRecording}
-                    variant="destructive"
-                    className="animate-pulse"
-                  >
-                    Recording... {recordingTime}s <Square className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              )}
-              
-              <Button
-                className="w-full bg-white text-black hover:bg-gray-200 font-bold text-lg py-6"
-                onClick={handleSendTextMessage}
-                disabled={!textMessage.trim() && !isRecording}
-              >
-                <Send className="h-5 w-5 mr-2" />
-                Send Message
-              </Button>
             </div>
           </div>
         </main>
