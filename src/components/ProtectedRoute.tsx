@@ -11,6 +11,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  
+  // TEMPORARY: Skip authentication for preview/development
+  const skipAuth = true; // Set this to false to re-enable authentication
 
   useEffect(() => {
     // This helps debug protected route issues
@@ -18,10 +21,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       path: location.pathname,
       isLoading: loading,
       isAuthenticated: !!user,
+      skipAuth: skipAuth
     });
   }, [loading, user, location.pathname]);
 
-  if (loading) {
+  if (loading && !skipAuth) {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -30,12 +34,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!user) {
+  if (!user && !skipAuth) {
     console.log('User not authenticated, redirecting to auth page');
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
-  console.log('User authenticated, rendering protected content');
+  console.log('Rendering protected content');
   return <>{children}</>;
 };
 
