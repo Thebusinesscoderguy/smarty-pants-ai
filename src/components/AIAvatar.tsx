@@ -75,7 +75,6 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
   className = ''
 }) => {
   const [currentAnimation, setCurrentAnimation] = useState(AVATAR_STATES.IDLE);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Determine which animation to play based on avatar state
   useEffect(() => {
@@ -126,9 +125,9 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
   };
 
   return (
-    <Card className={`bg-white/10 border-white/20 p-4 rounded-lg overflow-hidden ${className}`}>
-      <div className="flex flex-col items-center">
-        <div className="w-64 h-64 relative">
+    <Card className={`bg-transparent backdrop-blur-sm border-none overflow-hidden ${className}`}>
+      <div className="flex flex-col items-center h-full w-full">
+        <div className="w-64 h-64 relative mx-auto">
           <Lottie 
             options={defaultOptions}
             height={250}

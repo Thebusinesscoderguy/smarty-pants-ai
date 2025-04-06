@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -46,6 +45,11 @@ const Avatar = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Get the most recent assistant voice message
+  const latestAssistantVoiceMessage = messages
+    .filter(m => !m.isFromUser && m.type === 'voice')
+    .slice(-1)[0];
 
   useEffect(() => {
     scrollToBottom();
@@ -459,12 +463,51 @@ const Avatar = () => {
         <main className="flex-1 flex flex-col overflow-hidden relative">
           {/* AI Avatar display - covers full screen */}
           <div className="absolute inset-0 flex items-center justify-center z-0">
-            <AIAvatar 
-              isSpeaking={!!activeSpeakingMessage} 
-              avatarStyle={currentAvatarStyle}
-              className="w-full h-full"
-            />
+            {latestAssistantVoiceMessage ? (
+              <AIAvatar 
+                isSpeaking={!!activeSpeakingMessage} 
+                avatarStyle={currentAvatarStyle}
+                className="w-full h-full"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full w-full text-gray-500 text-xl">
+                Send a message to interact with the avatar
+              </div>
+            )}
           </div>
+          
+          {/* Voice message controls - only show for assistant messages */}
+          {latestAssistantVoiceMessage && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+              <Card className="bg-black/50 border-white/20 p-2 backdrop-blur-md">
+                <div className="flex items-center gap-2">
+                  {latestAssistantVoiceMessage.isPlaying ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-white/30 bg-white/10"
+                      onClick={() => latestAssistantVoiceMessage.id && handlePauseAudio(latestAssistantVoiceMessage.id)}
+                    >
+                      <Pause className="h-4 w-4 mr-2" /> Pause
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="border-white/30 bg-white/10"
+                      onClick={() => latestAssistantVoiceMessage.id && handlePlayAudio(latestAssistantVoiceMessage.id)}
+                    >
+                      <Play className="h-4 w-4 mr-2" /> Play
+                    </Button>
+                  )}
+                  
+                  <div className="text-sm max-w-[250px] truncate">
+                    {latestAssistantVoiceMessage.text}
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
           
           {/* Text input positioned at the bottom */}
           <div className="mt-auto relative z-10 p-4 bg-gradient-to-t from-black to-transparent">
@@ -493,21 +536,21 @@ const Avatar = () => {
                   
                   <div className="flex flex-col gap-2">
                     <Button
-                      className="h-1/2 bg-blue-500 hover:bg-blue-600"
-                      onClick={handleStartRecording}
-                      disabled={isRecording}
-                      title="Record voice message"
-                    >
-                      <Mic className="h-4 w-4" />
-                    </Button>
-                    
-                    <Button
                       className="h-1/2 bg-green-600 hover:bg-green-700"
                       onClick={handleSendTextMessage}
                       disabled={!textMessage.trim()}
                       title="Send message"
                     >
                       <Send className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      className="h-1/2 bg-blue-500 hover:bg-blue-600"
+                      onClick={handleStartRecording}
+                      disabled={isRecording}
+                      title="Record voice message"
+                    >
+                      <Mic className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
