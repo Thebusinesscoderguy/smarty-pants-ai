@@ -1,8 +1,10 @@
+
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { FaPaypal } from 'react-icons/fa';
 import { CheckCircle } from 'lucide-react';
+
 const Pricing = () => {
   return <div className="flex flex-col min-h-screen bg-black text-white">
       <header className="py-6 text-center">
@@ -73,19 +75,22 @@ const Pricing = () => {
               </ul>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-3">
             <Button className="w-full bg-white text-black hover:bg-gray-200 flex items-center justify-center gap-2">
               <FaPaypal />
               Start Your 14-Day Free Trial
+            </Button>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700">
+              <Link to="/features" className="w-full">Try Features Now</Link>
             </Button>
           </CardFooter>
         </Card>
 
         <div className="mt-8 max-w-md text-center">
-          
-          
           <Link to="/features">
-            
+            <Button variant="outline" className="border-white/20 hover:bg-white/5">
+              Skip to Features Demo
+            </Button>
           </Link>
         </div>
       </main>

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { testApiConnections } from '@/utils/apiService';
+
 interface VoiceMessage {
   id?: string;
   text: string;
@@ -18,11 +19,13 @@ interface VoiceMessage {
   audioUrl?: string;
   isPlaying?: boolean;
 }
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
+
 const Index = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -48,16 +51,19 @@ const Index = () => {
     timestamp: new Date()
   }]);
   const [input, setInput] = useState('');
+
   useEffect(() => {
     if (user && showVoiceSection) {
       fetchMessages();
     }
   }, [user, showVoiceSection]);
+
   useEffect(() => {
     if (user) {
       testApiConnections();
     }
   }, [user]);
+
   const fetchMessages = async () => {
     if (!user) return;
     try {
@@ -86,11 +92,13 @@ const Index = () => {
       });
     }
   };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth'
     });
   };
+
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -130,6 +138,7 @@ const Index = () => {
       });
     }
   };
+
   const handleStopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
@@ -140,6 +149,7 @@ const Index = () => {
       }
     }
   };
+
   const processVoiceToText = async (audioBase64: string) => {
     if (!user) {
       toast({
@@ -185,6 +195,7 @@ const Index = () => {
       });
     }
   };
+
   const getAIResponse = async (userMessage: string) => {
     try {
       const aiResponse = `I've processed your voice message: "${userMessage}". How can I help you further?`;
@@ -227,6 +238,7 @@ const Index = () => {
       });
     }
   };
+
   const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
     if (!user) return null;
     try {
@@ -248,6 +260,7 @@ const Index = () => {
       return null;
     }
   };
+
   const saveMessageToDatabase = async (content: string, type: string, fileUrl: string | null, isFromUser: boolean = true): Promise<string> => {
     if (!user) throw new Error("User not authenticated");
     try {
@@ -273,6 +286,7 @@ const Index = () => {
       throw error;
     }
   };
+
   const base64ToBlob = (base64: string, mimeType: string): Blob => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
@@ -289,6 +303,7 @@ const Index = () => {
       type: mimeType
     });
   };
+
   const handlePlayAudio = (messageId: string) => {
     if (!audioRefs.current[messageId]) {
       const message = voiceMessages.find(m => m.id === messageId);
@@ -322,6 +337,7 @@ const Index = () => {
       } : m));
     }
   };
+
   const handlePauseAudio = (messageId: string) => {
     const audio = audioRefs.current[messageId];
     if (audio) {
@@ -332,6 +348,7 @@ const Index = () => {
       } : m));
     }
   };
+
   const handleSendMessage = () => {
     if (!input.trim()) return;
     const userMessage: Message = {
@@ -351,12 +368,14 @@ const Index = () => {
       setMessages(prev => [...prev, assistantMessage]);
     }, 1000);
   };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
+
   return <div className="min-h-screen bg-black text-white flex flex-col">
       <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
         <h1 className="text-xl font-bold">Teachly</h1>
@@ -372,6 +391,9 @@ const Index = () => {
               </Button>
               <Button className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
                 Sign up
+              </Button>
+              <Button variant="outline" className="bg-purple-600 text-white hover:bg-purple-700 border-none">
+                <Link to="/features">Try Features</Link>
               </Button>
             </>}
         </div>
@@ -562,4 +584,5 @@ const Index = () => {
       <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} />
     </div>;
 };
+
 export default Index;
