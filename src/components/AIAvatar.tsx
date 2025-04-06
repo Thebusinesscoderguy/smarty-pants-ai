@@ -39,6 +39,30 @@ const animationData = {
     listening: teacherIdle, // Replace with actual listening animation when available
     happy: teacherIdle, // Replace with actual happy animation when available
     confused: teacherIdle, // Replace with actual confused animation when available
+  },
+  casual: {
+    idle: teacherIdle, // Temporarily use teacher animations
+    talking: teacherIdle,
+    thinking: teacherIdle,
+    listening: teacherIdle,
+    happy: teacherIdle,
+    confused: teacherIdle,
+  },
+  professional: {
+    idle: teacherIdle, // Temporarily use teacher animations
+    talking: teacherIdle,
+    thinking: teacherIdle,
+    listening: teacherIdle,
+    happy: teacherIdle,
+    confused: teacherIdle,
+  },
+  friendly: {
+    idle: teacherIdle, // Temporarily use teacher animations
+    talking: teacherIdle,
+    thinking: teacherIdle,
+    listening: teacherIdle,
+    happy: teacherIdle,
+    confused: teacherIdle,
   }
 };
 
@@ -72,7 +96,9 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
 
   // Select the appropriate animation based on the current state
   const selectedAnimation = (() => {
-    const animations = animationData[avatarStyle];
+    // Make sure we have valid animation data for the selected style
+    const animations = animationData[avatarStyle] || animationData.teacher;
+    
     switch(currentAnimation) {
       case AVATAR_STATES.TALKING:
         return animations.talking;
