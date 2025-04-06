@@ -3,6 +3,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import Lottie from 'react-lottie';
 import { Card } from '@/components/ui/card';
 
+// Import animation files using standard ES import syntax
+import teacherIdle from '../assets/animations/teacher-idle.json';
+// Since other animation files might not exist yet, we'll use the idle one for all states
+// until proper animations are created
+
 // Avatar animation states
 const AVATAR_STATES = {
   IDLE: 'idle',
@@ -25,36 +30,15 @@ interface AIAvatarProps {
   className?: string;
 }
 
-// Animation data for different states - in a real app, these would be actual Lottie animations
+// Animation data for different states - using proper ES imports
 const animationData = {
   teacher: {
-    idle: require('../assets/animations/teacher-idle.json'),
-    talking: require('../assets/animations/teacher-talking.json'),
-    thinking: require('../assets/animations/teacher-thinking.json'),
-    listening: require('../assets/animations/teacher-listening.json'),
-    happy: require('../assets/animations/teacher-happy.json'),
-    confused: require('../assets/animations/teacher-confused.json'),
-  }
-};
-
-// Mock animation data for development
-const mockAnimationData = {
-  default: {
-    w: 400,
-    h: 400,
-    v: "5.7.6",
-    fr: 30,
-    ip: 0,
-    op: 180,
-    layers: [{
-      ty: 4,
-      shapes: [{
-        ty: "el",
-        d: 1,
-        p: { a: 0, k: [0, 0] },
-        s: { a: 0, k: [100, 100] }
-      }]
-    }]
+    idle: teacherIdle,
+    talking: teacherIdle, // Replace with actual talking animation when available
+    thinking: teacherIdle, // Replace with actual thinking animation when available
+    listening: teacherIdle, // Replace with actual listening animation when available
+    happy: teacherIdle, // Replace with actual happy animation when available
+    confused: teacherIdle, // Replace with actual confused animation when available
   }
 };
 
@@ -86,12 +70,30 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
     }
   }, [isSpeaking, isListening, isThinking, emotion]);
 
-  // For development purposes, we'll use mock animation data
-  // In a production app, you'd replace this with actual Lottie animations
+  // Select the appropriate animation based on the current state
+  const selectedAnimation = (() => {
+    const animations = animationData[avatarStyle];
+    switch(currentAnimation) {
+      case AVATAR_STATES.TALKING:
+        return animations.talking;
+      case AVATAR_STATES.THINKING:
+        return animations.thinking;
+      case AVATAR_STATES.LISTENING:
+        return animations.listening;
+      case AVATAR_STATES.HAPPY:
+        return animations.happy;
+      case AVATAR_STATES.CONFUSED:
+        return animations.confused;
+      default:
+        return animations.idle;
+    }
+  })();
+
+  // Set up Lottie options
   const defaultOptions = {
     loop: true,
     autoplay: true,
-    animationData: mockAnimationData.default,
+    animationData: selectedAnimation,
     rendererSettings: {
       preserveAspectRatio: 'xMidYMid slice'
     }
