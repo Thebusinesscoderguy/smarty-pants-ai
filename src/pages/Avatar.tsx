@@ -4,14 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Play, Pause, UserCircle2, Send, MessageCircle } from 'lucide-react';
+import { Play, Pause, Send, Mic, Square } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import AIAvatar from '@/components/AIAvatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AvatarStyle } from '@/components/AIAvatar';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
@@ -24,14 +22,13 @@ interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice';
   tokenCount?: number;
-  description?: string;
 }
 
 const Avatar = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
-      text: "Welcome to the Avatar Interaction Page! I can speak to you with an avatar, or you can have a two-way conversation.",
+      text: "Welcome to the Avatar Interaction Page! Type a message below to see the avatar speak.",
       timestamp: new Date(),
       isFromUser: false,
       type: 'text',
@@ -43,13 +40,20 @@ const Avatar = () => {
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   
   // Avatar settings
-  const [currentAvatarStyle, setCurrentAvatarStyle] = useState<AvatarStyle>('teacher');
+  const [currentAvatarStyle, setCurrentAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
   const [textMessage, setTextMessage] = useState('');
-  const [description, setDescription] = useState('');
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
   const [twoWayConversation, setTwoWayConversation] = useState(false);
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const monthlyLimit = 5000;
+  
+  // Voice recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioData, setAudioData] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     scrollToBottom();
@@ -57,6 +61,117 @@ const Avatar = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+      
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioData(audioBlob);
+        
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result?.toString().split(',')[1];
+          
+          if (base64Audio) {
+            await processVoiceToText(base64Audio);
+          }
+        };
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prevTime => prevTime + 1);
+      }, 1000);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Could not access microphone: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+
+  const processVoiceToText = async (audioBase64: string) => {
+    try {
+      const response = await supabase.functions.invoke('voice-to-text', {
+        body: { audio: audioBase64 },
+      });
+      
+      if (response.error) throw new Error(response.error.message);
+      
+      const transcribedText = response.data.text;
+      const tokenCount = Math.ceil(transcribedText.length / 4);
+      
+      const userMessageId = await saveMessageToDatabase(
+        transcribedText, 
+        'voice', 
+        null, 
+        true, 
+        tokenCount, 
+        'user_input'
+      );
+      
+      let audioUrl = null;
+      if (audioData) {
+        audioUrl = await uploadAudioFile(audioData, userMessageId);
+        
+        await supabase
+          .from('messages')
+          .update({ file_url: audioUrl })
+          .eq('id', userMessageId);
+      }
+      
+      const newUserMessage: Message = {
+        id: userMessageId,
+        text: transcribedText,
+        timestamp: new Date(),
+        audioUrl: audioUrl,
+        isFromUser: true,
+        type: 'voice',
+        tokenCount: tokenCount
+      };
+      
+      setMessages(prev => [...prev, newUserMessage]);
+      setTotalTokensUsed(prev => prev + tokenCount);
+      
+      await getAIResponse(transcribedText);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to process voice: " + error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSendTextMessage = async () => {
@@ -70,8 +185,7 @@ const Avatar = () => {
         null, 
         true, 
         tokenCount, 
-        'user_input',
-        description
+        'user_input'
       );
       
       const newUserMessage: Message = {
@@ -80,13 +194,11 @@ const Avatar = () => {
         timestamp: new Date(),
         isFromUser: true,
         type: 'text',
-        tokenCount: tokenCount,
-        description: description || undefined
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setTextMessage('');
-      setDescription('');
       setTotalTokensUsed(prev => prev + tokenCount);
       
       await getAIResponse(textMessage);
@@ -181,8 +293,7 @@ const Avatar = () => {
     fileUrl: string | null,
     isFromUser: boolean = true,
     tokenCount: number = 0,
-    feature: string = 'avatar_chat',
-    description: string | null = null
+    feature: string = 'avatar_chat'
   ): Promise<string> => {
     try {
       const { data, error } = await supabase
@@ -192,8 +303,7 @@ const Avatar = () => {
           content,
           type,
           file_url: fileUrl,
-          is_from_user: isFromUser,
-          description: description
+          is_from_user: isFromUser
         })
         .select('id')
         .single();
@@ -335,7 +445,7 @@ const Avatar = () => {
                 <div className="flex items-center gap-4">
                   <Select 
                     value={currentAvatarStyle} 
-                    onValueChange={(value: AvatarStyle) => setCurrentAvatarStyle(value)}
+                    onValueChange={(value: 'teacher' | 'casual' | 'professional' | 'friendly') => setCurrentAvatarStyle(value)}
                   >
                     <SelectTrigger className="w-[180px] bg-white/5 border-white/20">
                       <SelectValue placeholder="Select avatar" />
@@ -368,112 +478,63 @@ const Avatar = () => {
             </div>
           </Card>
           
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+          {/* AI Avatar display - takes full width and height */}
+          <div className="flex-1 flex items-center justify-center mb-4">
+            <AIAvatar 
+              isSpeaking={!!activeSpeakingMessage} 
+              avatarStyle={currentAvatarStyle}
+              className="w-full h-full max-h-[60vh]"
+            />
+          </div>
+          
+          {/* Messages history - hidden visually but maintains scroll position */}
+          <div className="sr-only">
             {messages.map((message, index) => (
-              <Card 
-                key={index}
-                className={`p-4 ${message.isFromUser ? 'bg-purple-900/30' : 'bg-white/5'} border-white/20`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
-                    {message.isFromUser ? (
-                      twoWayConversation ? 
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-600 to-blue-500 flex items-center justify-center">
-                        You
-                      </div> :
-                      <UserCircle2 className="h-8 w-8 text-white/70" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
-                        AI
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="mb-2">{message.text}</p>
-                    {message.description && (
-                      <div className="bg-white/5 border border-white/10 rounded p-2 mb-2">
-                        <div className="flex gap-2 items-center text-blue-400">
-                          <MessageCircle className="h-4 w-4" />
-                          <p className="text-sm">{message.description}</p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      {message.audioUrl && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-white/30 hover:bg-white/10"
-                          onClick={() => message.isPlaying 
-                            ? handlePauseAudio(message.id!) 
-                            : handlePlayAudio(message.id!)
-                          }
-                        >
-                          {message.isPlaying ? (
-                            <>
-                              <Pause className="h-4 w-4 mr-1" />
-                              Pause
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-4 w-4 mr-1" />
-                              Play
-                            </>
-                          )}
-                        </Button>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-white/50">
-                          {message.timestamp.toLocaleTimeString()}
-                        </span>
-                        <span className="text-xs text-white/50">
-                          ({message.tokenCount || 0} tokens)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <div key={index}>{message.text}</div>
             ))}
             <div ref={messagesEndRef} />
           </div>
           
-          {/* AI Avatar display */}
-          <div className="mx-auto mb-4 w-full max-w-md">
-            <AIAvatar 
-              isSpeaking={!!activeSpeakingMessage} 
-              avatarStyle={currentAvatarStyle}
-              className="mx-auto"
-            />
-          </div>
-          
           <div className="border-t border-white/20 pt-4 space-y-4">
             <div className="flex flex-col gap-2">
-              <Input
-                placeholder="Add a description (optional)..."
-                className="bg-white/5 border-white/20"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-              
-              <Textarea 
-                placeholder="Type your message here..."
-                className="bg-white/5 border-white/20 resize-none min-h-[150px]"
-                value={textMessage}
-                onChange={(e) => setTextMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-              />
-              
               <div className="flex gap-2">
+                <Textarea 
+                  placeholder="Type your message here..."
+                  className="bg-white/5 border-white/20 resize-none min-h-[100px]"
+                  value={textMessage}
+                  onChange={(e) => setTextMessage(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                />
+                
                 <Button
-                  className="flex-1 bg-white text-black hover:bg-gray-200"
-                  onClick={handleSendTextMessage}
-                  disabled={!textMessage.trim()}
+                  className="self-end bg-purple-600 hover:bg-purple-700"
+                  onClick={handleStartRecording}
+                  disabled={isRecording}
                 >
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Message
+                  <Mic className="h-4 w-4" />
                 </Button>
               </div>
+              
+              {isRecording && (
+                <div className="flex justify-center my-2">
+                  <Button 
+                    onClick={handleStopRecording}
+                    variant="destructive"
+                    className="animate-pulse"
+                  >
+                    Recording... {recordingTime}s <Square className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              )}
+              
+              <Button
+                className="w-full bg-white text-black hover:bg-gray-200 font-bold text-lg py-6"
+                onClick={handleSendTextMessage}
+                disabled={!textMessage.trim() && !isRecording}
+              >
+                <Send className="h-5 w-5 mr-2" />
+                Send Message
+              </Button>
             </div>
           </div>
         </main>

@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Mic, Square, Play, Pause, UserCircle2, Send, Paperclip, MessageCircle } from 'lucide-react';
+import { Mic, Square, Play, Pause, UserCircle2, Send, Paperclip } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +20,6 @@ interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice' | 'file';
   tokenCount?: number;
-  description?: string;
 }
 
 // Interface that matches the database schema
@@ -65,9 +64,6 @@ const Voice = () => {
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
-
-  // New state for description
-  const [description, setDescription] = useState('');
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -243,7 +239,7 @@ const Voice = () => {
         true, 
         tokenCount, 
         'user_input',
-        description
+        null
       );
       
       let audioUrl = null;
@@ -263,14 +259,12 @@ const Voice = () => {
         audioUrl: audioUrl,
         isFromUser: true,
         type: 'voice',
-        tokenCount: tokenCount,
-        description: description || undefined
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
-      setDescription('');
       
       await getAIResponse(transcribedText);
       
@@ -296,7 +290,7 @@ const Voice = () => {
         true, 
         tokenCount, 
         'user_input',
-        description
+        null
       );
       
       const newUserMessage: Message = {
@@ -305,13 +299,11 @@ const Voice = () => {
         timestamp: new Date(),
         isFromUser: true,
         type: 'text',
-        tokenCount: tokenCount,
-        description: description || undefined
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setTextMessage('');
-      setDescription('');
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
       
@@ -341,7 +333,7 @@ const Voice = () => {
         true, 
         tokenCount, 
         'user_input',
-        description
+        null
       );
       
       const newUserMessage: Message = {
@@ -352,13 +344,11 @@ const Voice = () => {
         fileName: file.name,
         isFromUser: true,
         type: 'file',
-        tokenCount: tokenCount,
-        description: description || undefined
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setFile(null);
-      setDescription('');
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
       
@@ -695,6 +685,30 @@ const Voice = () => {
         </header>
         
         <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-3xl mx-auto w-full">
+          <div className="mb-6 flex justify-center">
+            {isRecording ? (
+              <Button 
+                onClick={handleStopRecording}
+                variant="destructive"
+                size="lg"
+                className="w-full md:w-auto flex items-center justify-center gap-2 py-6 text-lg"
+              >
+                <div className="animate-pulse mr-1 text-white">●</div>
+                <span className="font-bold text-white">{recordingTime}s • STOP RECORDING</span>
+                <Square className="h-5 w-5 ml-2" />
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleStartRecording}
+                size="lg"
+                className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-lg w-full md:w-auto py-6"
+              >
+                <Mic className="h-6 w-6 mr-2" />
+                Record Voice Message
+              </Button>
+            )}
+          </div>
+          
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
             {messages.map((message, index) => (
               <Card 
@@ -713,14 +727,6 @@ const Voice = () => {
                   </div>
                   <div className="flex-1">
                     <p className="mb-2 text-lg font-medium">{message.text}</p>
-                    {message.description && (
-                      <div className="bg-white/5 border border-white/10 rounded p-2 mb-2">
-                        <div className="flex gap-2 items-center text-blue-400">
-                          <MessageCircle className="h-4 w-4" />
-                          <p className="text-sm">{message.description}</p>
-                        </div>
-                      </div>
-                    )}
                     {message.type === 'file' && message.fileUrl && (
                       <div className="bg-white/10 p-2 rounded mb-2">
                         <a 
@@ -790,24 +796,25 @@ const Voice = () => {
             )}
             
             <div className="flex flex-col gap-2">
-              <Input
-                placeholder="Add a description (optional)..."
-                className="bg-white/5 border-white/20"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-              
-              <Textarea 
-                placeholder="Type your message here..."
-                className="bg-white/5 border-white/20 resize-none min-h-[150px]"
-                value={textMessage}
-                onChange={(e) => setTextMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-              />
+              <div className="flex gap-2">
+                <Textarea 
+                  placeholder="Type your message here..."
+                  className="bg-white/5 border-white/20 resize-none min-h-[100px]"
+                  value={textMessage}
+                  onChange={(e) => setTextMessage(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                />
+                <Button
+                  className="self-end bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={handleVoiceResponse}
+                >
+                  <Play className="h-4 w-4" />
+                </Button>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Button
-                  className="bg-white text-black hover:bg-gray-200 w-full"
+                  className="bg-white text-black hover:bg-gray-200 w-full font-bold"
                   onClick={handleSendTextMessage}
                   disabled={!textMessage.trim()}
                 >
@@ -838,33 +845,6 @@ const Voice = () => {
                   >
                     <Send className="h-4 w-4 mr-2" />
                     Send File
-                  </Button>
-                )}
-                
-                <Button
-                  onClick={handleVoiceResponse}
-                  className="bg-blue-500 hover:bg-blue-600 w-full text-white font-semibold"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Voice Response
-                </Button>
-                
-                {isRecording ? (
-                  <Button 
-                    onClick={handleStopRecording}
-                    variant="destructive"
-                    className="w-full flex items-center justify-center"
-                  >
-                    <div className="animate-pulse mr-1 text-white">●</div>
-                    <span className="font-bold text-white">{recordingTime}s • STOP RECORDING</span>
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={handleStartRecording}
-                    className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-lg w-full"
-                  >
-                    <Mic className="h-5 w-5 mr-2" />
-                    Record Voice
                   </Button>
                 )}
               </div>
