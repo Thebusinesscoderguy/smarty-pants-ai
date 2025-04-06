@@ -1,5 +1,5 @@
 
-import { MessageSquare, Timer, LogOut } from 'lucide-react';
+import { MessageSquare, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -50,14 +50,9 @@ export function AppSidebar() {
 
   const menuItems = [
     {
-      title: "Unified Chat",
+      title: "Chat",
       icon: MessageSquare,
       url: "/voice",
-    },
-    {
-      title: "Token Usage",
-      icon: Timer,
-      url: "/tokens",
     },
     {
       title: "Log Out",

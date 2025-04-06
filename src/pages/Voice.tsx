@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -9,7 +8,6 @@ import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id?: string;
@@ -33,11 +31,10 @@ interface MessageFromDB {
   is_from_user: boolean;
   type: string;
   file_url: string | null;
-  file_name?: string | null; // Added as optional property
+  file_name?: string | null;
 }
 
 const Voice = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -65,7 +62,7 @@ const Voice = () => {
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
-  const monthlyLimit = 20000;
+  const monthlyLimit = 5000;
 
   useEffect(() => {
     if (user) {
@@ -138,7 +135,6 @@ const Voice = () => {
         
         setMessages(prev => [prev[0], ...formattedMessages]);
         
-        // Calculate total tokens
         const inputCount = formattedMessages
           .filter(msg => msg.isFromUser)
           .reduce((acc, msg) => acc + (msg.tokenCount || 0), 0);
@@ -569,24 +565,27 @@ const Voice = () => {
     }
   };
 
-  // Go to token page
-  const goToTokenPage = () => {
-    navigate('/tokens');
-  };
-
   return (
-    <div className="flex min-h-screen h-screen bg-black text-white">
-      <AppSidebar />
+    <div className="flex h-screen w-full overflow-hidden bg-black text-white">
+      <div className="hidden md:flex">
+        <AppSidebar />
+      </div>
       
-      <div className="flex-1 flex flex-col h-full max-h-screen">
+      <div className="flex-1 flex flex-col h-full w-full">
         <header className="p-4 border-b border-white/20 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Teachly AI Assistant</h1>
+          <div className="flex items-center">
+            <div className="md:hidden mr-4">
+              <Button variant="ghost" size="sm" className="p-0">
+                <AppSidebar />
+              </Button>
+            </div>
+            <h1 className="text-xl font-bold">Teachly AI Assistant</h1>
+          </div>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
               size="sm"
               className="border-white/30 hover:bg-white/10"
-              onClick={goToTokenPage}
             >
               {totalTokensUsed} / {monthlyLimit} tokens
             </Button>
@@ -689,7 +688,7 @@ const Voice = () => {
                 onKeyDown={handleKeyPress}
               />
               
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   className="flex-1 bg-white text-black hover:bg-gray-200"
                   onClick={handleSendTextMessage}

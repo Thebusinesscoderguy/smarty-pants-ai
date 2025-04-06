@@ -12,7 +12,6 @@ import { toast } from "@/components/ui/use-toast";
 import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
 import Voice from "./pages/Voice";
-import Tokens from "./pages/Tokens";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -102,11 +101,6 @@ const App = () => (
               <Route path="/voice" element={
                 <ProtectedRoute>
                   <Voice />
-                </ProtectedRoute>
-              } />
-              <Route path="/tokens" element={
-                <ProtectedRoute>
-                  <Tokens />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
