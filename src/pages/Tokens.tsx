@@ -42,6 +42,8 @@ const Tokens = () => {
         data.forEach(token => {
           if (token.feature === 'user_input') {
             inputCount += token.tokens_used;
+          } else if (token.feature.includes('user_input')) {
+            inputCount += token.tokens_used;
           } else {
             outputCount += token.tokens_used;
           }
@@ -62,15 +64,15 @@ const Tokens = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen h-screen bg-black text-white">
       <AppSidebar />
       
-      <div className="flex-1 flex flex-col max-h-screen">
+      <div className="flex-1 flex flex-col h-full max-h-screen overflow-hidden">
         <header className="p-4 border-b border-white/20">
           <h1 className="text-xl font-bold">Token Usage</h1>
         </header>
         
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 overflow-y-auto">
           <Card className="bg-black border border-white/20 text-white mb-6">
             <CardHeader>
               <CardTitle>Monthly Usage</CardTitle>

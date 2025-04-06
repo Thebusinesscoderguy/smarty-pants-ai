@@ -1,9 +1,8 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useEffect, useState } from "react";
@@ -12,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
-import Features from "./pages/Features";
 import Voice from "./pages/Voice";
 import Tokens from "./pages/Tokens";
 import Auth from "./pages/Auth";
@@ -29,13 +27,11 @@ const AuthRedirectHandler = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const handleHashRedirect = async () => {
-      // If we already have a hash with access_token, it means we're in the OAuth redirect flow
       if (location.hash && location.hash.includes('access_token') && !isProcessingAuth) {
         try {
           setIsProcessingAuth(true);
           console.log('Processing auth redirect with hash:', location.hash);
           
-          // Get the current session - this will automatically process the hash
           const { data, error } = await supabase.auth.getSession();
           
           if (error) {
@@ -50,7 +46,6 @@ const AuthRedirectHandler = ({ children }: { children: React.ReactNode }) => {
           
           if (data.session) {
             console.log('Successfully authenticated from OAuth provider');
-            // Clear the hash from the URL and navigate to pricing
             window.history.replaceState({}, document.title, window.location.pathname);
             navigate('/features');
             
@@ -101,7 +96,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/features" element={
                 <ProtectedRoute>
-                  <Features />
+                  <Navigate to="/voice" replace />
                 </ProtectedRoute>
               } />
               <Route path="/voice" element={
@@ -114,7 +109,6 @@ const App = () => (
                   <Tokens />
                 </ProtectedRoute>
               } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthRedirectHandler>

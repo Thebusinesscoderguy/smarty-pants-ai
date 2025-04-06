@@ -1,5 +1,5 @@
 
-import { MessageSquare, Mic, Timer, LogOut, FileUp } from 'lucide-react';
+import { MessageSquare, Timer, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 
@@ -50,18 +50,8 @@ export function AppSidebar() {
 
   const menuItems = [
     {
-      title: "Chat",
+      title: "Unified Chat",
       icon: MessageSquare,
-      url: "/features",
-    },
-    {
-      title: "Study Materials",
-      icon: FileUp,
-      url: "/features",
-    },
-    {
-      title: "Voice Messages",
-      icon: Mic,
       url: "/voice",
     },
     {

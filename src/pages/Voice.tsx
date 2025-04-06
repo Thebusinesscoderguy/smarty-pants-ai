@@ -33,7 +33,7 @@ interface MessageFromDB {
   is_from_user: boolean;
   type: string;
   file_url: string | null;
-  file_name?: string | null; // Optional as it might not be in the type definition
+  file_name?: string | null; // Added as optional property
 }
 
 const Voice = () => {
@@ -41,7 +41,7 @@ const Voice = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
-      text: "Welcome to the unified messaging! You can now use voice, text, or file uploads in a single conversation.",
+      text: "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.",
       timestamp: new Date(),
       isFromUser: false,
       type: 'text',
@@ -575,12 +575,12 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen h-screen bg-black text-white">
       <AppSidebar />
       
-      <div className="flex-1 flex flex-col max-h-screen">
+      <div className="flex-1 flex flex-col h-full max-h-screen">
         <header className="p-4 border-b border-white/20 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Unified Chat</h1>
+          <h1 className="text-xl font-bold">Teachly AI Assistant</h1>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
@@ -593,7 +593,7 @@ const Voice = () => {
           </div>
         </header>
         
-        <main className="flex-1 flex flex-col p-4">
+        <main className="flex-1 flex flex-col p-4 overflow-hidden">
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
             {messages.map((message, index) => (
               <Card 
@@ -683,7 +683,7 @@ const Voice = () => {
             <div className="flex flex-col gap-2">
               <Textarea 
                 placeholder="Type your message here..."
-                className="bg-white/5 border-white/20 resize-none min-h-[120px]"
+                className="bg-white/5 border-white/20 resize-none min-h-[150px]"
                 value={textMessage}
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
