@@ -7,10 +7,9 @@ import { Card } from '@/components/ui/card';
 import { Mic, Square, Play, Pause, UserCircle2, Send, Paperclip } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import AIAvatar from '@/components/AIAvatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id?: string;
@@ -22,9 +21,10 @@ interface Message {
   fileName?: string;
   isFromUser: boolean;
   type: 'text' | 'voice' | 'file';
+  tokenCount?: number;
 }
 
-// Add an interface that matches the database schema
+// Interface that matches the database schema
 interface MessageFromDB {
   id: string;
   user_id: string;
@@ -33,17 +33,19 @@ interface MessageFromDB {
   is_from_user: boolean;
   type: string;
   file_url: string | null;
-  file_name?: string | null; // Make file_name optional as it might not be in the type definition
+  file_name?: string | null; // Optional as it might not be in the type definition
 }
 
 const Voice = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       text: "Welcome to the unified messaging! You can now use voice, text, or file uploads in a single conversation.",
       timestamp: new Date(),
       isFromUser: false,
-      type: 'text'
+      type: 'text',
+      tokenCount: 18
     }
   ]);
   const [isRecording, setIsRecording] = useState(false);
@@ -54,24 +56,59 @@ const Voice = () => {
   const audioChunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [avatarStyle, setAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
-  const [avatarEmotion, setAvatarEmotion] = useState<'neutral' | 'happy' | 'confused' | 'excited'>('neutral');
   
   const [textMessage, setTextMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Token usage tracking
+  const [totalTokensUsed, setTotalTokensUsed] = useState(0);
+  const [inputTokens, setInputTokens] = useState(0);
+  const [outputTokens, setOutputTokens] = useState(0);
+  const monthlyLimit = 20000;
 
   useEffect(() => {
     if (user) {
       fetchMessages();
+      fetchTokenUsage();
     }
   }, [user]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const fetchTokenUsage = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: tokenData, error: tokenError } = await supabase
+        .from('token_usage')
+        .select('tokens_used, feature')
+        .eq('user_id', user.id);
+        
+      if (tokenError) throw tokenError;
+      
+      if (tokenData) {
+        let inputCount = 0;
+        let outputCount = 0;
+        
+        tokenData.forEach(token => {
+          if (token.feature.includes('user_input')) {
+            inputCount += token.tokens_used;
+          } else {
+            outputCount += token.tokens_used;
+          }
+        });
+        
+        setInputTokens(inputCount);
+        setOutputTokens(outputCount);
+        setTotalTokensUsed(inputCount + outputCount);
+      }
+    } catch (error: any) {
+      console.error("Error fetching token usage:", error);
+    }
+  };
 
   const fetchMessages = async () => {
     if (!user) return;
@@ -95,10 +132,24 @@ const Voice = () => {
           fileName: msg.file_name || (msg.type === 'file' ? 'Attachment' : undefined),
           isPlaying: false,
           isFromUser: msg.is_from_user,
-          type: msg.type as 'text' | 'voice' | 'file'
+          type: msg.type as 'text' | 'voice' | 'file',
+          tokenCount: Math.ceil(msg.content.length / 4)
         }));
         
         setMessages(prev => [prev[0], ...formattedMessages]);
+        
+        // Calculate total tokens
+        const inputCount = formattedMessages
+          .filter(msg => msg.isFromUser)
+          .reduce((acc, msg) => acc + (msg.tokenCount || 0), 0);
+          
+        const outputCount = formattedMessages
+          .filter(msg => !msg.isFromUser)
+          .reduce((acc, msg) => acc + (msg.tokenCount || 0), 0);
+          
+        setInputTokens(inputCount);
+        setOutputTokens(outputCount);
+        setTotalTokensUsed(inputCount + outputCount);
       }
     } catch (error: any) {
       toast({
@@ -179,8 +230,9 @@ const Voice = () => {
       if (response.error) throw new Error(response.error.message);
       
       const transcribedText = response.data.text;
+      const tokenCount = Math.ceil(transcribedText.length / 4);
       
-      const userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null);
+      const userMessageId = await saveMessageToDatabase(transcribedText, 'voice', null, null, true, tokenCount, 'user_input');
       
       let audioUrl = null;
       if (audioData) {
@@ -198,10 +250,13 @@ const Voice = () => {
         timestamp: new Date(),
         audioUrl: audioUrl,
         isFromUser: true,
-        type: 'voice'
+        type: 'voice',
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
+      setInputTokens(prev => prev + tokenCount);
+      setTotalTokensUsed(prev => prev + tokenCount);
       
       await getAIResponse(transcribedText);
       
@@ -218,18 +273,22 @@ const Voice = () => {
     if (!textMessage.trim()) return;
     
     try {
-      const userMessageId = await saveMessageToDatabase(textMessage, 'text', null);
+      const tokenCount = Math.ceil(textMessage.length / 4);
+      const userMessageId = await saveMessageToDatabase(textMessage, 'text', null, null, true, tokenCount, 'user_input');
       
       const newUserMessage: Message = {
         id: userMessageId,
         text: textMessage,
         timestamp: new Date(),
         isFromUser: true,
-        type: 'text'
+        type: 'text',
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setTextMessage('');
+      setInputTokens(prev => prev + tokenCount);
+      setTotalTokensUsed(prev => prev + tokenCount);
       
       await getAIResponse(textMessage);
     } catch (error: any) {
@@ -246,21 +305,26 @@ const Voice = () => {
     
     try {
       const fileUrl = await uploadFile(file);
+      const messageText = `Uploaded file: ${file.name}`;
+      const tokenCount = Math.ceil(messageText.length / 4);
       
-      const userMessageId = await saveMessageToDatabase(`Uploaded file: ${file.name}`, 'file', fileUrl, file.name);
+      const userMessageId = await saveMessageToDatabase(messageText, 'file', fileUrl, file.name, true, tokenCount, 'user_input');
       
       const newUserMessage: Message = {
         id: userMessageId,
-        text: `Uploaded file: ${file.name}`,
+        text: messageText,
         timestamp: new Date(),
         fileUrl: fileUrl,
         fileName: file.name,
         isFromUser: true,
-        type: 'file'
+        type: 'file',
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setFile(null);
+      setInputTokens(prev => prev + tokenCount);
+      setTotalTokensUsed(prev => prev + tokenCount);
       
       await getAIResponse(`I've uploaded a file named ${file.name}. Can you help me with this?`);
     } catch (error: any) {
@@ -304,10 +368,8 @@ const Voice = () => {
 
   const getAIResponse = async (userMessage: string) => {
     try {
-      setAvatarEmotion('neutral');
-      setIsSpeaking(false);
-      
       const aiResponse = `I've processed your message: "${userMessage}". How can I help you further?`;
+      const tokenCount = Math.ceil(aiResponse.length / 4);
       
       const voiceResponse = await supabase.functions.invoke('text-to-voice', {
         body: { text: aiResponse, voice: 'alloy' },
@@ -318,7 +380,7 @@ const Voice = () => {
       const base64Audio = voiceResponse.data.audioContent;
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
       
-      const aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, null, false);
+      const aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, null, false, tokenCount, 'ai_response');
       
       const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
       
@@ -333,10 +395,13 @@ const Voice = () => {
         timestamp: new Date(),
         audioUrl: audioUrl,
         isFromUser: false,
-        type: 'voice'
+        type: 'voice',
+        tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, aiMessage]);
+      setOutputTokens(prev => prev + tokenCount);
+      setTotalTokensUsed(prev => prev + tokenCount);
       
       setTimeout(() => {
         if (aiMessageId) {
@@ -383,7 +448,9 @@ const Voice = () => {
     type: string, 
     fileUrl: string | null,
     fileName: string | null = null,
-    isFromUser: boolean = true
+    isFromUser: boolean = true,
+    tokenCount: number = 0,
+    feature: string = 'unified_chat'
   ): Promise<string> => {
     try {
       const { data, error } = await supabase
@@ -403,8 +470,8 @@ const Voice = () => {
       
       await supabase.from('token_usage').insert({
         user_id: user?.id,
-        tokens_used: Math.ceil(content.length / 4),
-        feature: 'unified_chat',
+        tokens_used: tokenCount,
+        feature: feature,
       });
       
       return data.id;
@@ -441,12 +508,7 @@ const Voice = () => {
         const audio = new Audio(message.audioUrl);
         audioRefs.current[messageId] = audio;
         
-        audio.onplay = () => {
-          setIsSpeaking(true);
-        };
-        
         audio.onended = () => {
-          setIsSpeaking(false);
           setMessages(messages => 
             messages.map(m => 
               m.id === messageId ? { ...m, isPlaying: false } : m
@@ -455,7 +517,7 @@ const Voice = () => {
         };
         
         audio.onpause = () => {
-          setIsSpeaking(false);
+          // Nothing needed here
         };
       }
     }
@@ -491,7 +553,6 @@ const Voice = () => {
     
     if (audio) {
       audio.pause();
-      setIsSpeaking(false);
       
       setMessages(messages => 
         messages.map(m => 
@@ -501,15 +562,16 @@ const Voice = () => {
     }
   };
 
-  const handleAvatarStyleChange = (value: string) => {
-    setAvatarStyle(value as 'teacher' | 'casual' | 'professional' | 'friendly');
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendTextMessage();
     }
+  };
+
+  // Go to token page
+  const goToTokenPage = () => {
+    navigate('/tokens');
   };
 
   return (
@@ -520,188 +582,167 @@ const Voice = () => {
         <header className="p-4 border-b border-white/20 flex justify-between items-center">
           <h1 className="text-xl font-bold">Unified Chat</h1>
           <div className="flex items-center gap-2">
-            <label className="text-sm text-white/70">Avatar Style</label>
-            <Select value={avatarStyle} onValueChange={handleAvatarStyleChange}>
-              <SelectTrigger className="w-40 bg-white/5 border-white/20">
-                <SelectValue placeholder="Select style" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 border-white/20">
-                <SelectItem value="teacher">Teacher</SelectItem>
-                <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="friendly">Friendly</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-white/30 hover:bg-white/10"
+              onClick={goToTokenPage}
+            >
+              {totalTokensUsed} / {monthlyLimit} tokens
+            </Button>
           </div>
         </header>
         
-        <main className="flex-1 overflow-hidden flex flex-col">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 h-full">
-            <div className="col-span-1 flex flex-col space-y-4 md:border-r border-white/20 md:pr-4">
-              <AIAvatar 
-                isSpeaking={isSpeaking}
-                isListening={isRecording}
-                avatarStyle={avatarStyle}
-                emotion={avatarEmotion}
-                className="w-full"
-              />
-              
-              <div className="bg-white/5 rounded-lg p-4">
-                <h3 className="font-semibold mb-2">Current Settings</h3>
-                <p className="text-sm text-white/70">Style: <span className="text-white">{avatarStyle}</span></p>
-                <p className="text-sm text-white/70">Status: <span className="text-white">
-                  {isSpeaking ? 'Speaking' : isRecording ? 'Listening' : 'Idle'}
-                </span></p>
-              </div>
-            </div>
-            
-            <div className="col-span-1 md:col-span-2 flex-1 flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-                {messages.map((message, index) => (
-                  <Card 
-                    key={index}
-                    className={`p-4 ${message.isFromUser ? 'bg-purple-900/30' : 'bg-white/5'} border-white/20`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        {message.isFromUser ? (
-                          <UserCircle2 className="h-8 w-8 text-white/70" />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
-                            AI
-                          </div>
-                        )}
+        <main className="flex-1 flex flex-col p-4">
+          <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+            {messages.map((message, index) => (
+              <Card 
+                key={index}
+                className={`p-4 ${message.isFromUser ? 'bg-purple-900/30' : 'bg-white/5'} border-white/20`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    {message.isFromUser ? (
+                      <UserCircle2 className="h-8 w-8 text-white/70" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
+                        AI
                       </div>
-                      <div className="flex-1">
-                        <p className="mb-2">{message.text}</p>
-                        {message.type === 'file' && message.fileUrl && (
-                          <div className="bg-white/10 p-2 rounded mb-2">
-                            <a 
-                              href={message.fileUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:underline flex items-center gap-1"
-                            >
-                              <Paperclip className="h-4 w-4" />
-                              {message.fileName || 'Attachment'}
-                            </a>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          {message.audioUrl && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="border-white/30 hover:bg-white/10"
-                              onClick={() => message.isPlaying 
-                                ? handlePauseAudio(message.id!) 
-                                : handlePlayAudio(message.id!)
-                              }
-                            >
-                              {message.isPlaying ? (
-                                <>
-                                  <Pause className="h-4 w-4 mr-1" />
-                                  Pause
-                                </>
-                              ) : (
-                                <>
-                                  <Play className="h-4 w-4 mr-1" />
-                                  Play
-                                </>
-                              )}
-                            </Button>
-                          )}
-                          <span className="text-xs text-white/50">
-                            {message.timestamp.toLocaleTimeString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-              
-              <div className="border-t border-white/20 pt-4 space-y-4">
-                {file && (
-                  <div className="flex items-center gap-2 bg-white/10 p-2 rounded">
-                    <Paperclip className="h-4 w-4" />
-                    <span className="flex-1 truncate">{file.name}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setFile(null)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-                  <div className="md:col-span-9">
-                    <Textarea 
-                      placeholder="Type your message here..."
-                      className="bg-white/5 border-white/20 resize-none min-h-[80px]"
-                      value={textMessage}
-                      onChange={(e) => setTextMessage(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-3 flex flex-col h-full gap-2">
-                    <Button
-                      className="flex-1 bg-white text-black hover:bg-gray-200"
-                      onClick={handleSendTextMessage}
-                      disabled={!textMessage.trim()}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Send
-                    </Button>
-                    
-                    <div className="flex gap-2 h-10">
-                      <Input 
-                        type="file"
-                        className="hidden"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 border-white/30 hover:bg-white/10"
-                      >
-                        <Paperclip className="h-4 w-4" />
-                      </Button>
-                      
-                      {isRecording ? (
-                        <Button 
-                          onClick={handleStopRecording}
-                          variant="destructive"
-                          className="flex-1 flex items-center justify-center"
-                        >
-                          <div className="animate-pulse mr-1">●</div>
-                          {recordingTime}s
-                        </Button>
-                      ) : (
-                        <Button 
-                          onClick={handleStartRecording}
-                          className="flex-1 bg-white/10 hover:bg-white/20 border border-white/30"
-                        >
-                          <Mic className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    
-                    {file && (
-                      <Button
-                        onClick={handleFileUpload}
-                        className="bg-purple-600 hover:bg-purple-700"
-                      >
-                        Upload File
-                      </Button>
                     )}
                   </div>
+                  <div className="flex-1">
+                    <p className="mb-2">{message.text}</p>
+                    {message.type === 'file' && message.fileUrl && (
+                      <div className="bg-white/10 p-2 rounded mb-2">
+                        <a 
+                          href={message.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:underline flex items-center gap-1"
+                        >
+                          <Paperclip className="h-4 w-4" />
+                          {message.fileName || 'Attachment'}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      {message.audioUrl && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-white/30 hover:bg-white/10"
+                          onClick={() => message.isPlaying 
+                            ? handlePauseAudio(message.id!) 
+                            : handlePlayAudio(message.id!)
+                          }
+                        >
+                          {message.isPlaying ? (
+                            <>
+                              <Pause className="h-4 w-4 mr-1" />
+                              Pause
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-4 w-4 mr-1" />
+                              Play
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-white/50">
+                          {message.timestamp.toLocaleTimeString()}
+                        </span>
+                        <span className="text-xs text-white/50">
+                          ({message.tokenCount || 0} tokens)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </Card>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          
+          <div className="border-t border-white/20 pt-4 space-y-4">
+            {file && (
+              <div className="flex items-center gap-2 bg-white/10 p-2 rounded">
+                <Paperclip className="h-4 w-4" />
+                <span className="flex-1 truncate">{file.name}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setFile(null)}
+                >
+                  ×
+                </Button>
+              </div>
+            )}
+            
+            <div className="flex flex-col gap-2">
+              <Textarea 
+                placeholder="Type your message here..."
+                className="bg-white/5 border-white/20 resize-none min-h-[120px]"
+                value={textMessage}
+                onChange={(e) => setTextMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  className="flex-1 bg-white text-black hover:bg-gray-200"
+                  onClick={handleSendTextMessage}
+                  disabled={!textMessage.trim()}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Text
+                </Button>
+                
+                <Input 
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                />
+                
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 border-white/30 hover:bg-white/10"
+                >
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  {file ? 'Change File' : 'Attach File'}
+                </Button>
+                
+                {file && (
+                  <Button
+                    onClick={handleFileUpload}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send File
+                  </Button>
+                )}
+                
+                {isRecording ? (
+                  <Button 
+                    onClick={handleStopRecording}
+                    variant="destructive"
+                    className="flex-1 flex items-center justify-center"
+                  >
+                    <div className="animate-pulse mr-1">●</div>
+                    {recordingTime}s
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleStartRecording}
+                    className="flex-1 bg-white/10 hover:bg-white/20 border border-white/30"
+                  >
+                    <Mic className="h-4 w-4 mr-2" />
+                    Record Voice
+                  </Button>
+                )}
               </div>
             </div>
           </div>

@@ -1,15 +1,65 @@
 
+import { useState, useEffect } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
 
 const Tokens = () => {
-  // Simulated token data
-  const inputTokens = 2345;
-  const outputTokens = 8765;
-  const totalTokens = inputTokens + outputTokens;
+  const { user } = useAuth();
+  const [inputTokens, setInputTokens] = useState(0);
+  const [outputTokens, setOutputTokens] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const monthlyLimit = 20000;
+  
+  const totalTokens = inputTokens + outputTokens;
   const usagePercentage = (totalTokens / monthlyLimit) * 100;
+
+  useEffect(() => {
+    if (user) {
+      fetchTokenUsage();
+    }
+  }, [user]);
+
+  const fetchTokenUsage = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('token_usage')
+        .select('tokens_used, feature')
+        .eq('user_id', user.id);
+        
+      if (error) throw error;
+      
+      if (data) {
+        let inputCount = 0;
+        let outputCount = 0;
+        
+        data.forEach(token => {
+          if (token.feature === 'user_input') {
+            inputCount += token.tokens_used;
+          } else {
+            outputCount += token.tokens_used;
+          }
+        });
+        
+        setInputTokens(inputCount);
+        setOutputTokens(outputCount);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error fetching token usage",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-black text-white">
@@ -29,9 +79,9 @@ const Tokens = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Total Usage</span>
-                  <span>{totalTokens} / {monthlyLimit} tokens</span>
+                  <span>{isLoading ? 'Loading...' : `${totalTokens} / ${monthlyLimit} tokens`}</span>
                 </div>
-                <Progress value={usagePercentage} className="h-2 bg-white/10" />
+                <Progress value={isLoading ? 0 : usagePercentage} className="h-2 bg-white/10" />
               </div>
             </CardContent>
           </Card>
@@ -42,7 +92,7 @@ const Tokens = () => {
                 <CardTitle>Input Tokens</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{inputTokens}</div>
+                <div className="text-3xl font-bold">{isLoading ? 'Loading...' : inputTokens}</div>
                 <p className="text-white/70 mt-2">
                   Tokens used for your messages
                 </p>
@@ -54,7 +104,7 @@ const Tokens = () => {
                 <CardTitle>Output Tokens</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{outputTokens}</div>
+                <div className="text-3xl font-bold">{isLoading ? 'Loading...' : outputTokens}</div>
                 <p className="text-white/70 mt-2">
                   Tokens used for AI responses
                 </p>
