@@ -66,10 +66,6 @@ const Voice = () => {
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!localStorage.getItem('openai_api_key')) {
-      localStorage.setItem('openai_api_key', 'sk-yourActualOpenAIKeyGoesHere');
-    }
-    
     if (user) {
       fetchMessages();
       fetchTokenUsage();
@@ -226,31 +222,40 @@ const Voice = () => {
   const processVoiceToText = async (audioBase64: string) => {
     try {
       const localOpenAIKey = localStorage.getItem('openai_api_key');
+      
+      if (!localOpenAIKey) {
+        toast({
+          title: "API Key Missing",
+          description: "OpenAI API key is not set in local storage",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       let transcribedText = '';
       
-      if (localOpenAIKey) {
-        const binaryAudio = processBase64ToBlob(audioBase64);
-        
-        const formData = new FormData();
-        formData.append('file', binaryAudio, 'audio.webm');
-        formData.append('model', 'whisper-1');
-        
-        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-          method: 'POST',
+      try {
+        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/voice-to-text", {
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${localOpenAIKey}`,
+            "Content-Type": "application/json",
           },
-          body: formData,
+          body: JSON.stringify({
+            audio: audioBase64,
+            apiKey: localOpenAIKey
+          }),
         });
         
-        if (response.ok) {
-          const result = await response.json();
-          transcribedText = result.text;
-        } else {
-          throw new Error('Failed to transcribe audio with API key');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to transcribe audio');
         }
-      } else {
-        throw new Error('OpenAI API key is not set');
+        
+        const data = await response.json();
+        transcribedText = data.text;
+      } catch (err: any) {
+        console.error("Error transcribing audio:", err);
+        throw new Error(`Failed to transcribe audio: ${err.message}`);
       }
       
       const tokenCount = Math.ceil(transcribedText.length / 4);
@@ -418,44 +423,46 @@ const Voice = () => {
 
   const getAIResponse = async (userMessage: string) => {
     try {
+      const localOpenAIKey = localStorage.getItem('openai_api_key');
+      
+      if (!localOpenAIKey) {
+        toast({
+          title: "API Key Missing",
+          description: "OpenAI API key is not set in local storage",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const aiResponse = `I've processed your message: "${userMessage}". How can I help you further?`;
       const tokenCount = Math.ceil(aiResponse.length / 4);
-      
-      const localOpenAIKey = localStorage.getItem('openai_api_key');
       
       let audioUrl = null;
       let base64Audio = null;
       
-      if (localOpenAIKey) {
-        try {
-          const response = await fetch('https://api.openai.com/v1/audio/speech', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localOpenAIKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'tts-1',
-              input: aiResponse,
-              voice: 'alloy',
-              response_format: 'mp3',
-            }),
-          });
-          
-          if (response.ok) {
-            const arrayBuffer = await response.arrayBuffer();
-            base64Audio = btoa(
-              String.fromCharCode(...new Uint8Array(arrayBuffer))
-            );
-          } else {
-            throw new Error('Failed to generate audio with API key');
-          }
-        } catch (directError) {
-          console.error("Error using OpenAI API key:", directError);
-          throw new Error('Failed to generate speech with OpenAI API');
+      try {
+        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/text-to-voice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: aiResponse,
+            voice: 'alloy',
+            apiKey: localOpenAIKey
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to generate speech');
         }
-      } else {
-        throw new Error('OpenAI API key is not set');
+        
+        const data = await response.json();
+        base64Audio = data.audioContent;
+      } catch (err: any) {
+        console.error("Error generating speech:", err);
+        throw new Error(`Failed to generate speech: ${err.message}`);
       }
       
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
@@ -503,70 +510,77 @@ const Voice = () => {
       const localOpenAIKey = localStorage.getItem('openai_api_key');
       
       if (!localOpenAIKey) {
-        throw new Error('OpenAI API key is not set');
+        toast({
+          title: "API Key Missing",
+          description: "OpenAI API key is not set in local storage",
+          variant: "destructive"
+        });
+        return;
       }
       
-      const response = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localOpenAIKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'tts-1',
-          input: "I'm listening. What would you like to talk about?",
-          voice: 'alloy',
-          response_format: 'mp3',
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API responded with status ${response.status}`);
-      }
-      
-      const arrayBuffer = await response.arrayBuffer();
-      const base64Audio = btoa(
-        String.fromCharCode(...new Uint8Array(arrayBuffer))
-      );
-      
-      const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
-      
-      const aiMessageId = await saveMessageToDatabase(
-        "I'm listening. What would you like to talk about?", 
-        'voice', 
-        null, 
-        null, 
-        false, 
-        10, 
-        'ai_response'
-      );
-      
-      const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
-      
-      await supabase
-        .from('messages')
-        .update({ file_url: audioUrl })
-        .eq('id', aiMessageId);
-      
-      const aiMessage: Message = {
-        id: aiMessageId,
-        text: "I'm listening. What would you like to talk about?",
-        timestamp: new Date(),
-        audioUrl: audioUrl,
-        isFromUser: false,
-        type: 'voice',
-        tokenCount: 10
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      setOutputTokens(prev => prev + 10);
-      setTotalTokensUsed(prev => prev + 10);
-      
-      setTimeout(() => {
-        if (aiMessageId) {
-          handlePlayAudio(aiMessageId);
+      try {
+        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/text-to-voice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: "I'm listening. What would you like to talk about?",
+            voice: 'alloy',
+            apiKey: localOpenAIKey
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to generate speech');
         }
-      }, 500);
+        
+        const data = await response.json();
+        const base64Audio = data.audioContent;
+        
+        const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
+        
+        const aiMessageId = await saveMessageToDatabase(
+          "I'm listening. What would you like to talk about?", 
+          'voice', 
+          null, 
+          null, 
+          false, 
+          10, 
+          'ai_response'
+        );
+        
+        const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
+        
+        await supabase
+          .from('messages')
+          .update({ file_url: audioUrl })
+          .eq('id', aiMessageId);
+        
+        const aiMessage: Message = {
+          id: aiMessageId,
+          text: "I'm listening. What would you like to talk about?",
+          timestamp: new Date(),
+          audioUrl: audioUrl,
+          isFromUser: false,
+          type: 'voice',
+          tokenCount: 10
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        setOutputTokens(prev => prev + 10);
+        setTotalTokensUsed(prev => prev + 10);
+        
+        setTimeout(() => {
+          if (aiMessageId) {
+            handlePlayAudio(aiMessageId);
+          }
+        }, 500);
+      } catch (err: any) {
+        console.error("Error generating voice response:", err);
+        throw new Error(`Failed to generate voice response: ${err.message}`);
+      }
       
     } catch (error: any) {
       toast({

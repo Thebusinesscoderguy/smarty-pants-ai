@@ -19,40 +19,25 @@ serve(async (req) => {
     console.log(`Request method: ${req.method}`);
     console.log(`Request URL: ${req.url}`);
     
-    // Log request headers for debugging
-    const headers = {};
-    req.headers.forEach((value, key) => {
-      // Don't log full auth tokens for security
-      if (key === 'authorization' || key === 'apikey') {
-        headers[key] = value.substring(0, 10) + '...';
-      } else {
-        headers[key] = value;
-      }
-    });
-    console.log("Request headers:", JSON.stringify(headers));
-    
-    const { text, voice } = await req.json();
-    console.log("Received payload:", { textLength: text?.length || 0, voice });
+    const { text, voice, apiKey } = await req.json();
+    console.log("Received payload:", { textLength: text?.length || 0, voice, hasApiKey: !!apiKey });
 
     if (!text) {
       throw new Error('Text is required');
     }
 
-    // Check if the OpenAI API key is configured
-    const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
-      console.error("OpenAI API key is not configured");
-      throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
-    } else {
-      const maskedKey = apiKey.substring(0, 5) + '...' + apiKey.substring(apiKey.length - 4);
-      console.log("Using API key:", maskedKey);
-      console.log("API key length:", apiKey.length);
-      
-      // Check if the API key is properly formatted (should start with "sk-")
-      if (!apiKey.startsWith('sk-')) {
-        console.error("API key appears to be in incorrect format");
-        throw new Error('OpenAI API key appears to be in incorrect format. It should start with "sk-"');
-      }
+      throw new Error('API key is required');
+    }
+
+    // Use the provided API key directly instead of environment variable
+    const openAIKey = apiKey;
+    console.log("Using provided API key");
+
+    // Check if the API key is properly formatted (should start with "sk-")
+    if (!openAIKey.startsWith('sk-')) {
+      console.error("API key appears to be in incorrect format");
+      throw new Error('OpenAI API key appears to be in incorrect format. It should start with "sk-"');
     }
 
     console.log("Converting text to speech:", { textLength: text.length, voice });
@@ -62,7 +47,7 @@ serve(async (req) => {
       const response = await fetch('https://api.openai.com/v1/audio/speech', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${openAIKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -100,7 +85,7 @@ serve(async (req) => {
           // Check for specific error types
           if (response.status === 401) {
             errorType = 'api_key_error';
-            errorMessage = 'Invalid OpenAI API key. Please check your API key in the Supabase dashboard.';
+            errorMessage = 'Invalid OpenAI API key. Please check your API key.';
           } else if (response.status === 429) {
             errorType = 'rate_limit_error';
             errorMessage = 'OpenAI rate limit exceeded. Please try again later.';
