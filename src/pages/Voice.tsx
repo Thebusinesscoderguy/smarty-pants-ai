@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -9,6 +8,7 @@ import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import OpenAIKeyForm from '@/components/OpenAIKeyForm';
 
 interface Message {
   id?: string;
@@ -23,7 +23,6 @@ interface Message {
   tokenCount?: number;
 }
 
-// Interface that matches the database schema
 interface MessageFromDB {
   id: string;
   user_id: string;
@@ -60,7 +59,6 @@ const Voice = () => {
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Token usage tracking
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
@@ -223,13 +221,39 @@ const Voice = () => {
 
   const processVoiceToText = async (audioBase64: string) => {
     try {
-      const response = await supabase.functions.invoke('voice-to-text', {
-        body: { audio: audioBase64 },
-      });
+      const localOpenAIKey = localStorage.getItem('openai_api_key');
+      let transcribedText = '';
       
-      if (response.error) throw new Error(response.error.message);
+      if (localOpenAIKey) {
+        const binaryAudio = processBase64ToBlob(audioBase64);
+        
+        const formData = new FormData();
+        formData.append('file', binaryAudio, 'audio.webm');
+        formData.append('model', 'whisper-1');
+        
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localOpenAIKey}`,
+          },
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          transcribedText = result.text;
+        } else {
+          throw new Error('Failed to transcribe audio with local API key');
+        }
+      } else {
+        const response = await supabase.functions.invoke('voice-to-text', {
+          body: { audio: audioBase64 },
+        });
+        
+        if (response.error) throw new Error(response.error.message);
+        transcribedText = response.data.text;
+      }
       
-      const transcribedText = response.data.text;
       const tokenCount = Math.ceil(transcribedText.length / 4);
       
       const userMessageId = await saveMessageToDatabase(
@@ -398,18 +422,58 @@ const Voice = () => {
       const aiResponse = `I've processed your message: "${userMessage}". How can I help you further?`;
       const tokenCount = Math.ceil(aiResponse.length / 4);
       
-      const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-        body: { text: aiResponse, voice: 'alloy' },
-      });
+      const localOpenAIKey = localStorage.getItem('openai_api_key');
       
-      if (voiceResponse.error) throw new Error(voiceResponse.error.message);
+      let audioUrl = null;
+      let base64Audio = null;
       
-      const base64Audio = voiceResponse.data.audioContent;
+      if (localOpenAIKey) {
+        try {
+          const response = await fetch('https://api.openai.com/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localOpenAIKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'tts-1',
+              input: aiResponse,
+              voice: 'alloy',
+              response_format: 'mp3',
+            }),
+          });
+          
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            base64Audio = btoa(
+              String.fromCharCode(...new Uint8Array(arrayBuffer))
+            );
+          } else {
+            throw new Error('Failed to generate audio with local API key');
+          }
+        } catch (directError) {
+          console.error("Error using local API key:", directError);
+          const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+            body: { text: aiResponse, voice: 'alloy' },
+          });
+          
+          if (voiceResponse.error) throw new Error(voiceResponse.error.message);
+          base64Audio = voiceResponse.data.audioContent;
+        }
+      } else {
+        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+          body: { text: aiResponse, voice: 'alloy' },
+        });
+        
+        if (voiceResponse.error) throw new Error(voiceResponse.error.message);
+        base64Audio = voiceResponse.data.audioContent;
+      }
+      
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
       
       const aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, null, false, tokenCount, 'ai_response');
       
-      const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
+      audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
       
       await supabase
         .from('messages')
@@ -586,6 +650,25 @@ const Voice = () => {
     return new Blob(byteArrays, { type: mimeType });
   };
 
+  const processBase64ToBlob = (base64String: string): Blob => {
+    const byteCharacters = atob(base64String);
+    const byteArrays = [];
+    
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      const byteNumbers = new Array(slice.length);
+      
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    
+    return new Blob(byteArrays, { type: 'audio/webm' });
+  };
+
   const handlePlayAudio = (messageId: string) => {
     if (!audioRefs.current[messageId]) {
       const message = messages.find(m => m.id === messageId);
@@ -686,7 +769,8 @@ const Voice = () => {
         </header>
         
         <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-3xl mx-auto w-full">
-          {/* Voice recording button moved to top */}
+          <OpenAIKeyForm />
+          
           <div className="mb-6 flex justify-center">
             {isRecording ? (
               <Button 
