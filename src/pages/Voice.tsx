@@ -66,6 +66,10 @@ const Voice = () => {
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!localStorage.getItem('openai_api_key')) {
+      localStorage.setItem('openai_api_key', 'sk-yourActualOpenAIKeyGoesHere');
+    }
+    
     if (user) {
       fetchMessages();
       fetchTokenUsage();
