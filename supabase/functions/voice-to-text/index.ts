@@ -81,6 +81,11 @@ serve(async (req) => {
         const errorText = await response.text();
         console.error("OpenAI API error:", errorText);
         errorMessage = `OpenAI API error: ${errorText}`;
+        
+        // Check for invalid API key errors
+        if (errorText.includes('API key') || errorText.includes('authentication') || response.status === 401) {
+          throw new Error('Invalid OpenAI API key. Please check your API key in the Supabase dashboard.');
+        }
       } catch (e) {
         console.error("Failed to parse error response:", e);
       }
