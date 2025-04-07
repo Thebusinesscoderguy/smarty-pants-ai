@@ -39,7 +39,14 @@ serve(async (req) => {
       console.error("OpenAI API key is not configured");
       throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
     } else {
-      console.log("Using API key:", apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length - 4));
+      const maskedKey = apiKey.substring(0, 7) + '...' + apiKey.substring(apiKey.length - 5);
+      console.log("Using API key:", maskedKey);
+      
+      // Check if the API key is properly formatted (should start with "sk-")
+      if (!apiKey.startsWith('sk-')) {
+        console.error("API key appears to be in incorrect format");
+        throw new Error('OpenAI API key appears to be in incorrect format. It should start with "sk-"');
+      }
     }
 
     console.log("Converting text to speech:", { textLength: text.length, voice });
@@ -61,18 +68,30 @@ serve(async (req) => {
 
     if (!response.ok) {
       let errorMessage = 'Failed to generate speech';
+      let errorDetails = null;
+      let errorType = 'processing_error';
+      
       try {
         const errorData = await response.json();
-        console.error("OpenAI API error:", errorData);
-        errorMessage = errorData.error?.message || errorMessage;
+        console.error("OpenAI API error response:", JSON.stringify(errorData));
         
-        // Check for invalid API key errors
-        if (errorMessage.includes('API key') || errorMessage.includes('authentication') || response.status === 401) {
-          throw new Error('Invalid OpenAI API key. Please check your API key in the Supabase dashboard.');
+        if (errorData.error) {
+          errorMessage = errorData.error.message || errorMessage;
+          errorDetails = errorData.error;
+        }
+        
+        // Check for specific error types
+        if (response.status === 401) {
+          errorType = 'api_key_error';
+          errorMessage = 'Invalid OpenAI API key. Please check your API key in the Supabase dashboard.';
+        } else if (response.status === 429) {
+          errorType = 'rate_limit_error';
+          errorMessage = 'OpenAI rate limit exceeded. Please try again later.';
         }
       } catch (e) {
         console.error("Failed to parse error response:", e);
       }
+      
       throw new Error(errorMessage);
     }
 
@@ -92,11 +111,15 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in text-to-voice function:", error);
+    
+    // Determine error type and provide structured response
+    const errorType = error.message.includes('API key') ? 'api_key_error' : 'processing_error';
+    
     return new Response(
       JSON.stringify({ 
         error: error.message,
         source: 'text-to-voice',
-        type: error.message.includes('API key') ? 'api_key_error' : 'processing_error'
+        type: errorType
       }),
       {
         status: 400,
