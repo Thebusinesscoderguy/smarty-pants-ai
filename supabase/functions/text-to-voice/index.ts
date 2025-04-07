@@ -13,6 +13,20 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Request received for text-to-voice");
+    
+    // Log request headers for debugging
+    const headers = {};
+    req.headers.forEach((value, key) => {
+      // Don't log full auth tokens for security
+      if (key === 'authorization' || key === 'apikey') {
+        headers[key] = value.substring(0, 10) + '...';
+      } else {
+        headers[key] = value;
+      }
+    });
+    console.log("Request headers:", JSON.stringify(headers));
+    
     const { text, voice } = await req.json();
 
     if (!text) {
