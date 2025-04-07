@@ -247,15 +247,10 @@ const Voice = () => {
           const result = await response.json();
           transcribedText = result.text;
         } else {
-          throw new Error('Failed to transcribe audio with local API key');
+          throw new Error('Failed to transcribe audio with API key');
         }
       } else {
-        const response = await supabase.functions.invoke('voice-to-text', {
-          body: { audio: audioBase64 },
-        });
-        
-        if (response.error) throw new Error(response.error.message);
-        transcribedText = response.data.text;
+        throw new Error('OpenAI API key is not set');
       }
       
       const tokenCount = Math.ceil(transcribedText.length / 4);
@@ -453,24 +448,14 @@ const Voice = () => {
               String.fromCharCode(...new Uint8Array(arrayBuffer))
             );
           } else {
-            throw new Error('Failed to generate audio with local API key');
+            throw new Error('Failed to generate audio with API key');
           }
         } catch (directError) {
-          console.error("Error using local API key:", directError);
-          const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-            body: { text: aiResponse, voice: 'alloy' },
-          });
-          
-          if (voiceResponse.error) throw new Error(voiceResponse.error.message);
-          base64Audio = voiceResponse.data.audioContent;
+          console.error("Error using OpenAI API key:", directError);
+          throw new Error('Failed to generate speech with OpenAI API');
         }
       } else {
-        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-          body: { text: aiResponse, voice: 'alloy' },
-        });
-        
-        if (voiceResponse.error) throw new Error(voiceResponse.error.message);
-        base64Audio = voiceResponse.data.audioContent;
+        throw new Error('OpenAI API key is not set');
       }
       
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
@@ -515,13 +500,35 @@ const Voice = () => {
 
   const handleVoiceResponse = async () => {
     try {
-      const response = await supabase.functions.invoke('text-to-voice', {
-        body: { text: "I'm listening. What would you like to talk about?", voice: 'alloy' },
+      const localOpenAIKey = localStorage.getItem('openai_api_key');
+      
+      if (!localOpenAIKey) {
+        throw new Error('OpenAI API key is not set');
+      }
+      
+      const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localOpenAIKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          input: "I'm listening. What would you like to talk about?",
+          voice: 'alloy',
+          response_format: 'mp3',
+        }),
       });
       
-      if (response.error) throw new Error(response.error.message);
+      if (!response.ok) {
+        throw new Error(`API responded with status ${response.status}`);
+      }
       
-      const base64Audio = response.data.audioContent;
+      const arrayBuffer = await response.arrayBuffer();
+      const base64Audio = btoa(
+        String.fromCharCode(...new Uint8Array(arrayBuffer))
+      );
+      
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
       
       const aiMessageId = await saveMessageToDatabase(
