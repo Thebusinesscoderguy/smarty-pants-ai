@@ -22,6 +22,7 @@ serve(async (req) => {
     // Check if the OpenAI API key is configured
     const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
+      console.error("OpenAI API key is not configured");
       throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
     }
 
@@ -48,6 +49,11 @@ serve(async (req) => {
         const errorData = await response.json();
         console.error("OpenAI API error:", errorData);
         errorMessage = errorData.error?.message || errorMessage;
+        
+        // Check for invalid API key errors
+        if (errorMessage.includes('API key') || errorMessage.includes('authentication') || response.status === 401) {
+          throw new Error('Invalid OpenAI API key. Please check your API key in the Supabase dashboard.');
+        }
       } catch (e) {
         console.error("Failed to parse error response:", e);
       }
