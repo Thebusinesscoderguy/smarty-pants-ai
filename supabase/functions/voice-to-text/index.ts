@@ -49,6 +49,14 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
+    // Check if the OpenAI API key is configured
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!apiKey) {
+      throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
+    }
+    
+    console.log("Processing audio for transcription");
+
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
     
@@ -62,19 +70,25 @@ serve(async (req) => {
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI API error:", errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      let errorMessage = 'Failed to transcribe audio';
+      try {
+        const errorText = await response.text();
+        console.error("OpenAI API error:", errorText);
+        errorMessage = `OpenAI API error: ${errorText}`;
+      } catch (e) {
+        console.error("Failed to parse error response:", e);
+      }
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
-    console.log("Transcription result:", result);
+    console.log("Transcription successful:", result);
 
     return new Response(
       JSON.stringify({ text: result.text }),
@@ -84,7 +98,11 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in voice-to-text function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        source: 'voice-to-text',
+        type: error.message.includes('API key') ? 'api_key_error' : 'processing_error'
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

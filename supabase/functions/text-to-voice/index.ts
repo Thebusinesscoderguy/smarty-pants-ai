@@ -19,11 +19,19 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
+    // Check if the OpenAI API key is configured
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!apiKey) {
+      throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
+    }
+
+    console.log("Converting text to speech:", { textLength: text.length, voice });
+
     // Generate speech from text
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -35,9 +43,15 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenAI API error:", errorData);
-      throw new Error(errorData.error?.message || 'Failed to generate speech');
+      let errorMessage = 'Failed to generate speech';
+      try {
+        const errorData = await response.json();
+        console.error("OpenAI API error:", errorData);
+        errorMessage = errorData.error?.message || errorMessage;
+      } catch (e) {
+        console.error("Failed to parse error response:", e);
+      }
+      throw new Error(errorMessage);
     }
 
     // Convert audio buffer to base64
@@ -45,6 +59,8 @@ serve(async (req) => {
     const base64Audio = btoa(
       String.fromCharCode(...new Uint8Array(arrayBuffer))
     );
+
+    console.log("Successfully converted text to speech");
 
     return new Response(
       JSON.stringify({ audioContent: base64Audio }),
@@ -55,7 +71,11 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in text-to-voice function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        source: 'text-to-voice',
+        type: error.message.includes('API key') ? 'api_key_error' : 'processing_error'
+      }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
