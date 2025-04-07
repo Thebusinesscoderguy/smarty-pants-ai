@@ -45,7 +45,11 @@ serve(async (req) => {
   try {
     console.log("Request received for voice-to-text");
     
-    // Log request headers for debugging (without exposing sensitive information)
+    // Enhanced logging of request details
+    console.log(`Request method: ${req.method}`);
+    console.log(`Request URL: ${req.url}`);
+    
+    // Log request headers for debugging
     const headers = {};
     req.headers.forEach((value, key) => {
       // Don't log full auth tokens for security
@@ -57,7 +61,13 @@ serve(async (req) => {
     });
     console.log("Request headers:", JSON.stringify(headers));
     
-    const { audio } = await req.json();
+    const requestData = await req.json();
+    const { audio } = requestData;
+    
+    console.log("Request payload received:", { 
+      hasAudio: !!audio, 
+      audioLength: audio ? audio.length : 0 
+    });
     
     if (!audio) {
       throw new Error('No audio data provided');
@@ -69,8 +79,9 @@ serve(async (req) => {
       console.error("OpenAI API key is not configured");
       throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
     } else {
-      const maskedKey = apiKey.substring(0, 7) + '...' + apiKey.substring(apiKey.length - 5);
+      const maskedKey = apiKey.substring(0, 5) + '...' + apiKey.substring(apiKey.length - 4);
       console.log("Using API key:", maskedKey);
+      console.log("API key length:", apiKey.length);
       
       // Check if the API key is properly formatted (should start with "sk-")
       if (!apiKey.startsWith('sk-')) {
@@ -83,6 +94,7 @@ serve(async (req) => {
 
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
+    console.log("Audio processed, size:", binaryAudio.length);
     
     // Prepare form data
     const formData = new FormData();
@@ -90,58 +102,68 @@ serve(async (req) => {
     formData.append('file', blob, 'audio.webm');
     formData.append('model', 'whisper-1');
 
-    // Send to OpenAI
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: formData,
-    });
+    console.log("Sending request to OpenAI API");
+    
+    // Send to OpenAI with better error handling
+    try {
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: formData,
+      });
 
-    if (!response.ok) {
-      let errorMessage = 'Failed to transcribe audio';
-      let errorType = 'processing_error';
-      
-      try {
-        // Try to get more detailed error information
-        const errorText = await response.text();
-        console.error("OpenAI API error:", errorText);
+      console.log("OpenAI API response status:", response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to transcribe audio';
+        let errorType = 'processing_error';
         
-        let errorObj = null;
         try {
-          errorObj = JSON.parse(errorText);
-          if (errorObj.error && errorObj.error.message) {
-            errorMessage = errorObj.error.message;
+          // Try to get more detailed error information
+          const errorText = await response.text();
+          console.error("OpenAI API error response raw:", errorText);
+          
+          let errorObj = null;
+          try {
+            errorObj = JSON.parse(errorText);
+            console.error("OpenAI API error response parsed:", JSON.stringify(errorObj));
+            
+            if (errorObj.error && errorObj.error.message) {
+              errorMessage = errorObj.error.message;
+            }
+          } catch (parseError) {
+            console.error("Failed to parse error response as JSON:", parseError);
+            errorMessage = `Raw error: ${errorText}`;
           }
-        } catch (parseError) {
-          // If it's not valid JSON, use the text as is
-          errorMessage = `OpenAI API error: ${errorText}`;
+          
+          // Check for specific error types
+          if (response.status === 401) {
+            errorType = 'api_key_error';
+            errorMessage = 'Invalid OpenAI API key. Please check your API key in the Supabase dashboard.';
+          } else if (response.status === 429) {
+            errorType = 'rate_limit_error';
+            errorMessage = 'OpenAI rate limit exceeded. Please try again later.';
+          }
+        } catch (e) {
+          console.error("Failed to process error response:", e);
         }
         
-        // Check for specific error types
-        if (response.status === 401) {
-          errorType = 'api_key_error';
-          errorMessage = 'Invalid OpenAI API key. Please check your API key in the Supabase dashboard.';
-        } else if (response.status === 429) {
-          errorType = 'rate_limit_error';
-          errorMessage = 'OpenAI rate limit exceeded. Please try again later.';
-        }
-      } catch (e) {
-        console.error("Failed to parse error response:", e);
+        throw new Error(errorMessage);
       }
-      
-      throw new Error(errorMessage);
+
+      const result = await response.json();
+      console.log("Transcription successful:", result);
+
+      return new Response(
+        JSON.stringify({ text: result.text }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (fetchError) {
+      console.error("Fetch error when calling OpenAI API:", fetchError);
+      throw fetchError;
     }
-
-    const result = await response.json();
-    console.log("Transcription successful:", result);
-
-    return new Response(
-      JSON.stringify({ text: result.text }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
   } catch (error) {
     console.error("Error in voice-to-text function:", error);
     
