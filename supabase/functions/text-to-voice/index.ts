@@ -24,6 +24,8 @@ serve(async (req) => {
     if (!apiKey) {
       console.error("OpenAI API key is not configured");
       throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
+    } else {
+      console.log("Using API key:", apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length - 4));
     }
 
     console.log("Converting text to speech:", { textLength: text.length, voice });

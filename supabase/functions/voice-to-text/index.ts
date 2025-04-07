@@ -52,7 +52,10 @@ serve(async (req) => {
     // Check if the OpenAI API key is configured
     const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
+      console.error("OpenAI API key is not configured");
       throw new Error('OpenAI API key is not configured. Please add your API key in the Supabase dashboard.');
+    } else {
+      console.log("Using API key:", apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length - 4));
     }
     
     console.log("Processing audio for transcription");
