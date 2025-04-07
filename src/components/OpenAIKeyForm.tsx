@@ -1,7 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { Check, AlertCircle } from 'lucide-react';
 
@@ -9,36 +11,52 @@ const OpenAIKeyForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
   const [testMessage, setTestMessage] = useState('');
-  
-  // Default OpenAI API key - replace with your actual key
-  const defaultApiKey = 'sk-yourActualOpenAIKeyGoesHere';
+  const [apiKey, setApiKey] = useState('');
   
   useEffect(() => {
-    // Store the default API key in local storage on component mount
-    if (!localStorage.getItem('openai_api_key')) {
-      localStorage.setItem('openai_api_key', defaultApiKey);
-      toast({
-        title: "API Key Set",
-        description: "Default OpenAI API key has been set automatically.",
-      });
+    // Get API key from local storage on component mount
+    const storedKey = localStorage.getItem('openai_api_key');
+    if (storedKey) {
+      setApiKey(storedKey);
     }
   }, []);
+
+  const handleKeyChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setApiKey(e.target.value);
+  };
+
+  const saveAPIKey = () => {
+    if (!apiKey.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    localStorage.setItem('openai_api_key', apiKey);
+    toast({
+      title: "API Key Saved",
+      description: "Your OpenAI API key has been saved to local storage.",
+    });
+  };
 
   const testAPIKey = async () => {
     setIsLoading(true);
     setTestResult(null);
     
     try {
-      const storedKey = localStorage.getItem('openai_api_key');
-      if (!storedKey) {
-        throw new Error('No API key found. Please refresh the page.');
+      const keyToTest = apiKey.trim();
+      if (!keyToTest) {
+        throw new Error('No API key provided. Please enter your API key.');
       }
       
       // Test the API key with a simple text-to-speech request
       const response = await fetch('https://api.openai.com/v1/audio/speech', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${storedKey}`,
+          'Authorization': `Bearer ${keyToTest}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -59,6 +77,9 @@ const OpenAIKeyForm = () => {
         const audioURL = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioURL);
         audio.play();
+
+        // Save the verified API key
+        localStorage.setItem('openai_api_key', keyToTest);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error?.message || `API responded with status ${response.status}`);
@@ -76,16 +97,12 @@ const OpenAIKeyForm = () => {
       setIsLoading(false);
     }
   };
-  
-  const getLocalOpenAIKey = () => {
-    return localStorage.getItem('openai_api_key') || '';
-  };
 
   return (
     <Card className="p-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-white/10 text-white mb-8 shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">OpenAI API Configuration</h2>
-        {getLocalOpenAIKey() ? (
+        {apiKey ? (
           <span className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-medium">
             ✓ API Key Set
           </span>
@@ -97,13 +114,37 @@ const OpenAIKeyForm = () => {
       </div>
       
       <p className="text-sm text-white/80 mb-4">
-        A default API key has been set for you. You can test the connection to make sure it's working properly.
+        Enter your OpenAI API key below. This key will be stored locally in your browser and used for voice functionality.
       </p>
+      
+      <div className="space-y-4 mb-4">
+        <div className="space-y-2">
+          <Label htmlFor="apiKey" className="text-white">OpenAI API Key</Label>
+          <Input 
+            id="apiKey"
+            type="password"
+            placeholder="sk-..." 
+            value={apiKey} 
+            onChange={handleKeyChange}
+            className="bg-white/10 border-white/20 text-white"
+          />
+          <p className="text-xs text-white/60">
+            Your API key will be saved in your browser's local storage.
+          </p>
+        </div>
+      </div>
       
       <div className="flex space-x-4">
         <Button 
+          onClick={saveAPIKey} 
+          disabled={isLoading || !apiKey.trim()}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          Save API Key
+        </Button>
+        <Button 
           onClick={testAPIKey} 
-          disabled={isLoading || !getLocalOpenAIKey()}
+          disabled={isLoading || !apiKey.trim()}
           className="bg-white text-black hover:bg-gray-200"
         >
           {isLoading ? "Testing..." : "Test Connection"}
