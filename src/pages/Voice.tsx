@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -12,6 +11,7 @@ import ChatContainer from '@/components/voice/ChatContainer';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import OpenAIKeyForm from '@/components/OpenAIKeyForm';
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -70,12 +70,14 @@ const Voice = () => {
         body: { text: "Test", voice: 'alloy' }
       });
       
-      if (response.error && response.error.message.includes('API key')) {
+      if (response.error && response.error.message && response.error.message.includes('API key')) {
         setApiKeyError(true);
+        console.error("API key error from function:", response.error);
       } else {
         setApiKeyError(false);
       }
     } catch (error: any) {
+      console.error("Error checking OpenAI API key:", error);
       // Check if the error is related to the API key
       if (error.message && error.message.includes('API key')) {
         setApiKeyError(true);
@@ -402,6 +404,8 @@ const Voice = () => {
               </AlertDescription>
             </Alert>
           )}
+
+          <OpenAIKeyForm />
 
           <TokenUsageDisplay
             totalTokensUsed={totalTokensUsed}

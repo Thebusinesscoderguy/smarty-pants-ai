@@ -29,9 +29,18 @@ serve(async (req) => {
     // Get API key from environment variable
     const openAIKey = Deno.env.get('OPENAI_API_KEY');
     
-    if (!openAIKey) {
-      console.error("OPENAI_API_KEY not found in environment variables");
-      throw new Error('OpenAI API key not configured on the server');
+    if (!openAIKey || openAIKey.trim() === '') {
+      console.error("OPENAI_API_KEY not found or empty in environment variables");
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured on the server',
+          type: 'api_key_error'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
     
     console.log("Using server-side API key");
@@ -90,7 +99,17 @@ serve(async (req) => {
           console.error("Failed to process error response:", e);
         }
         
-        throw new Error(errorMessage);
+        return new Response(
+          JSON.stringify({ 
+            error: errorMessage,
+            details: errorDetails,
+            type: errorType
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       // Convert audio buffer to base64
@@ -109,7 +128,16 @@ serve(async (req) => {
       );
     } catch (fetchError) {
       console.error("Fetch error when calling OpenAI API:", fetchError);
-      throw fetchError;
+      return new Response(
+        JSON.stringify({ 
+          error: fetchError.message,
+          type: 'api_request_error' 
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
   } catch (error) {
     console.error("Error in text-to-voice function:", error);
