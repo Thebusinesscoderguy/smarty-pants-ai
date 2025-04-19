@@ -93,8 +93,8 @@ const Avatar = () => {
       
       if (!data) {
         setShowAvatarDialog(true);
-      } else if (data.avatar_url) {
-        setUserAvatarUrl(data.avatar_url);
+      } else if (data && 'avatar_url' in data) {
+        setUserAvatarUrl(data.avatar_url as string);
       }
       
       setHasCheckedFirstTime(true);
