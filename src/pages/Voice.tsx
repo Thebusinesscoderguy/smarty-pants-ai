@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -393,10 +392,10 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gray-900 text-white">
+    <div className="flex h-screen bg-gray-900 text-white">
       <AppSidebar />
       
-      <main className="flex-1 p-4 overflow-auto">
+      <main className="flex-1 w-full overflow-auto p-4">
         <div className="max-w-4xl mx-auto w-full">
           <h1 className="text-2xl font-bold mb-2">Voice Assistant</h1>
           
