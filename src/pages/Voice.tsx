@@ -405,8 +405,6 @@ const Voice = () => {
             </Alert>
           )}
 
-          <OpenAIKeyForm />
-
           <TokenUsageDisplay
             totalTokensUsed={totalTokensUsed}
             monthlyLimit={monthlyLimit}
