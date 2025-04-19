@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
+import AvatarDescriptionDialog from '@/components/AvatarDescriptionDialog';
 
 interface Message {
   id?: string;
@@ -54,6 +55,11 @@ const Avatar = () => {
   const [isAvatarListening, setIsAvatarListening] = useState(false);
   const [isAvatarThinking, setIsAvatarThinking] = useState(false);
 
+  // Avatar generation dialog state
+  const [showAvatarDialog, setShowAvatarDialog] = useState(false);
+  const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+
   // Using the audio handler hook
   const {
     handlePlayAudio,
@@ -65,8 +71,11 @@ const Avatar = () => {
     scrollToBottom();
     if (user) {
       fetchTokenUsage();
+      if (!hasCheckedFirstTime) {
+        checkFirstTimeUser();
+      }
     }
-  }, [messages, user]);
+  }, [messages, user, hasCheckedFirstTime]);
 
   useEffect(() => {
     // Set avatar speaking state based on active speaking message
@@ -77,6 +86,35 @@ const Avatar = () => {
     // Set avatar listening state based on recording state
     setIsAvatarListening(isRecording);
   }, [isRecording]);
+
+  const checkFirstTimeUser = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if this user already has an avatar
+      const { data, error } = await supabase
+        .from('user_avatars')
+        .select('avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (!data) {
+        // First time user, show the avatar creation dialog
+        setShowAvatarDialog(true);
+      } else if (data.avatar_url) {
+        // User already has an avatar
+        setUserAvatarUrl(data.avatar_url);
+      }
+      
+      setHasCheckedFirstTime(true);
+    } catch (error) {
+      console.error("Error checking for existing avatar:", error);
+      // If there's an error, we'll still mark as checked to prevent constant retries
+      setHasCheckedFirstTime(true);
+    }
+  };
 
   const fetchTokenUsage = async () => {
     if (!user) return;
@@ -401,6 +439,11 @@ const Avatar = () => {
     }
   };
 
+  const handleAvatarGenerated = (avatarUrl: string) => {
+    setUserAvatarUrl(avatarUrl);
+    // In a real implementation, you would update the avatar component with the custom avatar
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-black text-white">
       <div className="hidden md:flex">
@@ -415,7 +458,7 @@ const Avatar = () => {
                 <AppSidebar />
               </Button>
             </div>
-            <h1 className="text-xl font-bold">3D Avatar Interactions</h1>
+            <h1 className="text-xl font-bold">AI Avatar Conversation</h1>
           </div>
           
           <div className="flex items-center gap-2">
@@ -443,6 +486,14 @@ const Avatar = () => {
                 />
                 <Label htmlFor="conversation-mode">Two-way</Label>
               </div>
+              
+              <Button 
+                variant="outline" 
+                className="border-white/20 text-white"
+                onClick={() => setShowAvatarDialog(true)}
+              >
+                Customize Avatar
+              </Button>
             </div>
             
             <TokenUsageDisplay
@@ -557,6 +608,13 @@ const Avatar = () => {
           </div>
         </main>
       </div>
+      
+      {/* Avatar Description Dialog */}
+      <AvatarDescriptionDialog 
+        open={showAvatarDialog} 
+        onClose={() => setShowAvatarDialog(false)}
+        onAvatarGenerated={handleAvatarGenerated}
+      />
     </div>
   );
 };
