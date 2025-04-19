@@ -232,32 +232,19 @@ const Voice = () => {
         return;
       }
       
-      let transcribedText = '';
+      const response = await supabase.functions.invoke('voice-to-text', {
+        body: { 
+          audio: audioBase64,
+          apiKey: localOpenAIKey 
+        },
+      });
       
-      try {
-        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/voice-to-text", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            audio: audioBase64,
-            apiKey: localOpenAIKey
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to transcribe audio');
-        }
-        
-        const data = await response.json();
-        transcribedText = data.text;
-      } catch (err: any) {
-        console.error("Error transcribing audio:", err);
-        throw new Error(`Failed to transcribe audio: ${err.message}`);
+      if (response.error) {
+        console.error('Voice to text error:', response.error);
+        throw new Error(response.error.message);
       }
       
+      const transcribedText = response.data.text;
       const tokenCount = Math.ceil(transcribedText.length / 4);
       
       const userMessageId = await saveMessageToDatabase(
@@ -298,6 +285,7 @@ const Voice = () => {
       await getAIResponse(transcribedText);
       
     } catch (error: any) {
+      console.error("Error in processVoiceToText:", error);
       toast({
         title: "Error",
         description: "Failed to process voice: " + error.message,
@@ -434,42 +422,34 @@ const Voice = () => {
         return;
       }
       
-      const aiResponse = `I've processed your message: "${userMessage}". How can I help you further?`;
-      const tokenCount = Math.ceil(aiResponse.length / 4);
+      const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+        body: { 
+          text: userMessage, 
+          voice: 'alloy',
+          apiKey: localOpenAIKey 
+        },
+      });
       
-      let audioUrl = null;
-      let base64Audio = null;
-      
-      try {
-        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/text-to-voice", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: aiResponse,
-            voice: 'alloy',
-            apiKey: localOpenAIKey
-          }),
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to generate speech');
-        }
-        
-        const data = await response.json();
-        base64Audio = data.audioContent;
-      } catch (err: any) {
-        console.error("Error generating speech:", err);
-        throw new Error(`Failed to generate speech: ${err.message}`);
+      if (voiceResponse.error) {
+        console.error('Text to voice error:', voiceResponse.error);
+        throw new Error(voiceResponse.error.message);
       }
+      
+      const base64Audio = voiceResponse.data.audioContent;
       
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
       
-      const aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, null, false, tokenCount, 'ai_response');
+      const aiMessageId = await saveMessageToDatabase(
+        "I've processed your message: \"" + userMessage + "\". How can I help you further?", 
+        'voice', 
+        null, 
+        null, 
+        false, 
+        10, 
+        'ai_response'
+      );
       
-      audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
+      const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
       
       await supabase
         .from('messages')
@@ -478,17 +458,17 @@ const Voice = () => {
       
       const aiMessage: Message = {
         id: aiMessageId,
-        text: aiResponse,
+        text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
         timestamp: new Date(),
         audioUrl: audioUrl,
         isFromUser: false,
         type: 'voice',
-        tokenCount: tokenCount
+        tokenCount: 10
       };
       
       setMessages(prev => [...prev, aiMessage]);
-      setOutputTokens(prev => prev + tokenCount);
-      setTotalTokensUsed(prev => prev + tokenCount);
+      setOutputTokens(prev => prev + 10);
+      setTotalTokensUsed(prev => prev + 10);
       
       setTimeout(() => {
         if (aiMessageId) {
@@ -497,6 +477,7 @@ const Voice = () => {
       }, 500);
       
     } catch (error: any) {
+      console.error("Error in getAIResponse:", error);
       toast({
         title: "Error",
         description: "Failed to get AI response: " + error.message,
