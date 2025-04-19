@@ -30,6 +30,7 @@ export const useAudioHandler = () => {
     const audio = audioRefs.current[messageId];
     
     if (audio) {
+      // Pause all other audio elements
       Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
         if (id !== messageId && audioElement) {
           audioElement.pause();
