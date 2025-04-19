@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -9,6 +10,8 @@ import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import ChatHeader from '@/components/voice/ChatHeader';
 import ChatContainer from '@/components/voice/ChatContainer';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -30,6 +33,8 @@ const Voice = () => {
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
+  
+  const [apiKeyError, setApiKeyError] = useState(false);
 
   const {
     isRecording,
@@ -50,12 +55,33 @@ const Voice = () => {
     if (user) {
       fetchMessages();
       fetchTokenUsage();
+      checkOpenAIKey();
     }
   }, [user]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const checkOpenAIKey = async () => {
+    try {
+      // Try to ping the text-to-voice function with a simple request
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: { text: "Test", voice: 'alloy' }
+      });
+      
+      if (response.error && response.error.message.includes('API key')) {
+        setApiKeyError(true);
+      } else {
+        setApiKeyError(false);
+      }
+    } catch (error: any) {
+      // Check if the error is related to the API key
+      if (error.message && error.message.includes('API key')) {
+        setApiKeyError(true);
+      }
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -95,6 +121,9 @@ const Voice = () => {
         });
         
         if (response.error) {
+          if (response.error.message && response.error.message.includes('API key')) {
+            setApiKeyError(true);
+          }
           throw new Error(response.error.message || 'Failed to process voice');
         }
         
@@ -249,6 +278,9 @@ const Voice = () => {
         });
         
         if (response.error) {
+          if (response.error.message && response.error.message.includes('API key')) {
+            setApiKeyError(true);
+          }
           throw new Error(response.error.message || 'Failed to generate speech');
         }
         
@@ -361,6 +393,16 @@ const Voice = () => {
         />
 
         <div className="flex-1 flex flex-col px-4 py-2 space-y-4 overflow-hidden bg-gray-900/50">
+          {apiKeyError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>OpenAI API Key Error</AlertTitle>
+              <AlertDescription>
+                The OpenAI API key is not configured on the server. Please contact the administrator to set up the OpenAI API key in Supabase secrets.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <TokenUsageDisplay
             totalTokensUsed={totalTokensUsed}
             monthlyLimit={monthlyLimit}
