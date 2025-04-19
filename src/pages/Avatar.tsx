@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -46,14 +47,24 @@ const Avatar = () => {
   const audioChunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Get the most recent assistant voice message
-  const latestAssistantVoiceMessage = messages
-    .filter(m => !m.isFromUser && m.type === 'voice')
-    .slice(-1)[0];
+  // Avatar animation states
+  const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
+  const [isAvatarListening, setIsAvatarListening] = useState(false);
+  const [isAvatarThinking, setIsAvatarThinking] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Set avatar speaking state based on active speaking message
+    setIsAvatarSpeaking(!!activeSpeakingMessage);
+  }, [activeSpeakingMessage]);
+
+  useEffect(() => {
+    // Set avatar listening state based on recording state
+    setIsAvatarListening(isRecording);
+  }, [isRecording]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -80,7 +91,9 @@ const Avatar = () => {
           const base64Audio = reader.result?.toString().split(',')[1];
           
           if (base64Audio) {
+            setIsAvatarThinking(true);
             await processVoiceToText(base64Audio);
+            setIsAvatarThinking(false);
           }
         };
         
@@ -96,6 +109,7 @@ const Avatar = () => {
       }, 1000);
       
     } catch (error: any) {
+      setIsAvatarListening(false);
       toast({
         title: "Error",
         description: "Could not access microphone: " + error.message,
@@ -162,6 +176,7 @@ const Avatar = () => {
       await getAIResponse(transcribedText);
       
     } catch (error: any) {
+      setIsAvatarThinking(false);
       toast({
         title: "Error",
         description: "Failed to process voice: " + error.message,
@@ -174,6 +189,7 @@ const Avatar = () => {
     if (!textMessage.trim()) return;
     
     try {
+      setIsAvatarThinking(true);
       const tokenCount = Math.ceil(textMessage.length / 4);
       const userMessageId = await saveMessageToDatabase(
         textMessage, 
@@ -198,7 +214,9 @@ const Avatar = () => {
       setTotalTokensUsed(prev => prev + tokenCount);
       
       await getAIResponse(textMessage);
+      setIsAvatarThinking(false);
     } catch (error: any) {
+      setIsAvatarThinking(false);
       toast({
         title: "Error",
         description: "Failed to send message: " + error.message,
@@ -250,6 +268,8 @@ const Avatar = () => {
       }, 500);
       
     } catch (error: any) {
+      setIsAvatarSpeaking(false);
+      setIsAvatarThinking(false);
       toast({
         title: "Error",
         description: "Failed to get AI response: " + error.message,
@@ -360,6 +380,7 @@ const Avatar = () => {
     const audio = audioRefs.current[messageId];
     
     if (audio) {
+      // Stop any other playing audio
       Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
         if (id !== messageId && audioElement) {
           audioElement.pause();
@@ -373,7 +394,15 @@ const Avatar = () => {
         }
       });
       
-      audio.play();
+      audio.play().catch(error => {
+        console.error("Error playing audio:", error);
+        toast({
+          title: "Error",
+          description: "Could not play audio: " + error.message,
+          variant: "destructive"
+        });
+      });
+      
       setActiveSpeakingMessage(messageId);
       
       setMessages(messages => 
@@ -463,30 +492,26 @@ const Avatar = () => {
         <main className="flex-1 flex flex-col overflow-hidden relative">
           {/* AI Avatar display - covers full screen */}
           <div className="absolute inset-0 flex items-center justify-center z-0">
-            {latestAssistantVoiceMessage ? (
-              <AIAvatar 
-                isSpeaking={!!activeSpeakingMessage} 
-                avatarStyle={currentAvatarStyle}
-                className="w-full h-full"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full w-full text-gray-500 text-xl">
-                Send a message to interact with the avatar
-              </div>
-            )}
+            <AIAvatar 
+              isSpeaking={isAvatarSpeaking} 
+              isListening={isAvatarListening}
+              isThinking={isAvatarThinking}
+              avatarStyle={currentAvatarStyle}
+              className="w-full h-full"
+            />
           </div>
           
-          {/* Voice message controls - only show for assistant messages */}
-          {latestAssistantVoiceMessage && (
+          {/* Voice message controls - display for last message */}
+          {messages.length > 0 && !messages[messages.length - 1].isFromUser && (
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
               <Card className="bg-black/50 border-white/20 p-2 backdrop-blur-md">
                 <div className="flex items-center gap-2">
-                  {latestAssistantVoiceMessage.isPlaying ? (
+                  {activeSpeakingMessage === messages[messages.length - 1].id ? (
                     <Button 
                       size="sm" 
                       variant="outline" 
                       className="border-white/30 bg-white/10"
-                      onClick={() => latestAssistantVoiceMessage.id && handlePauseAudio(latestAssistantVoiceMessage.id)}
+                      onClick={() => messages[messages.length - 1].id && handlePauseAudio(messages[messages.length - 1].id)}
                     >
                       <Pause className="h-4 w-4 mr-2" /> Pause
                     </Button>
@@ -495,14 +520,14 @@ const Avatar = () => {
                       size="sm" 
                       variant="outline" 
                       className="border-white/30 bg-white/10"
-                      onClick={() => latestAssistantVoiceMessage.id && handlePlayAudio(latestAssistantVoiceMessage.id)}
+                      onClick={() => messages[messages.length - 1].id && handlePlayAudio(messages[messages.length - 1].id)}
                     >
                       <Play className="h-4 w-4 mr-2" /> Play
                     </Button>
                   )}
                   
                   <div className="text-sm max-w-[250px] truncate">
-                    {latestAssistantVoiceMessage.text}
+                    {messages[messages.length - 1].text}
                   </div>
                 </div>
               </Card>

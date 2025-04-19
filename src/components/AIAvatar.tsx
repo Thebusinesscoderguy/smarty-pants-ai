@@ -1,9 +1,9 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import Lottie from 'react-lottie';
 import { Card } from '@/components/ui/card';
 
-// Import animation files using standard ES import syntax
+// Import animation files
 import teacherIdle from '../assets/animations/teacher-idle.json';
 // Since other animation files might not exist yet, we'll use the idle one for all states
 // until proper animations are created
@@ -30,7 +30,7 @@ interface AIAvatarProps {
   className?: string;
 }
 
-// Animation data for different states - using proper ES imports
+// Animation data for different states
 const animationData = {
   teacher: {
     idle: teacherIdle,
@@ -74,24 +74,15 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
   avatarStyle = 'teacher',
   className = ''
 }) => {
-  const [currentAnimation, setCurrentAnimation] = useState(AVATAR_STATES.IDLE);
-  
   // Determine which animation to play based on avatar state
-  useEffect(() => {
-    if (isSpeaking) {
-      setCurrentAnimation(AVATAR_STATES.TALKING);
-    } else if (isListening) {
-      setCurrentAnimation(AVATAR_STATES.LISTENING);
-    } else if (isThinking) {
-      setCurrentAnimation(AVATAR_STATES.THINKING);
-    } else if (emotion === 'happy') {
-      setCurrentAnimation(AVATAR_STATES.HAPPY);
-    } else if (emotion === 'confused') {
-      setCurrentAnimation(AVATAR_STATES.CONFUSED);
-    } else {
-      setCurrentAnimation(AVATAR_STATES.IDLE);
-    }
-  }, [isSpeaking, isListening, isThinking, emotion]);
+  const currentAnimation = (() => {
+    if (isSpeaking) return AVATAR_STATES.TALKING;
+    if (isListening) return AVATAR_STATES.LISTENING;
+    if (isThinking) return AVATAR_STATES.THINKING;
+    if (emotion === 'happy') return AVATAR_STATES.HAPPY;
+    if (emotion === 'confused') return AVATAR_STATES.CONFUSED;
+    return AVATAR_STATES.IDLE;
+  })();
 
   // Select the appropriate animation based on the current state
   const selectedAnimation = (() => {
@@ -124,6 +115,15 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
     }
   };
 
+  // Get status text
+  const statusText = isSpeaking 
+    ? 'Speaking...' 
+    : isListening 
+      ? 'Listening...' 
+      : isThinking 
+        ? 'Thinking...' 
+        : 'Ready to help';
+
   return (
     <Card className={`bg-transparent backdrop-blur-sm border-none overflow-hidden ${className}`}>
       <div className="flex flex-col items-center h-full w-full">
@@ -144,11 +144,7 @@ const AIAvatar: React.FC<AIAvatarProps> = ({
           }`} />
         </div>
         <div className="mt-2 text-center">
-          <p className="text-white/70 text-sm">
-            {isSpeaking ? 'Speaking...' : 
-             isListening ? 'Listening...' : 
-             isThinking ? 'Thinking...' : 'Ready to help'}
-          </p>
+          <p className="text-white/70 text-sm">{statusText}</p>
         </div>
       </div>
     </Card>
