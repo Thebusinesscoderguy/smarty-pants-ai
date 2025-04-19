@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -14,7 +13,7 @@ import { useAudioHandler } from '@/hooks/useAudioHandler';
 import { Message, MessageFromDB } from '@/types/message';
 
 const Voice = () => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome-message',
@@ -183,7 +182,7 @@ const Voice = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabase.auth.session()?.access_token || ''}`
+            "Authorization": `Bearer ${session?.access_token || ''}`
           },
           body: JSON.stringify({ 
             audio: audioBase64,
@@ -354,7 +353,7 @@ const Voice = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabase.auth.session()?.access_token || ''}`
+            "Authorization": `Bearer ${session?.access_token || ''}`
           },
           body: JSON.stringify({ 
             text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
