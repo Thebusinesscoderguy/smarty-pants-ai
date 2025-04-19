@@ -32,7 +32,6 @@ const Avatar = () => {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Avatar settings
   const [currentAvatarStyle, setCurrentAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
   const [textMessage, setTextMessage] = useState('');
   const [twoWayConversation, setTwoWayConversation] = useState(true);
@@ -41,7 +40,6 @@ const Avatar = () => {
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
   
-  // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioData, setAudioData] = useState<Blob | null>(null);
@@ -49,17 +47,14 @@ const Avatar = () => {
   const audioChunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Avatar animation states
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const [isAvatarListening, setIsAvatarListening] = useState(false);
   const [isAvatarThinking, setIsAvatarThinking] = useState(false);
 
-  // Avatar generation dialog state
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
 
-  // Using the audio handler hook
   const {
     handlePlayAudio,
     handlePauseAudio,
@@ -77,12 +72,10 @@ const Avatar = () => {
   }, [messages, user, hasCheckedFirstTime]);
 
   useEffect(() => {
-    // Set avatar speaking state based on active speaking message
     setIsAvatarSpeaking(!!activeSpeakingMessage);
   }, [activeSpeakingMessage]);
 
   useEffect(() => {
-    // Set avatar listening state based on recording state
     setIsAvatarListening(isRecording);
   }, [isRecording]);
 
@@ -90,7 +83,6 @@ const Avatar = () => {
     if (!user) return;
     
     try {
-      // Check if this user already has an avatar using the generic query builder
       const { data, error } = await supabase
         .from('user_avatars')
         .select('*')
@@ -100,17 +92,14 @@ const Avatar = () => {
       if (error) throw error;
       
       if (!data) {
-        // First time user, show the avatar creation dialog
         setShowAvatarDialog(true);
       } else if (data.avatar_url) {
-        // User already has an avatar
         setUserAvatarUrl(data.avatar_url);
       }
       
       setHasCheckedFirstTime(true);
     } catch (error) {
       console.error("Error checking for existing avatar:", error);
-      // If there's an error, we'll still mark as checked to prevent constant retries
       setHasCheckedFirstTime(true);
     }
   };
@@ -215,7 +204,6 @@ const Avatar = () => {
 
   const processVoiceToText = async (audioBase64: string) => {
     try {
-      // Add a temporary message to show processing
       const tempMessageId = `processing-${Date.now()}`;
       setMessages(prev => [...prev, {
         id: tempMessageId,
@@ -234,10 +222,8 @@ const Avatar = () => {
       const transcribedText = response.data.text;
       const tokenCount = Math.ceil(transcribedText.length / 4);
       
-      // Remove the temporary message
       setMessages(prev => prev.filter(m => m.id !== tempMessageId));
       
-      // Create a user message with the transcribed text
       const newUserMessage: Message = {
         id: `voice-${Date.now()}`,
         text: transcribedText,
@@ -248,7 +234,6 @@ const Avatar = () => {
       };
       
       if (audioData) {
-        // Create a URL for the audio blob
         const audioUrl = URL.createObjectURL(audioData);
         newUserMessage.audioUrl = audioUrl;
       }
@@ -257,7 +242,6 @@ const Avatar = () => {
       setTotalTokensUsed(prev => prev + tokenCount);
       setInputTokens(prev => prev + tokenCount);
       
-      // If user is authenticated, save to database
       if (user) {
         try {
           const { data, error } = await supabase
@@ -307,7 +291,6 @@ const Avatar = () => {
       setTotalTokensUsed(prev => prev + tokenCount);
       setInputTokens(prev => prev + tokenCount);
       
-      // If user is authenticated, save to database
       if (user) {
         try {
           const { data, error } = await supabase
@@ -338,7 +321,6 @@ const Avatar = () => {
 
   const getAIResponse = async (userMessage: string) => {
     try {
-      // Add a temporary message to show processing
       const tempMessageId = `processing-${Date.now()}`;
       setMessages(prev => [...prev, {
         id: tempMessageId,
@@ -361,7 +343,6 @@ const Avatar = () => {
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
       const audioUrl = URL.createObjectURL(audioBlob);
       
-      // Remove the temporary message
       setMessages(prev => prev.filter(m => m.id !== tempMessageId));
       
       const aiMessageId = `ai-${Date.now()}`;
@@ -379,7 +360,6 @@ const Avatar = () => {
       setTotalTokensUsed(prev => prev + tokenCount);
       setOutputTokens(prev => prev + tokenCount);
       
-      // If user is authenticated, save to database
       if (user) {
         try {
           const { data, error } = await supabase
@@ -396,7 +376,6 @@ const Avatar = () => {
         }
       }
       
-      // Play the audio after a short delay
       setTimeout(() => {
         handlePlayAudio(aiMessageId, messages, setMessages);
       }, 500);
@@ -440,7 +419,6 @@ const Avatar = () => {
 
   const handleAvatarGenerated = (avatarUrl: string) => {
     setUserAvatarUrl(avatarUrl);
-    // In a real implementation, you would update the avatar component with the custom avatar
   };
 
   return (
@@ -505,7 +483,6 @@ const Avatar = () => {
         </header>
         
         <main className="flex-1 flex flex-col overflow-hidden relative">
-          {/* AI Avatar display - covers full screen */}
           <div className="absolute inset-0 flex items-center justify-center z-0">
             <AIAvatar 
               isSpeaking={isAvatarSpeaking} 
@@ -516,7 +493,6 @@ const Avatar = () => {
             />
           </div>
           
-          {/* Voice message controls - display for last message */}
           {messages.length > 0 && !messages[messages.length - 1].isFromUser && (
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
               <Card className="bg-black/50 border-white/20 p-2 backdrop-blur-md">
@@ -549,7 +525,6 @@ const Avatar = () => {
             </div>
           )}
           
-          {/* Text input positioned at the bottom */}
           <div className="mt-auto relative z-10 p-4 bg-gradient-to-t from-black to-transparent">
             <div className="max-w-3xl mx-auto w-full">
               <div className="border-t border-white/20 pt-4 space-y-4">
@@ -596,7 +571,6 @@ const Avatar = () => {
                 </div>
               </div>
               
-              {/* Hidden messages for state management */}
               <div className="sr-only">
                 {messages.map((message, index) => (
                   <div key={index}>{message.text}</div>
@@ -608,7 +582,6 @@ const Avatar = () => {
         </main>
       </div>
       
-      {/* Avatar Description Dialog */}
       <AvatarDescriptionDialog 
         open={showAvatarDialog} 
         onClose={() => setShowAvatarDialog(false)}
