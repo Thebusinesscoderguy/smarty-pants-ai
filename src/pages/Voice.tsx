@@ -399,24 +399,19 @@ const Voice = () => {
       </div>
       
       <div className="flex-1 overflow-hidden flex flex-col w-full max-w-full p-4">
-        <div className="container mx-auto w-full max-w-4xl">
-          <h1 className="text-2xl font-bold mb-2">Voice Assistant</h1>
-          
-          <div className="mb-2 flex items-center justify-between">
-            <div className="text-sm text-gray-400">
-              Token usage: {totalTokensUsed} / {monthlyLimit} 
-              <span className="ml-2">({inputTokens} input, {outputTokens} output)</span>
-            </div>
+        <div className="container mx-auto w-full max-w-4xl space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">Voice Assistant</h1>
             
             {isRecording ? (
-              <div className="flex items-center">
-                <div className="animate-pulse w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                <span className="mr-2">Recording: {recordingTime}s</span>
+              <div className="flex items-center gap-2">
+                <div className="animate-pulse w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="text-red-400">Recording: {recordingTime}s</span>
                 <Button 
-                  variant="outline"
+                  variant="destructive"
                   size="sm"
-                  onClick={handleRecordStop}
-                  className="bg-red-900/30 border-red-500/30 text-red-400 hover:bg-red-900/50"
+                  onClick={handleStopRecording}
+                  className="ml-2"
                 >
                   <Square className="h-4 w-4 mr-1" />
                   Stop
@@ -435,27 +430,37 @@ const Voice = () => {
             )}
           </div>
           
-          <OpenAIKeyForm />
-          
-          <div className="flex-1 flex flex-col bg-gray-800/50 rounded-lg p-4 overflow-hidden">
-            <MessageList 
-              messages={messages}
-              onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
-              onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
-            />
+          <div className="bg-gray-800/50 rounded-lg p-6 shadow-xl">
+            <div className="text-sm text-gray-400 mb-4 flex items-center justify-between">
+              <div>
+                Token usage: {totalTokensUsed} / {monthlyLimit}
+                <span className="ml-2 text-gray-500">({inputTokens} input, {outputTokens} output)</span>
+              </div>
+            </div>
+
+            <OpenAIKeyForm />
             
-            <div ref={messagesEndRef} />
-            
-            <MessageInput 
-              onSendText={handleSendTextMessage}
-              onVoiceResponse={handleVoiceResponse}
-              onFileUpload={handleFileUpload}
-              textMessage={textMessage}
-              setTextMessage={setTextMessage}
-              file={file}
-              setFile={setFile}
-              onKeyPress={handleKeyPress}
-            />
+            <div className="flex-1 flex flex-col mt-6">
+              <div className="flex-1 space-y-4 mb-6 max-h-[500px] overflow-y-auto rounded-lg bg-gray-900/50 p-4">
+                <MessageList 
+                  messages={messages}
+                  onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+                  onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+                />
+                <div ref={messagesEndRef} />
+              </div>
+              
+              <MessageInput 
+                onSendText={handleSendTextMessage}
+                onVoiceResponse={handleVoiceResponse}
+                onFileUpload={handleFileUpload}
+                textMessage={textMessage}
+                setTextMessage={setTextMessage}
+                file={file}
+                setFile={setFile}
+                onKeyPress={handleKeyPress}
+              />
+            </div>
           </div>
         </div>
       </div>
