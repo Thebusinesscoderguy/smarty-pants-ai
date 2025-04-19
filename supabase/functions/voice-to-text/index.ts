@@ -50,31 +50,26 @@ serve(async (req) => {
     console.log(`Request URL: ${req.url}`);
     
     const requestData = await req.json();
-    const { audio, apiKey } = requestData;
+    const { audio } = requestData;
     
     console.log("Request payload received:", { 
       hasAudio: !!audio, 
-      audioLength: audio ? audio.length : 0,
-      hasApiKey: !!apiKey
+      audioLength: audio ? audio.length : 0
     });
     
     if (!audio) {
       throw new Error('No audio data provided');
     }
 
-    if (!apiKey) {
-      throw new Error('API key is required');
-    }
-
-    // Use the provided API key directly
-    const openAIKey = apiKey;
-    console.log("Using provided API key");
+    // Get API key from environment variable
+    const openAIKey = Deno.env.get('OPENAI_API_KEY');
     
-    // Check if the API key is properly formatted (should start with "sk-")
-    if (!openAIKey.startsWith('sk-')) {
-      console.error("API key appears to be in incorrect format");
-      throw new Error('OpenAI API key appears to be in incorrect format. It should start with "sk-"');
+    if (!openAIKey) {
+      console.error("OPENAI_API_KEY not found in environment variables");
+      throw new Error('OpenAI API key not configured on the server');
     }
+    
+    console.log("Using server-side API key");
     
     console.log("Processing audio for transcription");
 
@@ -127,7 +122,7 @@ serve(async (req) => {
           // Check for specific error types
           if (response.status === 401) {
             errorType = 'api_key_error';
-            errorMessage = 'Invalid OpenAI API key. Please check your API key.';
+            errorMessage = 'Invalid OpenAI API key. Please contact the administrator.';
           } else if (response.status === 429) {
             errorType = 'rate_limit_error';
             errorMessage = 'OpenAI rate limit exceeded. Please try again later.';

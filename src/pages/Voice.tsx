@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -8,9 +9,6 @@ import { Message } from '@/types/message';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import ChatHeader from '@/components/voice/ChatHeader';
 import ChatContainer from '@/components/voice/ChatContainer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { KeyRound } from 'lucide-react';
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -31,8 +29,6 @@ const Voice = () => {
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
-  const [isOpenAIKeySet, setIsOpenAIKeySet] = useState(false);
-  const [openAIKey, setOpenAIKey] = useState('');
   const monthlyLimit = 5000;
 
   const {
@@ -51,9 +47,6 @@ const Voice = () => {
   } = useAudioHandler();
 
   useEffect(() => {
-    const openAiKey = localStorage.getItem('openai_api_key');
-    setIsOpenAIKeySet(!!openAiKey);
-    
     if (user) {
       fetchMessages();
       fetchTokenUsage();
@@ -82,17 +75,6 @@ const Voice = () => {
 
   const processVoiceToText = async (audioBase64: string) => {
     try {
-      const localOpenAIKey = localStorage.getItem('openai_api_key');
-      
-      if (!localOpenAIKey) {
-        toast({
-          title: "API Key Missing",
-          description: "OpenAI API key is not set. Please add your API key in the form below.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
       // Add a temporary message to show processing
       const processingMessageId = `processing-${Date.now()}`;
       const processingMessage: Message = {
@@ -110,12 +92,10 @@ const Voice = () => {
         const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/voice-to-text", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.access_token || ''}`
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({ 
-            audio: audioBase64,
-            apiKey: localOpenAIKey 
+            audio: audioBase64
           }),
         });
         
@@ -253,17 +233,6 @@ const Voice = () => {
 
   const getAIResponse = async (userMessage: string) => {
     try {
-      const localOpenAIKey = localStorage.getItem('openai_api_key');
-      
-      if (!localOpenAIKey) {
-        toast({
-          title: "API Key Missing",
-          description: "OpenAI API key is not set. Please add your API key in the form below.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
       // Add a temporary message to show processing
       const processingMessageId = `processing-${Date.now()}`;
       const processingMessage: Message = {
@@ -285,8 +254,7 @@ const Voice = () => {
           },
           body: JSON.stringify({ 
             text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
-            voice: 'alloy',
-            apiKey: localOpenAIKey 
+            voice: 'alloy'
           }),
         });
         
@@ -390,24 +358,6 @@ const Voice = () => {
     }
   };
 
-  const saveOpenAIKey = () => {
-    if (openAIKey.trim() && openAIKey.startsWith('sk-')) {
-      localStorage.setItem('openai_api_key', openAIKey);
-      setIsOpenAIKeySet(true);
-      setOpenAIKey('');
-      toast({
-        title: "API Key Saved",
-        description: "Your OpenAI API key has been saved successfully.",
-      });
-    } else {
-      toast({
-        title: "Invalid API Key",
-        description: "Please enter a valid OpenAI API key starting with 'sk-'.",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
       <div className="w-64 flex-shrink-0 border-r border-white/10">
@@ -420,31 +370,9 @@ const Voice = () => {
           recordingTime={recordingTime}
           onStartRecording={handleStartRecording}
           onStopRecording={handleRecordStop}
-          isOpenAIKeySet={isOpenAIKeySet}
         />
 
         <div className="flex-1 flex flex-col px-4 py-2 space-y-4 overflow-hidden bg-gray-900/50">
-          {!isOpenAIKeySet && (
-            <div className="bg-gray-800/50 p-4 rounded-lg border border-white/10 flex items-center gap-3">
-              <div className="flex-1">
-                <Input 
-                  type="password"
-                  placeholder="Enter your OpenAI API key (sk-...)" 
-                  value={openAIKey}
-                  onChange={(e) => setOpenAIKey(e.target.value)}
-                  className="bg-gray-700/50 border-gray-600"
-                />
-              </div>
-              <Button 
-                onClick={saveOpenAIKey}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <KeyRound className="mr-2 h-4 w-4" />
-                Save API Key
-              </Button>
-            </div>
-          )}
-
           <TokenUsageDisplay
             totalTokensUsed={totalTokensUsed}
             monthlyLimit={monthlyLimit}
