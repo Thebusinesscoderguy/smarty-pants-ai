@@ -12,6 +12,8 @@ import AIAvatar from '@/components/AIAvatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useAudioHandler } from '@/hooks/useAudioHandler';
+import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 
 interface Message {
   id?: string;
@@ -29,14 +31,14 @@ const Avatar = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   
   // Avatar settings
   const [currentAvatarStyle, setCurrentAvatarStyle] = useState<'teacher' | 'casual' | 'professional' | 'friendly'>('teacher');
   const [textMessage, setTextMessage] = useState('');
-  const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
   const [twoWayConversation, setTwoWayConversation] = useState(true);
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
+  const [inputTokens, setInputTokens] = useState(0);
+  const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
   
   // Voice recording state
@@ -52,9 +54,19 @@ const Avatar = () => {
   const [isAvatarListening, setIsAvatarListening] = useState(false);
   const [isAvatarThinking, setIsAvatarThinking] = useState(false);
 
+  // Using the audio handler hook
+  const {
+    handlePlayAudio,
+    handlePauseAudio,
+    activeSpeakingMessage
+  } = useAudioHandler();
+
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+    if (user) {
+      fetchTokenUsage();
+    }
+  }, [messages, user]);
 
   useEffect(() => {
     // Set avatar speaking state based on active speaking message
@@ -65,6 +77,40 @@ const Avatar = () => {
     // Set avatar listening state based on recording state
     setIsAvatarListening(isRecording);
   }, [isRecording]);
+
+  const fetchTokenUsage = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('token_usage')
+        .select('tokens_used, feature')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      if (data) {
+        let total = 0;
+        let input = 0;
+        let output = 0;
+        
+        data.forEach(item => {
+          total += item.tokens_used;
+          if (item.feature === 'user_input') {
+            input += item.tokens_used;
+          } else if (item.feature === 'ai_response') {
+            output += item.tokens_used;
+          }
+        });
+        
+        setTotalTokensUsed(total);
+        setInputTokens(input);
+        setOutputTokens(output);
+      }
+    } catch (error) {
+      console.error("Error fetching token usage:", error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -132,6 +178,16 @@ const Avatar = () => {
 
   const processVoiceToText = async (audioBase64: string) => {
     try {
+      // Add a temporary message to show processing
+      const tempMessageId = `processing-${Date.now()}`;
+      setMessages(prev => [...prev, {
+        id: tempMessageId,
+        text: "Processing your voice message...",
+        timestamp: new Date(),
+        isFromUser: false,
+        type: 'text'
+      }]);
+      
       const response = await supabase.functions.invoke('voice-to-text', {
         body: { audio: audioBase64 },
       });
@@ -141,37 +197,45 @@ const Avatar = () => {
       const transcribedText = response.data.text;
       const tokenCount = Math.ceil(transcribedText.length / 4);
       
-      const userMessageId = await saveMessageToDatabase(
-        transcribedText, 
-        'voice', 
-        null, 
-        true, 
-        tokenCount, 
-        'user_input'
-      );
+      // Remove the temporary message
+      setMessages(prev => prev.filter(m => m.id !== tempMessageId));
       
-      let audioUrl = null;
-      if (audioData) {
-        audioUrl = await uploadAudioFile(audioData, userMessageId);
-        
-        await supabase
-          .from('messages')
-          .update({ file_url: audioUrl })
-          .eq('id', userMessageId);
-      }
-      
+      // Create a user message with the transcribed text
       const newUserMessage: Message = {
-        id: userMessageId,
+        id: `voice-${Date.now()}`,
         text: transcribedText,
         timestamp: new Date(),
-        audioUrl: audioUrl,
         isFromUser: true,
         type: 'voice',
         tokenCount: tokenCount
       };
       
+      if (audioData) {
+        // Create a URL for the audio blob
+        const audioUrl = URL.createObjectURL(audioData);
+        newUserMessage.audioUrl = audioUrl;
+      }
+      
       setMessages(prev => [...prev, newUserMessage]);
       setTotalTokensUsed(prev => prev + tokenCount);
+      setInputTokens(prev => prev + tokenCount);
+      
+      // If user is authenticated, save to database
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('token_usage')
+            .insert({
+              user_id: user.id,
+              tokens_used: tokenCount,
+              feature: 'user_input',
+            });
+          
+          if (error) throw error;
+        } catch (dbError) {
+          console.error("Error saving token usage:", dbError);
+        }
+      }
       
       await getAIResponse(transcribedText);
       
@@ -191,17 +255,9 @@ const Avatar = () => {
     try {
       setIsAvatarThinking(true);
       const tokenCount = Math.ceil(textMessage.length / 4);
-      const userMessageId = await saveMessageToDatabase(
-        textMessage, 
-        'text', 
-        null, 
-        true, 
-        tokenCount, 
-        'user_input'
-      );
       
       const newUserMessage: Message = {
-        id: userMessageId,
+        id: `text-${Date.now()}`,
         text: textMessage,
         timestamp: new Date(),
         isFromUser: true,
@@ -212,6 +268,24 @@ const Avatar = () => {
       setMessages(prev => [...prev, newUserMessage]);
       setTextMessage('');
       setTotalTokensUsed(prev => prev + tokenCount);
+      setInputTokens(prev => prev + tokenCount);
+      
+      // If user is authenticated, save to database
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('token_usage')
+            .insert({
+              user_id: user.id,
+              tokens_used: tokenCount,
+              feature: 'user_input',
+            });
+          
+          if (error) throw error;
+        } catch (dbError) {
+          console.error("Error saving token usage:", dbError);
+        }
+      }
       
       await getAIResponse(textMessage);
       setIsAvatarThinking(false);
@@ -227,6 +301,16 @@ const Avatar = () => {
 
   const getAIResponse = async (userMessage: string) => {
     try {
+      // Add a temporary message to show processing
+      const tempMessageId = `processing-${Date.now()}`;
+      setMessages(prev => [...prev, {
+        id: tempMessageId,
+        text: "Generating response...",
+        timestamp: new Date(),
+        isFromUser: false,
+        type: 'text'
+      }]);
+      
       const aiResponse = `I've processed your message: "${userMessage}". How can I help you further?`;
       const tokenCount = Math.ceil(aiResponse.length / 4);
       
@@ -238,16 +322,12 @@ const Avatar = () => {
       
       const base64Audio = voiceResponse.data.audioContent;
       const audioBlob = base64ToBlob(base64Audio, 'audio/mp3');
+      const audioUrl = URL.createObjectURL(audioBlob);
       
-      const aiMessageId = await saveMessageToDatabase(aiResponse, 'voice', null, false, tokenCount, 'ai_response');
+      // Remove the temporary message
+      setMessages(prev => prev.filter(m => m.id !== tempMessageId));
       
-      const audioUrl = await uploadAudioFile(audioBlob, aiMessageId);
-      
-      await supabase
-        .from('messages')
-        .update({ file_url: audioUrl })
-        .eq('id', aiMessageId);
-      
+      const aiMessageId = `ai-${Date.now()}`;
       const aiMessage: Message = {
         id: aiMessageId,
         text: aiResponse,
@@ -260,11 +340,28 @@ const Avatar = () => {
       
       setMessages(prev => [...prev, aiMessage]);
       setTotalTokensUsed(prev => prev + tokenCount);
+      setOutputTokens(prev => prev + tokenCount);
       
-      setTimeout(() => {
-        if (aiMessageId) {
-          handlePlayAudio(aiMessageId);
+      // If user is authenticated, save to database
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('token_usage')
+            .insert({
+              user_id: user.id,
+              tokens_used: tokenCount,
+              feature: 'ai_response',
+            });
+          
+          if (error) throw error;
+        } catch (dbError) {
+          console.error("Error saving token usage:", dbError);
         }
+      }
+      
+      // Play the audio after a short delay
+      setTimeout(() => {
+        handlePlayAudio(aiMessageId, messages, setMessages);
       }, 500);
       
     } catch (error: any) {
@@ -275,67 +372,6 @@ const Avatar = () => {
         description: "Failed to get AI response: " + error.message,
         variant: "destructive"
       });
-    }
-  };
-
-  const uploadAudioFile = async (audioBlob: Blob, messageId: string): Promise<string | null> => {
-    try {
-      const filePath = `${user?.id}/${messageId}.webm`;
-      
-      const { data, error } = await supabase.storage
-        .from('study_materials')
-        .upload(filePath, audioBlob, {
-          contentType: 'audio/webm',
-          upsert: true,
-        });
-      
-      if (error) throw error;
-      
-      const { data: urlData } = supabase.storage
-        .from('study_materials')
-        .getPublicUrl(filePath);
-      
-      return urlData.publicUrl;
-      
-    } catch (error: any) {
-      console.error("Error uploading audio:", error);
-      return null;
-    }
-  };
-
-  const saveMessageToDatabase = async (
-    content: string, 
-    type: string, 
-    fileUrl: string | null,
-    isFromUser: boolean = true,
-    tokenCount: number = 0,
-    feature: string = 'avatar_chat'
-  ): Promise<string> => {
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          user_id: user?.id,
-          content,
-          type,
-          file_url: fileUrl,
-          is_from_user: isFromUser
-        })
-        .select('id')
-        .single();
-      
-      if (error) throw error;
-      
-      await supabase.from('token_usage').insert({
-        user_id: user?.id,
-        tokens_used: tokenCount,
-        feature: feature,
-      });
-      
-      return data.id;
-    } catch (error: any) {
-      console.error("Error saving message:", error);
-      throw error;
     }
   };
 
@@ -356,76 +392,6 @@ const Avatar = () => {
     }
     
     return new Blob(byteArrays, { type: mimeType });
-  };
-
-  const handlePlayAudio = (messageId: string) => {
-    if (!audioRefs.current[messageId]) {
-      const message = messages.find(m => m.id === messageId);
-      
-      if (message?.audioUrl) {
-        const audio = new Audio(message.audioUrl);
-        audioRefs.current[messageId] = audio;
-        
-        audio.onended = () => {
-          setMessages(messages => 
-            messages.map(m => 
-              m.id === messageId ? { ...m, isPlaying: false } : m
-            )
-          );
-          setActiveSpeakingMessage(null);
-        };
-      }
-    }
-    
-    const audio = audioRefs.current[messageId];
-    
-    if (audio) {
-      // Stop any other playing audio
-      Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
-        if (id !== messageId && audioElement) {
-          audioElement.pause();
-          audioElement.currentTime = 0;
-          
-          setMessages(messages => 
-            messages.map(m => 
-              m.id === id ? { ...m, isPlaying: false } : m
-            )
-          );
-        }
-      });
-      
-      audio.play().catch(error => {
-        console.error("Error playing audio:", error);
-        toast({
-          title: "Error",
-          description: "Could not play audio: " + error.message,
-          variant: "destructive"
-        });
-      });
-      
-      setActiveSpeakingMessage(messageId);
-      
-      setMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: true } : m
-        )
-      );
-    }
-  };
-
-  const handlePauseAudio = (messageId: string) => {
-    const audio = audioRefs.current[messageId];
-    
-    if (audio) {
-      audio.pause();
-      setActiveSpeakingMessage(null);
-      
-      setMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: false } : m
-        )
-      );
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -449,7 +415,7 @@ const Avatar = () => {
                 <AppSidebar />
               </Button>
             </div>
-            <h1 className="text-xl font-bold">Avatar Interactions</h1>
+            <h1 className="text-xl font-bold">3D Avatar Interactions</h1>
           </div>
           
           <div className="flex items-center gap-2">
@@ -479,13 +445,12 @@ const Avatar = () => {
               </div>
             </div>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="border-white/30 hover:bg-white/10"
-            >
-              {totalTokensUsed} / {monthlyLimit} tokens
-            </Button>
+            <TokenUsageDisplay
+              totalTokensUsed={totalTokensUsed}
+              monthlyLimit={monthlyLimit}
+              inputTokens={inputTokens}
+              outputTokens={outputTokens}
+            />
           </div>
         </header>
         
@@ -511,7 +476,7 @@ const Avatar = () => {
                       size="sm" 
                       variant="outline" 
                       className="border-white/30 bg-white/10"
-                      onClick={() => messages[messages.length - 1].id && handlePauseAudio(messages[messages.length - 1].id)}
+                      onClick={() => messages[messages.length - 1].id && handlePauseAudio(messages[messages.length - 1].id, messages, setMessages)}
                     >
                       <Pause className="h-4 w-4 mr-2" /> Pause
                     </Button>
@@ -520,7 +485,7 @@ const Avatar = () => {
                       size="sm" 
                       variant="outline" 
                       className="border-white/30 bg-white/10"
-                      onClick={() => messages[messages.length - 1].id && handlePlayAudio(messages[messages.length - 1].id)}
+                      onClick={() => messages[messages.length - 1].id && handlePlayAudio(messages[messages.length - 1].id, messages, setMessages)}
                     >
                       <Play className="h-4 w-4 mr-2" /> Play
                     </Button>
