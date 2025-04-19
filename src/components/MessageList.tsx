@@ -12,11 +12,14 @@ interface MessageListProps {
 
 const MessageList = ({ messages, onPlayAudio, onPauseAudio }: MessageListProps) => {
   return (
-    <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+    <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 custom-scrollbar">
       {messages.map((message, index) => (
         <Card 
           key={index}
-          className={`p-4 ${message.isFromUser ? 'bg-purple-900/30' : 'bg-white/5'} border-white/20`}
+          className={`p-4 rounded-xl border-transparent shadow-sm transition-all duration-300 
+            ${message.isFromUser 
+              ? 'bg-gradient-to-br from-purple-900/30 to-blue-900/30' 
+              : 'bg-white/5 hover:bg-white/10'}`}
         >
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">

@@ -21,14 +21,14 @@ const VoiceRecordingButton = ({
       {isRecording ? (
         <>
           <div className="animate-pulse w-2 h-2 bg-red-500 rounded-full"></div>
-          <span className="text-xs text-red-400">{recordingTime}s</span>
+          <span className="text-xs text-red-400 font-mono">{recordingTime}s</span>
           <Button 
             variant="ghost"
             size="icon"
             onClick={onStopRecording}
-            className="w-8 h-8"
+            className="w-8 h-8 hover:bg-red-500/10"
           >
-            <Square className="h-4 w-4" />
+            <Square className="h-4 w-4 text-red-500" />
           </Button>
         </>
       ) : (
@@ -36,7 +36,7 @@ const VoiceRecordingButton = ({
           variant="outline"
           size="icon"
           onClick={onStartRecording}
-          className="w-8 h-8 bg-blue-900/10 border-blue-500/20 text-blue-400"
+          className="w-8 h-8 bg-blue-900/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
         >
           <Mic className="h-4 w-4" />
         </Button>

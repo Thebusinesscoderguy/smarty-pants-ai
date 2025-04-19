@@ -390,12 +390,12 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
-      <div className="w-64 flex-shrink-0">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
+      <div className="w-64 flex-shrink-0 border-r border-white/10">
         <AppSidebar />
       </div>
       
-      <div className="flex-1 flex flex-col max-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col max-h-screen overflow-hidden shadow-2xl">
         <ChatHeader
           isRecording={isRecording}
           recordingTime={recordingTime}
@@ -403,7 +403,7 @@ const Voice = () => {
           onStopRecording={handleStopRecording}
         />
 
-        <div className="flex-1 flex flex-col px-4 py-2 space-y-2 overflow-hidden">
+        <div className="flex-1 flex flex-col px-4 py-2 space-y-4 overflow-hidden bg-gray-900/50">
           <TokenUsageDisplay
             totalTokensUsed={totalTokensUsed}
             monthlyLimit={monthlyLimit}
