@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -392,11 +393,13 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      <AppSidebar />
+    <div className="flex flex-col md:flex-row h-screen w-full bg-gray-900 text-white overflow-hidden">
+      <div className="w-auto md:w-64 flex-shrink-0">
+        <AppSidebar />
+      </div>
       
-      <main className="flex-1 w-full overflow-auto p-4">
-        <div className="max-w-4xl mx-auto w-full">
+      <div className="flex-1 overflow-hidden flex flex-col w-full max-w-full p-4">
+        <div className="container mx-auto w-full max-w-4xl">
           <h1 className="text-2xl font-bold mb-2">Voice Assistant</h1>
           
           <div className="mb-2 flex items-center justify-between">
@@ -455,7 +458,7 @@ const Voice = () => {
             />
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
