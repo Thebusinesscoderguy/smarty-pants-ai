@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -24,6 +25,16 @@ interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice';
   tokenCount?: number;
+}
+
+// Interface for user_avatars table (not in the database types yet)
+interface UserAvatar {
+  id: string;
+  user_id: string;
+  description: string;
+  avatar_url: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const Avatar = () => {
@@ -83,8 +94,12 @@ const Avatar = () => {
     if (!user) return;
     
     try {
+      // Since the user_avatars table is not in the TypeScript types yet,
+      // we need to use type assertions to avoid TypeScript errors
+      // @ts-ignore
       const { data, error } = await supabase
-        .from('user_avatars')
+        // @ts-ignore
+        .from('user_avatars' as any)
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -93,8 +108,10 @@ const Avatar = () => {
       
       if (!data) {
         setShowAvatarDialog(true);
-      } else if (data && 'avatar_url' in data) {
-        setUserAvatarUrl(data.avatar_url as string);
+      } else {
+        // Safely access the avatar_url field using a type assertion
+        const avatarData = data as unknown as UserAvatar;
+        setUserAvatarUrl(avatarData.avatar_url);
       }
       
       setHasCheckedFirstTime(true);

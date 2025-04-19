@@ -47,10 +47,12 @@ const AvatarDescriptionDialog: React.FC<AvatarDescriptionDialogProps> = ({
 
       // Store the user's avatar description and URL
       if (user) {
-        // Use the generic Supabase API to avoid TypeScript errors
-        // @ts-ignore - Ignoring TypeScript error since user_avatars isn't in the DB types yet
+        // Since the user_avatars table is not in the TypeScript types yet, 
+        // we need to use the supabase client directly with type assertions
+        // @ts-ignore
         const { error } = await supabase
-          .from('user_avatars')
+          // @ts-ignore - Using any to bypass TypeScript table validation
+          .from('user_avatars' as any)
           .upsert({
             user_id: user.id,
             description: description,
