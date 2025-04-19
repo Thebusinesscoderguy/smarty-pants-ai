@@ -19,18 +19,44 @@ const OpenAIKeyForm = () => {
   const checkOpenAIKey = async () => {
     try {
       setIsLoading(true);
-      // Test if OpenAI key is valid with a simple request
+      console.log("Checking OpenAI API key...");
+      
+      // More comprehensive test request
       const response = await supabase.functions.invoke('text-to-voice', {
-        body: { text: "Test", voice: 'alloy' }
+        body: { 
+          text: "System check for OpenAI API key functionality", 
+          voice: 'alloy' 
+        }
       });
       
-      if (response.error && response.error.message && response.error.message.includes('API key')) {
-        setKeyExists(false);
+      console.log("API key check response:", response);
+      
+      if (response.error) {
+        console.error("OpenAI API key check failed:", response.error);
+        
+        if (response.error.message && response.error.message.includes('API key')) {
+          setKeyExists(false);
+          toast({
+            title: "API Key Error",
+            description: "OpenAI API key is not properly configured.",
+            variant: "destructive"
+          });
+        }
       } else {
         setKeyExists(true);
+        toast({
+          title: "API Key Verified",
+          description: "OpenAI API key is working correctly.",
+        });
       }
     } catch (error) {
+      console.error("Unexpected error checking OpenAI API key:", error);
       setKeyExists(false);
+      toast({
+        title: "Error",
+        description: "Failed to verify OpenAI API key. " + error.message,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -59,14 +85,26 @@ const OpenAIKeyForm = () => {
     try {
       setIsLoading(true);
       
-      // Here we would typically send the key to the server to be stored securely
-      // For this demo, we'll store it in localStorage (not recommended for production)
+      // Store in localStorage for debugging
       localStorage.setItem('openai_api_key', apiKey);
       
-      // Call a function to set the key in Supabase secrets (this would be handled by backend code)
+      // Attempt to verify the key
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: { 
+          text: "Verifying new OpenAI API key", 
+          voice: 'alloy' 
+        }
+      });
+
+      console.log("New API key verification response:", response);
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to verify API key');
+      }
+      
       toast({
-        title: "Information",
-        description: "Your API key has been saved locally. In a production environment, this would be securely stored on the server.",
+        title: "Success",
+        description: "Your OpenAI API key has been saved and verified.",
       });
       
       setKeyExists(true);
@@ -84,12 +122,6 @@ const OpenAIKeyForm = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-    // Clear the masked key when editing
-    setApiKey('');
   };
 
   return (
@@ -120,7 +152,7 @@ const OpenAIKeyForm = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={handleEditClick}
+            onClick={() => setIsEditing(true)}
           >
             <Edit2 className="h-4 w-4 mr-1" />
             {keyExists ? "Change" : "Set"}
@@ -154,8 +186,8 @@ const OpenAIKeyForm = () => {
       )}
       
       <div className="mt-2 text-xs text-white/60">
-        <p>Note: For this demo, API keys are stored in localStorage. In a production app, keys should be securely saved server-side.</p>
-        <p>For the full functionality to work properly, the Supabase administrator needs to add the OpenAI API key to the Supabase secrets.</p>
+        <p>Note: Open AI keys should start with 'sk-'. For this demo, the key is stored in localStorage.</p>
+        <p>In a production app, keys should be securely saved server-side.</p>
       </div>
     </div>
   );
