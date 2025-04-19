@@ -7,10 +7,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { FcGoogle } from 'react-icons/fc';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -22,6 +25,8 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,18 +69,14 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
 
   const handleGoogleSignUp = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/features`,
-        },
-      });
-
-      if (error) throw error;
+      setIsGoogleLoading(true);
+      await signInWithGoogle();
+      // No need to close modal here as the redirect will happen
     } catch (error: any) {
+      setIsGoogleLoading(false);
       toast({
-        title: "Sign up failed",
-        description: error.message,
+        title: "Google sign up failed",
+        description: error.message || "Unable to authenticate with Google",
         variant: "destructive",
       });
     }
@@ -86,6 +87,9 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
       <DialogContent className="bg-black border border-white/20 text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">Sign Up</DialogTitle>
+          <DialogDescription className="text-center text-white/70">
+            Create an account to get started
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -138,9 +142,19 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
             variant="outline" 
             className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
             onClick={handleGoogleSignUp}
+            disabled={isGoogleLoading}
           >
-            <FcGoogle className="mr-2 h-4 w-4" />
-            Sign up with Google
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Connecting to Google...
+              </>
+            ) : (
+              <>
+                <FcGoogle className="mr-2 h-4 w-4" />
+                Sign up with Google
+              </>
+            )}
           </Button>
         </form>
       </DialogContent>

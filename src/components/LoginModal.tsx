@@ -7,12 +7,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -23,6 +25,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
 
@@ -58,11 +61,14 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsGoogleLoading(true);
       await signInWithGoogle();
+      // No need to close modal here as the redirect will happen
     } catch (error: any) {
+      setIsGoogleLoading(false);
       toast({
-        title: "Login failed",
-        description: error.message,
+        title: "Google login failed",
+        description: error.message || "Unable to authenticate with Google",
         variant: "destructive",
       });
     }
@@ -73,6 +79,9 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       <DialogContent className="bg-black border border-white/20 text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">Log In</DialogTitle>
+          <DialogDescription className="text-center text-white/70">
+            Enter your credentials to access your account
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -115,9 +124,19 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             variant="outline" 
             className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
             onClick={handleGoogleSignIn}
+            disabled={isGoogleLoading}
           >
-            <FcGoogle className="mr-2 h-4 w-4" />
-            Sign in with Google
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Connecting to Google...
+              </>
+            ) : (
+              <>
+                <FcGoogle className="mr-2 h-4 w-4" />
+                Sign in with Google
+              </>
+            )}
           </Button>
         </form>
       </DialogContent>
