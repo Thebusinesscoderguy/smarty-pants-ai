@@ -18,13 +18,51 @@ const Auth = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, signInWithGoogle } = useAuth();
 
   useEffect(() => {
     if (user && !loading) {
       navigate('/pricing');
     }
   }, [user, loading, navigate]);
+
+  // Check for URL hash to see if returning from OAuth
+  useEffect(() => {
+    const handleHashRedirect = async () => {
+      const hasHashParams = window.location.hash && window.location.hash.includes('access_token');
+      if (hasHashParams) {
+        console.log('Detected OAuth redirect with hash parameters');
+        try {
+          setIsRedirecting(true);
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error processing OAuth redirect:', error);
+            toast({
+              title: "Authentication failed",
+              description: error.message,
+              variant: "destructive",
+            });
+            setIsRedirecting(false);
+            return;
+          }
+          
+          if (data.session) {
+            console.log('Successfully authenticated via OAuth');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate('/pricing');
+          }
+        } catch (error) {
+          console.error('Error handling OAuth redirect:', error);
+          setIsRedirecting(false);
+        }
+      }
+    };
+    
+    if (!loading) {
+      handleHashRedirect();
+    }
+  }, [loading, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,22 +112,7 @@ const Auth = () => {
       setAuthError(null);
       
       console.log("Google auth initiated");
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      
-      if (error) throw error;
-      
-      console.log("Redirect URL:", data?.url);
-      
-      // If we got here with a URL, redirect the browser
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      await signInWithGoogle();
       
     } catch (error: any) {
       console.error("Google auth error:", error);
