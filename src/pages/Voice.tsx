@@ -2,38 +2,15 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Mic, Square, Play, Pause, UserCircle2, Send, Paperclip } from 'lucide-react';
+import { Mic, Square } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import OpenAIKeyForm from '@/components/OpenAIKeyForm';
-
-interface Message {
-  id?: string;
-  text: string;
-  timestamp: Date;
-  audioUrl?: string;
-  isPlaying?: boolean;
-  fileUrl?: string;
-  fileName?: string;
-  isFromUser: boolean;
-  type: 'text' | 'voice' | 'file';
-  tokenCount?: number;
-}
-
-interface MessageFromDB {
-  id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
-  is_from_user: boolean;
-  type: string;
-  file_url: string | null;
-  file_name?: string | null;
-  description?: string | null;
-}
+import MessageList from '@/components/MessageList';
+import MessageInput from '@/components/MessageInput';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useAudioHandler } from '@/hooks/useAudioHandler';
+import { Message, MessageFromDB } from '@/types/message';
 
 const Voice = () => {
   const { user } = useAuth();
@@ -46,24 +23,29 @@ const Voice = () => {
       tokenCount: 18
     }
   ]);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [audioData, setAudioData] = useState<Blob | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-  
   const [textMessage, setTextMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
-  const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
+
+  const {
+    isRecording,
+    recordingTime,
+    audioData,
+    setAudioData,
+    handleStartRecording,
+    handleStopRecording
+  } = useVoiceRecorder();
+
+  const {
+    handlePlayAudio,
+    handlePauseAudio,
+    activeSpeakingMessage
+  } = useAudioHandler();
 
   useEffect(() => {
     if (user) {
@@ -75,6 +57,10 @@ const Voice = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const fetchTokenUsage = async () => {
     if (!user) return;
@@ -155,67 +141,6 @@ const Voice = () => {
         description: error.message,
         variant: "destructive"
       });
-    }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleStartRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-      
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-      
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioData(audioBlob);
-        
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = async () => {
-          const base64Audio = reader.result?.toString().split(',')[1];
-          
-          if (base64Audio) {
-            await processVoiceToText(base64Audio);
-          }
-        };
-        
-        stream.getTracks().forEach(track => track.stop());
-      };
-      
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-      
-      setRecordingTime(0);
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prevTime => prevTime + 1);
-      }, 1000);
-      
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Could not access microphone: " + error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
     }
   };
 
@@ -656,90 +581,6 @@ const Voice = () => {
     return new Blob(byteArrays, { type: mimeType });
   };
 
-  const processBase64ToBlob = (base64String: string): Blob => {
-    const byteCharacters = atob(base64String);
-    const byteArrays = [];
-    
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
-      const byteNumbers = new Array(slice.length);
-      
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-      
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-    
-    return new Blob(byteArrays, { type: 'audio/webm' });
-  };
-
-  const handlePlayAudio = (messageId: string) => {
-    if (!audioRefs.current[messageId]) {
-      const message = messages.find(m => m.id === messageId);
-      
-      if (message?.audioUrl) {
-        const audio = new Audio(message.audioUrl);
-        audioRefs.current[messageId] = audio;
-        
-        audio.onended = () => {
-          setMessages(messages => 
-            messages.map(m => 
-              m.id === messageId ? { ...m, isPlaying: false } : m
-            )
-          );
-          setActiveSpeakingMessage(null);
-        };
-        
-        audio.onpause = () => {
-          // Nothing needed here
-        };
-      }
-    }
-    
-    const audio = audioRefs.current[messageId];
-    
-    if (audio) {
-      Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
-        if (id !== messageId && audioElement) {
-          audioElement.pause();
-          audioElement.currentTime = 0;
-          
-          setMessages(messages => 
-            messages.map(m => 
-              m.id === id ? { ...m, isPlaying: false } : m
-            )
-          );
-        }
-      });
-      
-      audio.play();
-      setActiveSpeakingMessage(messageId);
-      
-      setMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: true } : m
-        )
-      );
-    }
-  };
-
-  const handlePauseAudio = (messageId: string) => {
-    const audio = audioRefs.current[messageId];
-    
-    if (audio) {
-      audio.pause();
-      setActiveSpeakingMessage(null);
-      
-      setMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: false } : m
-        )
-      );
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -801,148 +642,23 @@ const Voice = () => {
             )}
           </div>
           
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-            {messages.map((message, index) => (
-              <Card 
-                key={index}
-                className={`p-4 ${message.isFromUser ? 'bg-purple-900/30' : 'bg-white/5'} border-white/20`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
-                    {message.isFromUser ? (
-                      <UserCircle2 className="h-8 w-8 text-white/70" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
-                        AI
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="mb-2 text-lg font-medium">{message.text}</p>
-                    {message.type === 'file' && message.fileUrl && (
-                      <div className="bg-white/10 p-2 rounded mb-2">
-                        <a 
-                          href={message.fileUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:underline flex items-center gap-1"
-                        >
-                          <Paperclip className="h-4 w-4" />
-                          {message.fileName || 'Attachment'}
-                        </a>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      {message.audioUrl && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-white/30 hover:bg-white/10"
-                          onClick={() => message.isPlaying 
-                            ? handlePauseAudio(message.id!) 
-                            : handlePlayAudio(message.id!)
-                          }
-                        >
-                          {message.isPlaying ? (
-                            <>
-                              <Pause className="h-4 w-4 mr-1" />
-                              Pause
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-4 w-4 mr-1" />
-                              Play
-                            </>
-                          )}
-                        </Button>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-white/50">
-                          {message.timestamp.toLocaleTimeString()}
-                        </span>
-                        <span className="text-xs text-white/50">
-                          ({message.tokenCount || 0} tokens)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+          <MessageList 
+            messages={messages}
+            onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+            onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+          />
+          <div ref={messagesEndRef} />
           
-          <div className="border-t border-white/20 pt-4 space-y-4">
-            {file && (
-              <div className="flex items-center gap-2 bg-white/10 p-2 rounded">
-                <Paperclip className="h-4 w-4" />
-                <span className="flex-1 truncate">{file.name}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setFile(null)}
-                >
-                  ×
-                </Button>
-              </div>
-            )}
-            
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <Textarea 
-                  placeholder="Type your message here..."
-                  className="bg-white/5 border-white/20 resize-none min-h-[100px] text-lg"
-                  value={textMessage}
-                  onChange={(e) => setTextMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                />
-                <Button
-                  className="self-end bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={handleVoiceResponse}
-                  title="Get voice response"
-                >
-                  <Play className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Button
-                  className="bg-white text-black hover:bg-gray-200 w-full font-bold"
-                  onClick={handleSendTextMessage}
-                  disabled={!textMessage.trim()}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Text
-                </Button>
-                
-                <Input 
-                  type="file"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                />
-                
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-white/30 hover:bg-white/10 w-full"
-                >
-                  <Paperclip className="h-4 w-4 mr-2" />
-                  {file ? 'Change File' : 'Attach File'}
-                </Button>
-                
-                {file && (
-                  <Button
-                    onClick={handleFileUpload}
-                    className="bg-purple-600 hover:bg-purple-700 w-full"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Send File
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          <MessageInput 
+            onSendText={handleSendTextMessage}
+            onVoiceResponse={handleVoiceResponse}
+            onFileUpload={handleFileUpload}
+            textMessage={textMessage}
+            setTextMessage={setTextMessage}
+            file={file}
+            setFile={setFile}
+            onKeyPress={handleKeyPress}
+          />
         </main>
       </div>
     </div>
