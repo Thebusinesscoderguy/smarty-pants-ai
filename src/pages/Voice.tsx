@@ -1,14 +1,16 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
-import { Mic, Square } from 'lucide-react';
+import { Mic, Square, Play, Volume2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
-import { Message, MessageFromDB } from '@/types/message';
+import { Message } from '@/types/message';
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -391,25 +393,23 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full bg-gray-900 text-white overflow-hidden">
-      <div className="w-auto md:w-64 flex-shrink-0">
+    <div className="flex h-screen bg-gray-900 text-white">
+      <div className="w-64 flex-shrink-0">
         <AppSidebar />
       </div>
       
-      <div className="flex-1 overflow-hidden flex flex-col w-full max-w-full p-4">
-        <div className="container mx-auto w-full max-w-4xl space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Voice Assistant</h1>
-            
+      <div className="flex-1 flex flex-col max-h-screen overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h1 className="text-2xl font-bold">Voice Assistant</h1>
+          <div className="flex items-center space-x-4">
             {isRecording ? (
               <div className="flex items-center gap-2">
                 <div className="animate-pulse w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-red-400">Recording: {recordingTime}s</span>
+                <span className="text-red-400">Recording... {recordingTime}s</span>
                 <Button 
                   variant="destructive"
                   size="sm"
                   onClick={handleStopRecording}
-                  className="ml-2"
                 >
                   <Square className="h-4 w-4 mr-1" />
                   Stop
@@ -427,36 +427,46 @@ const Voice = () => {
               </Button>
             )}
           </div>
-          
-          <div className="bg-gray-800/50 rounded-lg p-6 shadow-xl">
-            <div className="text-sm text-gray-400 mb-4 flex items-center justify-between">
-              <div>
-                Token usage: {totalTokensUsed} / {monthlyLimit}
-                <span className="ml-2 text-gray-500">({inputTokens} input, {outputTokens} output)</span>
-              </div>
+        </div>
+
+        <div className="flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
+          <div className="flex justify-between items-center bg-gray-800/50 rounded-lg p-3">
+            <div className="text-sm text-gray-400">
+              Monthly Token Usage: {totalTokensUsed} / {monthlyLimit}
+              <span className="ml-2 text-gray-500">({inputTokens} input, {outputTokens} output)</span>
             </div>
-            
-            <div className="flex-1 flex flex-col">
-              <div className="flex-1 space-y-4 mb-6 max-h-[500px] overflow-y-auto rounded-lg bg-gray-900/50 p-4">
-                <MessageList 
-                  messages={messages}
-                  onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
-                  onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
-                />
-                <div ref={messagesEndRef} />
-              </div>
-              
-              <MessageInput 
-                onSendText={handleSendTextMessage}
-                onVoiceResponse={handleVoiceResponse}
-                onFileUpload={handleFileUpload}
-                textMessage={textMessage}
-                setTextMessage={setTextMessage}
-                file={file}
-                setFile={setFile}
-                onKeyPress={handleKeyPress}
-              />
+          </div>
+
+          <ScrollArea className="flex-1 pr-4">
+            <MessageList 
+              messages={messages}
+              onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+              onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+            />
+            <div ref={messagesEndRef} />
+          </ScrollArea>
+
+          <div className="pt-4 border-t border-white/10">
+            <div className="flex gap-2 mb-4">
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                onClick={() => getAIResponse(textMessage)}
+                disabled={!textMessage.trim()}
+              >
+                <Volume2 className="h-4 w-4 mr-2" />
+                Get Voice Response
+              </Button>
             </div>
+            <MessageInput 
+              onSendText={handleSendTextMessage}
+              onVoiceResponse={handleVoiceResponse}
+              onFileUpload={handleFileUpload}
+              textMessage={textMessage}
+              setTextMessage={setTextMessage}
+              file={file}
+              setFile={setFile}
+              onKeyPress={handleKeyPress}
+            />
           </div>
         </div>
       </div>
