@@ -392,10 +392,10 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen w-full bg-gray-900 text-white overflow-hidden">
       <AppSidebar />
       
-      <main className="flex-1 flex flex-col p-4 overflow-hidden">
+      <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-full">
         <h1 className="text-2xl font-bold mb-2">Voice Assistant</h1>
         
         <div className="mb-2 flex items-center justify-between">
