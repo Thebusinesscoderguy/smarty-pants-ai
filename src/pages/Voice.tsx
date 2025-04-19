@@ -1,11 +1,9 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Mic, Square } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import OpenAIKeyForm from '@/components/OpenAIKeyForm';
 import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
@@ -437,10 +435,8 @@ const Voice = () => {
                 <span className="ml-2 text-gray-500">({inputTokens} input, {outputTokens} output)</span>
               </div>
             </div>
-
-            <OpenAIKeyForm />
             
-            <div className="flex-1 flex flex-col mt-6">
+            <div className="flex-1 flex flex-col">
               <div className="flex-1 space-y-4 mb-6 max-h-[500px] overflow-y-auto rounded-lg bg-gray-900/50 p-4">
                 <MessageList 
                   messages={messages}
