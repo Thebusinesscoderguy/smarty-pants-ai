@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -389,7 +390,7 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
       <div className="w-64 flex-shrink-0">
         <AppSidebar />
       </div>
@@ -402,7 +403,7 @@ const Voice = () => {
           onStopRecording={handleStopRecording}
         />
 
-        <div className="flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
+        <div className="flex-1 flex flex-col px-4 py-2 space-y-2 overflow-hidden">
           <TokenUsageDisplay
             totalTokensUsed={totalTokensUsed}
             monthlyLimit={monthlyLimit}

@@ -17,32 +17,31 @@ const VoiceRecordingButton = ({
   onStopRecording
 }: VoiceRecordingButtonProps) => {
   return (
-    <>
+    <div className="flex items-center space-x-2">
       {isRecording ? (
-        <div className="flex items-center gap-2">
-          <div className="animate-pulse w-3 h-3 bg-red-500 rounded-full"></div>
-          <span className="text-red-400">Recording... {recordingTime}s</span>
+        <>
+          <div className="animate-pulse w-2 h-2 bg-red-500 rounded-full"></div>
+          <span className="text-xs text-red-400">{recordingTime}s</span>
           <Button 
-            variant="destructive"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={onStopRecording}
+            className="w-8 h-8"
           >
-            <Square className="h-4 w-4 mr-1" />
-            Stop
+            <Square className="h-4 w-4" />
           </Button>
-        </div>
+        </>
       ) : (
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={onStartRecording}
-          className="bg-blue-900/20 border-blue-500/30 text-blue-400 hover:bg-blue-900/30"
+          className="w-8 h-8 bg-blue-900/10 border-blue-500/20 text-blue-400"
         >
-          <Mic className="h-4 w-4 mr-1" />
-          Record Voice
+          <Mic className="h-4 w-4" />
         </Button>
       )}
-    </>
+    </div>
   );
 };
 
