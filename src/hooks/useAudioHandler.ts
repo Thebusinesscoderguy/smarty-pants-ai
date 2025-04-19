@@ -6,7 +6,7 @@ export const useAudioHandler = () => {
   const [activeSpeakingMessage, setActiveSpeakingMessage] = useState<string | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
-  const handlePlayAudio = (messageId: string, messages: Message[], setMessages: (messages: Message[]) => void) => {
+  const handlePlayAudio = (messageId: string, messages: Message[] = [], setMessages?: React.Dispatch<React.SetStateAction<Message[]>>) => {
     if (!audioRefs.current[messageId]) {
       const message = messages.find(m => m.id === messageId);
       
@@ -15,11 +15,13 @@ export const useAudioHandler = () => {
         audioRefs.current[messageId] = audio;
         
         audio.onended = () => {
-          setMessages(messages => 
-            messages.map(m => 
-              m.id === messageId ? { ...m, isPlaying: false } : m
-            )
-          );
+          if (setMessages) {
+            setMessages(prevMessages => 
+              prevMessages.map(m => 
+                m.id === messageId ? { ...m, isPlaying: false } : m
+              )
+            );
+          }
           setActiveSpeakingMessage(null);
         };
       }
@@ -33,37 +35,43 @@ export const useAudioHandler = () => {
           audioElement.pause();
           audioElement.currentTime = 0;
           
-          setMessages(messages => 
-            messages.map(m => 
-              m.id === id ? { ...m, isPlaying: false } : m
-            )
-          );
+          if (setMessages) {
+            setMessages(prevMessages => 
+              prevMessages.map(m => 
+                m.id === id ? { ...m, isPlaying: false } : m
+              )
+            );
+          }
         }
       });
       
       audio.play();
       setActiveSpeakingMessage(messageId);
       
-      setMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: true } : m
-        )
-      );
+      if (setMessages) {
+        setMessages(prevMessages => 
+          prevMessages.map(m => 
+            m.id === messageId ? { ...m, isPlaying: true } : m
+          )
+        );
+      }
     }
   };
 
-  const handlePauseAudio = (messageId: string, messages: Message[], setMessages: (messages: Message[]) => void) => {
+  const handlePauseAudio = (messageId: string, messages: Message[] = [], setMessages?: React.Dispatch<React.SetStateAction<Message[]>>) => {
     const audio = audioRefs.current[messageId];
     
     if (audio) {
       audio.pause();
       setActiveSpeakingMessage(null);
       
-      setMessages(messages => 
-        messages.map(m => 
-          m.id === messageId ? { ...m, isPlaying: false } : m
-        )
-      );
+      if (setMessages) {
+        setMessages(prevMessages => 
+          prevMessages.map(m => 
+            m.id === messageId ? { ...m, isPlaying: false } : m
+          )
+        );
+      }
     }
   };
 

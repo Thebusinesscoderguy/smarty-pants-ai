@@ -397,7 +397,7 @@ const Voice = () => {
       
       setTimeout(() => {
         if (aiMessageId) {
-          handlePlayAudio(aiMessageId);
+          handlePlayAudio(aiMessageId, messages, setMessages);
         }
       }, 500);
       
@@ -480,7 +480,7 @@ const Voice = () => {
         
         setTimeout(() => {
           if (aiMessageId) {
-            handlePlayAudio(aiMessageId);
+            handlePlayAudio(aiMessageId, messages, setMessages);
           }
         }, 500);
       } catch (err: any) {
