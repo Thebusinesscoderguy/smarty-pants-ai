@@ -5,7 +5,6 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Mic, Square } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import OpenAIKeyForm from '@/components/OpenAIKeyForm';
 import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
@@ -70,11 +69,15 @@ const Voice = () => {
   };
 
   const fetchTokenUsage = async () => {
-    // ... keep existing code (token usage fetching logic)
+    // Placeholder for token usage fetching logic
+    // This would typically fetch from your backend or database
+    // For now, we'll just use the state values
   };
 
   const fetchMessages = async () => {
-    // ... keep existing code (messages fetching logic)
+    // Placeholder for messages fetching logic
+    // This would typically fetch from your backend or database
+    // For now, we'll just use the initial welcome message
   };
 
   const processVoiceToText = async (audioBase64: string) => {
