@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -392,66 +393,68 @@ const Voice = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gray-900 text-white overflow-hidden">
+    <div className="flex h-screen w-full bg-gray-900 text-white">
       <AppSidebar />
       
-      <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-full">
-        <h1 className="text-2xl font-bold mb-2">Voice Assistant</h1>
-        
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-sm text-gray-400">
-            Token usage: {totalTokensUsed} / {monthlyLimit} 
-            <span className="ml-2">({inputTokens} input, {outputTokens} output)</span>
-          </div>
+      <main className="flex-1 p-4 overflow-auto">
+        <div className="max-w-4xl mx-auto w-full">
+          <h1 className="text-2xl font-bold mb-2">Voice Assistant</h1>
           
-          {isRecording ? (
-            <div className="flex items-center">
-              <div className="animate-pulse w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <span className="mr-2">Recording: {recordingTime}s</span>
-              <Button 
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-sm text-gray-400">
+              Token usage: {totalTokensUsed} / {monthlyLimit} 
+              <span className="ml-2">({inputTokens} input, {outputTokens} output)</span>
+            </div>
+            
+            {isRecording ? (
+              <div className="flex items-center">
+                <div className="animate-pulse w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                <span className="mr-2">Recording: {recordingTime}s</span>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRecordStop}
+                  className="bg-red-900/30 border-red-500/30 text-red-400 hover:bg-red-900/50"
+                >
+                  <Square className="h-4 w-4 mr-1" />
+                  Stop
+                </Button>
+              </div>
+            ) : (
+              <Button
                 variant="outline"
                 size="sm"
-                onClick={handleRecordStop}
-                className="bg-red-900/30 border-red-500/30 text-red-400 hover:bg-red-900/50"
+                onClick={handleStartRecording}
+                className="bg-blue-900/20 border-blue-500/30 text-blue-400 hover:bg-blue-900/30"
               >
-                <Square className="h-4 w-4 mr-1" />
-                Stop
+                <Mic className="h-4 w-4 mr-1" />
+                Record Voice
               </Button>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleStartRecording}
-              className="bg-blue-900/20 border-blue-500/30 text-blue-400 hover:bg-blue-900/30"
-            >
-              <Mic className="h-4 w-4 mr-1" />
-              Record Voice
-            </Button>
-          )}
-        </div>
-        
-        <OpenAIKeyForm />
-        
-        <div className="flex-1 flex flex-col bg-gray-800/50 rounded-lg p-4 overflow-hidden">
-          <MessageList 
-            messages={messages}
-            onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
-            onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
-          />
+            )}
+          </div>
           
-          <div ref={messagesEndRef} />
+          <OpenAIKeyForm />
           
-          <MessageInput 
-            onSendText={handleSendTextMessage}
-            onVoiceResponse={handleVoiceResponse}
-            onFileUpload={handleFileUpload}
-            textMessage={textMessage}
-            setTextMessage={setTextMessage}
-            file={file}
-            setFile={setFile}
-            onKeyPress={handleKeyPress}
-          />
+          <div className="flex-1 flex flex-col bg-gray-800/50 rounded-lg p-4 overflow-hidden">
+            <MessageList 
+              messages={messages}
+              onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+              onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+            />
+            
+            <div ref={messagesEndRef} />
+            
+            <MessageInput 
+              onSendText={handleSendTextMessage}
+              onVoiceResponse={handleVoiceResponse}
+              onFileUpload={handleFileUpload}
+              textMessage={textMessage}
+              setTextMessage={setTextMessage}
+              file={file}
+              setFile={setFile}
+              onKeyPress={handleKeyPress}
+            />
+          </div>
         </div>
       </main>
     </div>
