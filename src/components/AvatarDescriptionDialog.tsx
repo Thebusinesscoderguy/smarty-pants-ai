@@ -47,13 +47,16 @@ const AvatarDescriptionDialog: React.FC<AvatarDescriptionDialogProps> = ({
 
       // Store the user's avatar description and URL
       if (user) {
+        // Use the generic query builder since user_avatars isn't in the types yet
         const { error } = await supabase
           .from('user_avatars')
           .upsert({
             user_id: user.id,
             description: description,
             avatar_url: avatarUrl,
-            created_at: new Date().toISOString()
+            updated_at: new Date().toISOString()
+          }, { 
+            onConflict: 'user_id' 
           });
 
         if (error) throw error;

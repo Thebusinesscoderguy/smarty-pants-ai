@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -91,10 +90,10 @@ const Avatar = () => {
     if (!user) return;
     
     try {
-      // Check if this user already has an avatar
+      // Check if this user already has an avatar using the generic query builder
       const { data, error } = await supabase
         .from('user_avatars')
-        .select('avatar_url')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
       
