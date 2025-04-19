@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -9,6 +8,7 @@ import { Message } from '@/types/message';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import ChatHeader from '@/components/voice/ChatHeader';
 import ChatContainer from '@/components/voice/ChatContainer';
+import { supabase } from '@/integrations/supabase/client';
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -89,23 +89,16 @@ const Voice = () => {
       setMessages(prev => [...prev, processingMessage]);
       
       try {
-        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/voice-to-text", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ 
-            audio: audioBase64
-          }),
+        // Use supabase.functions.invoke instead of direct fetch
+        const response = await supabase.functions.invoke('voice-to-text', {
+          body: { audio: audioBase64 }
         });
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to process voice');
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to process voice');
         }
         
-        const data = await response.json();
-        const transcribedText = data.text;
+        const transcribedText = response.data.text;
         
         // Remove the processing message
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
@@ -247,24 +240,19 @@ const Voice = () => {
       setMessages(prev => [...prev, processingMessage]);
       
       try {
-        const response = await fetch("https://twfzlbockonxopuindaw.functions.supabase.co/text-to-voice", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ 
+        // Use supabase.functions.invoke instead of direct fetch
+        const response = await supabase.functions.invoke('text-to-voice', {
+          body: { 
             text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
             voice: 'alloy'
-          }),
+          }
         });
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to generate speech');
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to generate speech');
         }
         
-        const data = await response.json();
-        const base64Audio = data.audioContent;
+        const base64Audio = response.data.audioContent;
         
         // Convert base64 to blob
         const byteCharacters = atob(base64Audio);
