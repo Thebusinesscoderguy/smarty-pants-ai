@@ -89,32 +89,34 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
         />
       </Card>
       
-      <style jsx>{`
-        .avatar-speaking {
-          animation: speak 1s infinite alternate;
-        }
-        .avatar-listening {
-          animation: listen 2s infinite;
-        }
-        .avatar-thinking {
-          animation: think 3s infinite;
-        }
-        @keyframes speak {
-          0% { transform: scale(1); }
-          100% { transform: scale(1.05); }
-        }
-        @keyframes listen {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-          100% { transform: translateY(0); }
-        }
-        @keyframes think {
-          0% { transform: rotate(0deg); }
-          25% { transform: rotate(-2deg); }
-          75% { transform: rotate(2deg); }
-          100% { transform: rotate(0deg); }
-        }
-      `}</style>
+      <style>
+        {`
+          .avatar-speaking {
+            animation: speak 1s infinite alternate;
+          }
+          .avatar-listening {
+            animation: listen 2s infinite;
+          }
+          .avatar-thinking {
+            animation: think 3s infinite;
+          }
+          @keyframes speak {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+          }
+          @keyframes listen {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+          }
+          @keyframes think {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-2deg); }
+            75% { transform: rotate(2deg); }
+            100% { transform: rotate(0deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };

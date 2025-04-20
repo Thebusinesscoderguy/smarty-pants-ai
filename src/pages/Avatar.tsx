@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -89,7 +88,6 @@ const Avatar = () => {
     if (!user) return;
     
     try {
-      // Look for user avatar in the files table instead
       const { data, error } = await supabase
         .from('files')
         .select('*')
@@ -149,10 +147,6 @@ const Avatar = () => {
     } catch (error) {
       console.error("Error fetching token usage:", error);
     }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleStartRecording = async () => {
