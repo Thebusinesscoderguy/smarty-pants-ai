@@ -47,9 +47,9 @@ const AvatarDescriptionDialog: React.FC<AvatarDescriptionDialogProps> = ({
 
       // Store the user's avatar description and URL
       if (user) {
-        // Since the user_avatars table is not in the TypeScript types, we need to use
-        // custom query to insert the data
-        const { error } = await supabase.rpc('store_user_avatar', {
+        // Use type assertion to bypass TypeScript's type checking
+        // for the RPC function that's not in the generated types
+        const { error } = await (supabase.rpc as any)('store_user_avatar', {
           p_user_id: user.id,
           p_description: description,
           p_avatar_url: avatarUrl

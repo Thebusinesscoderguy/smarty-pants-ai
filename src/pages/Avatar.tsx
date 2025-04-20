@@ -93,7 +93,7 @@ const Avatar = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase.rpc('get_user_avatar', {
+      const { data, error } = await (supabase.rpc as any)('get_user_avatar', {
         p_user_id: user.id
       });
       
