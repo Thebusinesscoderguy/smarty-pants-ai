@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -5,9 +6,10 @@ import LoginModal from '@/components/LoginModal';
 import SignupModal from '@/components/SignupModal';
 import ApiKeyForm from '@/components/ApiKeyForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mic, Square, Play, Pause, MessageSquare, Volume, ContactRound } from 'lucide-react';
+import { Mic, Square, Play, Pause, MessageSquare, Volume, ContactRound, Mail } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { testApiConnections } from '@/utils/apiService';
@@ -689,3 +691,4 @@ const Index = () => {
 };
 
 export default Index;
+
