@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Play, Pause, Send, Mic, Square } from 'lucide-react';
+import { Play, Pause, Send, Mic, Square, Settings } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import AvatarDescriptionDialog from '@/components/AvatarDescriptionDialog';
+import UserAvatar from '@/components/UserAvatar';
 
 interface Message {
   id?: string;
@@ -26,7 +27,7 @@ interface Message {
   tokenCount?: number;
 }
 
-// Interface for user_avatars table (not in the database types yet)
+// Interface for user_avatars table
 interface UserAvatar {
   id: string;
   user_id: string;
@@ -93,15 +94,22 @@ const Avatar = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await (supabase.rpc as any)('get_user_avatar', {
-        p_user_id: user.id
-      });
+      const { data, error } = await supabase
+        .from('user_avatars')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
       
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error checking for existing avatar:", error);
+        throw error;
+      }
       
       if (!data) {
+        console.log("No avatar found, showing dialog");
         setShowAvatarDialog(true);
       } else {
+        console.log("Avatar found:", data.avatar_url);
         setUserAvatarUrl(data.avatar_url);
       }
       
@@ -426,6 +434,7 @@ const Avatar = () => {
   };
 
   const handleAvatarGenerated = (avatarUrl: string) => {
+    console.log("Avatar generated:", avatarUrl);
     setUserAvatarUrl(avatarUrl);
   };
 
@@ -474,10 +483,14 @@ const Avatar = () => {
               
               <Button 
                 variant="outline" 
-                className="border-white/20 text-white"
+                className="border-white/20 text-white flex items-center gap-2"
                 onClick={() => setShowAvatarDialog(true)}
               >
-                Customize Avatar
+                <Settings className="h-4 w-4" />
+                <span>Customize Avatar</span>
+                {userAvatarUrl && (
+                  <UserAvatar avatarUrl={userAvatarUrl} size="sm" />
+                )}
               </Button>
             </div>
             
@@ -500,6 +513,12 @@ const Avatar = () => {
               className="w-full h-full"
             />
           </div>
+          
+          {userAvatarUrl && (
+            <div className="absolute top-4 right-4 z-20">
+              <UserAvatar avatarUrl={userAvatarUrl} size="lg" />
+            </div>
+          )}
           
           {messages.length > 0 && !messages[messages.length - 1].isFromUser && (
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">

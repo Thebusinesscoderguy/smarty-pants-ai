@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AvatarDescriptionDialogProps {
   open: boolean;
@@ -42,20 +43,25 @@ const AvatarDescriptionDialog: React.FC<AvatarDescriptionDialogProps> = ({
       // Simulate API call with timeout
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // For now, we store the description but use the default avatar
-      const avatarUrl = "/default-avatar.png"; // Default placeholder
+      // For now, we use a placeholder avatar
+      const avatarUrl = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(description);
 
       // Store the user's avatar description and URL
       if (user) {
-        // Use type assertion to bypass TypeScript's type checking
-        // for the RPC function that's not in the generated types
-        const { error } = await (supabase.rpc as any)('store_user_avatar', {
-          p_user_id: user.id,
-          p_description: description,
-          p_avatar_url: avatarUrl
-        });
+        try {
+          const { error } = await supabase
+            .from('user_avatars')
+            .upsert({
+              user_id: user.id,
+              description: description,
+              avatar_url: avatarUrl
+            }, { onConflict: 'user_id' });
 
-        if (error) throw error;
+          if (error) throw error;
+        } catch (upsertError) {
+          console.error("Database error:", upsertError);
+          // Continue with the avatar generation even if storage fails
+        }
       }
 
       toast({
