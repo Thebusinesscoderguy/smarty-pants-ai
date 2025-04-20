@@ -1,5 +1,5 @@
 
-import { MessageSquare, LogOut, User } from 'lucide-react';
+import { MessageSquare, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +25,6 @@ export function AppSidebar() {
     if (url === '/logout') {
       handleLogout();
     } else {
-      // Add logging to debug navigation issues
       console.log(`Navigating to: ${url}`);
       navigate(url);
     }
@@ -53,11 +52,6 @@ export function AppSidebar() {
       title: "Chat",
       icon: MessageSquare,
       url: "/voice",
-    },
-    {
-      title: "Avatar",
-      icon: User,
-      url: "/avatar",
     },
     {
       title: "Log Out",
