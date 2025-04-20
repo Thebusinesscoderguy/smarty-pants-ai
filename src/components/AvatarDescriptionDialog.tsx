@@ -49,10 +49,8 @@ const AvatarDescriptionDialog: React.FC<AvatarDescriptionDialogProps> = ({
       if (user) {
         // Since the user_avatars table is not in the TypeScript types yet, 
         // we need to use the supabase client directly with type assertions
-        // @ts-ignore
         const { error } = await supabase
-          // @ts-ignore - Using any to bypass TypeScript table validation
-          .from('user_avatars' as any)
+          .from('user_avatars')
           .upsert({
             user_id: user.id,
             description: description,

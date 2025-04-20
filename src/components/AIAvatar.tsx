@@ -30,18 +30,19 @@ interface AIAvatarProps {
   className?: string;
 }
 
-// Animation data for different states
+// Animation data for different states - currently all using the same animation file
+// These would be replaced with different animation files in a production environment
 const animationData = {
   teacher: {
     idle: teacherIdle,
-    talking: teacherIdle, // Replace with actual talking animation when available
-    thinking: teacherIdle, // Replace with actual thinking animation when available
-    listening: teacherIdle, // Replace with actual listening animation when available
-    happy: teacherIdle, // Replace with actual happy animation when available
-    confused: teacherIdle, // Replace with actual confused animation when available
+    talking: teacherIdle,
+    thinking: teacherIdle,
+    listening: teacherIdle,
+    happy: teacherIdle,
+    confused: teacherIdle,
   },
   casual: {
-    idle: teacherIdle, // Temporarily use teacher animations
+    idle: teacherIdle,
     talking: teacherIdle,
     thinking: teacherIdle,
     listening: teacherIdle,
@@ -49,7 +50,7 @@ const animationData = {
     confused: teacherIdle,
   },
   professional: {
-    idle: teacherIdle, // Temporarily use teacher animations
+    idle: teacherIdle,
     talking: teacherIdle,
     thinking: teacherIdle,
     listening: teacherIdle,
@@ -57,7 +58,7 @@ const animationData = {
     confused: teacherIdle,
   },
   friendly: {
-    idle: teacherIdle, // Temporarily use teacher animations
+    idle: teacherIdle,
     talking: teacherIdle,
     thinking: teacherIdle,
     listening: teacherIdle,
