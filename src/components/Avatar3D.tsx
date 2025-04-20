@@ -2,7 +2,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+// Fix the import by using the correct path
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 interface Avatar3DProps {
   isSpeaking: boolean;
