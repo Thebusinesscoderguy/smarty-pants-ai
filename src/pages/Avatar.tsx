@@ -25,6 +25,7 @@ interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice';
   tokenCount?: number;
+  sentiment?: 'neutral' | 'happy' | 'sad' | 'surprised' | 'angry';
 }
 
 const Avatar = () => {
@@ -51,6 +52,8 @@ const Avatar = () => {
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const [isAvatarListening, setIsAvatarListening] = useState(false);
   const [isAvatarThinking, setIsAvatarThinking] = useState(false);
+  const [currentSentiment, setCurrentSentiment] = useState<'neutral' | 'happy' | 'sad' | 'surprised' | 'angry'>('neutral');
+  const [speechIntensity, setSpeechIntensity] = useState(0.5);
 
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
@@ -78,7 +81,19 @@ const Avatar = () => {
 
   useEffect(() => {
     setIsAvatarSpeaking(!!activeSpeakingMessage);
-  }, [activeSpeakingMessage]);
+    
+    if (activeSpeakingMessage) {
+      const activeMessage = messages.find(m => m.id === activeSpeakingMessage);
+      if (activeMessage) {
+        analyzeSentiment(activeMessage.text);
+        const intensity = Math.min(0.5 + (activeMessage.text.length / 500), 1);
+        setSpeechIntensity(intensity);
+      }
+    } else {
+      setCurrentSentiment('neutral');
+      setSpeechIntensity(0.5);
+    }
+  }, [activeSpeakingMessage, messages]);
 
   useEffect(() => {
     setIsAvatarListening(isRecording);
@@ -146,6 +161,27 @@ const Avatar = () => {
       }
     } catch (error) {
       console.error("Error fetching token usage:", error);
+    }
+  };
+
+  const analyzeSentiment = (text: string) => {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('happy') || lowerText.includes('great') || lowerText.includes('excellent') || 
+        lowerText.includes('good') || lowerText.includes('love') || lowerText.includes('yes') || 
+        lowerText.includes('wonderful') || lowerText.includes('thank you')) {
+      setCurrentSentiment('happy');
+    } else if (lowerText.includes('sad') || lowerText.includes('sorry') || lowerText.includes('unfortunately') || 
+               lowerText.includes('regret') || lowerText.includes('bad') || lowerText.includes('no')) {
+      setCurrentSentiment('sad');
+    } else if (lowerText.includes('wow') || lowerText.includes('amazing') || lowerText.includes('incredible') || 
+               lowerText.includes('unbelievable') || lowerText.includes('surprise')) {
+      setCurrentSentiment('surprised');
+    } else if (lowerText.includes('angry') || lowerText.includes('upset') || lowerText.includes('annoyed') || 
+               lowerText.includes('frustrat') || lowerText.includes('concern')) {
+      setCurrentSentiment('angry');
+    } else {
+      setCurrentSentiment('neutral');
     }
   };
 
@@ -337,8 +373,23 @@ const Avatar = () => {
         type: 'text'
       }]);
       
-      const aiResponse = `I've processed your message: "${userMessage}". How can I help you further?`;
+      let aiResponse = `I've processed your message: "${userMessage}". `;
+      
+      if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
+        aiResponse += "Hello! It's great to meet you. How can I assist you today?";
+      } else if (userMessage.toLowerCase().includes('thank')) {
+        aiResponse += "You're very welcome! Is there anything else I can help with?";
+      } else if (userMessage.toLowerCase().includes('no')) {
+        aiResponse += "I understand. Is there something else you'd prefer to discuss?";
+      } else if (userMessage.toLowerCase().includes('yes')) {
+        aiResponse += "That's great! Let's proceed then.";
+      } else {
+        aiResponse += "How can I help you further?";
+      }
+      
       const tokenCount = Math.ceil(aiResponse.length / 4);
+      
+      const sentiment = analyzeSentiment(aiResponse);
       
       const voiceResponse = await supabase.functions.invoke('text-to-voice', {
         body: { text: aiResponse, voice: 'alloy' },
@@ -360,7 +411,8 @@ const Avatar = () => {
         audioUrl: audioUrl,
         isFromUser: false,
         type: 'voice',
-        tokenCount: tokenCount
+        tokenCount: tokenCount,
+        sentiment: currentSentiment
       };
       
       setMessages(prev => [...prev, aiMessage]);
@@ -502,6 +554,8 @@ const Avatar = () => {
               isThinking={isAvatarThinking}
               avatarStyle={currentAvatarStyle}
               className="w-full h-full"
+              currentSentiment={currentSentiment}
+              speechIntensity={speechIntensity}
             />
           </div>
           
