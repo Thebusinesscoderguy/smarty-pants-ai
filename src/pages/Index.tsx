@@ -1,61 +1,36 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import LoginModal from '@/components/LoginModal';
-import SignupModal from '@/components/SignupModal';
-import ApiKeyForm from '@/components/ApiKeyForm';
+import { MessageSquare, Mic } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mic, Square, Play, Pause, MessageSquare, Volume, ContactRound, Mail } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { VoiceMessageSection } from '@/components/voice/VoiceMessageSection';
+import { TextChatSection } from '@/components/chat/TextChatSection';
+import { ContactForm } from '@/components/contact/ContactForm';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { testApiConnections } from '@/utils/apiService';
-
-interface VoiceMessage {
-  id?: string;
-  text: string;
-  timestamp: Date;
-  audioUrl?: string;
-  isPlaying?: boolean;
-}
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
+import type { VoiceMessage } from '@/types/voice';
+import type { Message } from '@/types/message';
 
 const Index = () => {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isSignupOpen, setIsSignupOpen] = useState(false);
-  const {
-    user
-  } = useAuth();
   const [showVoiceSection, setShowVoiceSection] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [audioData, setAudioData] = useState<Blob | null>(null);
-  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRefs = useRef<{
-    [key: string]: HTMLAudioElement | null;
-  }>({});
   const [showChatSection, setShowChatSection] = useState(false);
+  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
   const [messages, setMessages] = useState<Message[]>([{
     role: 'assistant',
     content: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
     timestamp: new Date()
   }]);
   const [input, setInput] = useState('');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const { user } = useAuth();
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioData, setAudioData] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
   useEffect(() => {
     if (user && showVoiceSection) {
@@ -96,12 +71,6 @@ const Index = () => {
         variant: "destructive"
       });
     }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: 'smooth'
-    });
   };
 
   const handleStartRecording = async () => {
@@ -316,30 +285,28 @@ const Index = () => {
         const audio = new Audio(message.audioUrl);
         audioRefs.current[messageId] = audio;
         audio.onended = () => {
-          setVoiceMessages(messages => messages.map(m => m.id === messageId ? {
-            ...m,
-            isPlaying: false
-          } : m));
+          setVoiceMessages(messages => messages.map(m => 
+            m.id === messageId ? { ...m, isPlaying: false } : m
+          ));
         };
       }
     }
+
     const audio = audioRefs.current[messageId];
     if (audio) {
       Object.entries(audioRefs.current).forEach(([id, audioElement]) => {
         if (id !== messageId && audioElement) {
           audioElement.pause();
           audioElement.currentTime = 0;
-          setVoiceMessages(messages => messages.map(m => m.id === id ? {
-            ...m,
-            isPlaying: false
-          } : m));
+          setVoiceMessages(messages => messages.map(m => 
+            m.id === id ? { ...m, isPlaying: false } : m
+          ));
         }
       });
       audio.play();
-      setVoiceMessages(messages => messages.map(m => m.id === messageId ? {
-        ...m,
-        isPlaying: true
-      } : m));
+      setVoiceMessages(messages => messages.map(m => 
+        m.id === messageId ? { ...m, isPlaying: true } : m
+      ));
     }
   };
 
@@ -347,10 +314,9 @@ const Index = () => {
     const audio = audioRefs.current[messageId];
     if (audio) {
       audio.pause();
-      setVoiceMessages(messages => messages.map(m => m.id === messageId ? {
-        ...m,
-        isPlaying: false
-      } : m));
+      setVoiceMessages(messages => messages.map(m => 
+        m.id === messageId ? { ...m, isPlaying: false } : m
+      ));
     }
   };
 
@@ -381,48 +347,9 @@ const Index = () => {
     }
   };
 
-  const onVoiceResponse = () => {
-    // Implement logic for voice response
-  };
-
-  const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const mailtoLink = `mailto:aldawoodali50@gmail.com?subject=Contact%20from%20Teachly&body=Name:%20${encodeURIComponent(name)}%0AEmail:%20${encodeURIComponent(email)}%0A%0AMessage:%20${encodeURIComponent(message)}`;
-    
-    window.location.href = mailtoLink;
-    
-    toast({
-      title: "Redirecting to Email",
-      description: "Your default email client will open momentarily.",
-    });
-
-    // Reset form
-    setName('');
-    setEmail('');
-    setMessage('');
-  };
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
-        <h1 className="text-xl font-bold">Teachly</h1>
-        <div className="space-x-4">
-          {user ? <>
-              <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-                <Link to="/features">Dashboard</Link>
-              </Button>
-              <ApiKeyForm />
-            </> : <>
-              <Button variant="outline" className="text-white border-white/30 hover:bg-white/10" onClick={() => setIsLoginOpen(true)}>
-                Log in
-              </Button>
-              <Button className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
-                Sign up
-              </Button>
-            </>}
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-1 px-4 py-12 md:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -434,112 +361,63 @@ const Index = () => {
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
             <div className="mt-8 space-x-4">
-              {user ? <>
-                  <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={() => {
-                setShowVoiceSection(!showVoiceSection);
-                setShowChatSection(false);
-              }}>
+              {user ? (
+                <>
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-black hover:bg-gray-200"
+                    onClick={() => {
+                      setShowVoiceSection(!showVoiceSection);
+                      setShowChatSection(false);
+                    }}
+                  >
                     <Mic className="mr-2 h-4 w-4" />
                     {showVoiceSection ? "Hide Voice Messages" : "Open Voice Messages"}
                   </Button>
-                  <Button size="lg" variant="outline" className="border-white/30 hover:bg-white/10" onClick={() => {
-                setShowChatSection(!showChatSection);
-                setShowVoiceSection(false);
-              }}>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-white/30 hover:bg-white/10"
+                    onClick={() => {
+                      setShowChatSection(!showChatSection);
+                      setShowVoiceSection(false);
+                    }}
+                  >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     {showChatSection ? "Hide Text Chat" : "Open Text Chat"}
                   </Button>
-                </> : <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
+                </>
+              ) : (
+                <Button size="lg" className="bg-white text-black hover:bg-gray-200">
                   Get Started
-                </Button>}
+                </Button>
+              )}
             </div>
           </div>
 
-          {showVoiceSection && user && <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Voice Messages</h2>
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex items-center space-x-2"
-                    onClick={onVoiceResponse}
-                  >
-                    <Volume className="h-4 w-4" />
-                    <span>Voice Response</span>
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
-                {voiceMessages.length > 0 ? voiceMessages.map((message, index) => <Card key={index} className="p-4 bg-white/5 border-white/20">
-                      <p className="mb-2">{message.text}</p>
-                      <div className="flex items-center justify-between">
-                        {message.audioUrl && <Button variant="outline" size="sm" className="border-white/30 hover:bg-white/10" onClick={() => message.isPlaying ? handlePauseAudio(message.id!) : handlePlayAudio(message.id!)}>
-                            {message.isPlaying ? <>
-                                <Pause className="h-4 w-4 mr-1" />
-                                Pause
-                              </> : <>
-                                <Play className="h-4 w-4 mr-1" />
-                                Play
-                              </>}
-                          </Button>}
-                        <span className="text-xs text-white/50">
-                          {message.timestamp.toLocaleTimeString()}
-                        </span>
-                      </div>
-                    </Card>) : <p className="text-white/70 text-center py-4">No voice messages yet. Start recording to begin.</p>}
-                <div ref={messagesEndRef} />
-              </div>
-              
-              <div className="flex justify-center">
-                {isRecording ? <div className="flex flex-col items-center">
-                    <div className="mb-2 text-red-500 animate-pulse">
-                      Recording... {recordingTime}s
-                    </div>
-                    <Button onClick={handleStopRecording} variant="destructive" size="lg" className="rounded-full w-16 h-16 flex items-center justify-center">
-                      <Square className="h-6 w-6" />
-                    </Button>
-                  </div> : <Button onClick={handleStartRecording} className="bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center">
-                    <Mic className="h-6 w-6" />
-                  </Button>}
-              </div>
-            </div>}
+          {showVoiceSection && user && (
+            <VoiceMessageSection
+              messages={voiceMessages}
+              onPlayAudio={handlePlayAudio}
+              onPauseAudio={handlePauseAudio}
+              onVoiceResponse={() => {}}
+              isRecording={isRecording}
+              recordingTime={recordingTime}
+              handleStartRecording={handleStartRecording}
+              handleStopRecording={handleStopRecording}
+            />
+          )}
 
-          {showChatSection && user && <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Text Chat</h2>
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex items-center space-x-2"
-                    onClick={onVoiceResponse}
-                  >
-                    <Volume className="h-4 w-4" />
-                    <span>Voice Response</span>
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
-                {messages.map((message, index) => <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <Card className={`max-w-[80%] p-3 ${message.role === 'user' ? 'bg-white/10 text-white border-white/20' : 'bg-white/5 text-white border-white/20'}`}>
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                      <div className="text-xs text-white/50 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
-                      </div>
-                    </Card>
-                  </div>)}
-              </div>
-              
-              <div className="flex gap-2">
-                <Input value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." className="flex-1 bg-transparent border-white/30 focus-visible:ring-white" />
-                <Button onClick={handleSendMessage} className="bg-white text-black hover:bg-gray-200">
-                  Send
-                </Button>
-              </div>
-            </div>}
+          {showChatSection && user && (
+            <TextChatSection
+              messages={messages}
+              input={input}
+              onInputChange={(value) => setInput(value)}
+              onSendMessage={handleSendMessage}
+              onKeyDown={handleKeyDown}
+              onVoiceResponse={() => {}}
+            />
+          )}
 
           <div className="grid md:grid-cols-3 gap-6 mt-16">
             <div className="bg-white/5 border border-white/10 rounded-lg p-6">
@@ -618,77 +496,13 @@ const Index = () => {
             </div>
           </div>
 
-          <section className="w-full px-4 py-16 border-t border-white/10">
-            <div className="max-w-md mx-auto">
-              <div className="text-center mb-8">
-                <ContactRound className="mx-auto h-12 w-12 text-blue-500 mb-4" />
-                <h2 className="text-3xl font-bold">Contact Us</h2>
-                <p className="text-white/70 mt-2">We'd love to hear from you</p>
-              </div>
-              <form onSubmit={handleContactSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2">Name</label>
-                  <Input 
-                    type="text" 
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your Name" 
-                    required 
-                    className="bg-white/10 border-white/20 text-white placeholder-white/50"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">Email</label>
-                  <Input 
-                    type="email" 
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com" 
-                    required 
-                    className="bg-white/10 border-white/20 text-white placeholder-white/50"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-white/80 mb-2">Message</label>
-                  <Textarea 
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Your message..." 
-                    required 
-                    className="bg-white/10 border-white/20 text-white placeholder-white/50 min-h-[120px]"
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <Mail className="mr-2 h-4 w-4" /> Send Message
-                </Button>
-              </form>
-            </div>
-          </section>
+          <ContactForm />
         </div>
       </main>
 
-      <footer className="w-full px-4 md:px-6 py-6 border-t border-white/10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/60 text-sm">© 2025 Teachly. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-white/60 hover:text-white text-sm">Terms</a>
-            <a href="#" className="text-white/60 hover:text-white text-sm">Privacy</a>
-            <Link to="/pricing" className="text-white/60 hover:text-white text-sm">Pricing</Link>
-          </div>
-        </div>
-      </footer>
-
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} />
+      <Footer />
     </div>
   );
 };
 
 export default Index;
-
