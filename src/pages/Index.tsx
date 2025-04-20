@@ -18,9 +18,10 @@ const Index = () => {
   const [showChatSection, setShowChatSection] = useState(false);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
   const [messages, setMessages] = useState<Message[]>([{
-    role: 'assistant',
-    content: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
-    timestamp: new Date()
+    text: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
+    timestamp: new Date(),
+    isFromUser: false,
+    type: 'text'
   }]);
   const [input, setInput] = useState('');
   const { user } = useAuth();
@@ -31,6 +32,7 @@ const Index = () => {
   const audioChunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user && showVoiceSection) {
@@ -43,6 +45,12 @@ const Index = () => {
       testApiConnections();
     }
   }, [user]);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const fetchMessages = async () => {
     if (!user) return;
@@ -323,18 +331,20 @@ const Index = () => {
   const handleSendMessage = () => {
     if (!input.trim()) return;
     const userMessage: Message = {
-      role: 'user',
-      content: input,
-      timestamp: new Date()
+      text: input,
+      timestamp: new Date(),
+      isFromUser: true,
+      type: 'text'
     };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setTimeout(() => {
       const aiResponse = `Thank you for your message: "${input}". I'm here to help you learn.`;
       const assistantMessage: Message = {
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date()
+        text: aiResponse,
+        timestamp: new Date(),
+        isFromUser: false,
+        type: 'text'
       };
       setMessages(prev => [...prev, assistantMessage]);
     }, 1000);

@@ -41,9 +41,9 @@ export const TextChatSection = ({
       
       <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <Card className={`max-w-[80%] p-3 ${message.role === 'user' ? 'bg-white/10 text-white border-white/20' : 'bg-white/5 text-white border-white/20'}`}>
-              <p className="whitespace-pre-wrap">{message.content}</p>
+          <div key={index} className={`flex ${message.isFromUser ? 'justify-end' : 'justify-start'}`}>
+            <Card className={`max-w-[80%] p-3 ${message.isFromUser ? 'bg-white/10 text-white border-white/20' : 'bg-white/5 text-white border-white/20'}`}>
+              <p className="whitespace-pre-wrap">{message.text}</p>
               <div className="text-xs text-white/50 mt-1">
                 {message.timestamp.toLocaleTimeString()}
               </div>
