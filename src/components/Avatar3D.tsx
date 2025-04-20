@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
-// Fix the import by using the correct path
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 interface Avatar3DProps {
@@ -43,6 +42,9 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   
   // Animation frames counter for lip sync
   const frameCounter = useRef(0);
+  // Speech pattern for more realistic lip movement
+  const speechPattern = useRef<number[]>([0, 0.3, 0.6, 1, 0.8, 0.5, 0.2, 0, 0.4, 0.7, 0.5, 0.3, 0]);
+  const speechPatternIndex = useRef(0);
   
   useEffect(() => {
     // Determine expression based on avatar state and sentiment
@@ -81,18 +83,18 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   };
 
   const getAvatarImage = () => {
-    // Different avatar images based on style
+    // Different full-body avatar images based on style
     switch (avatarStyle) {
       case 'teacher':
-        return 'https://api.dicebear.com/7.x/personas/svg?seed=teacher&backgroundColor=transparent&scale=110';
+        return 'https://api.dicebear.com/7.x/bottts/svg?seed=teacher&backgroundColor=transparent&scale=110';
       case 'casual':
-        return 'https://api.dicebear.com/7.x/personas/svg?seed=casual&backgroundColor=transparent&scale=110';
+        return 'https://api.dicebear.com/7.x/bottts/svg?seed=casual&backgroundColor=transparent&scale=110';
       case 'professional':
-        return 'https://api.dicebear.com/7.x/personas/svg?seed=professional&backgroundColor=transparent&scale=110';
+        return 'https://api.dicebear.com/7.x/bottts/svg?seed=professional&backgroundColor=transparent&scale=110';
       case 'friendly':
-        return 'https://api.dicebear.com/7.x/personas/svg?seed=friendly&backgroundColor=transparent&scale=110';
+        return 'https://api.dicebear.com/7.x/bottts/svg?seed=friendly&backgroundColor=transparent&scale=110';
       default:
-        return 'https://api.dicebear.com/7.x/personas/svg?seed=default&backgroundColor=transparent&scale=110';
+        return 'https://api.dicebear.com/7.x/bottts/svg?seed=default&backgroundColor=transparent&scale=110';
     }
   };
 
@@ -102,10 +104,35 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     
     const lipSyncInterval = setInterval(() => {
       frameCounter.current = (frameCounter.current + 1) % 10;
+      speechPatternIndex.current = (speechPatternIndex.current + 1) % speechPattern.current.length;
     }, 100);
     
     return () => clearInterval(lipSyncInterval);
   }, [isSpeaking]);
+
+  // Generate gestures based on sentiment and speech
+  const getGestureClass = () => {
+    if (isSpeaking) {
+      if (currentSentiment === 'happy') return 'gesture-hands-up';
+      if (currentSentiment === 'sad') return 'gesture-hands-down';
+      if (currentSentiment === 'angry') return 'gesture-pointing';
+      if (currentSentiment === 'surprised') return 'gesture-hands-out';
+      return 'gesture-talking';
+    }
+    
+    if (isListening) return 'gesture-listening';
+    if (isThinking) return 'gesture-thinking';
+    
+    return '';
+  };
+
+  // Determine head movement based on expression
+  const getHeadMovementClass = () => {
+    if (currentSentiment === 'happy') return 'head-nod-yes';
+    if (currentSentiment === 'sad') return 'head-nod-no';
+    if (isThinking) return 'head-tilt';
+    return '';
+  };
 
   return (
     <div 
@@ -117,31 +144,59 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="relative w-full h-full">
-            <img 
-              src={getAvatarImage()} 
-              alt="3D Avatar" 
-              className="w-full h-full object-contain" 
-            />
+            <div className={`full-body-avatar ${getGestureClass()} ${getHeadMovementClass()}`}>
+              <img 
+                src={getAvatarImage()} 
+                alt="3D Avatar" 
+                className="w-full h-full object-contain" 
+              />
+            </div>
             
             {/* Mouth animation overlay for lip syncing */}
             {isSpeaking && (
               <div 
-                className="absolute mouth-animation"
+                className="mouth-animation"
                 style={{
-                  bottom: '20%',
+                  position: 'absolute',
+                  bottom: '40%',
                   left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '20%',
-                  height: '5%',
-                  background: 'rgba(0,0,0,0.7)', 
-                  borderRadius: '50%',
-                  animation: 'mouth-move 0.2s infinite alternate',
-                  transformOrigin: 'center'
+                  transform: `translateX(-50%) scaleY(${speechPattern.current[speechPatternIndex.current] * speechIntensity + 0.5})`,
+                  width: '10%',
+                  height: '2%',
+                  background: 'rgba(0,0,0,0.8)', 
+                  borderRadius: '40%',
+                  transition: 'transform 0.1s ease-in-out'
                 }}
               />
             )}
             
-            {/* Emotional expressions */}
+            {/* Eyes animation */}
+            <div className="eyes-container" style={{ 
+              position: 'absolute', 
+              top: '30%', 
+              left: '0', 
+              width: '100%', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: '15%' 
+            }}>
+              <div className={`eye ${currentExpression === 'thinking' ? 'eye-blink' : ''}`} style={{ 
+                width: '8%', 
+                height: '4%', 
+                background: 'rgba(0,0,0,0.8)', 
+                borderRadius: '50%',
+                animation: isThinking ? 'eye-roll 2s infinite' : ''
+              }}/>
+              <div className={`eye ${currentExpression === 'thinking' ? 'eye-blink' : ''}`} style={{ 
+                width: '8%', 
+                height: '4%', 
+                background: 'rgba(0,0,0,0.8)', 
+                borderRadius: '50%',
+                animation: isThinking ? 'eye-roll 2s infinite' : ''
+              }}/>
+            </div>
+            
+            {/* Emotional expressions overlay */}
             {currentExpression === 'happy' && (
               <div className="absolute w-full h-full top-0 left-0 happy-overlay" />
             )}
@@ -179,6 +234,53 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       
       <style>
         {`
+          /* Full body avatar styling */
+          .full-body-avatar {
+            width: 100%;
+            height: 85%;
+            position: relative;
+          }
+
+          /* Gesture animations */
+          .gesture-talking {
+            animation: talking-gesture 3s infinite alternate;
+          }
+          .gesture-hands-up {
+            animation: hands-up-gesture 2s infinite alternate;
+          }
+          .gesture-hands-down {
+            animation: hands-down-gesture 2s infinite alternate;
+          }
+          .gesture-pointing {
+            animation: pointing-gesture 2s infinite alternate;
+          }
+          .gesture-hands-out {
+            animation: hands-out-gesture 1s infinite alternate;
+          }
+          .gesture-listening {
+            animation: listening-gesture 3s infinite;
+          }
+          .gesture-thinking {
+            animation: thinking-gesture 3s infinite;
+          }
+
+          /* Head movement animations */
+          .head-nod-yes {
+            animation: nod-yes 2s infinite;
+          }
+          .head-nod-no {
+            animation: nod-no 2s infinite;
+          }
+          .head-tilt {
+            animation: head-tilt 3s infinite alternate;
+          }
+
+          /* Eye animations */
+          .eye-blink {
+            animation: blink 3s infinite;
+          }
+
+          /* General expression animations */
           .avatar-speaking {
             animation: body-speak 1s infinite alternate;
           }
@@ -201,6 +303,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
             animation: angry 1.5s infinite;
           }
           
+          /* Animation keyframes */
           @keyframes body-speak {
             0% { transform: scale(1); }
             100% { transform: scale(1.02); }
@@ -237,11 +340,65 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
             75% { transform: rotate(1deg); }
             100% { transform: rotate(0deg); }
           }
-          @keyframes mouth-move {
-            0% { transform: translateX(-50%) scaleY(0.5); }
-            100% { transform: translateX(-50%) scaleY(1.5); }
+          @keyframes blink {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
           }
-          
+          @keyframes eye-roll {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(20%); }
+            50% { transform: translateX(0); }
+            75% { transform: translateX(-20%); }
+            100% { transform: translateX(0); }
+          }
+
+          /* Gesture keyframes */
+          @keyframes talking-gesture {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+          }
+          @keyframes hands-up-gesture {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-15px) scale(1.05); }
+          }
+          @keyframes hands-down-gesture {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(15px) scale(0.95); }
+          }
+          @keyframes pointing-gesture {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(5deg); }
+          }
+          @keyframes hands-out-gesture {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+          }
+          @keyframes listening-gesture {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+          }
+          @keyframes thinking-gesture {
+            0% { transform: rotate(0deg) translateY(0); }
+            50% { transform: rotate(2deg) translateY(-5px); }
+            100% { transform: rotate(-2deg) translateY(5px); }
+          }
+          @keyframes nod-yes {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          @keyframes nod-no {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+          }
+          @keyframes head-tilt {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(8deg); }
+          }
+
+          /* Expression overlays */
           .happy-overlay {
             background: radial-gradient(circle, transparent 60%, rgba(255,255,0,0.1) 100%);
           }

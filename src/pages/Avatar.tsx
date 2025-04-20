@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -389,6 +390,7 @@ const Avatar = () => {
       
       const tokenCount = Math.ceil(aiResponse.length / 4);
       
+      // Analyze sentiment before creating audio
       const sentiment = analyzeSentiment(aiResponse);
       
       const voiceResponse = await supabase.functions.invoke('text-to-voice', {
