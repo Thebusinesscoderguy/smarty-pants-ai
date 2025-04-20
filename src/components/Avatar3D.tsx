@@ -12,6 +12,7 @@ interface Avatar3DProps {
   className?: string;
   currentSentiment?: 'neutral' | 'happy' | 'sad' | 'surprised' | 'angry';
   speechIntensity?: number; // 0-1 value for lip movement intensity
+  speechText?: string; // Added to respond to specific words
 }
 
 const Avatar3D: React.FC<Avatar3DProps> = ({
@@ -22,6 +23,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   className = '',
   currentSentiment = 'neutral',
   speechIntensity = 0.5,
+  speechText = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -33,6 +35,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [lipOpenness, setLipOpenness] = useState(0);
+  const [animationState, setAnimationState] = useState<string>('idle');
   
   // Lip sync variables
   const lipSyncInterval = useRef<NodeJS.Timeout | null>(null);
@@ -92,15 +95,31 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       
       // Animate the avatar model based on state
       if (modelRef.current) {
-        // Apply animations based on speaking, listening, thinking states
+        // Apply animations based on speaking, listening, thinking states and animation state
         if (isSpeaking) {
-          modelRef.current.rotation.y += 0.005;
-          // Apply lip movement
           applyLipMovement(modelRef.current, lipOpenness);
+          
+          if (animationState === 'speaking') {
+            // Gentle head movement while speaking
+            modelRef.current.rotation.y = Math.sin(Date.now() * 0.001) * 0.2;
+            // Subtle hand gestures for speaking
+            animateGestures(modelRef.current, 'speaking');
+          }
         } else if (isListening) {
-          modelRef.current.rotation.y += 0.002;
+          // Slight head tilt and nodding when listening
+          modelRef.current.rotation.y = Math.sin(Date.now() * 0.0008) * 0.1;
+          modelRef.current.rotation.x = Math.sin(Date.now() * 0.001) * 0.05;
+          animateGestures(modelRef.current, 'listening');
         } else if (isThinking) {
-          modelRef.current.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+          // More pronounced head tilt for thinking
+          modelRef.current.rotation.x = Math.sin(Date.now() * 0.001) * 0.15;
+          // Hand to chin pose for thinking
+          animateGestures(modelRef.current, 'thinking');
+        } else {
+          // Idle animations
+          modelRef.current.rotation.y = Math.sin(Date.now() * 0.0005) * 0.05;
+          modelRef.current.rotation.x = Math.sin(Date.now() * 0.0007) * 0.03;
+          animateGestures(modelRef.current, 'idle');
         }
         
         // Apply sentiment-based animations
@@ -158,99 +177,144 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     // Base body - choose different geometries based on style
     let bodyGeometry;
     let bodyMaterial;
+    let bodyColor;
     
     switch (style) {
       case 'teacher':
-        bodyGeometry = new THREE.CapsuleGeometry(1, 2, 10, 10);
-        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x3f51b5 });
+        bodyColor = 0x3f51b5;
         break;
       case 'casual':
-        bodyGeometry = new THREE.SphereGeometry(1.2, 32, 32);
-        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x4caf50 });
+        bodyColor = 0x4caf50;
         break;
       case 'professional':
-        bodyGeometry = new THREE.BoxGeometry(1.8, 2.5, 1);
-        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x607d8b });
+        bodyColor = 0x607d8b;
         break;
       case 'friendly':
-        bodyGeometry = new THREE.TorusGeometry(1, 0.4, 16, 64);
-        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xff9800 });
+        bodyColor = 0xff9800;
         break;
       default:
-        bodyGeometry = new THREE.CapsuleGeometry(1, 2, 10, 10);
-        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x3f51b5 });
+        bodyColor = 0x3f51b5;
     }
     
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    avatarGroup.add(body);
+    // Create full body
+    // Head
+    const headGeometry = new THREE.SphereGeometry(0.8, 32, 32);
+    const headMaterial = new THREE.MeshPhongMaterial({ color: bodyColor });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.set(0, 1.2, 0);
+    head.name = "head";
+    avatarGroup.add(head);
+    
+    // Torso
+    const torsoGeometry = new THREE.CylinderGeometry(0.7, 0.5, 1.5, 16);
+    const torsoMaterial = new THREE.MeshPhongMaterial({ color: bodyColor });
+    const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+    torso.position.set(0, 0, 0);
+    torso.name = "torso";
+    avatarGroup.add(torso);
     
     // Add eyes
-    const eyeGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+    const eyeGeometry = new THREE.SphereGeometry(0.15, 32, 32);
     const eyeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
     
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.4, 0.5, 0.8);
+    leftEye.position.set(-0.3, 1.3, 0.65);
+    leftEye.name = "leftEye";
     avatarGroup.add(leftEye);
     
     const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    rightEye.position.set(0.4, 0.5, 0.8);
+    rightEye.position.set(0.3, 1.3, 0.65);
+    rightEye.name = "rightEye";
     avatarGroup.add(rightEye);
     
     // Add pupils
-    const pupilGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+    const pupilGeometry = new THREE.SphereGeometry(0.07, 32, 32);
     const pupilMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
     
     const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-    leftPupil.position.set(-0.4, 0.5, 0.9);
+    leftPupil.position.set(-0.3, 1.3, 0.75);
+    leftPupil.name = "leftPupil";
     avatarGroup.add(leftPupil);
     
     const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-    rightPupil.position.set(0.4, 0.5, 0.9);
+    rightPupil.position.set(0.3, 1.3, 0.75);
+    rightPupil.name = "rightPupil";
     avatarGroup.add(rightPupil);
     
     // Add mouth - will be animated
-    const mouthGeometry = new THREE.BoxGeometry(0.8, 0.2, 0.1);
+    const mouthGeometry = new THREE.BoxGeometry(0.5, 0.1, 0.1);
     const mouthMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
     const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
-    mouth.position.set(0, 0, 0.9);
-    mouth.name = "mouth"; // For targeted animations
+    mouth.position.set(0, 1.0, 0.75);
+    mouth.name = "mouth";
     avatarGroup.add(mouth);
     
-    // Add limbs for full body avatars
-    if (style === 'teacher' || style === 'professional') {
-      // Arms
-      const armGeometry = new THREE.CapsuleGeometry(0.2, 1, 5, 5);
-      const armMaterial = new THREE.MeshPhongMaterial({ color: bodyMaterial.color });
-      
-      const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-      leftArm.position.set(-1.2, 0, 0);
-      leftArm.rotation.z = Math.PI / 2;
-      leftArm.name = "leftArm";
-      avatarGroup.add(leftArm);
-      
-      const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-      rightArm.position.set(1.2, 0, 0);
-      rightArm.rotation.z = -Math.PI / 2;
-      rightArm.name = "rightArm";
-      avatarGroup.add(rightArm);
-      
-      // Legs
-      const legGeometry = new THREE.CapsuleGeometry(0.25, 1.2, 5, 5);
-      const legMaterial = new THREE.MeshPhongMaterial({ color: bodyMaterial.color });
-      
-      const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-      leftLeg.position.set(-0.5, -1.5, 0);
-      leftLeg.name = "leftLeg";
-      avatarGroup.add(leftLeg);
-      
-      const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-      rightLeg.position.set(0.5, -1.5, 0);
-      rightLeg.name = "rightLeg";
-      avatarGroup.add(rightLeg);
-    }
+    // Add arms
+    const armGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1.2, 16);
+    const armMaterial = new THREE.MeshPhongMaterial({ color: bodyColor });
+    
+    const leftArm = new THREE.Group();
+    const leftArmUpper = new THREE.Mesh(armGeometry, armMaterial);
+    leftArmUpper.position.set(0, -0.5, 0);
+    leftArmUpper.rotation.z = Math.PI / 8;
+    leftArm.add(leftArmUpper);
+    leftArm.position.set(-0.8, 0.3, 0);
+    leftArm.name = "leftArm";
+    avatarGroup.add(leftArm);
+    
+    const rightArm = new THREE.Group();
+    const rightArmUpper = new THREE.Mesh(armGeometry, armMaterial);
+    rightArmUpper.position.set(0, -0.5, 0);
+    rightArmUpper.rotation.z = -Math.PI / 8;
+    rightArm.add(rightArmUpper);
+    rightArm.position.set(0.8, 0.3, 0);
+    rightArm.name = "rightArm";
+    avatarGroup.add(rightArm);
+    
+    // Add hands
+    const handGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+    const handMaterial = new THREE.MeshPhongMaterial({ color: 0xffddcc });
+    
+    const leftHand = new THREE.Mesh(handGeometry, handMaterial);
+    leftHand.position.set(-1.1, -0.6, 0);
+    leftHand.name = "leftHand";
+    avatarGroup.add(leftHand);
+    
+    const rightHand = new THREE.Mesh(handGeometry, handMaterial);
+    rightHand.position.set(1.1, -0.6, 0);
+    rightHand.name = "rightHand";
+    avatarGroup.add(rightHand);
+    
+    // Add legs
+    const legGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1.5, 16);
+    const legMaterial = new THREE.MeshPhongMaterial({ color: bodyColor });
+    
+    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+    leftLeg.position.set(-0.3, -1.5, 0);
+    leftLeg.name = "leftLeg";
+    avatarGroup.add(leftLeg);
+    
+    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+    rightLeg.position.set(0.3, -1.5, 0);
+    rightLeg.name = "rightLeg";
+    avatarGroup.add(rightLeg);
+    
+    // Add feet
+    const footGeometry = new THREE.BoxGeometry(0.25, 0.1, 0.5);
+    const footMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+    
+    const leftFoot = new THREE.Mesh(footGeometry, footMaterial);
+    leftFoot.position.set(-0.3, -2.3, 0.1);
+    leftFoot.name = "leftFoot";
+    avatarGroup.add(leftFoot);
+    
+    const rightFoot = new THREE.Mesh(footGeometry, footMaterial);
+    rightFoot.position.set(0.3, -2.3, 0.1);
+    rightFoot.name = "rightFoot";
+    avatarGroup.add(rightFoot);
     
     // Add avatar to scene
-    avatarGroup.position.set(0, 0, 0);
+    avatarGroup.position.set(0, 1.5, 0);
     sceneRef.current.add(avatarGroup);
     modelRef.current = avatarGroup;
     setAvatarLoaded(true);
@@ -260,33 +324,154 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const applyLipMovement = (model: THREE.Group, openness: number) => {
     const mouth = model.children.find(child => child.name === "mouth");
     if (mouth) {
-      (mouth as THREE.Mesh).scale.y = 1 + openness * 2;
-      (mouth as THREE.Mesh).position.y = 0 - (openness * 0.15);
+      (mouth as THREE.Mesh).scale.y = 1 + openness * 4; // More exaggerated movement
+      (mouth as THREE.Mesh).position.y = 1.0 - (openness * 0.1); // Adjust position as it opens
+    }
+  };
+  
+  // Animate gestures based on state
+  const animateGestures = (model: THREE.Group, state: string) => {
+    const leftArm = model.children.find(child => child.name === "leftArm");
+    const rightArm = model.children.find(child => child.name === "rightArm");
+    const leftHand = model.children.find(child => child.name === "leftHand");
+    const rightHand = model.children.find(child => child.name === "rightHand");
+    
+    if (!leftArm || !rightArm || !leftHand || !rightHand) return;
+    
+    switch (state) {
+      case 'speaking':
+        // Gesturing animation for speaking
+        leftArm.rotation.z = Math.sin(Date.now() * 0.002) * 0.3 + Math.PI / 6;
+        rightArm.rotation.z = -Math.sin(Date.now() * 0.002) * 0.3 - Math.PI / 6;
+        
+        // Update hand positions to follow arms
+        const leftArmAngle = leftArm.rotation.z;
+        const rightArmAngle = rightArm.rotation.z;
+        
+        leftHand.position.x = -0.8 - Math.sin(leftArmAngle) * 0.8;
+        leftHand.position.y = -0.2 - Math.cos(leftArmAngle) * 0.8;
+        
+        rightHand.position.x = 0.8 + Math.sin(-rightArmAngle) * 0.8;
+        rightHand.position.y = -0.2 - Math.cos(rightArmAngle) * 0.8;
+        break;
+        
+      case 'listening':
+        // Subtle arm movements when listening
+        leftArm.rotation.z = Math.PI / 6;
+        rightArm.rotation.z = -Math.PI / 6;
+        
+        // Hands in resting position
+        leftHand.position.set(-1.1, -0.6, 0);
+        rightHand.position.set(1.1, -0.6, 0);
+        break;
+        
+      case 'thinking':
+        // One hand goes to chin in thinking pose
+        rightArm.rotation.z = -Math.PI / 3;
+        rightArm.rotation.y = -Math.PI / 8;
+        
+        rightHand.position.set(0.4, 0.8, 0.6);
+        
+        leftArm.rotation.z = Math.PI / 4;
+        leftHand.position.set(-1.0, -0.4, 0.2);
+        break;
+        
+      default: // 'idle'
+        // Relaxed pose
+        leftArm.rotation.z = Math.PI / 8 + Math.sin(Date.now() * 0.001) * 0.05;
+        rightArm.rotation.z = -Math.PI / 8 - Math.sin(Date.now() * 0.001) * 0.05;
+        
+        leftHand.position.set(-1.1, -0.6, 0);
+        rightHand.position.set(1.1, -0.6, 0);
+        break;
     }
   };
   
   // Apply sentiment-based animations
   const applySentimentAnimation = (model: THREE.Group, sentiment: string = 'neutral') => {
+    const leftEye = model.children.find(child => child.name === "leftEye");
+    const rightEye = model.children.find(child => child.name === "rightEye");
+    const mouth = model.children.find(child => child.name === "mouth");
+    
+    if (!leftEye || !rightEye || !mouth) return;
+    
     switch (sentiment) {
       case 'happy':
-        model.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.05;
+        // Wider smile and raised eyebrows
+        (mouth as THREE.Mesh).scale.x = 1.5;
+        (mouth as THREE.Mesh).scale.y = 0.8;
+        (mouth as THREE.Mesh).position.y = 0.95;
+        
+        // Slightly squint eyes
+        (leftEye as THREE.Mesh).scale.y = 0.8;
+        (rightEye as THREE.Mesh).scale.y = 0.8;
+        
+        // Body becomes more energetic
+        model.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.03;
         break;
+        
       case 'sad':
-        model.rotation.x = Math.sin(Date.now() * 0.001) * 0.1 - 0.1;
+        // Drooping mouth
+        (mouth as THREE.Mesh).scale.x = 0.8;
+        (mouth as THREE.Mesh).scale.y = 0.6;
+        (mouth as THREE.Mesh).position.y = 0.9;
+        
+        // Drooping eyes
+        (leftEye as THREE.Mesh).scale.y = 0.7;
+        (rightEye as THREE.Mesh).scale.y = 0.7;
+        
+        // Slumping posture
+        model.rotation.x = Math.sin(Date.now() * 0.001) * 0.05 - 0.1;
         break;
+        
       case 'surprised':
-        model.scale.x = 1 + Math.sin(Date.now() * 0.01) * 0.1;
-        model.scale.y = 1 + Math.sin(Date.now() * 0.01) * 0.1;
+        // Wide open mouth
+        (mouth as THREE.Mesh).scale.x = 0.7;
+        (mouth as THREE.Mesh).scale.y = 2;
+        
+        // Wide eyes
+        (leftEye as THREE.Mesh).scale.x = 1.3;
+        (leftEye as THREE.Mesh).scale.y = 1.3;
+        (rightEye as THREE.Mesh).scale.x = 1.3;
+        (rightEye as THREE.Mesh).scale.y = 1.3;
+        
+        // Slight back movement
+        model.position.z = Math.sin(Date.now() * 0.005) * 0.2;
         break;
+        
       case 'angry':
-        model.rotation.z = Math.sin(Date.now() * 0.003) * 0.1;
+        // Tight mouth
+        (mouth as THREE.Mesh).scale.x = 0.8;
+        (mouth as THREE.Mesh).scale.y = 0.4;
+        
+        // Furrowed brow effect with eyes
+        (leftEye as THREE.Mesh).scale.y = 0.6;
+        (rightEye as THREE.Mesh).scale.y = 0.6;
+        (leftEye as THREE.Mesh).rotation.z = 0.2;
+        (rightEye as THREE.Mesh).rotation.z = -0.2;
+        
+        // Tense posture
+        model.rotation.z = Math.sin(Date.now() * 0.003) * 0.05;
         break;
-      default:
+        
+      default: // 'neutral'
         // Return to normal
+        (mouth as THREE.Mesh).scale.x = 1;
+        (mouth as THREE.Mesh).scale.y = 1;
+        (mouth as THREE.Mesh).position.y = 1.0;
+        
+        (leftEye as THREE.Mesh).scale.x = 1;
+        (leftEye as THREE.Mesh).scale.y = 1;
+        (rightEye as THREE.Mesh).scale.x = 1;
+        (rightEye as THREE.Mesh).scale.y = 1;
+        (leftEye as THREE.Mesh).rotation.z = 0;
+        (rightEye as THREE.Mesh).rotation.z = 0;
+        
         model.rotation.x *= 0.95;
         model.rotation.z *= 0.95;
         model.scale.x += (1 - model.scale.x) * 0.1;
         model.scale.y += (1 - model.scale.y) * 0.1;
+        model.position.z *= 0.9;
     }
   };
   
@@ -297,6 +482,19 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     }
   }, [avatarStyle]);
   
+  // Update animation state based on inputs
+  useEffect(() => {
+    if (isSpeaking) {
+      setAnimationState('speaking');
+    } else if (isListening) {
+      setAnimationState('listening');
+    } else if (isThinking) {
+      setAnimationState('thinking');
+    } else {
+      setAnimationState('idle');
+    }
+  }, [isSpeaking, isListening, isThinking]);
+  
   // Update lip sync animation when speaking
   useEffect(() => {
     if (isSpeaking) {
@@ -305,12 +503,27 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
         clearInterval(lipSyncInterval.current);
       }
       
+      // Create pattern based on speech text if available
+      if (speechText) {
+        // Create a dynamic pattern based on speech text
+        const words = speechText.split(' ');
+        const newPattern = words.flatMap(word => {
+          const wordLength = word.length;
+          const intensity = Math.min(0.5 + (wordLength / 10), 1);
+          return [0, intensity * 0.5, intensity, intensity * 0.7, 0.1];
+        });
+        
+        if (newPattern.length > 0) {
+          speechPattern.current = newPattern;
+        }
+      }
+      
       // Create new lip sync interval
       lipSyncInterval.current = setInterval(() => {
         speechPatternIndex.current = (speechPatternIndex.current + 1) % speechPattern.current.length;
         const openness = speechPattern.current[speechPatternIndex.current] * speechIntensity;
         setLipOpenness(openness);
-      }, 100);
+      }, 80); // Faster for more realistic speech
       
       return () => {
         if (lipSyncInterval.current) {
@@ -326,7 +539,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       }
       setLipOpenness(0);
     }
-  }, [isSpeaking, speechIntensity]);
+  }, [isSpeaking, speechIntensity, speechText]);
 
   return (
     <div 

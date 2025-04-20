@@ -16,6 +16,7 @@ import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import AvatarDescriptionDialog from '@/components/AvatarDescriptionDialog';
 import UserAvatar from '@/components/UserAvatar';
 import Avatar3D from '@/components/Avatar3D';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 
 interface Message {
   id?: string;
@@ -43,22 +44,25 @@ const Avatar = () => {
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
   
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [audioData, setAudioData] = useState<Blob | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<BlobPart[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const [isAvatarListening, setIsAvatarListening] = useState(false);
   const [isAvatarThinking, setIsAvatarThinking] = useState(false);
   const [currentSentiment, setCurrentSentiment] = useState<'neutral' | 'happy' | 'sad' | 'surprised' | 'angry'>('neutral');
   const [speechIntensity, setSpeechIntensity] = useState(0.5);
+  const [currentSpeechText, setCurrentSpeechText] = useState('');
 
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+
+  const {
+    isRecording,
+    recordingTime,
+    audioData,
+    setAudioData,
+    handleStartRecording,
+    handleStopRecording
+  } = useVoiceRecorder();
 
   const {
     handlePlayAudio,
@@ -87,11 +91,13 @@ const Avatar = () => {
       const activeMessage = messages.find(m => m.id === activeSpeakingMessage);
       if (activeMessage) {
         analyzeSentiment(activeMessage.text);
+        setCurrentSpeechText(activeMessage.text);
         const intensity = Math.min(0.5 + (activeMessage.text.length / 500), 1);
         setSpeechIntensity(intensity);
       }
     } else {
       setCurrentSentiment('neutral');
+      setCurrentSpeechText('');
       setSpeechIntensity(0.5);
     }
   }, [activeSpeakingMessage, messages]);
@@ -183,66 +189,6 @@ const Avatar = () => {
       setCurrentSentiment('angry');
     } else {
       setCurrentSentiment('neutral');
-    }
-  };
-
-  const handleStartRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-      
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-      
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioData(audioBlob);
-        
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = async () => {
-          const base64Audio = reader.result?.toString().split(',')[1];
-          
-          if (base64Audio) {
-            setIsAvatarThinking(true);
-            await processVoiceToText(base64Audio);
-            setIsAvatarThinking(false);
-          }
-        };
-        
-        stream.getTracks().forEach(track => track.stop());
-      };
-      
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-      
-      setRecordingTime(0);
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prevTime => prevTime + 1);
-      }, 1000);
-      
-    } catch (error: any) {
-      setIsAvatarListening(false);
-      toast({
-        title: "Error",
-        description: "Could not access microphone: " + error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
     }
   };
 
@@ -391,7 +337,7 @@ const Avatar = () => {
       const tokenCount = Math.ceil(aiResponse.length / 4);
       
       // Analyze sentiment before creating audio
-      const sentiment = analyzeSentiment(aiResponse);
+      analyzeSentiment(aiResponse);
       
       const voiceResponse = await supabase.functions.invoke('text-to-voice', {
         body: { text: aiResponse, voice: 'alloy' },
@@ -558,6 +504,7 @@ const Avatar = () => {
               className="w-full h-full"
               currentSentiment={currentSentiment}
               speechIntensity={speechIntensity}
+              speechText={currentSpeechText}
             />
           </div>
           
@@ -620,12 +567,7 @@ const Avatar = () => {
                     className="bg-white/5 border-white/20 resize-none min-h-[100px]"
                     value={textMessage}
                     onChange={(e) => setTextMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendTextMessage();
-                      }
-                    }}
+                    onKeyDown={handleKeyPress}
                   />
                   
                   <div className="flex flex-col gap-2">
