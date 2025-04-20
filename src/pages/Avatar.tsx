@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -94,24 +93,16 @@ const Avatar = () => {
     if (!user) return;
     
     try {
-      // Since the user_avatars table is not in the TypeScript types yet,
-      // we need to use type assertions to avoid TypeScript errors
-      // @ts-ignore
-      const { data, error } = await supabase
-        // @ts-ignore
-        .from('user_avatars' as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_user_avatar', {
+        p_user_id: user.id
+      });
       
       if (error) throw error;
       
       if (!data) {
         setShowAvatarDialog(true);
       } else {
-        // Safely access the avatar_url field using a type assertion
-        const avatarData = data as unknown as UserAvatar;
-        setUserAvatarUrl(avatarData.avatar_url);
+        setUserAvatarUrl(data.avatar_url);
       }
       
       setHasCheckedFirstTime(true);
