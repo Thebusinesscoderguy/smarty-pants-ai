@@ -1,6 +1,5 @@
-
 import { useState, useRef } from 'react';
-import { Send, Paperclip, Play } from 'lucide-react';
+import { Send, Paperclip, Play, Volume, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -14,6 +13,8 @@ interface MessageInputProps {
   file: File | null;
   setFile: (file: File | null) => void;
   onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  isVoiceEnabled?: boolean;
+  onToggleVoice?: () => void;
 }
 
 const MessageInput = ({
@@ -24,7 +25,9 @@ const MessageInput = ({
   setTextMessage,
   file,
   setFile,
-  onKeyPress
+  onKeyPress,
+  isVoiceEnabled = true,
+  onToggleVoice = () => {},
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,13 +62,24 @@ const MessageInput = ({
             onChange={(e) => setTextMessage(e.target.value)}
             onKeyDown={onKeyPress}
           />
-          <Button
-            className="self-end bg-blue-500 hover:bg-blue-600 text-white"
-            onClick={onVoiceResponse}
-            title="Get voice response"
-          >
-            <Play className="h-4 w-4" />
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={onVoiceResponse}
+              title={isVoiceEnabled ? "Get voice response" : "Voice responses disabled"}
+              disabled={!isVoiceEnabled}
+            >
+              <Volume className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              className="text-white/70 hover:text-white"
+              onClick={onToggleVoice}
+              title={isVoiceEnabled ? "Disable voice" : "Enable voice"}
+            >
+              {isVoiceEnabled ? <Volume className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

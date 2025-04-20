@@ -5,7 +5,7 @@ import LoginModal from '@/components/LoginModal';
 import SignupModal from '@/components/SignupModal';
 import ApiKeyForm from '@/components/ApiKeyForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mic, Square, Play, Pause, MessageSquare } from 'lucide-react';
+import { Mic, Square, Play, Pause, MessageSquare, Volume } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
@@ -376,6 +376,10 @@ const Index = () => {
     }
   };
 
+  const onVoiceResponse = () => {
+    // Implement logic for voice response
+  };
+
   return <div className="min-h-screen bg-black text-white flex flex-col">
       <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
         <h1 className="text-xl font-bold">Teachly</h1>
@@ -391,9 +395,6 @@ const Index = () => {
               </Button>
               <Button className="bg-white text-black hover:bg-gray-200" onClick={() => setIsSignupOpen(true)}>
                 Sign up
-              </Button>
-              <Button variant="outline" className="bg-purple-600 text-white hover:bg-purple-700 border-none">
-                <Link to="/features">Try Features</Link>
               </Button>
             </>}
         </div>
@@ -431,7 +432,20 @@ const Index = () => {
           </div>
 
           {showVoiceSection && user && <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Voice Messages</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Voice Messages</h2>
+                <div className="flex items-center space-x-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center space-x-2"
+                    onClick={onVoiceResponse}
+                  >
+                    <Volume className="h-4 w-4" />
+                    <span>Voice Response</span>
+                  </Button>
+                </div>
+              </div>
               
               <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
                 {voiceMessages.length > 0 ? voiceMessages.map((message, index) => <Card key={index} className="p-4 bg-white/5 border-white/20">
@@ -469,7 +483,20 @@ const Index = () => {
             </div>}
 
           {showChatSection && user && <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Text Chat</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Text Chat</h2>
+                <div className="flex items-center space-x-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center space-x-2"
+                    onClick={onVoiceResponse}
+                  >
+                    <Volume className="h-4 w-4" />
+                    <span>Voice Response</span>
+                  </Button>
+                </div>
+              </div>
               
               <div className="space-y-4 max-h-[400px] overflow-y-auto mb-6">
                 {messages.map((message, index) => <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
