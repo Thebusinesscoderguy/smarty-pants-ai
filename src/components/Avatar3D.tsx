@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface Avatar3DProps {
   isSpeaking: boolean;
@@ -24,7 +24,14 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   speechIntensity = 0.5,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentExpression, setCurrentExpression] = useState<string>('neutral');
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const modelRef = useRef<THREE.Group | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
+  const requestRef = useRef<number | null>(null);
+  
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [lipOpenness, setLipOpenness] = useState(0);
   
   // Lip sync variables
@@ -32,19 +39,264 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const speechPattern = useRef<number[]>([0, 0.3, 0.6, 1, 0.8, 0.5, 0.2, 0, 0.4, 0.7, 0.5, 0.3, 0]);
   const speechPatternIndex = useRef(0);
   
+  // Setup Three.js scene
   useEffect(() => {
-    // Determine expression based on avatar state and sentiment
-    if (isSpeaking) {
-      setCurrentExpression('speaking');
-    } else if (isListening) {
-      setCurrentExpression('listening');
-    } else if (isThinking) {
-      setCurrentExpression('thinking');
-    } else {
-      setCurrentExpression(currentSentiment || 'neutral');
+    if (!containerRef.current) return;
+    
+    // Initialize scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    sceneRef.current = scene;
+    
+    // Add ambient light
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+    
+    // Add directional light
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(0, 10, 10);
+    scene.add(directionalLight);
+    
+    // Setup camera
+    const width = containerRef.current.clientWidth;
+    const height = containerRef.current.clientHeight;
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    camera.position.z = 5;
+    cameraRef.current = camera;
+    
+    // Setup renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    containerRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+    
+    // Setup controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.minDistance = 3;
+    controls.maxDistance = 10;
+    controlsRef.current = controls;
+    
+    // Load avatar model based on style
+    loadAvatarModel(avatarStyle);
+    
+    // Animation loop
+    const animate = () => {
+      if (controlsRef.current) controlsRef.current.update();
+      if (rendererRef.current && cameraRef.current && sceneRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
+      
+      // Animate the avatar model based on state
+      if (modelRef.current) {
+        // Apply animations based on speaking, listening, thinking states
+        if (isSpeaking) {
+          modelRef.current.rotation.y += 0.005;
+          // Apply lip movement
+          applyLipMovement(modelRef.current, lipOpenness);
+        } else if (isListening) {
+          modelRef.current.rotation.y += 0.002;
+        } else if (isThinking) {
+          modelRef.current.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+        }
+        
+        // Apply sentiment-based animations
+        applySentimentAnimation(modelRef.current, currentSentiment);
+      }
+      
+      requestRef.current = requestAnimationFrame(animate);
+    };
+    
+    requestRef.current = requestAnimationFrame(animate);
+    
+    // Handle window resize
+    const handleResize = () => {
+      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
+      
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      
+      cameraRef.current.aspect = width / height;
+      cameraRef.current.updateProjectionMatrix();
+      
+      rendererRef.current.setSize(width, height);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (containerRef.current && rendererRef.current) {
+        containerRef.current.removeChild(rendererRef.current.domElement);
+      }
+      window.removeEventListener('resize', handleResize);
+      
+      // Clear lip sync interval
+      if (lipSyncInterval.current) {
+        clearInterval(lipSyncInterval.current);
+      }
+    };
+  }, []);
+  
+  // Load avatar model based on selected style
+  const loadAvatarModel = (style: string) => {
+    if (!sceneRef.current) return;
+    
+    // Clear previous model if exists
+    if (modelRef.current) {
+      sceneRef.current.remove(modelRef.current);
+      modelRef.current = null;
     }
-  }, [isSpeaking, isListening, isThinking, currentSentiment]);
-
+    
+    // Create avatar geometry based on style
+    const avatarGroup = new THREE.Group();
+    
+    // Base body - choose different geometries based on style
+    let bodyGeometry;
+    let bodyMaterial;
+    
+    switch (style) {
+      case 'teacher':
+        bodyGeometry = new THREE.CapsuleGeometry(1, 2, 10, 10);
+        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x3f51b5 });
+        break;
+      case 'casual':
+        bodyGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x4caf50 });
+        break;
+      case 'professional':
+        bodyGeometry = new THREE.BoxGeometry(1.8, 2.5, 1);
+        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x607d8b });
+        break;
+      case 'friendly':
+        bodyGeometry = new THREE.TorusGeometry(1, 0.4, 16, 64);
+        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xff9800 });
+        break;
+      default:
+        bodyGeometry = new THREE.CapsuleGeometry(1, 2, 10, 10);
+        bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x3f51b5 });
+    }
+    
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    avatarGroup.add(body);
+    
+    // Add eyes
+    const eyeGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+    const eyeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.4, 0.5, 0.8);
+    avatarGroup.add(leftEye);
+    
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.4, 0.5, 0.8);
+    avatarGroup.add(rightEye);
+    
+    // Add pupils
+    const pupilGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+    const pupilMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+    
+    const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+    leftPupil.position.set(-0.4, 0.5, 0.9);
+    avatarGroup.add(leftPupil);
+    
+    const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+    rightPupil.position.set(0.4, 0.5, 0.9);
+    avatarGroup.add(rightPupil);
+    
+    // Add mouth - will be animated
+    const mouthGeometry = new THREE.BoxGeometry(0.8, 0.2, 0.1);
+    const mouthMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+    const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+    mouth.position.set(0, 0, 0.9);
+    mouth.name = "mouth"; // For targeted animations
+    avatarGroup.add(mouth);
+    
+    // Add limbs for full body avatars
+    if (style === 'teacher' || style === 'professional') {
+      // Arms
+      const armGeometry = new THREE.CapsuleGeometry(0.2, 1, 5, 5);
+      const armMaterial = new THREE.MeshPhongMaterial({ color: bodyMaterial.color });
+      
+      const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+      leftArm.position.set(-1.2, 0, 0);
+      leftArm.rotation.z = Math.PI / 2;
+      leftArm.name = "leftArm";
+      avatarGroup.add(leftArm);
+      
+      const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+      rightArm.position.set(1.2, 0, 0);
+      rightArm.rotation.z = -Math.PI / 2;
+      rightArm.name = "rightArm";
+      avatarGroup.add(rightArm);
+      
+      // Legs
+      const legGeometry = new THREE.CapsuleGeometry(0.25, 1.2, 5, 5);
+      const legMaterial = new THREE.MeshPhongMaterial({ color: bodyMaterial.color });
+      
+      const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+      leftLeg.position.set(-0.5, -1.5, 0);
+      leftLeg.name = "leftLeg";
+      avatarGroup.add(leftLeg);
+      
+      const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+      rightLeg.position.set(0.5, -1.5, 0);
+      rightLeg.name = "rightLeg";
+      avatarGroup.add(rightLeg);
+    }
+    
+    // Add avatar to scene
+    avatarGroup.position.set(0, 0, 0);
+    sceneRef.current.add(avatarGroup);
+    modelRef.current = avatarGroup;
+    setAvatarLoaded(true);
+  };
+  
+  // Apply lip movement for speaking animation
+  const applyLipMovement = (model: THREE.Group, openness: number) => {
+    const mouth = model.children.find(child => child.name === "mouth");
+    if (mouth) {
+      (mouth as THREE.Mesh).scale.y = 1 + openness * 2;
+      (mouth as THREE.Mesh).position.y = 0 - (openness * 0.15);
+    }
+  };
+  
+  // Apply sentiment-based animations
+  const applySentimentAnimation = (model: THREE.Group, sentiment: string = 'neutral') => {
+    switch (sentiment) {
+      case 'happy':
+        model.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.05;
+        break;
+      case 'sad':
+        model.rotation.x = Math.sin(Date.now() * 0.001) * 0.1 - 0.1;
+        break;
+      case 'surprised':
+        model.scale.x = 1 + Math.sin(Date.now() * 0.01) * 0.1;
+        model.scale.y = 1 + Math.sin(Date.now() * 0.01) * 0.1;
+        break;
+      case 'angry':
+        model.rotation.z = Math.sin(Date.now() * 0.003) * 0.1;
+        break;
+      default:
+        // Return to normal
+        model.rotation.x *= 0.95;
+        model.rotation.z *= 0.95;
+        model.scale.x += (1 - model.scale.x) * 0.1;
+        model.scale.y += (1 - model.scale.y) * 0.1;
+    }
+  };
+  
+  // Update avatar style when it changes
+  useEffect(() => {
+    if (sceneRef.current) {
+      loadAvatarModel(avatarStyle);
+    }
+  }, [avatarStyle]);
+  
   // Update lip sync animation when speaking
   useEffect(() => {
     if (isSpeaking) {
@@ -76,389 +328,20 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     }
   }, [isSpeaking, speechIntensity]);
 
-  const getExpressionClass = () => {
-    switch (currentExpression) {
-      case 'speaking':
-        return 'avatar-speaking';
-      case 'listening':
-        return 'avatar-listening';
-      case 'thinking':
-        return 'avatar-thinking';
-      case 'happy':
-        return 'avatar-happy';
-      case 'sad':
-        return 'avatar-sad';
-      case 'surprised':
-        return 'avatar-surprised';
-      case 'angry':
-        return 'avatar-angry';
-      default:
-        return 'avatar-neutral';
-    }
-  };
-
-  const getAvatarImage = () => {
-    // Different avatar styles using more advanced avatars from the API
-    const options = {
-      teacher: {
-        seed: 'teacher',
-        accessories: 'glasses',
-        backgroundColor: 'gradientlinear',
-        backgroundRotation: 145,
-        hairColor: 'variant03',
-        body: 'variant02'
-      },
-      casual: {
-        seed: 'casual',
-        accessories: 'none',
-        backgroundColor: 'variant04',
-        backgroundRotation: 90,
-        hairColor: 'variant06',
-        body: 'variant01'
-      },
-      professional: {
-        seed: 'professional',
-        accessories: 'tietiedtie',
-        backgroundColor: 'variant06',
-        backgroundRotation: 0,
-        hairColor: 'variant01',
-        body: 'variant05'
-      },
-      friendly: {
-        seed: 'friendly', 
-        accessories: 'none',
-        backgroundColor: 'variant01',
-        backgroundRotation: 225,
-        hairColor: 'variant04',
-        body: 'variant03'
-      }
-    };
-    
-    const style = options[avatarStyle];
-    
-    // Base URL from DiceBear with full body
-    let avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${style.seed}&backgroundColor=${style.backgroundColor}&backgroundRotation=${style.backgroundRotation}&scale=110`;
-    return avatarUrl;
-  };
-
-  // Generate gestures based on sentiment and speech
-  const getGestureClass = () => {
-    if (isSpeaking) {
-      if (currentSentiment === 'happy') return 'gesture-hands-up';
-      if (currentSentiment === 'sad') return 'gesture-hands-down';
-      if (currentSentiment === 'angry') return 'gesture-pointing';
-      if (currentSentiment === 'surprised') return 'gesture-hands-out';
-      return 'gesture-talking';
-    }
-    
-    if (isListening) return 'gesture-listening';
-    if (isThinking) return 'gesture-thinking';
-    
-    return '';
-  };
-
-  // Determine head movement based on expression
-  const getHeadMovementClass = () => {
-    if (currentSentiment === 'happy') return 'head-nod-yes';
-    if (currentSentiment === 'sad') return 'head-nod-no';
-    if (isThinking) return 'head-tilt';
-    return '';
-  };
-
   return (
     <div 
       ref={containerRef}
       className={`relative w-full h-full flex items-center justify-center ${className}`}
     >
-      <Card 
-        className={`relative w-full max-w-lg h-full max-h-[80vh] bg-transparent border-none shadow-none ${getExpressionClass()}`}
-      >
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="relative w-full h-full">
-            {/* Full body avatar with complete container */}
-            <div className="full-body-container">
-              <div className={`full-body-avatar ${getGestureClass()} ${getHeadMovementClass()}`}>
-                <img 
-                  src={getAvatarImage()} 
-                  alt="3D Avatar" 
-                  className="w-full h-full object-contain" 
-                />
-              </div>
-              
-              {/* Improved mouth animation for more accurate lip syncing */}
-              {isSpeaking && (
-                <div 
-                  className="mouth-animation"
-                  style={{
-                    position: 'absolute',
-                    bottom: '40%',
-                    left: '50%',
-                    transform: `translateX(-50%) scaleY(${lipOpenness + 0.5})`,
-                    width: '12%',
-                    height: '3%',
-                    background: 'rgba(0,0,0,0.8)', 
-                    borderRadius: '40%',
-                    transition: 'transform 0.08s ease-in-out'
-                  }}
-                />
-              )}
-              
-              {/* Enhanced eyes animation */}
-              <div className="eyes-container" style={{ 
-                position: 'absolute', 
-                top: '30%', 
-                left: '0', 
-                width: '100%', 
-                display: 'flex', 
-                justifyContent: 'center', 
-                gap: '15%' 
-              }}>
-                <div className={`eye ${currentExpression === 'thinking' ? 'eye-blink' : ''}`} style={{ 
-                  width: '10%', 
-                  height: '4%', 
-                  background: 'rgba(0,0,0,0.8)', 
-                  borderRadius: '50%',
-                  animation: isThinking ? 'eye-roll 2s infinite' : ''
-                }}/>
-                <div className={`eye ${currentExpression === 'thinking' ? 'eye-blink' : ''}`} style={{ 
-                  width: '10%', 
-                  height: '4%', 
-                  background: 'rgba(0,0,0,0.8)', 
-                  borderRadius: '50%',
-                  animation: isThinking ? 'eye-roll 2s infinite' : ''
-                }}/>
-              </div>
-              
-              {/* Emotional expressions overlay */}
-              {currentExpression === 'happy' && (
-                <div className="absolute w-full h-full top-0 left-0 happy-overlay" />
-              )}
-              {currentExpression === 'sad' && (
-                <div className="absolute w-full h-full top-0 left-0 sad-overlay" />
-              )}
-              {currentExpression === 'angry' && (
-                <div className="absolute w-full h-full top-0 left-0 angry-overlay" />
-              )}
-              {currentExpression === 'surprised' && (
-                <div className="absolute w-full h-full top-0 left-0 surprised-overlay" />
-              )}
-            </div>
-          </div>
-          
-          <div className="text-center mt-4 text-white/80">
-            <p className="text-sm uppercase tracking-wide">
-              {currentExpression === 'speaking' && 'Speaking...'}
-              {currentExpression === 'listening' && 'Listening...'}
-              {currentExpression === 'thinking' && 'Thinking...'}
-              {currentExpression === 'neutral' && 'Ready'}
-              {currentExpression === 'happy' && 'Happy 😊'}
-              {currentExpression === 'sad' && 'Sad 😢'}
-              {currentExpression === 'surprised' && 'Surprised 😮'}
-              {currentExpression === 'angry' && 'Concerned 😠'}
-            </p>
-          </div>
-        </div>
+      <Card className="absolute top-4 left-4 z-10 bg-black/50 border-none p-2">
+        <p className="text-xs text-white">
+          {!avatarLoaded && 'Loading avatar...'}
+          {avatarLoaded && isSpeaking && 'Speaking...'}
+          {avatarLoaded && isListening && 'Listening...'}
+          {avatarLoaded && isThinking && 'Thinking...'}
+          {avatarLoaded && !isSpeaking && !isListening && !isThinking && 'Ready'}
+        </p>
       </Card>
-      
-      <style>
-        {`
-          /* Full body avatar and container styling */
-          .full-body-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-          
-          .full-body-avatar {
-            width: 80%;
-            height: 80%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-          }
-          
-          .full-body-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-          }
-
-          /* Gesture animations with improved movements */
-          .gesture-talking {
-            animation: talking-gesture 3s infinite alternate;
-          }
-          .gesture-hands-up {
-            animation: hands-up-gesture 2s infinite alternate;
-          }
-          .gesture-hands-down {
-            animation: hands-down-gesture 2s infinite alternate;
-          }
-          .gesture-pointing {
-            animation: pointing-gesture 2s infinite alternate;
-          }
-          .gesture-hands-out {
-            animation: hands-out-gesture 1s infinite alternate;
-          }
-          .gesture-listening {
-            animation: listening-gesture 3s infinite;
-          }
-          .gesture-thinking {
-            animation: thinking-gesture 3s infinite;
-          }
-
-          /* Head movement animations with better responsiveness */
-          .head-nod-yes {
-            animation: nod-yes 2s infinite;
-          }
-          .head-nod-no {
-            animation: nod-no 2s infinite;
-          }
-          .head-tilt {
-            animation: head-tilt 3s infinite alternate;
-          }
-
-          /* Eye animations */
-          .eye-blink {
-            animation: blink 3s infinite;
-          }
-
-          /* General expression animations */
-          .avatar-speaking {
-            animation: body-speak 1s infinite alternate;
-          }
-          .avatar-listening {
-            animation: listen 2s infinite;
-          }
-          .avatar-thinking {
-            animation: think 3s infinite;
-          }
-          .avatar-happy {
-            animation: happy 2s infinite;
-          }
-          .avatar-sad {
-            animation: sad 3s infinite;
-          }
-          .avatar-surprised {
-            animation: surprised 0.5s infinite;
-          }
-          .avatar-angry {
-            animation: angry 1.5s infinite;
-          }
-          
-          /* Animation keyframes with enhanced motions */
-          @keyframes body-speak {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.02); }
-          }
-          @keyframes listen {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-            100% { transform: translateY(0); }
-          }
-          @keyframes think {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-1deg); }
-            75% { transform: rotate(1deg); }
-            100% { transform: rotate(0deg); }
-          }
-          @keyframes happy {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03) rotate(1deg); }
-            100% { transform: scale(1); }
-          }
-          @keyframes sad {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(5px); }
-            100% { transform: translateY(0); }
-          }
-          @keyframes surprised {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-          }
-          @keyframes angry {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-1deg); }
-            75% { transform: rotate(1deg); }
-            100% { transform: rotate(0deg); }
-          }
-          @keyframes blink {
-            0%, 45%, 55%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.1); }
-          }
-          @keyframes eye-roll {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(20%); }
-            50% { transform: translateX(0); }
-            75% { transform: translateX(-20%); }
-            100% { transform: translateX(0); }
-          }
-
-          /* Improved gesture keyframes for full-body animations */
-          @keyframes talking-gesture {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(10px); }
-          }
-          @keyframes hands-up-gesture {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(-15px) scale(1.05); }
-          }
-          @keyframes hands-down-gesture {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(15px) scale(0.95); }
-          }
-          @keyframes pointing-gesture {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(5deg); }
-          }
-          @keyframes hands-out-gesture {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
-          }
-          @keyframes listening-gesture {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-          }
-          @keyframes thinking-gesture {
-            0% { transform: rotate(0deg) translateY(0); }
-            50% { transform: rotate(2deg) translateY(-5px); }
-            100% { transform: rotate(-2deg) translateY(5px); }
-          }
-          @keyframes nod-yes {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-          }
-          @keyframes nod-no {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-          }
-          @keyframes head-tilt {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(8deg); }
-          }
-
-          /* Improved expression overlays */
-          .happy-overlay {
-            background: radial-gradient(circle, transparent 60%, rgba(255,255,0,0.1) 100%);
-          }
-          .sad-overlay {
-            background: radial-gradient(circle, transparent 60%, rgba(0,0,255,0.1) 100%);
-          }
-          .angry-overlay {
-            background: radial-gradient(circle, transparent 60%, rgba(255,0,0,0.1) 100%);
-          }
-          .surprised-overlay {
-            background: radial-gradient(circle, transparent 60%, rgba(128,0,128,0.1) 100%);
-          }
-        `}
-      </style>
     </div>
   );
 };
