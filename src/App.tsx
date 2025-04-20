@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,10 +15,10 @@ import Voice from "./pages/Voice";
 import Avatar from "./pages/Avatar";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
-// This wrapper handles OAuth redirects and must be inside Router
 const AuthRedirectHandler = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,6 +109,7 @@ const App = () => (
                   <Avatar />
                 </ProtectedRoute>
               } />
+              <Route path="/contact" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthRedirectHandler>

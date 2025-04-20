@@ -603,6 +603,7 @@ const Index = () => {
             <a href="#" className="text-white/60 hover:text-white text-sm">Terms</a>
             <a href="#" className="text-white/60 hover:text-white text-sm">Privacy</a>
             <Link to="/pricing" className="text-white/60 hover:text-white text-sm">Pricing</Link>
+            <Link to="/contact" className="text-white/60 hover:text-white text-sm">Contact</Link>
           </div>
         </div>
       </footer>
