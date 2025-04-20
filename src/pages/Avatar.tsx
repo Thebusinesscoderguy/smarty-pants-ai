@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -72,6 +71,14 @@ const Avatar = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleAvatarStyleChange = (value: 'teacher' | 'casual' | 'professional' | 'friendly') => {
+    setCurrentAvatarStyle(value);
+    // Force avatar reload
+    if (user) {
+      checkFirstTimeUser();
+    }
   };
 
   useEffect(() => {
@@ -450,7 +457,7 @@ const Avatar = () => {
             <div className="flex items-center space-x-2 mr-4">
               <Select 
                 value={currentAvatarStyle} 
-                onValueChange={(value: 'teacher' | 'casual' | 'professional' | 'friendly') => setCurrentAvatarStyle(value)}
+                onValueChange={handleAvatarStyleChange}
               >
                 <SelectTrigger className="w-[160px] bg-white/5 border-white/20">
                   <SelectValue placeholder="Avatar Style" />
