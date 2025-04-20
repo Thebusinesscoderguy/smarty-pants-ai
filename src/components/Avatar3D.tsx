@@ -148,195 +148,127 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     
     const avatarGroup = new THREE.Group();
     
-    let bodyColor, clothingColor, skinColor;
-    switch (style) {
-      case 'teacher':
-        bodyColor = 0x3f51b5;
-        clothingColor = 0x283593;
-        skinColor = 0xffdbac;
-        break;
-      case 'casual':
-        bodyColor = 0x4caf50;
-        clothingColor = 0x388e3c;
-        skinColor = 0xffe0bd;
-        break;
-      case 'professional':
-        bodyColor = 0x607d8b;
-        clothingColor = 0x455a64;
-        skinColor = 0xffd7b6;
-        break;
-      case 'friendly':
-        bodyColor = 0xff9800;
-        clothingColor = 0xf57c00;
-        skinColor = 0xffdfc4;
-        break;
-      default:
-        bodyColor = 0x3f51b5;
-        clothingColor = 0x283593;
-        skinColor = 0xffdbac;
-    }
+    const mainColor = 0xFFFFFF; // White plastic
+    const accentColor = 0x40E0D0; // Turquoise
+    const screenColor = 0x111111; // Dark screen
+    const eyeColor = 0x00FFFF; // Cyan blue
     
     const headGeometry = new THREE.SphereGeometry(0.8, 32, 32);
     const headMaterial = new THREE.MeshPhongMaterial({ 
-      color: skinColor,
-      specular: 0x111111,
-      shininess: 30 
+      color: mainColor,
+      shininess: 100,
+      specular: 0x444444
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
     head.position.set(0, 1.2, 0);
+    head.scale.set(1.2, 1.1, 1);
     head.name = "head";
     avatarGroup.add(head);
     
+    const screenGeometry = new THREE.PlaneGeometry(1.2, 0.8);
+    const screenMaterial = new THREE.MeshPhongMaterial({ 
+      color: screenColor,
+      shininess: 150,
+      emissive: 0x111111
+    });
+    const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+    screen.position.set(0, 1.3, 0.7);
+    screen.name = "screen";
+    avatarGroup.add(screen);
+    
+    const eyeGeometry = new THREE.CircleGeometry(0.15, 32);
+    const eyeMaterial = new THREE.MeshPhongMaterial({ 
+      color: eyeColor,
+      emissive: eyeColor,
+      emissiveIntensity: 0.5,
+      shininess: 100
+    });
+    
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.3, 1.3, 0.71);
+    leftEye.name = "leftEye";
+    avatarGroup.add(leftEye);
+    
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.3, 1.3, 0.71);
+    rightEye.name = "rightEye";
+    avatarGroup.add(rightEye);
+    
     const torsoGeometry = new THREE.CylinderGeometry(0.7, 0.5, 1.8, 32);
     const torsoMaterial = new THREE.MeshPhongMaterial({ 
-      color: clothingColor,
-      specular: 0x222222,
-      shininess: 20
+      color: mainColor,
+      shininess: 100,
+      specular: 0x444444
     });
     const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
     torso.position.set(0, 0, 0);
     torso.name = "torso";
     avatarGroup.add(torso);
     
-    const eyeGeometry = new THREE.SphereGeometry(0.15, 32, 32);
-    const eyeMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xffffff,
-      specular: 0x333333,
-      shininess: 100
+    const chestGeometry = new THREE.CylinderGeometry(0.5, 0.4, 1.2, 32);
+    const chestMaterial = new THREE.MeshPhongMaterial({ 
+      color: accentColor,
+      shininess: 150,
+      specular: 0x666666,
+      emissive: accentColor,
+      emissiveIntensity: 0.2
     });
+    const chest = new THREE.Mesh(chestGeometry, chestMaterial);
+    chest.position.set(0, 0.2, 0.2);
+    chest.rotation.x = 0.1;
+    chest.name = "chest";
+    avatarGroup.add(chest);
     
-    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.3, 1.3, 0.65);
-    leftEye.name = "leftEye";
-    avatarGroup.add(leftEye);
-    
-    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    rightEye.position.set(0.3, 1.3, 0.65);
-    rightEye.name = "rightEye";
-    avatarGroup.add(rightEye);
-    
-    const pupilGeometry = new THREE.SphereGeometry(0.07, 32, 32);
-    const pupilMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x000000,
-      specular: 0x444444,
-      shininess: 150
-    });
-    
-    const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-    leftPupil.position.set(-0.3, 1.3, 0.75);
-    leftPupil.name = "leftPupil";
-    avatarGroup.add(leftPupil);
-    
-    const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-    rightPupil.position.set(0.3, 1.3, 0.75);
-    rightPupil.name = "rightPupil";
-    avatarGroup.add(rightPupil);
-    
-    const mouthGeometry = new THREE.BoxGeometry(0.5, 0.1, 0.2);
-    const mouthMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xff9999,
-      specular: 0x111111,
-      shininess: 30
-    });
-    const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
-    mouth.position.set(0, 1.0, 0.75);
-    mouth.name = "mouth";
-    avatarGroup.add(mouth);
-    
-    const armGeometry = new THREE.CylinderGeometry(0.12, 0.1, 1.2, 32);
+    const armGeometry = new THREE.CapsuleGeometry(0.15, 0.6, 4, 8);
     const armMaterial = new THREE.MeshPhongMaterial({ 
-      color: clothingColor,
-      specular: 0x222222,
-      shininess: 20
+      color: mainColor,
+      shininess: 100,
+      specular: 0x444444
     });
     
     const leftArm = new THREE.Group();
-    const leftArmUpper = new THREE.Mesh(armGeometry, armMaterial);
-    leftArmUpper.position.set(0, -0.5, 0);
-    leftArmUpper.rotation.z = Math.PI / 8;
-    leftArm.add(leftArmUpper);
-    leftArm.position.set(-0.8, 0.3, 0);
+    const leftArmMesh = new THREE.Mesh(armGeometry, armMaterial);
+    leftArmMesh.position.set(0, -0.3, 0);
+    leftArm.add(leftArmMesh);
+    leftArm.position.set(-0.85, 0.3, 0);
     leftArm.name = "leftArm";
     avatarGroup.add(leftArm);
     
     const rightArm = new THREE.Group();
-    const rightArmUpper = new THREE.Mesh(armGeometry, armMaterial);
-    rightArmUpper.position.set(0, -0.5, 0);
-    rightArmUpper.rotation.z = -Math.PI / 8;
-    rightArm.add(rightArmUpper);
-    rightArm.position.set(0.8, 0.3, 0);
+    const rightArmMesh = new THREE.Mesh(armGeometry, armMaterial);
+    rightArmMesh.position.set(0, -0.3, 0);
+    rightArm.add(rightArmMesh);
+    rightArm.position.set(0.85, 0.3, 0);
     rightArm.name = "rightArm";
     avatarGroup.add(rightArm);
     
-    const handGeometry = new THREE.SphereGeometry(0.15, 32, 32);
+    const handGeometry = new THREE.SphereGeometry(0.18, 32, 32);
     const handMaterial = new THREE.MeshPhongMaterial({ 
-      color: skinColor,
-      specular: 0x111111,
-      shininess: 30
+      color: mainColor,
+      shininess: 100,
+      specular: 0x444444
     });
     
     const leftHand = new THREE.Mesh(handGeometry, handMaterial);
-    leftHand.position.set(-1.1, -0.6, 0);
+    leftHand.position.set(-0.85, -0.3, 0);
     leftHand.name = "leftHand";
     avatarGroup.add(leftHand);
     
     const rightHand = new THREE.Mesh(handGeometry, handMaterial);
-    rightHand.position.set(1.1, -0.6, 0);
+    rightHand.position.set(0.85, -0.3, 0);
     rightHand.name = "rightHand";
     avatarGroup.add(rightHand);
     
-    const legGeometry = new THREE.CylinderGeometry(0.18, 0.15, 1.5, 32);
-    const legMaterial = new THREE.MeshPhongMaterial({ 
-      color: bodyColor,
-      specular: 0x222222,
-      shininess: 20
+    const baseGeometry = new THREE.CylinderGeometry(0.6, 0.7, 0.3, 32);
+    const baseMaterial = new THREE.MeshPhongMaterial({ 
+      color: accentColor,
+      shininess: 150,
+      specular: 0x666666
     });
-    
-    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-    leftLeg.position.set(-0.3, -1.5, 0);
-    leftLeg.name = "leftLeg";
-    avatarGroup.add(leftLeg);
-    
-    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-    rightLeg.position.set(0.3, -1.5, 0);
-    rightLeg.name = "rightLeg";
-    avatarGroup.add(rightLeg);
-    
-    const footGeometry = new THREE.BoxGeometry(0.25, 0.12, 0.5);
-    const footMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x333333,
-      specular: 0x111111,
-      shininess: 30
-    });
-    
-    const leftFoot = new THREE.Mesh(footGeometry, footMaterial);
-    leftFoot.position.set(-0.3, -2.3, 0.1);
-    leftFoot.name = "leftFoot";
-    avatarGroup.add(leftFoot);
-    
-    const rightFoot = new THREE.Mesh(footGeometry, footMaterial);
-    rightFoot.position.set(0.3, -2.3, 0.1);
-    rightFoot.name = "rightFoot";
-    avatarGroup.add(rightFoot);
-    
-    if (style === 'teacher') {
-      const glassesGeometry = new THREE.TorusGeometry(0.2, 0.03, 16, 32);
-      const glassesMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0x222222,
-        specular: 0x333333,
-        shininess: 50
-      });
-      
-      const leftLens = new THREE.Mesh(glassesGeometry, glassesMaterial);
-      leftLens.position.set(-0.3, 1.3, 0.7);
-      leftLens.rotation.y = Math.PI / 2;
-      avatarGroup.add(leftLens);
-      
-      const rightLens = new THREE.Mesh(glassesGeometry, glassesMaterial);
-      rightLens.position.set(0.3, 1.3, 0.7);
-      rightLens.rotation.y = Math.PI / 2;
-      avatarGroup.add(rightLens);
-    }
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    base.position.set(0, -1.2, 0);
+    base.name = "base";
+    avatarGroup.add(base);
     
     avatarGroup.position.set(0, 1.5, 0);
     sceneRef.current.add(avatarGroup);
