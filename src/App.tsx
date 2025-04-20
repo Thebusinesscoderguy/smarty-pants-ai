@@ -15,7 +15,6 @@ import Voice from "./pages/Voice";
 import Avatar from "./pages/Avatar";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -109,7 +108,6 @@ const App = () => (
                   <Avatar />
                 </ProtectedRoute>
               } />
-              <Route path="/contact" element={<Contact />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthRedirectHandler>

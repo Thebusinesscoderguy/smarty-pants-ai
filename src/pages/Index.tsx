@@ -5,7 +5,7 @@ import LoginModal from '@/components/LoginModal';
 import SignupModal from '@/components/SignupModal';
 import ApiKeyForm from '@/components/ApiKeyForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mic, Square, Play, Pause, MessageSquare, Volume } from 'lucide-react';
+import { Mic, Square, Play, Pause, MessageSquare, Volume, ContactRound } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
@@ -51,6 +51,9 @@ const Index = () => {
     timestamp: new Date()
   }]);
   const [input, setInput] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (user && showVoiceSection) {
@@ -380,7 +383,26 @@ const Index = () => {
     // Implement logic for voice response
   };
 
-  return <div className="min-h-screen bg-black text-white flex flex-col">
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const mailtoLink = `mailto:aldawoodali50@gmail.com?subject=Contact%20from%20Teachly&body=Name:%20${encodeURIComponent(name)}%0AEmail:%20${encodeURIComponent(email)}%0A%0AMessage:%20${encodeURIComponent(message)}`;
+    
+    window.location.href = mailtoLink;
+    
+    toast({
+      title: "Redirecting to Email",
+      description: "Your default email client will open momentarily.",
+    });
+
+    // Reset form
+    setName('');
+    setEmail('');
+    setMessage('');
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col">
       <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
         <h1 className="text-xl font-bold">Teachly</h1>
         <div className="space-x-4">
@@ -593,6 +615,59 @@ const Index = () => {
               </div>
             </div>
           </div>
+
+          <section className="w-full px-4 py-16 border-t border-white/10">
+            <div className="max-w-md mx-auto">
+              <div className="text-center mb-8">
+                <ContactRound className="mx-auto h-12 w-12 text-blue-500 mb-4" />
+                <h2 className="text-3xl font-bold">Contact Us</h2>
+                <p className="text-white/70 mt-2">We'd love to hear from you</p>
+              </div>
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2">Name</label>
+                  <Input 
+                    type="text" 
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your Name" 
+                    required 
+                    className="bg-white/10 border-white/20 text-white placeholder-white/50"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">Email</label>
+                  <Input 
+                    type="email" 
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com" 
+                    required 
+                    className="bg-white/10 border-white/20 text-white placeholder-white/50"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-white/80 mb-2">Message</label>
+                  <Textarea 
+                    id="message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Your message..." 
+                    required 
+                    className="bg-white/10 border-white/20 text-white placeholder-white/50 min-h-[120px]"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Mail className="mr-2 h-4 w-4" /> Send Message
+                </Button>
+              </form>
+            </div>
+          </section>
         </div>
       </main>
 
@@ -603,14 +678,14 @@ const Index = () => {
             <a href="#" className="text-white/60 hover:text-white text-sm">Terms</a>
             <a href="#" className="text-white/60 hover:text-white text-sm">Privacy</a>
             <Link to="/pricing" className="text-white/60 hover:text-white text-sm">Pricing</Link>
-            <Link to="/contact" className="text-white/60 hover:text-white text-sm">Contact</Link>
           </div>
         </div>
       </footer>
 
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} />
-    </div>;
+    </div>
+  );
 };
 
 export default Index;
