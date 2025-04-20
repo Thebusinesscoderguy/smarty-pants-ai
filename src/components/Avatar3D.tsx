@@ -148,127 +148,150 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     
     const avatarGroup = new THREE.Group();
     
-    const mainColor = 0xFFFFFF; // White plastic
+    // Colors based on the image
+    const mainColor = 0xFFFFFF; // Pure white
     const accentColor = 0x40E0D0; // Turquoise
     const screenColor = 0x111111; // Dark screen
-    const eyeColor = 0x00FFFF; // Cyan blue
+    const eyeColor = 0x40FFFF; // Bright cyan
     
-    const headGeometry = new THREE.SphereGeometry(0.8, 32, 32);
+    // Head (larger and more oval-shaped)
+    const headGeometry = new THREE.SphereGeometry(1.0, 32, 32);
     const headMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.set(0, 1.2, 0);
-    head.scale.set(1.2, 1.1, 1);
+    head.position.set(0, 1.4, 0);
+    head.scale.set(1.2, 1.3, 1.1);
     head.name = "head";
     avatarGroup.add(head);
     
-    const screenGeometry = new THREE.PlaneGeometry(1.2, 0.8);
+    // Screen (black face area)
+    const screenGeometry = new THREE.PlaneGeometry(1.4, 1.0);
     const screenMaterial = new THREE.MeshPhongMaterial({ 
       color: screenColor,
       shininess: 150,
-      emissive: 0x111111
+      emissive: screenColor,
+      emissiveIntensity: 0.5
     });
     const screen = new THREE.Mesh(screenGeometry, screenMaterial);
-    screen.position.set(0, 1.3, 0.7);
+    screen.position.set(0, 1.5, 0.85);
     screen.name = "screen";
     avatarGroup.add(screen);
     
-    const eyeGeometry = new THREE.CircleGeometry(0.15, 32);
+    // Eyes (bright cyan, half-moon shaped)
+    const eyeGeometry = new THREE.CircleGeometry(0.25, 32);
     const eyeMaterial = new THREE.MeshPhongMaterial({ 
       color: eyeColor,
       emissive: eyeColor,
-      emissiveIntensity: 0.5,
+      emissiveIntensity: 0.8,
       shininess: 100
     });
     
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.3, 1.3, 0.71);
+    leftEye.position.set(-0.4, 1.5, 0.86);
+    leftEye.scale.set(1, 0.6, 1);
     leftEye.name = "leftEye";
     avatarGroup.add(leftEye);
     
     const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    rightEye.position.set(0.3, 1.3, 0.71);
+    rightEye.position.set(0.4, 1.5, 0.86);
+    rightEye.scale.set(1, 0.6, 1);
     rightEye.name = "rightEye";
     avatarGroup.add(rightEye);
     
-    const torsoGeometry = new THREE.CylinderGeometry(0.7, 0.5, 1.8, 32);
-    const torsoMaterial = new THREE.MeshPhongMaterial({ 
+    // Body (oval-shaped)
+    const bodyGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+    const bodyMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
-    const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
-    torso.position.set(0, 0, 0);
-    torso.name = "torso";
-    avatarGroup.add(torso);
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.set(0, 0, 0);
+    body.scale.set(1, 1.3, 0.8);
+    body.name = "body";
+    avatarGroup.add(body);
     
-    const chestGeometry = new THREE.CylinderGeometry(0.5, 0.4, 1.2, 32);
+    // Turquoise chest panel
+    const chestGeometry = new THREE.PlaneGeometry(1.2, 1.8);
     const chestMaterial = new THREE.MeshPhongMaterial({ 
       color: accentColor,
       shininess: 150,
-      specular: 0x666666,
       emissive: accentColor,
-      emissiveIntensity: 0.2
+      emissiveIntensity: 0.2,
+      side: THREE.DoubleSide
     });
     const chest = new THREE.Mesh(chestGeometry, chestMaterial);
-    chest.position.set(0, 0.2, 0.2);
+    chest.position.set(0, 0.2, 0.65);
     chest.rotation.x = 0.1;
     chest.name = "chest";
     avatarGroup.add(chest);
     
-    const armGeometry = new THREE.CapsuleGeometry(0.15, 0.6, 4, 8);
+    // Rounded arms
+    const armGeometry = new THREE.CapsuleGeometry(0.25, 0.5, 4, 8);
     const armMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
     
+    // Left arm with turquoise accent
     const leftArm = new THREE.Group();
     const leftArmMesh = new THREE.Mesh(armGeometry, armMaterial);
-    leftArmMesh.position.set(0, -0.3, 0);
+    const leftArmAccent = new THREE.Mesh(armGeometry, new THREE.MeshPhongMaterial({ 
+      color: accentColor,
+      shininess: 150
+    }));
+    leftArmAccent.scale.set(0.4, 0.4, 0.4);
+    leftArmAccent.position.set(0, 0.2, 0.1);
     leftArm.add(leftArmMesh);
-    leftArm.position.set(-0.85, 0.3, 0);
+    leftArm.add(leftArmAccent);
+    leftArm.position.set(-1.1, 0.3, 0);
+    leftArm.rotation.z = Math.PI / 6;
     leftArm.name = "leftArm";
     avatarGroup.add(leftArm);
     
+    // Right arm with turquoise accent
     const rightArm = new THREE.Group();
     const rightArmMesh = new THREE.Mesh(armGeometry, armMaterial);
-    rightArmMesh.position.set(0, -0.3, 0);
+    const rightArmAccent = new THREE.Mesh(armGeometry, new THREE.MeshPhongMaterial({ 
+      color: accentColor,
+      shininess: 150
+    }));
+    rightArmAccent.scale.set(0.4, 0.4, 0.4);
+    rightArmAccent.position.set(0, 0.2, 0.1);
     rightArm.add(rightArmMesh);
-    rightArm.position.set(0.85, 0.3, 0);
+    rightArm.add(rightArmAccent);
+    rightArm.position.set(1.1, 0.3, 0);
+    rightArm.rotation.z = -Math.PI / 6;
     rightArm.name = "rightArm";
     avatarGroup.add(rightArm);
     
-    const handGeometry = new THREE.SphereGeometry(0.18, 32, 32);
-    const handMaterial = new THREE.MeshPhongMaterial({ 
+    // Base platform
+    const baseGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.2, 32);
+    const baseMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
-    
-    const leftHand = new THREE.Mesh(handGeometry, handMaterial);
-    leftHand.position.set(-0.85, -0.3, 0);
-    leftHand.name = "leftHand";
-    avatarGroup.add(leftHand);
-    
-    const rightHand = new THREE.Mesh(handGeometry, handMaterial);
-    rightHand.position.set(0.85, -0.3, 0);
-    rightHand.name = "rightHand";
-    avatarGroup.add(rightHand);
-    
-    const baseGeometry = new THREE.CylinderGeometry(0.6, 0.7, 0.3, 32);
-    const baseMaterial = new THREE.MeshPhongMaterial({ 
-      color: accentColor,
-      shininess: 150,
-      specular: 0x666666
-    });
     const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    base.position.set(0, -1.2, 0);
+    base.position.set(0, -1.5, 0);
     base.name = "base";
     avatarGroup.add(base);
+    
+    // Text "Eilik"
+    const textGeometry = new THREE.PlaneGeometry(0.8, 0.2);
+    const textMaterial = new THREE.MeshBasicMaterial({
+      color: 0x333333,
+      transparent: true,
+      opacity: 0.8
+    });
+    const text = new THREE.Mesh(textGeometry, textMaterial);
+    text.position.set(0, 0, 0.82);
+    text.name = "text";
+    avatarGroup.add(text);
     
     avatarGroup.position.set(0, 1.5, 0);
     sceneRef.current.add(avatarGroup);
