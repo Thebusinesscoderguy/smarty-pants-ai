@@ -151,25 +151,25 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     
     // Colors matching the Eilik robot image
     const mainColor = 0xFFFFFF; // Pure white
-    const screenColor = 0x111111; // Dark screen
+    const screenColor = 0x111111; // Dark screen 
     const eyeColor = 0x40FFFF; // Bright cyan for the eyes
     const accentColor = 0x40E0D0; // Turquoise accent color
     
-    // Create the head (oval shaped, larger at the top)
-    const headGeometry = new THREE.SphereGeometry(1.0, 32, 32);
+    // Create the head (oval shaped)
+    const headGeometry = new THREE.SphereGeometry(1.2, 32, 32);
     const headMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.set(0, 1.4, 0);
-    head.scale.set(1.2, 1.3, 1.1);
+    head.position.set(0, 0.7, 0);
+    head.scale.set(1, 1.3, 1);
     head.name = "head";
     avatarGroup.add(head);
     
-    // Screen face (flat black surface)
-    const screenGeometry = new THREE.PlaneGeometry(1.4, 1.0);
+    // Screen face (black rectangular surface)
+    const screenGeometry = new THREE.PlaneGeometry(1.6, 1.3);
     const screenMaterial = new THREE.MeshPhongMaterial({ 
       color: screenColor,
       shininess: 150,
@@ -177,12 +177,12 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       emissiveIntensity: 0.5
     });
     const screen = new THREE.Mesh(screenGeometry, screenMaterial);
-    screen.position.set(0, 1.5, 0.85);
+    screen.position.set(0, 0.7, 0.6);
     screen.name = "screen";
     avatarGroup.add(screen);
     
-    // Eyes (bright cyan, half-moon shaped)
-    const leftEyeGeometry = new THREE.CircleGeometry(0.25, 32);
+    // Eyes (bright cyan, oval-shaped)
+    const leftEyeGeometry = new THREE.CircleGeometry(0.3, 32);
     const eyeMaterial = new THREE.MeshPhongMaterial({ 
       color: eyeColor,
       emissive: eyeColor,
@@ -191,28 +191,28 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     });
     
     const leftEye = new THREE.Mesh(leftEyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.4, 1.5, 0.86);
-    leftEye.scale.set(1, 0.6, 1);
+    leftEye.position.set(-0.5, 0.9, 0.61);
+    leftEye.scale.set(1, 0.7, 1);
     leftEye.name = "leftEye";
     avatarGroup.add(leftEye);
     
-    const rightEyeGeometry = new THREE.CircleGeometry(0.25, 32);
+    const rightEyeGeometry = new THREE.CircleGeometry(0.3, 32);
     const rightEye = new THREE.Mesh(rightEyeGeometry, eyeMaterial);
-    rightEye.position.set(0.4, 1.5, 0.86);
-    rightEye.scale.set(1, 0.6, 1);
+    rightEye.position.set(0.5, 0.9, 0.61);
+    rightEye.scale.set(1, 0.7, 1);
     rightEye.name = "rightEye";
     avatarGroup.add(rightEye);
     
     // Mouth (will be animated during speech)
-    const mouthGeometry = new THREE.PlaneGeometry(0.5, 0.1);
+    const mouthGeometry = new THREE.PlaneGeometry(0.8, 0.2);
     const mouthMaterial = new THREE.MeshBasicMaterial({ color: eyeColor });
     const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
-    mouth.position.set(0, 1.0, 0.86);
+    mouth.position.set(0, 0.4, 0.61);
     mouth.name = "mouth";
     mouth.visible = isSpeaking;
     avatarGroup.add(mouth);
     
-    // Body (oval-shaped, like in the image)
+    // Body (oval-shaped)
     const bodyGeometry = new THREE.SphereGeometry(1.2, 32, 32);
     const bodyMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
@@ -220,13 +220,13 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       specular: 0x444444
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.set(0, 0, 0);
+    body.position.set(0, -0.8, 0);
     body.scale.set(1, 1.3, 0.8);
     body.name = "body";
     avatarGroup.add(body);
     
-    // Turquoise chest panel (as seen in the image)
-    const chestGeometry = new THREE.PlaneGeometry(1.2, 1.8);
+    // Turquoise chest panel
+    const chestGeometry = new THREE.PlaneGeometry(1.2, 1.2);
     const chestMaterial = new THREE.MeshPhongMaterial({ 
       color: accentColor,
       shininess: 150,
@@ -235,26 +235,26 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       side: THREE.DoubleSide
     });
     const chest = new THREE.Mesh(chestGeometry, chestMaterial);
-    chest.position.set(0, 0.2, 0.65);
-    chest.rotation.x = 0.1;
+    chest.position.set(0, -0.7, 0.5);
+    chest.rotation.x = 0.2;
     chest.name = "chest";
     avatarGroup.add(chest);
     
-    // Create stubby arms (rounded, no visible joints)
-    const leftArmGeometry = new THREE.CapsuleGeometry(0.25, 0.5, 4, 8);
+    // Create arms (rounded capsules)
+    const leftArmGeometry = new THREE.CapsuleGeometry(0.3, 0.8, 8, 16);
     const armMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
     const leftArm = new THREE.Mesh(leftArmGeometry, armMaterial);
-    leftArm.position.set(-1.1, 0.3, 0);
-    leftArm.rotation.z = Math.PI / 6;
+    leftArm.position.set(-1.3, -0.4, 0);
+    leftArm.rotation.z = Math.PI / 4;
     leftArm.name = "leftArm";
     avatarGroup.add(leftArm);
     
     // Turquoise accent on left arm
-    const leftArmAccentGeometry = new THREE.CapsuleGeometry(0.1, 0.2, 4, 8);
+    const leftArmAccentGeometry = new THREE.CapsuleGeometry(0.15, 0.3, 8, 16);
     const armAccentMaterial = new THREE.MeshPhongMaterial({ 
       color: accentColor,
       shininess: 150,
@@ -262,34 +262,34 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       emissiveIntensity: 0.2
     });
     const leftArmAccent = new THREE.Mesh(leftArmAccentGeometry, armAccentMaterial);
-    leftArmAccent.position.set(-1.1, 0.5, 0.1);
+    leftArmAccent.position.set(-1.4, -0.2, 0.2);
     leftArmAccent.name = "leftArmAccent";
     avatarGroup.add(leftArmAccent);
     
     // Right arm
-    const rightArmGeometry = new THREE.CapsuleGeometry(0.25, 0.5, 4, 8);
+    const rightArmGeometry = new THREE.CapsuleGeometry(0.3, 0.8, 8, 16);
     const rightArm = new THREE.Mesh(rightArmGeometry, armMaterial);
-    rightArm.position.set(1.1, 0.3, 0);
-    rightArm.rotation.z = -Math.PI / 6;
+    rightArm.position.set(1.3, -0.4, 0);
+    rightArm.rotation.z = -Math.PI / 4;
     rightArm.name = "rightArm";
     avatarGroup.add(rightArm);
     
     // Turquoise accent on right arm
-    const rightArmAccentGeometry = new THREE.CapsuleGeometry(0.1, 0.2, 4, 8);
+    const rightArmAccentGeometry = new THREE.CapsuleGeometry(0.15, 0.3, 8, 16);
     const rightArmAccent = new THREE.Mesh(rightArmAccentGeometry, armAccentMaterial);
-    rightArmAccent.position.set(1.1, 0.5, 0.1);
+    rightArmAccent.position.set(1.4, -0.2, 0.2);
     rightArmAccent.name = "rightArmAccent";
     avatarGroup.add(rightArmAccent);
     
-    // Base/platform
-    const baseGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.2, 32);
+    // Base/platform (cylindrical)
+    const baseGeometry = new THREE.CylinderGeometry(1.3, 1.3, 0.3, 32);
     const baseMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
     const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    base.position.set(0, -1.5, 0);
+    base.position.set(0, -2.2, 0);
     base.name = "base";
     avatarGroup.add(base);
     
@@ -301,11 +301,31 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       opacity: 0.8
     });
     const text = new THREE.Mesh(textGeometry, textMaterial);
-    text.position.set(0, 0, 0.82);
+    text.position.set(0, -1.6, 0.65);
     text.name = "text";
     avatarGroup.add(text);
     
-    avatarGroup.position.set(0, 1.5, 0);
+    // Add hand-like end caps to the arms
+    const leftHandGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+    const handMaterial = new THREE.MeshPhongMaterial({
+      color: mainColor,
+      shininess: 100,
+      specular: 0x444444
+    });
+    const leftHand = new THREE.Mesh(leftHandGeometry, handMaterial);
+    leftHand.position.set(-1.7, -0.7, 0);
+    leftHand.scale.set(1, 1, 0.7);
+    leftHand.name = "leftHand";
+    avatarGroup.add(leftHand);
+    
+    const rightHandGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+    const rightHand = new THREE.Mesh(rightHandGeometry, handMaterial);
+    rightHand.position.set(1.7, -0.7, 0);
+    rightHand.scale.set(1, 1, 0.7);
+    rightHand.name = "rightHand";
+    avatarGroup.add(rightHand);
+    
+    avatarGroup.position.set(0, 0.5, 0);
     sceneRef.current.add(avatarGroup);
     modelRef.current = avatarGroup;
     setAvatarLoaded(true);
@@ -523,3 +543,4 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
 };
 
 export default Avatar3D;
+
