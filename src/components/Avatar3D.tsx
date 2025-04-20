@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
@@ -148,13 +149,13 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     
     const avatarGroup = new THREE.Group();
     
-    // Colors based on the image
+    // Colors matching the Eilik robot image
     const mainColor = 0xFFFFFF; // Pure white
-    const accentColor = 0x40E0D0; // Turquoise
     const screenColor = 0x111111; // Dark screen
-    const eyeColor = 0x40FFFF; // Bright cyan
+    const eyeColor = 0x40FFFF; // Bright cyan for the eyes
+    const accentColor = 0x40E0D0; // Turquoise accent color
     
-    // Head (larger and more oval-shaped)
+    // Create the head (oval shaped, larger at the top)
     const headGeometry = new THREE.SphereGeometry(1.0, 32, 32);
     const headMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
@@ -167,7 +168,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     head.name = "head";
     avatarGroup.add(head);
     
-    // Screen (black face area)
+    // Screen face (flat black surface)
     const screenGeometry = new THREE.PlaneGeometry(1.4, 1.0);
     const screenMaterial = new THREE.MeshPhongMaterial({ 
       color: screenColor,
@@ -181,7 +182,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     avatarGroup.add(screen);
     
     // Eyes (bright cyan, half-moon shaped)
-    const eyeGeometry = new THREE.CircleGeometry(0.25, 32);
+    const leftEyeGeometry = new THREE.CircleGeometry(0.25, 32);
     const eyeMaterial = new THREE.MeshPhongMaterial({ 
       color: eyeColor,
       emissive: eyeColor,
@@ -189,19 +190,29 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       shininess: 100
     });
     
-    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    const leftEye = new THREE.Mesh(leftEyeGeometry, eyeMaterial);
     leftEye.position.set(-0.4, 1.5, 0.86);
     leftEye.scale.set(1, 0.6, 1);
     leftEye.name = "leftEye";
     avatarGroup.add(leftEye);
     
-    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    const rightEyeGeometry = new THREE.CircleGeometry(0.25, 32);
+    const rightEye = new THREE.Mesh(rightEyeGeometry, eyeMaterial);
     rightEye.position.set(0.4, 1.5, 0.86);
     rightEye.scale.set(1, 0.6, 1);
     rightEye.name = "rightEye";
     avatarGroup.add(rightEye);
     
-    // Body (oval-shaped)
+    // Mouth (will be animated during speech)
+    const mouthGeometry = new THREE.PlaneGeometry(0.5, 0.1);
+    const mouthMaterial = new THREE.MeshBasicMaterial({ color: eyeColor });
+    const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+    mouth.position.set(0, 1.0, 0.86);
+    mouth.name = "mouth";
+    mouth.visible = isSpeaking;
+    avatarGroup.add(mouth);
+    
+    // Body (oval-shaped, like in the image)
     const bodyGeometry = new THREE.SphereGeometry(1.2, 32, 32);
     const bodyMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
@@ -214,7 +225,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     body.name = "body";
     avatarGroup.add(body);
     
-    // Turquoise chest panel
+    // Turquoise chest panel (as seen in the image)
     const chestGeometry = new THREE.PlaneGeometry(1.2, 1.8);
     const chestMaterial = new THREE.MeshPhongMaterial({ 
       color: accentColor,
@@ -229,47 +240,48 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     chest.name = "chest";
     avatarGroup.add(chest);
     
-    // Rounded arms
-    const armGeometry = new THREE.CapsuleGeometry(0.25, 0.5, 4, 8);
+    // Create stubby arms (rounded, no visible joints)
+    const leftArmGeometry = new THREE.CapsuleGeometry(0.25, 0.5, 4, 8);
     const armMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
       shininess: 100,
       specular: 0x444444
     });
-    
-    // Left arm with turquoise accent
-    const leftArm = new THREE.Group();
-    const leftArmMesh = new THREE.Mesh(armGeometry, armMaterial);
-    const leftArmAccent = new THREE.Mesh(armGeometry, new THREE.MeshPhongMaterial({ 
-      color: accentColor,
-      shininess: 150
-    }));
-    leftArmAccent.scale.set(0.4, 0.4, 0.4);
-    leftArmAccent.position.set(0, 0.2, 0.1);
-    leftArm.add(leftArmMesh);
-    leftArm.add(leftArmAccent);
+    const leftArm = new THREE.Mesh(leftArmGeometry, armMaterial);
     leftArm.position.set(-1.1, 0.3, 0);
     leftArm.rotation.z = Math.PI / 6;
     leftArm.name = "leftArm";
     avatarGroup.add(leftArm);
     
-    // Right arm with turquoise accent
-    const rightArm = new THREE.Group();
-    const rightArmMesh = new THREE.Mesh(armGeometry, armMaterial);
-    const rightArmAccent = new THREE.Mesh(armGeometry, new THREE.MeshPhongMaterial({ 
+    // Turquoise accent on left arm
+    const leftArmAccentGeometry = new THREE.CapsuleGeometry(0.1, 0.2, 4, 8);
+    const armAccentMaterial = new THREE.MeshPhongMaterial({ 
       color: accentColor,
-      shininess: 150
-    }));
-    rightArmAccent.scale.set(0.4, 0.4, 0.4);
-    rightArmAccent.position.set(0, 0.2, 0.1);
-    rightArm.add(rightArmMesh);
-    rightArm.add(rightArmAccent);
+      shininess: 150,
+      emissive: accentColor,
+      emissiveIntensity: 0.2
+    });
+    const leftArmAccent = new THREE.Mesh(leftArmAccentGeometry, armAccentMaterial);
+    leftArmAccent.position.set(-1.1, 0.5, 0.1);
+    leftArmAccent.name = "leftArmAccent";
+    avatarGroup.add(leftArmAccent);
+    
+    // Right arm
+    const rightArmGeometry = new THREE.CapsuleGeometry(0.25, 0.5, 4, 8);
+    const rightArm = new THREE.Mesh(rightArmGeometry, armMaterial);
     rightArm.position.set(1.1, 0.3, 0);
     rightArm.rotation.z = -Math.PI / 6;
     rightArm.name = "rightArm";
     avatarGroup.add(rightArm);
     
-    // Base platform
+    // Turquoise accent on right arm
+    const rightArmAccentGeometry = new THREE.CapsuleGeometry(0.1, 0.2, 4, 8);
+    const rightArmAccent = new THREE.Mesh(rightArmAccentGeometry, armAccentMaterial);
+    rightArmAccent.position.set(1.1, 0.5, 0.1);
+    rightArmAccent.name = "rightArmAccent";
+    avatarGroup.add(rightArmAccent);
+    
+    // Base/platform
     const baseGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.2, 32);
     const baseMaterial = new THREE.MeshPhongMaterial({ 
       color: mainColor,
@@ -281,7 +293,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     base.name = "base";
     avatarGroup.add(base);
     
-    // Text "Eilik"
+    // Add the "Eilik" text to the front
     const textGeometry = new THREE.PlaneGeometry(0.8, 0.2);
     const textMaterial = new THREE.MeshBasicMaterial({
       color: 0x333333,
@@ -302,6 +314,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const applyLipMovement = (model: THREE.Group, openness: number) => {
     const mouth = model.children.find(child => child.name === "mouth");
     if (mouth) {
+      mouth.visible = true;
       (mouth as THREE.Mesh).scale.y = 1 + openness * 4;
       (mouth as THREE.Mesh).position.y = 1.0 - (openness * 0.1);
     }
