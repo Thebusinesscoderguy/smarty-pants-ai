@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -7,7 +8,6 @@ import { Play, Pause, Send, Mic, Square, Settings } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
-import AIAvatar from '@/components/AIAvatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { useAudioHandler } from '@/hooks/useAudioHandler';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import AvatarDescriptionDialog from '@/components/AvatarDescriptionDialog';
 import UserAvatar from '@/components/UserAvatar';
+import Avatar3D from '@/components/Avatar3D';
 
 interface Message {
   id?: string;
@@ -25,16 +26,6 @@ interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice';
   tokenCount?: number;
-}
-
-// Interface for user_avatars table
-interface UserAvatar {
-  id: string;
-  user_id: string;
-  description: string;
-  avatar_url: string;
-  created_at: string;
-  updated_at: string;
 }
 
 const Avatar = () => {
@@ -72,6 +63,10 @@ const Avatar = () => {
     activeSpeakingMessage
   } = useAudioHandler();
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
     scrollToBottom();
     if (user) {
@@ -94,10 +89,12 @@ const Avatar = () => {
     if (!user) return;
     
     try {
+      // Look for user avatar in the files table instead
       const { data, error } = await supabase
-        .from('user_avatars')
+        .from('files')
         .select('*')
         .eq('user_id', user.id)
+        .eq('file_type', 'avatar')
         .single();
       
       if (error && error.code !== 'PGRST116') {
@@ -109,8 +106,8 @@ const Avatar = () => {
         console.log("No avatar found, showing dialog");
         setShowAvatarDialog(true);
       } else {
-        console.log("Avatar found:", data.avatar_url);
-        setUserAvatarUrl(data.avatar_url);
+        console.log("Avatar found:", data.file_path);
+        setUserAvatarUrl(data.file_path);
       }
       
       setHasCheckedFirstTime(true);
@@ -505,7 +502,7 @@ const Avatar = () => {
         
         <main className="flex-1 flex flex-col overflow-hidden relative">
           <div className="absolute inset-0 flex items-center justify-center z-0">
-            <AIAvatar 
+            <Avatar3D 
               isSpeaking={isAvatarSpeaking} 
               isListening={isAvatarListening}
               isThinking={isAvatarThinking}
@@ -573,7 +570,12 @@ const Avatar = () => {
                     className="bg-white/5 border-white/20 resize-none min-h-[100px]"
                     value={textMessage}
                     onChange={(e) => setTextMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendTextMessage();
+                      }
+                    }}
                   />
                   
                   <div className="flex flex-col gap-2">

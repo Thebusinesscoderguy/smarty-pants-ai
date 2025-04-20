@@ -7,12 +7,14 @@ interface UserAvatarProps {
   avatarUrl: string | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
+  animated?: boolean;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ 
   avatarUrl, 
   size = 'md',
-  className = '' 
+  className = '',
+  animated = false
 }) => {
   // Size classes
   const sizeClasses = {
@@ -23,7 +25,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   };
 
   return (
-    <Avatar className={`${sizeClasses[size]} ${className} border border-white/20`}>
+    <Avatar className={`${sizeClasses[size]} ${className} border border-white/20 ${animated ? 'animate-pulse' : ''}`}>
       {avatarUrl ? (
         <AvatarImage src={avatarUrl} alt="User avatar" />
       ) : null}

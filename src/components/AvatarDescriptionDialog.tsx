@@ -36,26 +36,21 @@ const AvatarDescriptionDialog: React.FC<AvatarDescriptionDialogProps> = ({
     try {
       setIsGenerating(true);
 
-      // Currently, we'll use the default animation since we don't have a real
-      // avatar generation service connected yet. In a real implementation,
-      // this would call an AI image generation API.
-      
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // For now, we use a placeholder avatar
+      // Generate an avatar using DiceBear API based on the description
       const avatarUrl = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(description);
 
-      // Store the user's avatar description and URL
+      // Store the user's avatar description and URL in the files table
       if (user) {
         try {
+          const fileName = `user_avatar_${user.id}`;
           const { error } = await supabase
-            .from('user_avatars')
+            .from('files')
             .upsert({
               user_id: user.id,
-              description: description,
-              avatar_url: avatarUrl
-            }, { onConflict: 'user_id' });
+              filename: fileName,
+              file_path: avatarUrl,
+              file_type: 'avatar'
+            }, { onConflict: 'user_id,file_type' });
 
           if (error) throw error;
         } catch (upsertError) {
