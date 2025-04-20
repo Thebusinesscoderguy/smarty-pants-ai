@@ -85,7 +85,8 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    // Use the new encoding properties in Three.js r137+
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     
@@ -346,8 +347,8 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     body.receiveShadow = true;
     bodyGroup.add(body);
     
-    // Chest panel
-    const panelGeometry = new THREE.RoundedBoxGeometry(1.4, 1.2, 0.1, 10, 0.1);
+    // Chest panel - create a rounded box using our custom implementation
+    const panelGeometry = createRoundedBoxGeometry(1.4, 1.2, 0.1, 10, 0.1);
     const panelMaterial = new THREE.MeshStandardMaterial({ 
       color: accentColor,
       emissive: accentColor,
@@ -703,94 +704,77 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   );
 };
 
-// Add this helper class for rounded box geometry - THREE.js doesn't include it by default
-class RoundedBoxGeometry extends THREE.BoxGeometry {
-  constructor(
-    width = 1, 
-    height = 1, 
-    depth = 1, 
-    segments = 4, 
-    radius = 0.1
-  ) {
-    super(width, height, depth, segments, segments, segments);
+// Custom function to create a rounded box geometry
+function createRoundedBoxGeometry(
+  width = 1, 
+  height = 1, 
+  depth = 1, 
+  segments = 4, 
+  radius = 0.1
+) {
+  // Create a base box geometry
+  const geometry = new THREE.BoxGeometry(width, height, depth, segments, segments, segments);
+  
+  // Create rounded edges by moving vertices
+  const position = geometry.attributes.position;
+  const normal = geometry.attributes.normal;
+  
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+  const halfDepth = depth / 2;
+  
+  // Don't exceed half dimensions
+  radius = Math.min(radius, Math.min(halfWidth, Math.min(halfHeight, halfDepth)));
+  
+  const positions = [];
+  const normals = [];
+  
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const y = position.getY(i);
+    const z = position.getZ(i);
     
-    // Create rounded edges by moving vertices
-    const position = this.attributes.position;
-    const normal = this.attributes.normal;
+    // Calculate distance to center
+    const distX = Math.abs(x) - (halfWidth - radius);
+    const distY = Math.abs(y) - (halfHeight - radius);
+    const distZ = Math.abs(z) - (halfDepth - radius);
     
-    const halfWidth = width / 2;
-    const halfHeight = height / 2;
-    const halfDepth = depth / 2;
-    
-    // Don't exceed half dimensions
-    radius = Math.min(radius, Math.min(halfWidth, Math.min(halfHeight, halfDepth)));
-    
-    const positions = [];
-    const normals = [];
-    
-    for (let i = 0; i < position.count; i++) {
-      const x = position.getX(i);
-      const y = position.getY(i);
-      const z = position.getZ(i);
+    // Only move vertices that are on corners
+    if (distX > 0 && distY > 0 && distZ > 0) {
+      const dirX = Math.sign(x);
+      const dirY = Math.sign(y);
+      const dirZ = Math.sign(z);
       
-      // Calculate distance to center
-      const distX = Math.abs(x) - (halfWidth - radius);
-      const distY = Math.abs(y) - (halfHeight - radius);
-      const distZ = Math.abs(z) - (halfDepth - radius);
+      // Calculate new position
+      const newX = dirX * (halfWidth - radius + distX / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
+      const newY = dirY * (halfHeight - radius + distY / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
+      const newZ = dirZ * (halfDepth - radius + distZ / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
       
-      // Only move vertices that are on corners
-      if (distX > 0 && distY > 0 && distZ > 0) {
-        const dirX = Math.sign(x);
-        const dirY = Math.sign(y);
-        const dirZ = Math.sign(z);
-        
-        // Calculate new position
-        const newX = dirX * (halfWidth - radius + distX / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
-        const newY = dirY * (halfHeight - radius + distY / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
-        const newZ = dirZ * (halfDepth - radius + distZ / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
-        
-        positions.push(newX, newY, newZ);
-        
-        // Calculate new normal
-        const nx = (newX - dirX * (halfWidth - radius)) / radius;
-        const ny = (newY - dirY * (halfHeight - radius)) / radius;
-        const nz = (newZ - dirZ * (halfDepth - radius)) / radius;
-        const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
-        
-        normals.push(nx / length, ny / length, nz / length);
-      } else {
-        positions.push(x, y, z);
-        normals.push(normal.getX(i), normal.getY(i), normal.getZ(i));
-      }
-    }
-    
-    // Update geometry
-    for (let i = 0; i < position.count; i++) {
-      position.setXYZ(i, positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-      normal.setXYZ(i, normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
-    }
-    
-    position.needsUpdate = true;
-    normal.needsUpdate = true;
-  }
-}
-
-// Add to THREE namespace for easier usage
-THREE.RoundedBoxGeometry = RoundedBoxGeometry;
-
-// Extend THREE namespace with the new class
-declare global {
-  namespace THREE {
-    class RoundedBoxGeometry extends BoxGeometry {
-      constructor(
-        width?: number,
-        height?: number,
-        depth?: number,
-        segments?: number,
-        radius?: number
-      );
+      positions.push(newX, newY, newZ);
+      
+      // Calculate new normal
+      const nx = (newX - dirX * (halfWidth - radius)) / radius;
+      const ny = (newY - dirY * (halfHeight - radius)) / radius;
+      const nz = (newZ - dirZ * (halfDepth - radius)) / radius;
+      const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
+      
+      normals.push(nx / length, ny / length, nz / length);
+    } else {
+      positions.push(x, y, z);
+      normals.push(normal.getX(i), normal.getY(i), normal.getZ(i));
     }
   }
+  
+  // Update geometry
+  for (let i = 0; i < position.count; i++) {
+    position.setXYZ(i, positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+    normal.setXYZ(i, normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
+  }
+  
+  position.needsUpdate = true;
+  normal.needsUpdate = true;
+  
+  return geometry;
 }
 
 export default Avatar3D;
