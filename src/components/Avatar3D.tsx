@@ -45,14 +45,15 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     
     // Initialize scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x121212);
+    scene.background = new THREE.Color(0x1E1E1E); // Dark charcoal background
     sceneRef.current = scene;
     
-    // Softer lighting setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    // Soft ambient lighting setup
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
     
-    const frontLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    // Soft directional lights
+    const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
     frontLight.position.set(0, 5, 10);
     frontLight.castShadow = true;
     scene.add(frontLight);
@@ -162,190 +163,128 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       modelRef.current = null;
     }
     
-    // Define sleek modern colors based on style
-    let mainColor, accentColor, faceColor;
-    
-    switch (style) {
-      case 'teacher':
-        mainColor = 0x222222; // Dark gray
-        accentColor = 0xea384c; // Vibrant red
-        faceColor = 0x333333; // Lighter gray
-        break;
-      case 'casual':
-        mainColor = 0x000000; // Pure black
-        accentColor = 0xff3333; // Bright red
-        faceColor = 0x222222; // Dark gray
-        break;
-      case 'professional':
-        mainColor = 0x1a1a1a; // Very dark gray
-        accentColor = 0xcc0000; // Deep red
-        faceColor = 0x2a2a2a; // Medium gray
-        break;
-      case 'friendly':
-        mainColor = 0x333333; // Medium gray
-        accentColor = 0xff6666; // Soft red
-        faceColor = 0x444444; // Light gray
-        break;
-      default:
-        mainColor = 0x222222;
-        accentColor = 0xea384c;
-        faceColor = 0x333333;
-    }
+    // Define colors based on specifications
+    const colors = {
+      primary: 0xF5F5F5, // Soft white
+      accent1: 0xA7EFFF, // Soft aqua blue
+      accent2: 0xAEEBD9, // Mint green
+      accent3: 0xFFD6C2, // Pastel peach
+      faceplate: 0x1A2B4C, // Navy blue
+      eyeGlow: 0x78D6FF, // Light blue
+    };
     
     const avatarGroup = new THREE.Group();
     avatarGroup.name = 'avatar';
     
-    // Create head with friendlier features
+    // Create head with friendly features
     const headGroup = new THREE.Group();
     headGroup.name = 'head';
     
-    // Main head - smoother sphere
+    // Main head - soft rounded shape
     const headGeometry = new THREE.SphereGeometry(0.8, 32, 32);
     const headMaterial = new THREE.MeshStandardMaterial({
-      color: faceColor,
-      roughness: 0.3,
-      metalness: 0.5,
+      color: colors.primary,
+      roughness: 0.7, // More matte finish
+      metalness: 0.1,
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
     head.scale.set(1, 1.1, 0.9);
     head.castShadow = true;
     headGroup.add(head);
     
-    // Friendly eyes with LED effect
+    // Friendly large eyes with soft glow
     const createEye = (x: number) => {
       const eyeGroup = new THREE.Group();
       
-      // Eye socket
-      const socketGeometry = new THREE.CircleGeometry(0.15, 32);
-      const socketMaterial = new THREE.MeshStandardMaterial({
-        color: 0x000000,
-        roughness: 0.2,
-        metalness: 0.8,
+      // Eye base - large oval shape
+      const eyeGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+      const eyeMaterial = new THREE.MeshStandardMaterial({
+        color: colors.faceplate,
+        roughness: 0.3,
+        metalness: 0.5,
       });
-      const socket = new THREE.Mesh(socketGeometry, socketMaterial);
-      socket.position.z = 0.65;
-      eyeGroup.add(socket);
+      const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+      eye.scale.set(1.2, 1, 0.1);
+      eyeGroup.add(eye);
       
-      // LED eye light
-      const lightGeometry = new THREE.CircleGeometry(0.1, 32);
-      const lightMaterial = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        emissive: accentColor,
+      // Eye glow
+      const glowGeometry = new THREE.SphereGeometry(0.15, 32, 32);
+      const glowMaterial = new THREE.MeshStandardMaterial({
+        color: colors.eyeGlow,
+        emissive: colors.eyeGlow,
         emissiveIntensity: 0.5,
         roughness: 0.1,
         metalness: 0.9,
       });
-      const light = new THREE.Mesh(lightGeometry, lightMaterial);
-      light.position.z = 0.66;
-      eyeGroup.add(light);
+      const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+      glow.scale.set(1.2, 1, 0.1);
+      glow.position.z = 0.02;
+      eyeGroup.add(glow);
       
-      eyeGroup.position.set(x, 0.1, 0);
+      eyeGroup.position.set(x, 0.1, 0.7);
       return eyeGroup;
     };
     
-    headGroup.add(createEye(-0.25));
-    headGroup.add(createEye(0.25));
+    headGroup.add(createEye(-0.3));
+    headGroup.add(createEye(0.3));
     
-    // Sleek minimalist nose
-    const noseGeometry = new THREE.ConeGeometry(0.08, 0.15, 32);
-    const noseMaterial = new THREE.MeshStandardMaterial({
-      color: mainColor,
-      roughness: 0.4,
-      metalness: 0.6,
-    });
-    const nose = new THREE.Mesh(noseGeometry, noseMaterial);
-    nose.rotation.x = -Math.PI / 2;
-    nose.position.set(0, -0.1, 0.7);
-    headGroup.add(nose);
-    
-    // Friendly smile
-    const smileGeometry = new THREE.TorusGeometry(0.2, 0.03, 16, 32, Math.PI);
+    // Gentle smile
+    const smileGeometry = new THREE.TorusGeometry(0.2, 0.02, 16, 32, Math.PI);
     const smileMaterial = new THREE.MeshStandardMaterial({
-      color: accentColor,
-      roughness: 0.3,
-      metalness: 0.7,
+      color: colors.accent3,
+      roughness: 0.5,
+      metalness: 0.3,
     });
     const smile = new THREE.Mesh(smileGeometry, smileMaterial);
     smile.rotation.x = Math.PI;
-    smile.position.set(0, -0.3, 0.6);
+    smile.position.set(0, -0.2, 0.7);
     smile.name = 'mouth';
     headGroup.add(smile);
     
-    // Create robotic body
+    // Create friendly body
     const bodyGroup = new THREE.Group();
     bodyGroup.name = 'body';
     
-    // Main body - sleek cylinder
-    const bodyGeometry = new THREE.CylinderGeometry(0.6, 0.7, 1.8, 32);
+    // Main body - rounded cylinder
+    const bodyGeometry = new THREE.CylinderGeometry(0.6, 0.7, 1.5, 32, 1, false);
     const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: mainColor,
-      roughness: 0.3,
-      metalness: 0.8,
+      color: colors.primary,
+      roughness: 0.7,
+      metalness: 0.2,
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     body.position.y = -0.2;
     body.castShadow = true;
     bodyGroup.add(body);
     
-    // Create robotic arms with articulated joints
+    // Create chunky arms with mitten-like hands
     const createArm = (side: number) => {
       const armGroup = new THREE.Group();
       
-      // Upper arm - sleek cylinder
-      const upperArmGeometry = new THREE.CylinderGeometry(0.12, 0.1, 0.6, 16);
+      // Upper arm - chunky cylinder
+      const upperArmGeometry = new THREE.CylinderGeometry(0.15, 0.13, 0.5, 16);
       const armMaterial = new THREE.MeshStandardMaterial({
-        color: mainColor,
-        roughness: 0.3,
-        metalness: 0.8,
+        color: colors.accent1,
+        roughness: 0.7,
+        metalness: 0.2,
       });
       const upperArm = new THREE.Mesh(upperArmGeometry, armMaterial);
-      upperArm.position.y = -0.3;
+      upperArm.position.y = -0.25;
       armGroup.add(upperArm);
       
-      // Elbow joint - sphere
-      const elbowGeometry = new THREE.SphereGeometry(0.11, 16, 16);
-      const elbowMaterial = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        roughness: 0.3,
-        metalness: 0.8,
+      // Mitten-like hand
+      const handGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+      const handMaterial = new THREE.MeshStandardMaterial({
+        color: colors.accent2,
+        roughness: 0.8,
+        metalness: 0.1,
       });
-      const elbow = new THREE.Mesh(elbowGeometry, elbowMaterial);
-      elbow.position.y = -0.6;
-      armGroup.add(elbow);
+      const hand = new THREE.Mesh(handGeometry, handMaterial);
+      hand.position.y = -0.5;
+      hand.scale.set(1, 0.8, 0.6);
+      armGroup.add(hand);
       
-      // Forearm - tapered cylinder
-      const forearmGeometry = new THREE.CylinderGeometry(0.09, 0.08, 0.6, 16);
-      const forearm = new THREE.Mesh(forearmGeometry, armMaterial);
-      forearm.position.y = -0.9;
-      armGroup.add(forearm);
-      
-      // Hand - robotic design
-      const handGroup = new THREE.Group();
-      handGroup.position.y = -1.2;
-      
-      // Palm
-      const palmGeometry = new THREE.BoxGeometry(0.15, 0.2, 0.08);
-      const palmMaterial = new THREE.MeshStandardMaterial({
-        color: accentColor,
-        roughness: 0.3,
-        metalness: 0.8,
-      });
-      const palm = new THREE.Mesh(palmGeometry, palmMaterial);
-      handGroup.add(palm);
-      
-      // Fingers
-      for (let i = 0; i < 3; i++) {
-        const fingerGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.15, 8);
-        const finger = new THREE.Mesh(fingerGeometry, armMaterial);
-        finger.position.x = (i - 1) * 0.05;
-        finger.position.y = -0.15;
-        finger.rotation.x = Math.PI / 6;
-        handGroup.add(finger);
-      }
-      
-      armGroup.add(handGroup);
-      
-      armGroup.position.set(side * 0.8, 0.7, 0);
+      armGroup.position.set(side * 0.8, 0.5, 0);
       armGroup.rotation.z = side * 0.2;
       return armGroup;
     };
@@ -353,61 +292,42 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     bodyGroup.add(createArm(-1));
     bodyGroup.add(createArm(1));
     
-    // Create single robotic leg
+    // Create single stubby leg
     const legGroup = new THREE.Group();
     
-    // Upper leg - larger cylinder
-    const upperLegGeometry = new THREE.CylinderGeometry(0.2, 0.18, 0.8, 16);
+    // Main leg - short cylinder
+    const legGeometry = new THREE.CylinderGeometry(0.25, 0.3, 0.6, 16);
     const legMaterial = new THREE.MeshStandardMaterial({
-      color: mainColor,
-      roughness: 0.3,
-      metalness: 0.8,
+      color: colors.accent1,
+      roughness: 0.7,
+      metalness: 0.2,
     });
-    const upperLeg = new THREE.Mesh(upperLegGeometry, legMaterial);
-    upperLeg.position.y = -0.4;
-    legGroup.add(upperLeg);
+    const leg = new THREE.Mesh(legGeometry, legMaterial);
+    leg.position.y = -0.3;
+    legGroup.add(leg);
     
-    // Knee joint - glowing sphere
-    const kneeGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-    const kneeMaterial = new THREE.MeshStandardMaterial({
-      color: accentColor,
-      emissive: accentColor,
-      emissiveIntensity: 0.3,
-      roughness: 0.3,
-      metalness: 0.8,
-    });
-    const knee = new THREE.Mesh(kneeGeometry, kneeMaterial);
-    knee.position.y = -0.8;
-    legGroup.add(knee);
-    
-    // Lower leg - tapered cylinder
-    const lowerLegGeometry = new THREE.CylinderGeometry(0.18, 0.15, 0.8, 16);
-    const lowerLeg = new THREE.Mesh(lowerLegGeometry, legMaterial);
-    lowerLeg.position.y = -1.2;
-    legGroup.add(lowerLeg);
-    
-    // Robot foot - wider flat cylinder
-    const footGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.1, 16);
+    // Rounded foot
+    const footGeometry = new THREE.SphereGeometry(0.3, 16, 16);
     const footMaterial = new THREE.MeshStandardMaterial({
-      color: accentColor,
-      roughness: 0.3,
-      metalness: 0.8,
+      color: colors.accent2,
+      roughness: 0.8,
+      metalness: 0.1,
     });
     const foot = new THREE.Mesh(footGeometry, footMaterial);
-    foot.position.y = -1.6;
+    foot.position.y = -0.6;
+    foot.scale.set(1, 0.4, 1);
     legGroup.add(foot);
     
-    legGroup.position.set(0, -0.9, 0);
+    legGroup.position.set(0, -0.7, 0);
     bodyGroup.add(legGroup);
     
-    // Position everything
-    headGroup.position.set(0, 1.5, 0);
+    // Position and assemble everything
+    headGroup.position.set(0, 1.2, 0);
     bodyGroup.position.set(0, 0, 0);
     
     avatarGroup.add(headGroup);
     avatarGroup.add(bodyGroup);
     
-    // Final positioning
     avatarGroup.position.set(0, 1.2, 0);
     avatarGroup.rotation.x = 0.1;
     
@@ -566,78 +486,5 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     </div>
   );
 };
-
-// Custom function to create a rounded box geometry
-function createRoundedBoxGeometry(
-  width = 1, 
-  height = 1, 
-  depth = 1, 
-  segments = 4, 
-  radius = 0.1
-) {
-  // Create a base box geometry
-  const geometry = new THREE.BoxGeometry(width, height, depth, segments, segments, segments);
-  
-  // Create rounded edges by moving vertices
-  const position = geometry.attributes.position;
-  const normal = geometry.attributes.normal;
-  
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
-  const halfDepth = depth / 2;
-  
-  // Don't exceed half dimensions
-  radius = Math.min(radius, Math.min(halfWidth, Math.min(halfHeight, halfDepth)));
-  
-  const positions = [];
-  const normals = [];
-  
-  for (let i = 0; i < position.count; i++) {
-    const x = position.getX(i);
-    const y = position.getY(i);
-    const z = position.getZ(i);
-    
-    // Calculate distance to center
-    const distX = Math.abs(x) - (halfWidth - radius);
-    const distY = Math.abs(y) - (halfHeight - radius);
-    const distZ = Math.abs(z) - (halfDepth - radius);
-    
-    // Only move vertices that are on corners
-    if (distX > 0 && distY > 0 && distZ > 0) {
-      const dirX = Math.sign(x);
-      const dirY = Math.sign(y);
-      const dirZ = Math.sign(z);
-      
-      // Calculate new position
-      const newX = dirX * (halfWidth - radius + distX / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
-      const newY = dirY * (halfHeight - radius + distY / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
-      const newZ = dirZ * (halfDepth - radius + distZ / Math.sqrt(distX * distX + distY * distY + distZ * distZ) * radius);
-      
-      positions.push(newX, newY, newZ);
-      
-      // Calculate new normal
-      const nx = (newX - dirX * (halfWidth - radius)) / radius;
-      const ny = (newY - dirY * (halfHeight - radius)) / radius;
-      const nz = (newZ - dirZ * (halfDepth - radius)) / radius;
-      const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
-      
-      normals.push(nx / length, ny / length, nz / length);
-    } else {
-      positions.push(x, y, z);
-      normals.push(normal.getX(i), normal.getY(i), normal.getZ(i));
-    }
-  }
-  
-  // Update geometry
-  for (let i = 0; i < position.count; i++) {
-    position.setXYZ(i, positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-    normal.setXYZ(i, normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
-  }
-  
-  position.needsUpdate = true;
-  normal.needsUpdate = true;
-  
-  return geometry;
-}
 
 export default Avatar3D;
