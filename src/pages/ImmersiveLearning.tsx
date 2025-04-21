@@ -123,10 +123,15 @@ const ImmersiveLearning = () => {
               ))}
             </TabsList>
             
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
               {subjects.map(subject => (
-                <TabsContent key={subject.id} value={subject.id} className="h-full">
-                  <Card className="p-0 bg-transparent border-none h-full">
+                <TabsContent 
+                  key={subject.id} 
+                  value={subject.id} 
+                  className="absolute inset-0 h-full"
+                  forceMount={subject.id === activeSubject}
+                >
+                  <div className="h-full">
                     <ImmersiveEnvironment 
                       environment={subject.environment}
                       isSpeaking={isAvatarSpeaking}
@@ -134,7 +139,7 @@ const ImmersiveLearning = () => {
                       isThinking={isAvatarThinking}
                       subjectId={subject.id}
                     />
-                  </Card>
+                  </div>
                 </TabsContent>
               ))}
             </div>
