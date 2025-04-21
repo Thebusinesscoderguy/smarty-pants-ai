@@ -91,6 +91,7 @@ const ImmersiveLearning = () => {
     }
   };
 
+  // Debug logging
   console.log('Rendering ImmersiveLearning component', { activeSubject, environment });
 
   return (
@@ -112,9 +113,13 @@ const ImmersiveLearning = () => {
           </div>
         </div>
         
-        <div className="flex-1 overflow-hidden p-4 flex flex-col">
-          <Tabs value={activeSubject} onValueChange={handleSubjectChange} className="flex-1 flex flex-col">
-            <TabsList className="mb-4">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Tabs 
+            value={activeSubject} 
+            onValueChange={handleSubjectChange} 
+            className="flex-1 flex flex-col"
+          >
+            <TabsList className="mx-4 my-2">
               {subjects.map(subject => (
                 <TabsTrigger key={subject.id} value={subject.id} className="flex items-center gap-2">
                   <subject.icon className="h-4 w-4" />
@@ -123,23 +128,22 @@ const ImmersiveLearning = () => {
               ))}
             </TabsList>
             
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 relative overflow-hidden p-0 m-0">
               {subjects.map(subject => (
                 <TabsContent 
                   key={subject.id} 
                   value={subject.id} 
-                  className="absolute inset-0 h-full"
+                  className="absolute inset-0 w-full h-full m-0 p-0"
                   forceMount={subject.id === activeSubject ? true : undefined}
+                  style={{ display: subject.id === activeSubject ? 'block' : 'none' }}
                 >
-                  <div className="h-full">
-                    <ImmersiveEnvironment 
-                      environment={subject.environment}
-                      isSpeaking={isAvatarSpeaking}
-                      isListening={isAvatarListening}
-                      isThinking={isAvatarThinking}
-                      subjectId={subject.id}
-                    />
-                  </div>
+                  <ImmersiveEnvironment 
+                    environment={subject.environment}
+                    isSpeaking={isAvatarSpeaking}
+                    isListening={isAvatarListening}
+                    isThinking={isAvatarThinking}
+                    subjectId={subject.id}
+                  />
                 </TabsContent>
               ))}
             </div>
