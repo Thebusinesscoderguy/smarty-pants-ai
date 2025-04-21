@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -32,6 +33,37 @@ const ImmersiveEnvironment: React.FC<ImmersiveEnvironmentProps> = ({
   const [interactiveItems, setInteractiveItems] = useState<{ id: string, name: string, type: string }[]>([]);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [sceneLoaded, setSceneLoaded] = useState(false);
+  
+  // Define all the geometries and materials that were previously undefined
+  const wallGeometry = new THREE.BoxGeometry(20, 4, 0.2);
+  const wallMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8B4513,
+    roughness: 0.8,
+    metalness: 0.2,
+  });
+  
+  const bookshelfGeometry = new THREE.BoxGeometry(2, 4, 0.5);
+  const bookshelfMaterial = new THREE.MeshStandardMaterial({
+    color: 0x6B4226,
+    roughness: 0.9,
+    metalness: 0.1,
+  });
+  
+  const bookGeometry = new THREE.BoxGeometry(0.5, 0.7, 0.1);
+  const bookMaterial = new THREE.MeshStandardMaterial({
+    color: 0x2E5090,
+    roughness: 0.5,
+    metalness: 0.3,
+  });
+  
+  const blockGeometry = new THREE.BoxGeometry(2, 1.5, 0.1);
+  const blockMaterial = new THREE.MeshStandardMaterial({
+    color: 0x333333,
+    roughness: 0.5,
+    metalness: 0.8,
+    emissive: 0x222222,
+    emissiveIntensity: 0.2,
+  });
   
   useEffect(() => {
     if (!mountRef.current) return;
