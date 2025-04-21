@@ -36,15 +36,18 @@ const ImmersiveLearning = () => {
 
   // Set the environment based on the selected subject
   useEffect(() => {
+    console.log('Subject changed to:', activeSubject);
     const subject = subjects.find(s => s.id === activeSubject);
     if (subject) {
       setEnvironment(subject.environment);
+      console.log('Environment set to:', subject.environment);
     }
   }, [activeSubject]);
 
   // Simulate avatar starting to teach when subject changes
   useEffect(() => {
     if (activeSubject) {
+      console.log('Initializing avatar animations for subject:', activeSubject);
       setIsAvatarThinking(true);
       
       // Simulate AI thinking time
@@ -61,6 +64,7 @@ const ImmersiveLearning = () => {
   }, [activeSubject]);
 
   const handleSubjectChange = (subject: string) => {
+    console.log('Changing subject to:', subject);
     setActiveSubject(subject);
     navigate(`/immersive/${subject}`);
   };
@@ -91,8 +95,11 @@ const ImmersiveLearning = () => {
     }
   };
 
-  // Debug logging
-  console.log('Rendering ImmersiveLearning component', { activeSubject, environment });
+  console.log('Rendering ImmersiveLearning component', { 
+    activeSubject, 
+    environment,
+    currentRoute: window.location.pathname
+  });
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
@@ -129,28 +136,30 @@ const ImmersiveLearning = () => {
             </TabsList>
             
             <div className="flex-1 relative overflow-hidden">
-              {subjects.map(subject => (
-                <TabsContent 
-                  key={subject.id} 
-                  value={subject.id} 
-                  className="absolute inset-0 w-full h-full"
-                  forceMount
-                  style={{ 
-                    display: subject.id === activeSubject ? 'block' : 'none',
-                    opacity: subject.id === activeSubject ? 1 : 0,
-                    pointerEvents: subject.id === activeSubject ? 'auto' : 'none'
-                  }}
-                >
-                  <ImmersiveEnvironment 
-                    key={`${subject.id}-${environment}`}
-                    environment={subject.environment}
-                    isSpeaking={isAvatarSpeaking}
-                    isListening={isAvatarListening}
-                    isThinking={isAvatarThinking}
-                    subjectId={subject.id}
-                  />
-                </TabsContent>
-              ))}
+              {subjects.map(subject => {
+                const isActive = subject.id === activeSubject;
+                return (
+                  <TabsContent 
+                    key={subject.id} 
+                    value={subject.id} 
+                    className="absolute inset-0 w-full h-full"
+                    style={{
+                      display: isActive ? 'block' : 'none'
+                    }}
+                  >
+                    {isActive && (
+                      <ImmersiveEnvironment 
+                        key={`${subject.id}-${subject.environment}`}
+                        environment={subject.environment}
+                        isSpeaking={isAvatarSpeaking}
+                        isListening={isAvatarListening}
+                        isThinking={isAvatarThinking}
+                        subjectId={subject.id}
+                      />
+                    )}
+                  </TabsContent>
+                );
+              })}
             </div>
           </Tabs>
         </div>
