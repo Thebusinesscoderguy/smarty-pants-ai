@@ -91,6 +91,8 @@ const ImmersiveLearning = () => {
     }
   };
 
+  console.log('Rendering ImmersiveLearning component', { activeSubject, environment });
+
   return (
     <div className="flex min-h-screen bg-black text-white">
       <AppSidebar />
@@ -111,7 +113,7 @@ const ImmersiveLearning = () => {
         </div>
         
         <div className="flex-1 overflow-hidden p-4 flex flex-col">
-          <Tabs value={activeSubject} onValueChange={handleSubjectChange}>
+          <Tabs value={activeSubject} onValueChange={handleSubjectChange} className="flex-1 flex flex-col">
             <TabsList className="mb-4">
               {subjects.map(subject => (
                 <TabsTrigger key={subject.id} value={subject.id} className="flex items-center gap-2">
