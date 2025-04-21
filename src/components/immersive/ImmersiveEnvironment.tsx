@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -34,7 +33,6 @@ const ImmersiveEnvironment: React.FC<ImmersiveEnvironmentProps> = ({
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [sceneLoaded, setSceneLoaded] = useState(false);
   
-  // Define all the geometries and materials that were previously undefined
   const wallGeometry = new THREE.BoxGeometry(20, 4, 0.2);
   const wallMaterial = new THREE.MeshStandardMaterial({
     color: 0x8B4513,
@@ -65,43 +63,62 @@ const ImmersiveEnvironment: React.FC<ImmersiveEnvironmentProps> = ({
     emissiveIntensity: 0.2,
   });
   
-  useEffect(() => {
-    if (!mountRef.current) return;
+  const cleanupScene = () => {
+    console.log('Cleaning up Three.js scene');
     
-    return () => {
-      if (requestIdRef.current) {
-        cancelAnimationFrame(requestIdRef.current);
-      }
-      
-      if (rendererRef.current && mountRef.current) {
+    if (requestIdRef.current) {
+      cancelAnimationFrame(requestIdRef.current);
+      requestIdRef.current = null;
+    }
+    
+    if (rendererRef.current && mountRef.current) {
+      if (mountRef.current.contains(rendererRef.current.domElement)) {
         mountRef.current.removeChild(rendererRef.current.domElement);
       }
-      
-      if (sceneRef.current) {
-        sceneRef.current.traverse((object) => {
-          if (object instanceof THREE.Mesh) {
-            object.geometry.dispose();
-            if (object.material instanceof THREE.Material) {
-              object.material.dispose();
-            } else if (Array.isArray(object.material)) {
-              object.material.forEach(material => material.dispose());
-            }
+      rendererRef.current.dispose();
+      rendererRef.current = null;
+    }
+    
+    if (controlsRef.current) {
+      controlsRef.current.dispose();
+      controlsRef.current = null;
+    }
+    
+    if (sceneRef.current) {
+      sceneRef.current.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          if (object.material instanceof THREE.Material) {
+            object.material.dispose();
+          } else if (Array.isArray(object.material)) {
+            object.material.forEach(material => material.dispose());
           }
-        });
-      }
+        }
+      });
+      sceneRef.current = null;
+    }
+    
+    cameraRef.current = null;
+    avatarRef.current = null;
+  };
+  
+  useEffect(() => {
+    console.log('ImmersiveEnvironment mounted');
+    
+    return () => {
+      console.log('ImmersiveEnvironment unmounting');
+      cleanupScene();
     };
   }, []);
   
   useEffect(() => {
-    if (!mountRef.current) return;
-    
-    if (requestIdRef.current) {
-      cancelAnimationFrame(requestIdRef.current);
+    console.log('Setting up Three.js environment:', environment);
+    if (!mountRef.current) {
+      console.warn('Mount ref is null, cannot setup Three.js scene');
+      return;
     }
     
-    if (rendererRef.current && mountRef.current && mountRef.current.contains(rendererRef.current.domElement)) {
-      mountRef.current.removeChild(rendererRef.current.domElement);
-    }
+    cleanupScene();
     
     const scene = new THREE.Scene();
     sceneRef.current = scene;
@@ -172,11 +189,10 @@ const ImmersiveEnvironment: React.FC<ImmersiveEnvironmentProps> = ({
     
     window.addEventListener('resize', handleResize);
     
+    handleResize();
+    
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (requestIdRef.current) {
-        cancelAnimationFrame(requestIdRef.current);
-      }
     };
   }, [environment]);
   
@@ -480,11 +496,19 @@ const ImmersiveEnvironment: React.FC<ImmersiveEnvironmentProps> = ({
     });
   };
   
+  console.log('Rendering ImmersiveEnvironment', { 
+    environment, 
+    sceneLoaded, 
+    sceneCreated: !!sceneRef.current,
+    rendererCreated: !!rendererRef.current 
+  });
+  
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden" data-testid="immersive-environment">
       <div 
         ref={mountRef} 
-        className="absolute top-0 left-0 w-full h-full"
+        className="absolute inset-0 w-full h-full"
+        style={{ pointerEvents: 'auto' }}
       />
       
       {sceneLoaded && (

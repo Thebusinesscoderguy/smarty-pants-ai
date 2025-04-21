@@ -95,7 +95,7 @@ const ImmersiveLearning = () => {
   console.log('Rendering ImmersiveLearning component', { activeSubject, environment });
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex h-screen bg-black text-white overflow-hidden">
       <AppSidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -117,7 +117,7 @@ const ImmersiveLearning = () => {
           <Tabs 
             value={activeSubject} 
             onValueChange={handleSubjectChange} 
-            className="flex-1 flex flex-col"
+            className="flex-1 flex flex-col overflow-hidden"
           >
             <TabsList className="mx-4 my-2">
               {subjects.map(subject => (
@@ -128,16 +128,21 @@ const ImmersiveLearning = () => {
               ))}
             </TabsList>
             
-            <div className="flex-1 relative overflow-hidden p-0 m-0">
+            <div className="flex-1 relative overflow-hidden">
               {subjects.map(subject => (
                 <TabsContent 
                   key={subject.id} 
                   value={subject.id} 
-                  className="absolute inset-0 w-full h-full m-0 p-0"
-                  forceMount={subject.id === activeSubject ? true : undefined}
-                  style={{ display: subject.id === activeSubject ? 'block' : 'none' }}
+                  className="absolute inset-0 w-full h-full"
+                  forceMount
+                  style={{ 
+                    display: subject.id === activeSubject ? 'block' : 'none',
+                    opacity: subject.id === activeSubject ? 1 : 0,
+                    pointerEvents: subject.id === activeSubject ? 'auto' : 'none'
+                  }}
                 >
                   <ImmersiveEnvironment 
+                    key={`${subject.id}-${environment}`}
                     environment={subject.environment}
                     isSpeaking={isAvatarSpeaking}
                     isListening={isAvatarListening}
