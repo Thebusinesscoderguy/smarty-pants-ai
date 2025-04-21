@@ -12,6 +12,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import OpenAIKeyForm from '@/components/OpenAIKeyForm';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+
+const OPENAI_VOICES = [
+  { label: 'Alloy (Default)', value: 'alloy' },
+  { label: 'Echo', value: 'echo' },
+  { label: 'Fable', value: 'fable' },
+  { label: 'Onyx', value: 'onyx' },
+  { label: 'Nova', value: 'nova' },
+  { label: 'Shimmer', value: 'shimmer' },
+];
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -28,12 +38,14 @@ const Voice = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [textMessage, setTextMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  
+
+  const [selectedVoice, setSelectedVoice] = useState('alloy');
+
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
   const monthlyLimit = 5000;
-  
+
   const [apiKeyError, setApiKeyError] = useState(false);
 
   const {
@@ -65,11 +77,9 @@ const Voice = () => {
 
   const checkOpenAIKey = async () => {
     try {
-      // Try to ping the text-to-voice function with a simple request
       const response = await supabase.functions.invoke('text-to-voice', {
         body: { text: "Test", voice: 'alloy' }
       });
-      
       if (response.error && response.error.message && response.error.message.includes('API key')) {
         setApiKeyError(true);
         console.error("API key error from function:", response.error);
@@ -78,7 +88,6 @@ const Voice = () => {
       }
     } catch (error: any) {
       console.error("Error checking OpenAI API key:", error);
-      // Check if the error is related to the API key
       if (error.message && error.message.includes('API key')) {
         setApiKeyError(true);
       }
@@ -257,7 +266,6 @@ const Voice = () => {
 
   const getAIResponse = async (userMessage: string) => {
     try {
-      // Add a temporary message to show processing
       const processingMessageId = `processing-${Date.now()}`;
       const processingMessage: Message = {
         id: processingMessageId,
@@ -267,28 +275,27 @@ const Voice = () => {
         type: 'text',
         tokenCount: 0
       };
-      
+
       setMessages(prev => [...prev, processingMessage]);
-      
+
       try {
-        // Use supabase.functions.invoke instead of direct fetch
+        // Pass selectedVoice here
         const response = await supabase.functions.invoke('text-to-voice', {
           body: { 
             text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
-            voice: 'alloy'
+            voice: selectedVoice || 'alloy'
           }
         });
-        
+
         if (response.error) {
           if (response.error.message && response.error.message.includes('API key')) {
             setApiKeyError(true);
           }
           throw new Error(response.error.message || 'Failed to generate speech');
         }
-        
+
         const base64Audio = response.data.audioContent;
-        
-        // Convert base64 to blob
+
         const byteCharacters = atob(base64Audio);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -296,14 +303,11 @@ const Voice = () => {
         }
         const byteArray = new Uint8Array(byteNumbers);
         const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
-        
-        // Create URL from blob
+
         const audioUrl = URL.createObjectURL(audioBlob);
-        
-        // Remove the processing message
+
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
-        
-        // Create the AI response message
+
         const aiMessageId = `ai-${Date.now()}`;
         const aiMessage: Message = {
           id: aiMessageId,
@@ -314,21 +318,19 @@ const Voice = () => {
           type: 'voice',
           tokenCount: 10
         };
-        
+
         setMessages(prev => [...prev, aiMessage]);
         setOutputTokens(prev => prev + 10);
         setTotalTokensUsed(prev => prev + 10);
-        
+
         setTimeout(() => {
           if (aiMessageId) {
             handlePlayAudio(aiMessageId, messages, setMessages);
           }
         }, 500);
-        
+
       } catch (error: any) {
-        // Remove the processing message
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
-        
         console.error("Error in getAIResponse:", error);
         toast({
           title: "Error",
@@ -385,7 +387,7 @@ const Voice = () => {
       <div className="w-64 flex-shrink-0 border-r border-white/10">
         <AppSidebar />
       </div>
-      
+
       <div className="flex-1 flex flex-col max-h-screen overflow-hidden shadow-2xl">
         <ChatHeader
           isRecording={isRecording}
@@ -405,12 +407,29 @@ const Voice = () => {
             </Alert>
           )}
 
-          <TokenUsageDisplay
-            totalTokensUsed={totalTokensUsed}
-            monthlyLimit={monthlyLimit}
-            inputTokens={inputTokens}
-            outputTokens={outputTokens}
-          />
+          <div className="flex flex-row items-center gap-4 mb-2">
+            <TokenUsageDisplay
+              totalTokensUsed={totalTokensUsed}
+              monthlyLimit={monthlyLimit}
+              inputTokens={inputTokens}
+              outputTokens={outputTokens}
+            />
+            <div className="flex items-center gap-2">
+              <label htmlFor="voice-select" className="text-sm font-medium text-white/80">Voice:</label>
+              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                <SelectTrigger id="voice-select" className="w-[140px] bg-white/5 border-white/20">
+                  <SelectValue placeholder="Choose voice" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 z-50">
+                  {OPENAI_VOICES.map(voice => (
+                    <SelectItem key={voice.value} value={voice.value}>
+                      {voice.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           <ChatContainer
             messages={messages}
