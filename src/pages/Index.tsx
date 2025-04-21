@@ -1,6 +1,7 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Mic } from 'lucide-react';
+import { MessageSquare, Mic, Cube } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -10,6 +11,7 @@ import { ContactForm } from '@/components/contact/ContactForm';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { testApiConnections } from '@/utils/apiService';
+import { useNavigate } from 'react-router-dom';
 import type { VoiceMessage } from '@/types/voice';
 import type { Message } from '@/types/message';
 
