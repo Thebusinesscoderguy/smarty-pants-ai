@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,16 +101,6 @@ const App = () => (
               <Route path="/voice" element={
                 <ProtectedRoute>
                   <Voice />
-                </ProtectedRoute>
-              } />
-              <Route path="/immersive" element={
-                <ProtectedRoute>
-                  <ImmersiveLearning />
-                </ProtectedRoute>
-              } />
-              <Route path="/immersive/:subjectId" element={
-                <ProtectedRoute>
-                  <ImmersiveLearning />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

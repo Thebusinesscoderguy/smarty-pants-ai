@@ -1,5 +1,5 @@
 
-import { MessageSquare, LogOut, BookOpen } from 'lucide-react';
+import { MessageSquare, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -53,11 +53,7 @@ export function AppSidebar() {
       icon: MessageSquare,
       url: "/voice",
     },
-    {
-      title: "3D Learning",
-      icon: BookOpen,
-      url: "/immersive",
-    },
+    // Removed 3D Learning here
     {
       title: "Log Out",
       icon: LogOut,
