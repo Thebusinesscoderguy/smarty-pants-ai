@@ -34,6 +34,14 @@ const ImmersiveLearning = () => {
     handleStopRecording
   } = useVoiceRecorder();
 
+  // Update URL when component mounts if no subjectId
+  useEffect(() => {
+    if (!subjectId) {
+      console.log('No subject ID in URL, navigating to:', `/immersive/${activeSubject}`);
+      navigate(`/immersive/${activeSubject}`, { replace: true });
+    }
+  }, [subjectId, activeSubject, navigate]);
+
   // Set the environment based on the selected subject
   useEffect(() => {
     console.log('Subject changed to:', activeSubject);
@@ -143,19 +151,19 @@ const ImmersiveLearning = () => {
                     key={subject.id} 
                     value={subject.id} 
                     className="absolute inset-0 w-full h-full"
-                    style={{
-                      display: isActive ? 'block' : 'none'
-                    }}
+                    forceMount
                   >
                     {isActive && (
-                      <ImmersiveEnvironment 
-                        key={`${subject.id}-${subject.environment}`}
-                        environment={subject.environment}
-                        isSpeaking={isAvatarSpeaking}
-                        isListening={isAvatarListening}
-                        isThinking={isAvatarThinking}
-                        subjectId={subject.id}
-                      />
+                      <div className="w-full h-full">
+                        <ImmersiveEnvironment 
+                          key={`${subject.id}-${subject.environment}`}
+                          environment={subject.environment}
+                          isSpeaking={isAvatarSpeaking}
+                          isListening={isAvatarListening}
+                          isThinking={isAvatarThinking}
+                          subjectId={subject.id}
+                        />
+                      </div>
                     )}
                   </TabsContent>
                 );

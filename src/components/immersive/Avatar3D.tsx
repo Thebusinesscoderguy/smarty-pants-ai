@@ -129,8 +129,10 @@ export const Avatar3D: React.FC<Avatar3DProps> = ({
   
   // Initialize and update the avatar
   useEffect(() => {
+    console.log('Avatar3D component mounted or updated');
     if (!avatarRef.current) {
       avatarRef.current = createAvatarModel();
+      console.log('Avatar3D model created');
     }
     
     if (avatarRef.current) {
@@ -138,7 +140,21 @@ export const Avatar3D: React.FC<Avatar3DProps> = ({
     }
     
     return () => {
-      avatarRef.current = null;
+      console.log('Avatar3D component unmounting');
+      // Clean up Three.js objects to prevent memory leaks
+      if (avatarRef.current) {
+        avatarRef.current.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry.dispose();
+            if (Array.isArray(child.material)) {
+              child.material.forEach(material => material.dispose());
+            } else {
+              child.material.dispose();
+            }
+          }
+        });
+        avatarRef.current = null;
+      }
     };
   }, [sentiment, avatarStyle]);
   
