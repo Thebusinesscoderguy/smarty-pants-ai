@@ -129,7 +129,7 @@ const ImmersiveLearning = () => {
                   key={subject.id} 
                   value={subject.id} 
                   className="absolute inset-0 h-full"
-                  forceMount={subject.id === activeSubject}
+                  forceMount={subject.id === activeSubject ? true : undefined}
                 >
                   <div className="h-full">
                     <ImmersiveEnvironment 
