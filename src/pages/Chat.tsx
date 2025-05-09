@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
@@ -133,9 +132,10 @@ const Chat = () => {
     handleStopRecording
   } = useVoiceRecorder();
 
+  // Rename the imported audio handler functions to avoid name conflicts
   const {
-    handlePlayAudio,
-    handlePauseAudio,
+    handlePlayAudio: audioHandlerPlay,
+    handlePauseAudio: audioHandlerPause,
     activeSpeakingMessage
   } = useAudioHandler();
 
@@ -488,6 +488,7 @@ const Chat = () => {
     }
   };
 
+  // Define local handlePlayAudio function that uses the imported function
   const handlePlayAudio = (messageId: string) => {
     if (!activeChat) return;
     
@@ -537,6 +538,7 @@ const Chat = () => {
     };
   };
 
+  // Define local handlePauseAudio function that uses the imported function
   const handlePauseAudio = (messageId: string) => {
     if (!activeChat) return;
     
@@ -682,4 +684,3 @@ const Chat = () => {
 };
 
 export default Chat;
-
