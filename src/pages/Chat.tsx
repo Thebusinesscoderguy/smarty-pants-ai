@@ -42,79 +42,9 @@ const OPENAI_VOICES = [
 
 const Chat = () => {
   const { user } = useAuth();
-  const [chats, setChats] = useState<Chat[]>([
-    {
-      id: '1',
-      title: 'Voice assistants',
-      topic: 'AI Technology',
-      lastMessage: 'How do voice assistants work?',
-      updatedAt: new Date(2025, 4, 5),
-      messages: [
-        {
-          id: '1-1',
-          content: 'I\'m curious about voice assistants.',
-          isFromUser: true,
-          timestamp: new Date(2025, 4, 5, 10, 0)
-        },
-        {
-          id: '1-2',
-          content: 'What would you like to know about voice assistants?',
-          isFromUser: false,
-          timestamp: new Date(2025, 4, 5, 10, 1)
-        },
-        {
-          id: '1-3',
-          content: 'How do voice assistants work?',
-          isFromUser: true,
-          timestamp: new Date(2025, 4, 5, 10, 2)
-        }
-      ]
-    },
-    {
-      id: '2',
-      title: 'Learning Spanish',
-      topic: 'Language Learning',
-      lastMessage: 'Can you help me practice Spanish?',
-      updatedAt: new Date(2025, 4, 4),
-      messages: [
-        {
-          id: '2-1',
-          content: 'I want to learn Spanish',
-          isFromUser: true,
-          timestamp: new Date(2025, 4, 4, 15, 0)
-        },
-        {
-          id: '2-2',
-          content: 'Can you help me practice Spanish?',
-          isFromUser: true,
-          timestamp: new Date(2025, 4, 4, 15, 1)
-        }
-      ]
-    },
-    {
-      id: '3',
-      title: 'React development',
-      topic: 'Programming',
-      lastMessage: 'How do I use React hooks?',
-      updatedAt: new Date(2025, 4, 3),
-      messages: [
-        {
-          id: '3-1',
-          content: 'I\'m learning React and I\'m confused about hooks.',
-          isFromUser: true,
-          timestamp: new Date(2025, 4, 3, 9, 0)
-        },
-        {
-          id: '3-2',
-          content: 'How do I use React hooks?',
-          isFromUser: true,
-          timestamp: new Date(2025, 4, 3, 9, 1)
-        }
-      ]
-    }
-  ]);
-  
-  const [activeChat, setActiveChat] = useState<Chat | null>(chats[0] || null);
+  // Start with empty chats array
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedVoice, setSelectedVoice] = useState('alloy');
@@ -671,6 +601,7 @@ const Chat = () => {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-4">Start a new chat</h2>
+              <p className="text-white/70 mb-6">You don't have any chats yet. Create your first one!</p>
               <Button onClick={handleNewChat} className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
                 New Chat
