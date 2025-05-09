@@ -51,9 +51,13 @@ export function AppSidebar() {
     {
       title: "Chat",
       icon: MessageSquare,
+      url: "/chat",
+    },
+    {
+      title: "Voice Chat",
+      icon: MessageSquare,
       url: "/voice",
     },
-    // Removed 3D Learning here
     {
       title: "Log Out",
       icon: LogOut,
