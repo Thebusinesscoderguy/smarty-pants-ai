@@ -20,7 +20,19 @@ serve(async (req) => {
       throw new Error('Messages must be provided as an array');
     }
 
-    // Call OpenAI API for chat completion
+    // Check if the system prompt includes quiz mode instructions
+    const isQuizMode = messages.some(msg => 
+      msg.role === 'system' && 
+      msg.content.includes('quiz mode')
+    );
+
+    // Extract performance data if present in system message
+    const performanceData = messages.find(msg => 
+      msg.role === 'system' && 
+      msg.content.includes('Strengths:')
+    );
+
+    // Call OpenAI API for chat completion with appropriate instruction
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -31,7 +43,7 @@ serve(async (req) => {
         model: 'gpt-4o-mini', // Using GPT-4o-mini for better responses at lower cost
         messages: messages,
         max_tokens: 500,
-        temperature: 0.7,
+        temperature: isQuizMode ? 0.4 : 0.7, // Lower temperature for more factual quiz responses
       }),
     });
 
@@ -43,6 +55,12 @@ serve(async (req) => {
 
     const data = await response.json();
     const text = data.choices[0].message.content;
+
+    // Log usage data for debugging
+    console.log("Token usage:", data.usage);
+    if (isQuizMode) {
+      console.log("Quiz mode active");
+    }
 
     return new Response(
       JSON.stringify({ text }),

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -51,6 +52,17 @@ const Voice = () => {
   const monthlyLimit = MONTHLY_TOKEN_LIMIT;
 
   const [apiKeyError, setApiKeyError] = useState(false);
+  
+  // Response time tracking
+  const [isQuizMode, setIsQuizMode] = useState(false);
+  const [lastQuestionTime, setLastQuestionTime] = useState<Date | null>(null);
+  const [responseTimes, setResponseTimes] = useState<{
+    question: string;
+    responseTimeMs: number;
+    wasCorrect: boolean;
+  }[]>([]);
+  const [userStrengths, setUserStrengths] = useState<string[]>([]);
+  const [userWeaknesses, setUserWeaknesses] = useState<string[]>([]);
 
   const {
     isRecording,
@@ -169,6 +181,21 @@ const Voice = () => {
         setInputTokens(prev => prev + (userMessage.tokenCount || 0));
         setTotalTokensUsed(prev => prev + (userMessage.tokenCount || 0));
         
+        // Track response time if in quiz mode
+        if (isQuizMode && lastQuestionTime) {
+          const responseTimeMs = new Date().getTime() - lastQuestionTime.getTime();
+          const isCorrectAnswer = analyzeAnswerCorrectness(transcribedText);
+          
+          const newResponseTime = {
+            question: getLastQuestion(),
+            responseTimeMs,
+            wasCorrect: isCorrectAnswer
+          };
+          
+          setResponseTimes(prev => [...prev, newResponseTime]);
+          analyzeUserPerformance([...responseTimes, newResponseTime]);
+        }
+        
         await getAIResponse(transcribedText);
         
       } catch (error: any) {
@@ -217,6 +244,21 @@ const Voice = () => {
       // Simulate token counting without database access
       setInputTokens(prev => prev + tokenCount);
       setTotalTokensUsed(prev => prev + tokenCount);
+      
+      // Track response time if in quiz mode
+      if (isQuizMode && lastQuestionTime) {
+        const responseTimeMs = new Date().getTime() - lastQuestionTime.getTime();
+        const isCorrectAnswer = analyzeAnswerCorrectness(textMessage);
+        
+        const newResponseTime = {
+          question: getLastQuestion(),
+          responseTimeMs,
+          wasCorrect: isCorrectAnswer
+        };
+        
+        setResponseTimes(prev => [...prev, newResponseTime]);
+        analyzeUserPerformance([...responseTimes, newResponseTime]);
+      }
       
       await getAIResponse(textMessage);
     } catch (error: any) {
@@ -292,13 +334,33 @@ const Voice = () => {
             content: m.text
           }));
         
+        // Check if this appears to be a quiz-related message
+        const isQuizRequest = userMessage.toLowerCase().includes('quiz') || 
+                             userMessage.toLowerCase().includes('test') || 
+                             userMessage.toLowerCase().includes('question');
+        
+        // If we're starting a quiz, enable quiz mode
+        if (isQuizRequest && !isQuizMode) {
+          setIsQuizMode(true);
+          setResponseTimes([]);
+        }
+        
         // Generate AI response using OpenAI's chat completion API
         const completionResponse = await supabase.functions.invoke('chat-completion', {
           body: {
             messages: [
               {
                 role: "system",
-                content: "You are a helpful, friendly AI assistant named Teachly. Be conversational, thoughtful, and helpful with your responses. Keep responses concise yet informative."
+                content: `You are a helpful, friendly AI assistant named Teachly. Be conversational, thoughtful, and helpful with your responses. Keep responses concise yet informative.
+                
+                ${isQuizMode ? "You are in quiz mode. Ask educational questions and provide feedback on the user's answers. Focus on helping them learn." : ""}
+                
+                ${responseTimes.length > 0 ? `Here's some information about the user's performance:
+                - Strengths: ${userStrengths.join(', ') || 'Not enough data yet'}
+                - Weaknesses: ${userWeaknesses.join(', ') || 'Not enough data yet'}
+                - Response times: Fast: ${getFastResponseTopics()}, Slow: ${getSlowResponseTopics()}` : ""}
+                
+                When responding to user questions, be natural and conversational. Don't use phrases like "I've processed your message" or other robotic language.`
               },
               ...conversationHistory,
               { role: "user", content: userMessage }
@@ -311,6 +373,11 @@ const Voice = () => {
         }
 
         const aiResponseText = completionResponse.data.text;
+        
+        // Check if this is a quiz question and update state
+        if (isQuizMode && aiResponseText.includes('?')) {
+          setLastQuestionTime(new Date());
+        }
 
         // Generate speech from the AI response text
         const voiceResponse = await supabase.functions.invoke('text-to-voice', {
@@ -381,6 +448,161 @@ const Voice = () => {
         variant: "destructive"
       });
     }
+  };
+
+  // Helper functions for analyzing user performance
+  const getLastQuestion = (): string => {
+    const aiMessages = messages.filter(m => !m.isFromUser);
+    if (aiMessages.length > 0) {
+      const lastMessage = aiMessages[aiMessages.length - 1].text;
+      return lastMessage;
+    }
+    return '';
+  };
+
+  const analyzeAnswerCorrectness = (answer: string): boolean => {
+    // This is a simple placeholder implementation
+    // In a real app, you would need a more sophisticated answer evaluation
+    const lastQuestion = getLastQuestion().toLowerCase();
+    const userAnswer = answer.toLowerCase();
+    
+    // Simple example rules - this would be much more sophisticated in production
+    if (lastQuestion.includes('capital of france') && userAnswer.includes('paris')) {
+      return true;
+    }
+    if (lastQuestion.includes('2+2') && (userAnswer.includes('4') || userAnswer.includes('four'))) {
+      return true;
+    }
+    
+    // Default rule - assumes correct answers contain keywords from the question
+    // This is very simplistic and would need to be improved
+    const questionWords = lastQuestion.split(' ')
+      .filter(word => word.length > 4)
+      .map(word => word.replace(/[^a-zA-Z0-9]/g, ''));
+    
+    let correctWordCount = 0;
+    questionWords.forEach(word => {
+      if (userAnswer.includes(word)) {
+        correctWordCount++;
+      }
+    });
+    
+    return correctWordCount > 0;
+  };
+  
+  const analyzeUserPerformance = (responseData: {
+    question: string;
+    responseTimeMs: number;
+    wasCorrect: boolean;
+  }[]) => {
+    if (responseData.length < 2) return; // Need more data
+    
+    // Extract topics from questions (simple implementation)
+    const topics = new Map<string, {
+      totalTime: number,
+      correctCount: number,
+      incorrectCount: number,
+      count: number
+    }>();
+    
+    // Simple topic extraction - in production this would be more sophisticated
+    responseData.forEach(data => {
+      // Very basic topic extraction - would use NLP in production
+      const possibleTopics = data.question.toLowerCase()
+        .split(' ')
+        .filter(word => word.length > 4)
+        .map(word => word.replace(/[^a-zA-Z0-9]/g, ''));
+      
+      const topic = possibleTopics[0] || 'general'; // Simplified
+      
+      if (!topics.has(topic)) {
+        topics.set(topic, {
+          totalTime: 0,
+          correctCount: 0,
+          incorrectCount: 0,
+          count: 0
+        });
+      }
+      
+      const topicData = topics.get(topic)!;
+      topicData.totalTime += data.responseTimeMs;
+      if (data.wasCorrect) {
+        topicData.correctCount++;
+      } else {
+        topicData.incorrectCount++;
+      }
+      topicData.count++;
+    });
+    
+    // Analyze strengths (quick correct answers)
+    const strengths: string[] = [];
+    const weaknesses: string[] = [];
+    
+    topics.forEach((data, topic) => {
+      const averageTime = data.totalTime / data.count;
+      const correctRatio = data.correctCount / data.count;
+      
+      if (correctRatio > 0.7 && data.count >= 2) {
+        strengths.push(topic);
+      }
+      
+      if (correctRatio < 0.5 || averageTime > 10000) { // More than 10 seconds
+        weaknesses.push(topic);
+      }
+    });
+    
+    setUserStrengths(strengths);
+    setUserWeaknesses(weaknesses);
+  };
+  
+  const getFastResponseTopics = (): string => {
+    if (responseTimes.length < 2) return 'Not enough data';
+    
+    const topicTimes = new Map<string, number[]>();
+    
+    responseTimes.forEach(data => {
+      const topic = data.question.split(' ')[0].toLowerCase(); // Very simplified
+      if (!topicTimes.has(topic)) {
+        topicTimes.set(topic, []);
+      }
+      topicTimes.get(topic)!.push(data.responseTimeMs);
+    });
+    
+    const fastTopics: string[] = [];
+    
+    topicTimes.forEach((times, topic) => {
+      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+      if (avgTime < 5000 && times.length > 1) { // Less than 5 seconds average
+        fastTopics.push(topic);
+      }
+    });
+    
+    return fastTopics.join(', ') || 'None identified yet';
+  };
+  
+  const getSlowResponseTopics = (): string => {
+    if (responseTimes.length < 2) return 'Not enough data';
+    
+    const topicTimes = new Map<string, number[]>();
+    
+    responseTimes.forEach(data => {
+      const topic = data.question.split(' ')[0].toLowerCase(); // Very simplified
+      if (!topicTimes.has(topic)) {
+        topicTimes.set(topic, []);
+      }
+      topicTimes.get(topic)!.push(data.responseTimeMs);
+    });
+    
+    const slowTopics: string[] = [];
+    
+    topicTimes.forEach((times, topic) => {
+      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+      if (avgTime > 10000 && times.length > 1) { // More than 10 seconds average
+        slowTopics.push(topic);
+      }
+    });
+    
+    return slowTopics.join(', ') || 'None identified yet';
   };
 
   const handleVoiceResponse = async () => {
@@ -482,7 +704,36 @@ const Voice = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            <div className="flex items-center gap-2">
+              <label htmlFor="quiz-mode" className="text-sm font-medium text-white/80">
+                Quiz Mode:
+              </label>
+              <Select value={isQuizMode ? "on" : "off"} onValueChange={(value) => setIsQuizMode(value === "on")}>
+                <SelectTrigger id="quiz-mode" className="w-[100px] bg-white/5 border-white/20">
+                  <SelectValue placeholder="Quiz Mode" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 z-50">
+                  <SelectItem value="on">On</SelectItem>
+                  <SelectItem value="off">Off</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {isQuizMode && responseTimes.length > 0 && (
+            <Alert className="mb-4 bg-blue-900/30 border-blue-700">
+              <div>
+                <h3 className="font-medium">Learning Analysis:</h3>
+                <div className="text-sm mt-1">
+                  <div><span className="font-semibold">Strengths:</span> {userStrengths.length > 0 ? userStrengths.join(', ') : 'Not enough data yet'}</div>
+                  <div><span className="font-semibold">Areas to improve:</span> {userWeaknesses.length > 0 ? userWeaknesses.join(', ') : 'Not enough data yet'}</div>
+                  <div><span className="font-semibold">Quick responses:</span> {getFastResponseTopics()}</div>
+                  <div><span className="font-semibold">Slower responses:</span> {getSlowResponseTopics()}</div>
+                </div>
+              </div>
+            </Alert>
+          )}
 
           <div className="flex-1 flex flex-col space-y-4">
             <ScrollArea className="flex-1 pr-4">
