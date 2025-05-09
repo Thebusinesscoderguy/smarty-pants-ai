@@ -14,6 +14,7 @@ import TokenLimitAlert from '@/components/voice/TokenLimitAlert';
 import VoiceSettings from '@/components/voice/VoiceSettings';
 import QuizModeAnalysis from '@/components/voice/QuizModeAnalysis';
 import { supabase } from '@/integrations/supabase/client';
+import { Message } from '@/types/message';
 
 const Voice = () => {
   const { user } = useAuth();
@@ -72,7 +73,7 @@ const Voice = () => {
     try {
       // Add a temporary message to show processing
       const processingMessageId = `processing-${Date.now()}`;
-      const processingMessage = {
+      const processingMessage: Message = {
         id: processingMessageId,
         text: "Processing your voice message...",
         timestamp: new Date(),
@@ -102,7 +103,7 @@ const Voice = () => {
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
         
         // Create a user message with the transcribed text
-        const userMessage = {
+        const userMessage: Message = {
           id: `voice-${Date.now()}`,
           text: transcribedText,
           timestamp: new Date(),
@@ -156,7 +157,7 @@ const Voice = () => {
       // Create a temporary ID for this message
       const tempId = `text-${Date.now()}`;
       
-      const newUserMessage = {
+      const newUserMessage: Message = {
         id: tempId,
         text: textMessage,
         timestamp: new Date(),
@@ -193,7 +194,7 @@ const Voice = () => {
       // Create file URL directly
       const fileUrl = URL.createObjectURL(file);
       
-      const newUserMessage = {
+      const newUserMessage: Message = {
         id: `file-${Date.now()}`,
         text: messageText,
         timestamp: new Date(),
