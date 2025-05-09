@@ -18,6 +18,7 @@ interface ChatContainerProps {
   onPlayAudio: (messageId: string) => void;
   onPauseAudio: (messageId: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
+  disabled?: boolean;
 }
 
 const ChatContainer = ({
@@ -32,7 +33,8 @@ const ChatContainer = ({
   onKeyPress,
   onPlayAudio,
   onPauseAudio,
-  messagesEndRef
+  messagesEndRef,
+  disabled = false
 }: ChatContainerProps) => {
   return (
     <div className="flex-1 flex flex-col space-y-4">
@@ -55,6 +57,7 @@ const ChatContainer = ({
           file={file}
           setFile={setFile}
           onKeyPress={onKeyPress}
+          disabled={disabled}
         />
       </div>
     </div>

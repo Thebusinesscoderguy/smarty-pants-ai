@@ -7,12 +7,14 @@ import { useAudioHandler } from '@/hooks/useAudioHandler';
 import { Message } from '@/types/message';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import ChatHeader from '@/components/voice/ChatHeader';
-import ChatContainer from '@/components/voice/ChatContainer';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import OpenAIKeyForm from '@/components/OpenAIKeyForm';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import MessageList from '@/components/MessageList';
+import VoiceMessageInput from '@/components/VoiceMessageInput';
 
 const OPENAI_VOICES = [
   { label: 'Alloy (Default)', value: 'alloy' },
@@ -22,6 +24,8 @@ const OPENAI_VOICES = [
   { label: 'Nova', value: 'nova' },
   { label: 'Shimmer', value: 'shimmer' },
 ];
+
+const MONTHLY_TOKEN_LIMIT = 5000;
 
 const Voice = () => {
   const { user, session } = useAuth();
@@ -44,7 +48,7 @@ const Voice = () => {
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
-  const monthlyLimit = 5000;
+  const monthlyLimit = MONTHLY_TOKEN_LIMIT;
 
   const [apiKeyError, setApiKeyError] = useState(false);
 
@@ -382,6 +386,8 @@ const Voice = () => {
     }
   };
 
+  const isTokenLimitReached = totalTokensUsed >= monthlyLimit;
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
       <div className="w-64 flex-shrink-0 border-r border-white/10">
@@ -392,7 +398,13 @@ const Voice = () => {
         <ChatHeader
           isRecording={isRecording}
           recordingTime={recordingTime}
-          onStartRecording={handleStartRecording}
+          onStartRecording={isTokenLimitReached ? () => {
+            toast({
+              title: "Token Limit Reached",
+              description: "You've reached your monthly token limit. Please try again next month.",
+              variant: "destructive"
+            });
+          } : handleStartRecording}
           onStopRecording={handleRecordStop}
         />
 
@@ -407,16 +419,26 @@ const Voice = () => {
             </Alert>
           )}
 
+          {isTokenLimitReached && (
+            <Alert variant="destructive" className="mb-4 bg-red-900/30 border-red-700">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Token Limit Reached</AlertTitle>
+              <AlertDescription>
+                You've reached your monthly token limit of {MONTHLY_TOKEN_LIMIT} tokens. Please try again next month or contact support for an upgraded plan.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex flex-row items-center gap-4 mb-2">
             <TokenUsageDisplay
               totalTokensUsed={totalTokensUsed}
-              monthlyLimit={monthlyLimit}
+              monthlyLimit={MONTHLY_TOKEN_LIMIT}
               inputTokens={inputTokens}
               outputTokens={outputTokens}
             />
             <div className="flex items-center gap-2">
               <label htmlFor="voice-select" className="text-sm font-medium text-white/80">Voice:</label>
-              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+              <Select value={selectedVoice} onValueChange={setSelectedVoice} disabled={isTokenLimitReached}>
                 <SelectTrigger id="voice-select" className="w-[140px] bg-white/5 border-white/20">
                   <SelectValue placeholder="Choose voice" />
                 </SelectTrigger>
@@ -431,20 +453,30 @@ const Voice = () => {
             </div>
           </div>
 
-          <ChatContainer
-            messages={messages}
-            textMessage={textMessage}
-            file={file}
-            onSendText={handleSendTextMessage}
-            onVoiceResponse={handleVoiceResponse}
-            onFileUpload={handleFileUpload}
-            setTextMessage={setTextMessage}
-            setFile={setFile}
-            onKeyPress={handleKeyPress}
-            onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
-            onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
-            messagesEndRef={messagesEndRef}
-          />
+          <div className="flex-1 flex flex-col space-y-4">
+            <ScrollArea className="flex-1 pr-4">
+              <MessageList 
+                messages={messages}
+                onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+                onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+              />
+              <div ref={messagesEndRef} />
+            </ScrollArea>
+
+            <div className="pt-4 border-t border-white/10">
+              <VoiceMessageInput 
+                onSendText={handleSendTextMessage}
+                onVoiceResponse={handleVoiceResponse}
+                onFileUpload={handleFileUpload}
+                textMessage={textMessage}
+                setTextMessage={setTextMessage}
+                file={file}
+                setFile={setFile}
+                onKeyPress={handleKeyPress}
+                disabled={isTokenLimitReached}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
