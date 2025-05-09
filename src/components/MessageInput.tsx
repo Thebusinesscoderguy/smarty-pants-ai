@@ -15,6 +15,7 @@ interface MessageInputProps {
   onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   isVoiceEnabled?: boolean;
   onToggleVoice?: () => void;
+  disabled?: boolean; // Add the disabled prop
 }
 
 const MessageInput = ({
@@ -28,6 +29,7 @@ const MessageInput = ({
   onKeyPress,
   isVoiceEnabled = true,
   onToggleVoice = () => {},
+  disabled = false, // Add default value
 }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,7 +40,7 @@ const MessageInput = ({
   };
 
   return (
-    <div className="border-t border-white/20 pt-4 space-y-4">
+    <div className={`border-t border-white/20 pt-4 space-y-4 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       {file && (
         <div className="flex items-center gap-2 bg-white/10 p-2 rounded">
           <Paperclip className="h-4 w-4" />
@@ -61,13 +63,14 @@ const MessageInput = ({
             value={textMessage}
             onChange={(e) => setTextMessage(e.target.value)}
             onKeyDown={onKeyPress}
+            disabled={disabled}
           />
           <div className="flex flex-col gap-2">
             <Button
               className="bg-blue-500 hover:bg-blue-600 text-white"
               onClick={onVoiceResponse}
               title={isVoiceEnabled ? "Get voice response" : "Voice responses disabled"}
-              disabled={!isVoiceEnabled}
+              disabled={!isVoiceEnabled || disabled}
             >
               <Volume className="h-4 w-4" />
             </Button>
@@ -76,6 +79,7 @@ const MessageInput = ({
               className="text-white/70 hover:text-white"
               onClick={onToggleVoice}
               title={isVoiceEnabled ? "Disable voice" : "Enable voice"}
+              disabled={disabled}
             >
               {isVoiceEnabled ? <Volume className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
@@ -86,7 +90,7 @@ const MessageInput = ({
           <Button
             className="bg-white text-black hover:bg-gray-200 w-full font-bold"
             onClick={onSendText}
-            disabled={!textMessage.trim()}
+            disabled={!textMessage.trim() || disabled}
           >
             <Send className="h-4 w-4 mr-2" />
             Send Text
@@ -97,12 +101,14 @@ const MessageInput = ({
             className="hidden"
             ref={fileInputRef}
             onChange={handleFileChange}
+            disabled={disabled}
           />
           
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             className="border-white/30 hover:bg-white/10 w-full"
+            disabled={disabled}
           >
             <Paperclip className="h-4 w-4 mr-2" />
             {file ? 'Change File' : 'Attach File'}
@@ -112,6 +118,7 @@ const MessageInput = ({
             <Button
               onClick={onFileUpload}
               className="bg-purple-600 hover:bg-purple-700 w-full"
+              disabled={disabled}
             >
               <Send className="h-4 w-4 mr-2" />
               Send File

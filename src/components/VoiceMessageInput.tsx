@@ -53,6 +53,7 @@ const VoiceMessageInput = ({
                 size="sm"
                 className="h-6 px-2 py-1 text-xs"
                 onClick={() => setFile(null)}
+                disabled={disabled}
               >
                 <X className="h-3 w-3 mr-1" />
                 {file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name}

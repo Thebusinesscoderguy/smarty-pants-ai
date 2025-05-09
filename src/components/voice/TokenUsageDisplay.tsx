@@ -38,13 +38,17 @@ const TokenUsageDisplay = ({ totalTokensUsed, monthlyLimit, inputTokens, outputT
       </div>
       
       <Progress 
-        value={usagePercentage} 
-        className={`h-2 ${
-          isAtLimit ? 'bg-gray-700' : isApproachingLimit ? 'bg-gray-700' : 'bg-gray-700'
-        }`}
-        color={isAtLimit ? 'bg-red-500' : isApproachingLimit ? 'bg-yellow-500' : 'bg-blue-500'}
-        indicatorColor={isAtLimit ? 'bg-red-500' : isApproachingLimit ? 'bg-yellow-500' : 'bg-blue-500'}
+        value={usagePercentage}
+        className={`h-2 ${isAtLimit ? 'bg-gray-700' : isApproachingLimit ? 'bg-gray-700' : 'bg-gray-700'}`}
+        // Remove color and indicatorColor props that don't exist
       />
+      
+      {/* Apply color through a custom wrapper with styling */}
+      <style jsx>{`
+        :global(.progress-indicator) {
+          background-color: ${isAtLimit ? '#ef4444' : isApproachingLimit ? '#eab308' : '#3b82f6'};
+        }
+      `}</style>
     </div>
   );
 };
