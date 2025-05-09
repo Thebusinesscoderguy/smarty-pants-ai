@@ -31,7 +31,7 @@ const ChatSidebar = ({ chats, activeChat, onSelectChat, onNewChat }: ChatSidebar
   });
   
   return (
-    <div className="w-64 bg-gray-900 border-r border-white/10 flex flex-col h-full">
+    <div className="w-64 bg-gray-900 border-r border-white/10 flex flex-col h-full overflow-hidden">
       <div className="p-4">
         <Button 
           onClick={onNewChat}
@@ -54,26 +54,32 @@ const ChatSidebar = ({ chats, activeChat, onSelectChat, onNewChat }: ChatSidebar
       
       <ScrollArea className="flex-1">
         <div className="px-2 pb-4">
-          {Object.entries(chatsByTopic).map(([topic, topicChats]) => (
-            <div key={topic} className="mb-4">
-              <h3 className="text-sm font-medium text-white/70 px-2 py-1">{topic}</h3>
-              
-              {topicChats.map(chat => (
-                <button
-                  key={chat.id}
-                  onClick={() => onSelectChat(chat.id)}
-                  className={`w-full text-left px-3 py-2 rounded-md mb-1 transition-colors ${
-                    activeChat?.id === chat.id
-                      ? 'bg-white/20'
-                      : 'hover:bg-white/10'
-                  }`}
-                >
-                  <div className="font-medium truncate">{chat.title}</div>
-                  <div className="text-xs text-white/50 truncate">{chat.lastMessage}</div>
-                </button>
-              ))}
+          {Object.entries(chatsByTopic).length > 0 ? (
+            Object.entries(chatsByTopic).map(([topic, topicChats]) => (
+              <div key={topic} className="mb-4">
+                <h3 className="text-sm font-medium text-white/70 px-2 py-1">{topic}</h3>
+                
+                {topicChats.map(chat => (
+                  <button
+                    key={chat.id}
+                    onClick={() => onSelectChat(chat.id)}
+                    className={`w-full text-left px-3 py-2 rounded-md mb-1 transition-colors ${
+                      activeChat?.id === chat.id
+                        ? 'bg-white/20'
+                        : 'hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="font-medium truncate">{chat.title}</div>
+                    <div className="text-xs text-white/50 truncate">{chat.lastMessage}</div>
+                  </button>
+                ))}
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-white/50 text-center">
+              No conversations found
             </div>
-          ))}
+          )}
         </div>
       </ScrollArea>
     </div>

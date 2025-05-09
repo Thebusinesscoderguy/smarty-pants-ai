@@ -2,8 +2,8 @@
 import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
-import { Chat } from '@/pages/Chat';
+import { Send, Play, Pause } from 'lucide-react';
+import { Chat, ChatMessage } from '@/pages/Chat';
 import { Card } from '@/components/ui/card';
 
 interface ChatAreaProps {
@@ -11,30 +11,22 @@ interface ChatAreaProps {
   inputMessage: string;
   setInputMessage: (message: string) => void;
   onSendMessage: () => void;
+  onPlayAudio: (messageId: string) => void;
+  onPauseAudio: (messageId: string) => void;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }
 
 const ChatArea = ({ 
   chat, 
   inputMessage, 
   setInputMessage, 
-  onSendMessage 
+  onSendMessage,
+  onPlayAudio,
+  onPauseAudio,
+  messagesEndRef,
+  onKeyDown
 }: ChatAreaProps) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    scrollToBottom();
-  }, [chat.messages]);
-  
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      onSendMessage();
-    }
-  };
   
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -42,11 +34,6 @@ const ChatArea = ({
   
   return (
     <div className="flex-1 flex flex-col h-full bg-gray-800/50">
-      <div className="p-4 border-b border-white/10">
-        <h2 className="text-xl font-bold">{chat.title}</h2>
-        <div className="text-sm text-white/70">{chat.topic}</div>
-      </div>
-      
       <div className="flex-1 overflow-y-auto p-4">
         {chat.messages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-white/50">
@@ -67,6 +54,30 @@ const ChatArea = ({
                   }`}
                 >
                   <div className="whitespace-pre-wrap">{message.content}</div>
+                  
+                  {message.audioUrl && (
+                    <div className="mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-white/30 hover:bg-white/10"
+                        onClick={() => message.isPlaying ? onPauseAudio(message.id) : onPlayAudio(message.id)}
+                      >
+                        {message.isPlaying ? (
+                          <>
+                            <Pause className="h-4 w-4 mr-1" />
+                            Pause
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-1" />
+                            Play
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                  
                   <div className="text-xs text-white/50 mt-2 text-right">
                     {formatTime(message.timestamp)}
                   </div>
@@ -83,7 +94,7 @@ const ChatArea = ({
           <Textarea 
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={onKeyDown}
             placeholder="Type your message here..."
             className="min-h-[80px] bg-white/5 border-white/20 rounded-md resize-none"
           />
@@ -101,3 +112,4 @@ const ChatArea = ({
 };
 
 export default ChatArea;
+

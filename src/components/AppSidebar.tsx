@@ -54,11 +54,6 @@ export function AppSidebar() {
       url: "/chat",
     },
     {
-      title: "Voice Chat",
-      icon: MessageSquare,
-      url: "/voice",
-    },
-    {
       title: "Log Out",
       icon: LogOut,
       url: "/logout",
