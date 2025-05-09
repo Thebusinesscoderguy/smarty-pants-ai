@@ -39,11 +39,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
-  // If user tries to access /features, redirect them to /voice
-  if (location.pathname === '/features') {
-    return <Navigate to="/voice" replace />;
-  }
-
   console.log('Rendering protected content');
   return <>{children}</>;
 };

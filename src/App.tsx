@@ -6,7 +6,6 @@ import Auth from './pages/Auth';
 import Pricing from './pages/Pricing';
 import Tokens from './pages/Tokens';
 import Avatar from './pages/Avatar';
-import Features from './pages/Features';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
@@ -23,7 +22,6 @@ const App = () => {
           <Route path="/tokens" element={<ProtectedRoute><Tokens /></ProtectedRoute>} />
           <Route path="/voice" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/avatar" element={<ProtectedRoute><Avatar /></ProtectedRoute>} />
-          <Route path="/features" element={<ProtectedRoute><Features /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -34,4 +32,3 @@ const App = () => {
 };
 
 export default App;
-
