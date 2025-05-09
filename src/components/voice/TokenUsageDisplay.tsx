@@ -15,6 +15,13 @@ const TokenUsageDisplay = ({ totalTokensUsed, monthlyLimit, inputTokens, outputT
   const isApproachingLimit = usagePercentage >= 80;
   const isAtLimit = usagePercentage >= 100;
   
+  // Determine the color class based on usage percentage
+  const indicatorColorClass = isAtLimit 
+    ? "bg-red-500" 
+    : isApproachingLimit 
+      ? "bg-yellow-500" 
+      : "bg-blue-500";
+  
   return (
     <div className="flex flex-col w-full bg-gray-800/50 rounded-lg p-3">
       <div className="flex justify-between items-center mb-2">
@@ -37,18 +44,12 @@ const TokenUsageDisplay = ({ totalTokensUsed, monthlyLimit, inputTokens, outputT
         )}
       </div>
       
-      <Progress 
-        value={usagePercentage}
-        className={`h-2 ${isAtLimit ? 'bg-gray-700' : isApproachingLimit ? 'bg-gray-700' : 'bg-gray-700'}`}
-        // Remove color and indicatorColor props that don't exist
-      />
-      
-      {/* Apply color through a custom wrapper with styling */}
-      <style jsx>{`
-        :global(.progress-indicator) {
-          background-color: ${isAtLimit ? '#ef4444' : isApproachingLimit ? '#eab308' : '#3b82f6'};
-        }
-      `}</style>
+      <div className="relative h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+        <div 
+          className={`absolute top-0 left-0 h-full transition-all ${indicatorColorClass}`}
+          style={{ width: `${usagePercentage}%` }}
+        />
+      </div>
     </div>
   );
 };
