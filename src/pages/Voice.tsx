@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -283,22 +284,51 @@ const Voice = () => {
       setMessages(prev => [...prev, processingMessage]);
 
       try {
-        // Pass selectedVoice here
-        const response = await supabase.functions.invoke('text-to-voice', {
+        // Get previous messages for context (limit to last 10 for token efficiency)
+        const conversationHistory = messages
+          .filter(m => m.id !== 'welcome-message' && !m.id?.startsWith('processing-'))
+          .slice(-10)
+          .map(m => ({
+            role: m.isFromUser ? "user" : "assistant", 
+            content: m.text
+          }));
+        
+        // Generate AI response using OpenAI's chat completion API
+        const completionResponse = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              {
+                role: "system",
+                content: "You are a helpful, friendly AI assistant named Teachly. Be conversational, thoughtful, and helpful with your responses. Keep responses concise yet informative."
+              },
+              ...conversationHistory,
+              { role: "user", content: userMessage }
+            ]
+          }
+        });
+
+        if (completionResponse.error) {
+          throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+        }
+
+        const aiResponseText = completionResponse.data.text;
+
+        // Generate speech from the AI response text
+        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
           body: { 
-            text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
+            text: aiResponseText,
             voice: selectedVoice || 'alloy'
           }
         });
 
-        if (response.error) {
-          if (response.error.message && response.error.message.includes('API key')) {
+        if (voiceResponse.error) {
+          if (voiceResponse.error.message && voiceResponse.error.message.includes('API key')) {
             setApiKeyError(true);
           }
-          throw new Error(response.error.message || 'Failed to generate speech');
+          throw new Error(voiceResponse.error.message || 'Failed to generate speech');
         }
 
-        const base64Audio = response.data.audioContent;
+        const base64Audio = voiceResponse.data.audioContent;
 
         const byteCharacters = atob(base64Audio);
         const byteNumbers = new Array(byteCharacters.length);
@@ -313,19 +343,21 @@ const Voice = () => {
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
 
         const aiMessageId = `ai-${Date.now()}`;
+        const tokenCount = Math.ceil(aiResponseText.length / 4);
+        
         const aiMessage: Message = {
           id: aiMessageId,
-          text: "I've processed your message: \"" + userMessage + "\". How can I help you further?",
+          text: aiResponseText,
           timestamp: new Date(),
           audioUrl: audioUrl,
           isFromUser: false,
           type: 'voice',
-          tokenCount: 10
+          tokenCount: tokenCount
         };
 
         setMessages(prev => [...prev, aiMessage]);
-        setOutputTokens(prev => prev + 10);
-        setTotalTokensUsed(prev => prev + 10);
+        setOutputTokens(prev => prev + tokenCount);
+        setTotalTokensUsed(prev => prev + tokenCount);
 
         setTimeout(() => {
           if (aiMessageId) {
