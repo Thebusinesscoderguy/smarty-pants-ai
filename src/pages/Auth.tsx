@@ -28,12 +28,24 @@ const Auth = () => {
 
   // Check for URL hash to see if returning from OAuth
   useEffect(() => {
-    const handleHashRedirect = async () => {
-      const hasHashParams = window.location.hash && window.location.hash.includes('access_token');
-      if (hasHashParams) {
-        console.log('Detected OAuth redirect with hash parameters');
+    const handleAuthRedirect = async () => {
+      // Check for hash parameters OR query parameters (covers both scenarios)
+      const hasAuthParams = (
+        window.location.hash && window.location.hash.includes('access_token')
+      ) || (
+        window.location.search && (
+          window.location.search.includes('access_token') ||
+          window.location.search.includes('error') ||
+          window.location.search.includes('code')
+        )
+      );
+      
+      if (hasAuthParams) {
+        console.log('Detected OAuth redirect with auth parameters');
+        setIsRedirecting(true);
+        
         try {
-          setIsRedirecting(true);
+          // Process the URL regardless of parameter type
           const { data, error } = await supabase.auth.getSession();
           
           if (error) {
@@ -49,18 +61,32 @@ const Auth = () => {
           
           if (data.session) {
             console.log('Successfully authenticated via OAuth');
+            // Clean URL
             window.history.replaceState({}, document.title, window.location.pathname);
             navigate('/pricing');
+          } else {
+            console.error('No session found after OAuth redirect');
+            setIsRedirecting(false);
+            toast({
+              title: "Authentication failed",
+              description: "Could not establish a session. Please try again.",
+              variant: "destructive",
+            });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error handling OAuth redirect:', error);
           setIsRedirecting(false);
+          toast({
+            title: "Authentication error",
+            description: error.message || "An error occurred during authentication",
+            variant: "destructive",
+          });
         }
       }
     };
     
     if (!loading) {
-      handleHashRedirect();
+      handleAuthRedirect();
     }
   }, [loading, navigate]);
 

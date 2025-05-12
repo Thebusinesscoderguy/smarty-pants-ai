@@ -12,8 +12,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   
-  // TEMPORARY: Skip authentication for preview/development
-  const skipAuth = true; // Set this to false to re-enable authentication
+  // Set to false to enable authentication for protected routes
+  const skipAuth = false;
 
   useEffect(() => {
     // This helps debug protected route issues
