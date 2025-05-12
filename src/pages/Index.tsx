@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Mic, BookOpen } from 'lucide-react';
@@ -27,6 +26,7 @@ const Index = () => {
   }]);
   const [input, setInput] = useState('');
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioData, setAudioData] = useState<Blob | null>(null);
@@ -400,7 +400,11 @@ const Index = () => {
                   </Button>
                 </>
               ) : (
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-black hover:bg-gray-200"
+                  onClick={() => navigate('/auth')}
+                >
                   Get Started
                 </Button>
               )}
