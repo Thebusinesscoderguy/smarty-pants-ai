@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
 import Chat from './pages/Chat';
+import MathSolver from './pages/MathSolver';
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
           <Route path="/voice" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/avatar" element={<ProtectedRoute><Avatar /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+          <Route path="/math" element={<ProtectedRoute><MathSolver /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
