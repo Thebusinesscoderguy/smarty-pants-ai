@@ -7,6 +7,7 @@ import Pricing from './pages/Pricing';
 import Tokens from './pages/Tokens';
 import Avatar from './pages/Avatar';
 import NotFound from './pages/NotFound';
+import Progress from './pages/Progress';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
 import Chat from './pages/Chat';
@@ -25,6 +26,7 @@ const App = () => {
           <Route path="/avatar" element={<ProtectedRoute><Avatar /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/math" element={<ProtectedRoute><MathSolver /></ProtectedRoute>} />
+          <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
