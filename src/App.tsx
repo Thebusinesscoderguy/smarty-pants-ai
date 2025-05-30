@@ -5,7 +5,6 @@ import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Pricing from './pages/Pricing';
 import Tokens from './pages/Tokens';
-import Avatar from './pages/Avatar';
 import NotFound from './pages/NotFound';
 import Progress from './pages/Progress';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,7 +22,6 @@ const App = () => {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/tokens" element={<ProtectedRoute><Tokens /></ProtectedRoute>} />
           <Route path="/voice" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-          <Route path="/avatar" element={<ProtectedRoute><Avatar /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/math" element={<ProtectedRoute><MathSolver /></ProtectedRoute>} />
           <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />

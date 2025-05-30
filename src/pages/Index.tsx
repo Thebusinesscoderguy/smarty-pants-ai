@@ -1,6 +1,5 @@
-
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Mic, BookOpen, Calculator, User, BarChart3 } from 'lucide-react';
+import { MessageSquare, Mic, BookOpen, Calculator, BarChart3 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ContactForm } from '@/components/contact/ContactForm';
@@ -46,14 +45,6 @@ const Index = () => {
               >
                 <Calculator className="mr-2 h-5 w-5" />
                 Math Solver
-              </Button>
-              <Button 
-                size="lg" 
-                className="bg-green-600 hover:bg-green-700 h-16"
-                onClick={() => navigate('/avatar')}
-              >
-                <User className="mr-2 h-5 w-5" />
-                AI Avatar
               </Button>
               <Button 
                 size="lg" 
