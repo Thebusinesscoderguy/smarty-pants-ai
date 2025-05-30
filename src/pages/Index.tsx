@@ -437,7 +437,8 @@ const Index = () => {
                     className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300"
                     onClick={() => {
                       setShowFeaturesDemo(!showFeaturesDemo);
-                      closeAllSections();
+                      setShowVoiceSection(false);
+                      setShowChatSection(false);
                     }}
                   >
                     <BookOpen className="mr-2 h-4 w-4" />
