@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { VoiceMessageSection } from '@/components/voice/VoiceMessageSection';
 import { TextChatSection } from '@/components/chat/TextChatSection';
 import { ContactForm } from '@/components/contact/ContactForm';
+import { FeaturesDemo } from '@/components/features/FeaturesDemo';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { testApiConnections } from '@/utils/apiService';
@@ -17,6 +18,7 @@ import type { Message } from '@/types/message';
 const Index = () => {
   const [showVoiceSection, setShowVoiceSection] = useState(false);
   const [showChatSection, setShowChatSection] = useState(false);
+  const [showFeaturesDemo, setShowFeaturesDemo] = useState(false);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
   const [messages, setMessages] = useState<Message[]>([{
     text: 'Hello! I\'m EduAI, your adaptive learning assistant. What would you like to learn today?',
@@ -359,6 +361,12 @@ const Index = () => {
     }
   };
 
+  const closeAllSections = () => {
+    setShowVoiceSection(false);
+    setShowChatSection(false);
+    setShowFeaturesDemo(false);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Header />
@@ -372,7 +380,7 @@ const Index = () => {
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
-            <div className="mt-8 space-x-4">
+            <div className="mt-8 space-x-4 flex flex-wrap justify-center gap-4">
               {user ? (
                 <>
                   <Button 
@@ -381,6 +389,7 @@ const Index = () => {
                     onClick={() => {
                       setShowVoiceSection(!showVoiceSection);
                       setShowChatSection(false);
+                      setShowFeaturesDemo(false);
                     }}
                   >
                     <Mic className="mr-2 h-4 w-4" />
@@ -393,126 +402,168 @@ const Index = () => {
                     onClick={() => {
                       setShowChatSection(!showChatSection);
                       setShowVoiceSection(false);
+                      setShowFeaturesDemo(false);
                     }}
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     {showChatSection ? "Hide Text Chat" : "Open Text Chat"}
                   </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300"
+                    onClick={() => {
+                      setShowFeaturesDemo(!showFeaturesDemo);
+                      setShowVoiceSection(false);
+                      setShowChatSection(false);
+                    }}
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {showFeaturesDemo ? "Hide Features" : "Try Features Demo"}
+                  </Button>
                 </>
               ) : (
-                <Button 
-                  size="lg" 
-                  className="bg-white text-black hover:bg-gray-200"
-                  onClick={() => navigate('/auth')}
-                >
-                  Get Started
-                </Button>
+                <>
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-black hover:bg-gray-200"
+                    onClick={() => navigate('/auth')}
+                  >
+                    Get Started
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300"
+                    onClick={() => {
+                      setShowFeaturesDemo(!showFeaturesDemo);
+                      closeAllSections();
+                    }}
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {showFeaturesDemo ? "Hide Features" : "Explore Features"}
+                  </Button>
+                </>
               )}
             </div>
           </div>
 
           {showVoiceSection && user && (
-            <VoiceMessageSection
-              messages={voiceMessages}
-              onPlayAudio={handlePlayAudio}
-              onPauseAudio={handlePauseAudio}
-              onVoiceResponse={() => {}}
-              isRecording={isRecording}
-              recordingTime={recordingTime}
-              handleStartRecording={handleStartRecording}
-              handleStopRecording={handleStopRecording}
-            />
+            <div className="mb-12">
+              <VoiceMessageSection
+                messages={voiceMessages}
+                onPlayAudio={handlePlayAudio}
+                onPauseAudio={handlePauseAudio}
+                onVoiceResponse={() => {}}
+                isRecording={isRecording}
+                recordingTime={recordingTime}
+                handleStartRecording={handleStartRecording}
+                handleStopRecording={handleStopRecording}
+              />
+            </div>
           )}
 
           {showChatSection && user && (
-            <TextChatSection
-              messages={messages}
-              input={input}
-              onInputChange={(value) => setInput(value)}
-              onSendMessage={handleSendMessage}
-              onKeyDown={handleKeyDown}
-              onVoiceResponse={() => {}}
-            />
+            <div className="mb-12">
+              <TextChatSection
+                messages={messages}
+                input={input}
+                onInputChange={(value) => setInput(value)}
+                onSendMessage={handleSendMessage}
+                onKeyDown={handleKeyDown}
+                onVoiceResponse={() => {}}
+              />
+            </div>
           )}
 
-          <div className="grid md:grid-cols-3 gap-6 mt-16">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <div className="text-blue-400 text-2xl mb-4">🧠</div>
-              <h3 className="text-xl font-semibold mb-2">Adaptive Learning</h3>
-              <p className="text-white/70">Our AI adjusts to your learning pace, slowing down when you need time and speeding up when you're flying.</p>
+          {showFeaturesDemo && (
+            <div className="mb-12">
+              <FeaturesDemo />
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <div className="text-purple-400 text-2xl mb-4">🗣️</div>
-              <h3 className="text-xl font-semibold mb-2">Voice Interactions</h3>
-              <p className="text-white/70">Learn on the go with natural voice conversations. Ask questions and get answers just like talking to a tutor.</p>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <div className="text-green-400 text-2xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold mb-2">Study Material Analysis</h3>
-              <p className="text-white/70">Upload your notes and documents, and our AI will help you understand and quiz you on the content.</p>
-            </div>
-          </div>
-          
-          <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Why Choose Teachly in 2025?</h2>
-            <div className="grid md:grid-cols-2 gap-8 mt-12">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <h3 className="text-xl font-semibold mb-4">Personalized Learning Path</h3>
-                <p className="text-white/70">Our AI analyzes your learning style, strengths, and weaknesses to create a custom curriculum that evolves as you progress.</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
-                <p className="text-white/70">Get immediate, constructive feedback on your work that helps you understand mistakes and improve faster.</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <h3 className="text-xl font-semibold mb-4">Interactive Practice</h3>
-                <p className="text-white/70">Engage with dynamic exercises that adapt to your skill level, making learning both challenging and enjoyable.</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <h3 className="text-xl font-semibold mb-4">Learn Anywhere</h3>
-                <p className="text-white/70">Access your personalized learning experience on any device, with progress synced automatically across platforms.</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Frequently Asked Questions</h2>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12">
-              Find answers to common questions about using Teachly and maximizing your learning experience.
-            </p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-blue-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">How does adaptive learning work?</h3>
-                <p className="text-white/70 mb-3">Our AI system analyzes your learning patterns and adjusts the difficulty and pace of content to match your individual needs, creating a personalized experience that evolves as you progress.</p>
-                <div className="flex justify-end">
-                  
-                </div>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">How does voice learning work?</h3>
-                <p className="text-white/70 mb-3">Click on the "Open Voice Messages" button after logging in to access our voice learning feature. You can record questions and receive spoken responses from our AI tutor.</p>
-                <div className="flex justify-end">
-                  
-                </div>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">What content can Teachly help me with?</h3>
-                <p className="text-white/70 mb-3">Teachly can assist with a wide range of subjects including mathematics, science, languages, programming, and more. Our AI adapts to your specific learning needs.</p>
-                <div className="flex justify-end">
-                  
-                </div>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 text-left">
-                <h3 className="text-xl font-semibold mb-4">Can I use Teachly on mobile devices?</h3>
-                <p className="text-white/70 mb-3">Yes! Teachly is fully responsive and works on all devices including smartphones and tablets. Your learning progress syncs across all platforms automatically.</p>
-                <div className="flex justify-end">
-                  
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
 
-          <ContactForm />
+          {!showVoiceSection && !showChatSection && !showFeaturesDemo && (
+            <>
+              <div className="grid md:grid-cols-3 gap-6 mt-16">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                  <div className="text-blue-400 text-2xl mb-4">🧠</div>
+                  <h3 className="text-xl font-semibold mb-2">Adaptive Learning</h3>
+                  <p className="text-white/70">Our AI adjusts to your learning pace, slowing down when you need time and speeding up when you're flying.</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                  <div className="text-purple-400 text-2xl mb-4">🗣️</div>
+                  <h3 className="text-xl font-semibold mb-2">Voice Interactions</h3>
+                  <p className="text-white/70">Learn on the go with natural voice conversations. Ask questions and get answers just like talking to a tutor.</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                  <div className="text-green-400 text-2xl mb-4">📚</div>
+                  <h3 className="text-xl font-semibold mb-2">Study Material Analysis</h3>
+                  <p className="text-white/70">Upload your notes and documents, and our AI will help you understand and quiz you on the content.</p>
+                </div>
+              </div>
+              
+              <div className="mt-24 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold mb-8">Why Choose Teachly in 2025?</h2>
+                <div className="grid md:grid-cols-2 gap-8 mt-12">
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                    <h3 className="text-xl font-semibold mb-4">Personalized Learning Path</h3>
+                    <p className="text-white/70">Our AI analyzes your learning style, strengths, and weaknesses to create a custom curriculum that evolves as you progress.</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                    <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
+                    <p className="text-white/70">Get immediate, constructive feedback on your work that helps you understand mistakes and improve faster.</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                    <h3 className="text-xl font-semibold mb-4">Interactive Practice</h3>
+                    <p className="text-white/70">Engage with dynamic exercises that adapt to your skill level, making learning both challenging and enjoyable.</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                    <h3 className="text-xl font-semibold mb-4">Learn Anywhere</h3>
+                    <p className="text-white/70">Access your personalized learning experience on any device, with progress synced automatically across platforms.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-24 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold mb-8">Frequently Asked Questions</h2>
+                <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12">
+                  Find answers to common questions about using Teachly and maximizing your learning experience.
+                </p>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-blue-500/50 transition-all duration-300 text-left">
+                    <h3 className="text-xl font-semibold mb-4">How does adaptive learning work?</h3>
+                    <p className="text-white/70 mb-3">Our AI system analyzes your learning patterns and adjusts the difficulty and pace of content to match your individual needs, creating a personalized experience that evolves as you progress.</p>
+                    <div className="flex justify-end">
+                      
+                    </div>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300 text-left">
+                    <h3 className="text-xl font-semibold mb-4">How does voice learning work?</h3>
+                    <p className="text-white/70 mb-3">Click on the "Open Voice Messages" button after logging in to access our voice learning feature. You can record questions and receive spoken responses from our AI tutor.</p>
+                    <div className="flex justify-end">
+                      
+                    </div>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300 text-left">
+                    <h3 className="text-xl font-semibold mb-4">What content can Teachly help me with?</h3>
+                    <p className="text-white/70 mb-3">Teachly can assist with a wide range of subjects including mathematics, science, languages, programming, and more. Our AI adapts to your specific learning needs.</p>
+                    <div className="flex justify-end">
+                      
+                    </div>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 text-left">
+                    <h3 className="text-xl font-semibold mb-4">Can I use Teachly on mobile devices?</h3>
+                    <p className="text-white/70 mb-3">Yes! Teachly is fully responsive and works on all devices including smartphones and tablets. Your learning progress syncs across all platforms automatically.</p>
+                    <div className="flex justify-end">
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ContactForm />
+            </>
+          )}
         </div>
       </main>
 
