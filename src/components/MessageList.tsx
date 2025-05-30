@@ -3,6 +3,7 @@ import { UserCircle2, Paperclip, Play, Pause } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Message } from '../types/message';
+import { MathResultDisplay } from './chat/MathResultDisplay';
 
 interface MessageListProps {
   messages: Message[];
@@ -33,6 +34,11 @@ const MessageList = ({ messages, onPlayAudio, onPauseAudio }: MessageListProps) 
             </div>
             <div className="flex-1">
               <p className="mb-2 text-lg font-medium">{message.text}</p>
+              
+              {message.mathResult && (
+                <MathResultDisplay result={message.mathResult} />
+              )}
+              
               {message.type === 'file' && message.fileUrl && (
                 <div className="bg-white/10 p-2 rounded mb-2">
                   <a 
