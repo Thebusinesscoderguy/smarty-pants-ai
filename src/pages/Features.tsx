@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, FileUp, X } from 'lucide-react';
-import AIAvatar from '@/components/AIAvatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Message {
@@ -211,7 +210,7 @@ const Features = () => {
   };
 
   const handleAvatarStyleChange = (value: string) => {
-    setAvatarStyle(value as 'teacher' | 'casual' | 'professional' | 'friendly');
+    // Avatar functionality removed
   };
 
   return (
@@ -221,30 +220,14 @@ const Features = () => {
       <div className="flex-1 flex flex-col max-h-screen">
         <header className="p-4 border-b border-white/20 flex justify-between items-center">
           <h1 className="text-xl font-bold">Chat with EduAI</h1>
-          <div className="flex items-center space-x-2">
-            <Select value={avatarStyle} onValueChange={handleAvatarStyleChange}>
-              <SelectTrigger className="bg-transparent border-white/20 w-40">
-                <SelectValue placeholder="Avatar style" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 border-white/20">
-                <SelectItem value="teacher">Teacher</SelectItem>
-                <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="friendly">Friendly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </header>
         
         <main className="flex-1 overflow-hidden flex flex-col">
           <div className="grid grid-cols-1 lg:grid-cols-4 h-full">
             <div className="hidden lg:flex lg:col-span-1 bg-gray-900/30 p-4 flex-col items-center justify-center">
-              <AIAvatar 
-                isSpeaking={isSpeaking}
-                avatarStyle={avatarStyle}
-                emotion={avatarEmotion}
-                className="w-full mb-4"
-              />
+              <div className="w-48 h-48 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-4">
+                <span className="text-white text-4xl font-bold">AI</span>
+              </div>
               {isQuizMode && (
                 <div className="px-4 py-2 bg-white/5 rounded-md text-white/70 text-sm mt-4">
                   Time: {timeSinceLastAnswer} seconds
@@ -255,12 +238,9 @@ const Features = () => {
             <div className="col-span-1 lg:col-span-3 flex-1 flex flex-col">
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 <div className="lg:hidden flex justify-center mb-4">
-                  <AIAvatar 
-                    isSpeaking={isSpeaking}
-                    avatarStyle={avatarStyle}
-                    emotion={avatarEmotion}
-                    className="w-48 h-48"
-                  />
+                  <div className="w-48 h-48 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-4xl font-bold">AI</span>
+                  </div>
                 </div>
                 
                 {messages.map((message, index) => (

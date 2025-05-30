@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 
 interface UserAvatarProps {
@@ -25,14 +24,13 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   };
 
   return (
-    <Avatar className={`${sizeClasses[size]} ${className} border border-white/20 ${animated ? 'animate-pulse' : ''}`}>
+    <div className={`${sizeClasses[size]} ${className} border border-white/20 ${animated ? 'animate-pulse' : ''} rounded-full bg-gray-700 flex items-center justify-center overflow-hidden`}>
       {avatarUrl ? (
-        <AvatarImage src={avatarUrl} alt="User avatar" />
-      ) : null}
-      <AvatarFallback className="bg-gray-700 text-white">
-        <User className="h-1/2 w-1/2" />
-      </AvatarFallback>
-    </Avatar>
+        <img src={avatarUrl} alt="User avatar" className="w-full h-full object-cover" />
+      ) : (
+        <User className="h-1/2 w-1/2 text-white" />
+      )}
+    </div>
   );
 };
 
