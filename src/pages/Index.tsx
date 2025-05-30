@@ -381,75 +381,48 @@ const Index = () => {
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
             <div className="mt-8 space-x-4 flex flex-wrap justify-center gap-4">
-              {user ? (
-                <>
-                  <Button 
-                    size="lg" 
-                    className="bg-white text-black hover:bg-gray-200"
-                    onClick={() => {
-                      setShowVoiceSection(!showVoiceSection);
-                      setShowChatSection(false);
-                      setShowFeaturesDemo(false);
-                    }}
-                  >
-                    <Mic className="mr-2 h-4 w-4" />
-                    {showVoiceSection ? "Hide Voice Messages" : "Open Voice Messages"}
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="border-white/30 hover:bg-white/10"
-                    onClick={() => {
-                      setShowChatSection(!showChatSection);
-                      setShowVoiceSection(false);
-                      setShowFeaturesDemo(false);
-                    }}
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    {showChatSection ? "Hide Text Chat" : "Open Text Chat"}
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300"
-                    onClick={() => {
-                      setShowFeaturesDemo(!showFeaturesDemo);
-                      setShowVoiceSection(false);
-                      setShowChatSection(false);
-                    }}
-                  >
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    {showFeaturesDemo ? "Hide Features" : "Try Features Demo"}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    size="lg" 
-                    className="bg-white text-black hover:bg-gray-200"
-                    onClick={() => navigate('/auth')}
-                  >
-                    Get Started
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300"
-                    onClick={() => {
-                      setShowFeaturesDemo(!showFeaturesDemo);
-                      setShowVoiceSection(false);
-                      setShowChatSection(false);
-                    }}
-                  >
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    {showFeaturesDemo ? "Hide Features" : "Explore Features"}
-                  </Button>
-                </>
-              )}
+              <Button 
+                size="lg" 
+                className="bg-white text-black hover:bg-gray-200"
+                onClick={() => {
+                  setShowVoiceSection(!showVoiceSection);
+                  setShowChatSection(false);
+                  setShowFeaturesDemo(false);
+                }}
+              >
+                <Mic className="mr-2 h-4 w-4" />
+                {showVoiceSection ? "Hide Voice Messages" : "Open Voice Messages"}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white/30 hover:bg-white/10"
+                onClick={() => {
+                  setShowChatSection(!showChatSection);
+                  setShowVoiceSection(false);
+                  setShowFeaturesDemo(false);
+                }}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {showChatSection ? "Hide Text Chat" : "Open Text Chat"}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300"
+                onClick={() => {
+                  setShowFeaturesDemo(!showFeaturesDemo);
+                  setShowVoiceSection(false);
+                  setShowChatSection(false);
+                }}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                {showFeaturesDemo ? "Hide Features" : "Explore Features"}
+              </Button>
             </div>
           </div>
 
-          {showVoiceSection && user && (
+          {showVoiceSection && (
             <div className="mb-12">
               <VoiceMessageSection
                 messages={voiceMessages}
@@ -464,7 +437,7 @@ const Index = () => {
             </div>
           )}
 
-          {showChatSection && user && (
+          {showChatSection && (
             <div className="mb-12">
               <TextChatSection
                 messages={messages}
