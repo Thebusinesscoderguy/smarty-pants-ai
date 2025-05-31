@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isSchoolAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
@@ -150,6 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     loading,
+    isSchoolAdmin,
     signIn,
     signUp,
     signOut,
