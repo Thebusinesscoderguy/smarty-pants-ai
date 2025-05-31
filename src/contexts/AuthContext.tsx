@@ -8,6 +8,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  isSchoolAdmin: boolean; // Added for temporary school admin mode
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,10 +17,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // TEMPORARY: Set to true to experience school admin flow
+  const [isSchoolAdmin, setIsSchoolAdmin] = useState(true);
 
   useEffect(() => {
     console.log('AuthContext: Setting up auth state management...');
     
+    // TEMPORARY: Create a mock user for school admin experience
+    if (isSchoolAdmin) {
+      const mockUser = {
+        id: 'temp-admin-id',
+        email: 'admin@school.edu',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_metadata: {},
+        app_metadata: {},
+        aud: 'authenticated',
+        role: 'authenticated'
+      } as User;
+      
+      const mockSession = {
+        user: mockUser,
+        access_token: 'temp-token',
+        refresh_token: 'temp-refresh',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        token_type: 'bearer'
+      } as Session;
+      
+      setUser(mockUser);
+      setSession(mockSession);
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
@@ -67,11 +99,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('AuthContext: Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isSchoolAdmin]);
 
   const signOut = async () => {
     console.log('AuthContext: Signing out...');
-    await supabase.auth.signOut();
+    if (isSchoolAdmin) {
+      // TEMPORARY: Just reset the mock state
+      setUser(null);
+      setSession(null);
+      setIsSchoolAdmin(false);
+    } else {
+      await supabase.auth.signOut();
+    }
   };
 
   console.log('AuthContext: Current state:', {
@@ -79,11 +118,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     hasSession: !!session,
     loading,
     userId: user?.id,
-    userEmail: user?.email
+    userEmail: user?.email,
+    isSchoolAdmin
   });
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, loading, signOut, isSchoolAdmin }}>
       {children}
     </AuthContext.Provider>
   );

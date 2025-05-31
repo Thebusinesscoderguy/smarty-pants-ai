@@ -9,16 +9,17 @@ import { useState, useEffect } from 'react';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, isSchoolAdmin } = useAuth();
 
   useEffect(() => {
     console.log('Header: Auth state updated:', {
       hasUser: !!user,
       loading,
       userId: user?.id,
-      userEmail: user?.email
+      userEmail: user?.email,
+      isSchoolAdmin
     });
-  }, [user, loading]);
+  }, [user, loading, isSchoolAdmin]);
 
   const handleSignOut = async () => {
     try {
@@ -34,7 +35,8 @@ export const Header = () => {
     hasUser: !!user,
     loading,
     showAuthButtons: !loading && !user,
-    showUserButtons: !loading && !!user
+    showUserButtons: !loading && !!user,
+    isSchoolAdmin
   });
 
   return (
@@ -45,8 +47,17 @@ export const Header = () => {
           <div className="text-white/70">Loading...</div>
         ) : user ? (
           <>
-            <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-              <Link to="/pricing">Dashboard</Link>
+            {isSchoolAdmin ? (
+              <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
+                <Link to="/admin">School Dashboard</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
+                <Link to="/progress">Dashboard</Link>
+              </Button>
+            )}
+            <Button variant="outline" className="bg-green-600 text-white hover:bg-green-700">
+              <Link to="/chat">AI Tutor</Link>
             </Button>
             <ApiKeyForm />
             <Button 

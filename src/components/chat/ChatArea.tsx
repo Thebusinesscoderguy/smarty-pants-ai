@@ -1,115 +1,73 @@
 
-import { useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Send, Play, Pause } from 'lucide-react';
-import { Chat, ChatMessage } from '@/pages/Chat';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { MessageList } from '@/components/MessageList';
+import { VoiceMessageInput } from '@/components/VoiceMessageInput';
+import { useMessageHandler } from '@/hooks/useMessageHandler';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useVoiceSettings } from '@/hooks/useVoiceSettings';
+import { useAuth } from '@/contexts/AuthContext';
+import { Send, Mic, MicOff } from 'lucide-react';
 
-interface ChatAreaProps {
-  chat: Chat;
-  inputMessage: string;
-  setInputMessage: (message: string) => void;
-  onSendMessage: () => void;
-  onPlayAudio: (messageId: string) => void;
-  onPauseAudio: (messageId: string) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-}
+export const ChatArea = () => {
+  const { user } = useAuth();
+  const [input, setInput] = useState('');
+  const { messages, sendMessage, isLoading } = useMessageHandler();
+  const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
+  const { settings } = useVoiceSettings();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-const ChatArea = ({ 
-  chat, 
-  inputMessage, 
-  setInputMessage, 
-  onSendMessage,
-  onPlayAudio,
-  onPauseAudio,
-  messagesEndRef,
-  onKeyDown
-}: ChatAreaProps) => {
-  
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (input.trim() && !isLoading) {
+      await sendMessage(input);
+      setInput('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-800/50">
-      <div className="flex-1 overflow-y-auto p-4">
-        {chat.messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-white/50">
-            <p>Start a conversation...</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {chat.messages.map(message => (
-              <div 
-                key={message.id}
-                className={`flex ${message.isFromUser ? 'justify-end' : 'justify-start'}`}
-              >
-                <Card 
-                  className={`max-w-3/4 p-4 ${
-                    message.isFromUser 
-                      ? 'bg-purple-600/30 border-purple-500/30 text-white'
-                      : 'bg-white/10 border-white/20 text-white'
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
-                  
-                  {message.audioUrl && (
-                    <div className="mt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="border-white/30 hover:bg-white/10"
-                        onClick={() => message.isPlaying ? onPauseAudio(message.id) : onPlayAudio(message.id)}
-                      >
-                        {message.isPlaying ? (
-                          <>
-                            <Pause className="h-4 w-4 mr-1" />
-                            Pause
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-4 w-4 mr-1" />
-                            Play
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                  
-                  <div className="text-xs text-white/50 mt-2 text-right">
-                    {formatTime(message.timestamp)}
-                  </div>
-                </Card>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <MessageList messages={messages} />
+        <div ref={messagesEndRef} />
       </div>
       
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-end gap-2">
-          <Textarea 
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Type your message here..."
-            className="min-h-[80px] bg-white/5 border-white/20 rounded-md resize-none"
+      <div className="border-t border-white/20 p-4">
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me anything about your studies..."
+            className="flex-1 bg-white/10 border-white/20 text-white placeholder-white/50"
+            disabled={isLoading}
           />
           <Button 
-            onClick={onSendMessage} 
-            disabled={!inputMessage.trim()}
-            className="bg-purple-600 hover:bg-purple-700"
+            onClick={handleSendMessage}
+            disabled={isLoading || !input.trim()}
+            className="bg-white text-black hover:bg-gray-200"
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           </Button>
+          <VoiceMessageInput />
         </div>
       </div>
     </div>
   );
 };
-
-export default ChatArea;
-

@@ -1,89 +1,48 @@
 
 import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Chat } from '@/pages/Chat';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { MessageSquare, Plus, Settings } from 'lucide-react';
 
-interface ChatSidebarProps {
-  chats: Chat[];
-  activeChat: Chat | null;
-  onSelectChat: (chatId: string) => void;
-  onNewChat: () => void;
-}
+export const ChatSidebar = () => {
+  const [conversations, setConversations] = useState([
+    { id: 1, title: "Math Help", lastMessage: "quadratic equations", time: "2 min ago" },
+    { id: 2, title: "Science Questions", lastMessage: "photosynthesis process", time: "1 hour ago" },
+    { id: 3, title: "History Essay", lastMessage: "World War II timeline", time: "Yesterday" },
+  ]);
 
-const ChatSidebar = ({ chats, activeChat, onSelectChat, onNewChat }: ChatSidebarProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const filteredChats = chats.filter(chat => 
-    chat.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    chat.topic.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  // Group chats by topic
-  const chatsByTopic: Record<string, Chat[]> = {};
-  filteredChats.forEach(chat => {
-    if (!chatsByTopic[chat.topic]) {
-      chatsByTopic[chat.topic] = [];
-    }
-    chatsByTopic[chat.topic].push(chat);
-  });
-  
   return (
-    <div className="w-64 bg-gray-900 border-r border-white/10 flex flex-col h-full overflow-hidden">
-      <div className="p-4">
-        <Button 
-          onClick={onNewChat}
-          className="w-full bg-white text-black hover:bg-gray-200 mb-4 flex items-center gap-2"
-        >
-          <Plus className="h-5 w-5" />
-          New Chat
+    <div className="w-80 bg-white/5 border-r border-white/20 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-white">Conversations</h2>
+        <Button size="sm" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+          <Plus className="h-4 w-4" />
         </Button>
-        
-        <div className="relative mb-4">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/50" />
-          <Input 
-            placeholder="Search chats..." 
-            className="pl-9 bg-white/5 border-white/20"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
       </div>
       
-      <ScrollArea className="flex-1">
-        <div className="px-2 pb-4">
-          {Object.entries(chatsByTopic).length > 0 ? (
-            Object.entries(chatsByTopic).map(([topic, topicChats]) => (
-              <div key={topic} className="mb-4">
-                <h3 className="text-sm font-medium text-white/70 px-2 py-1">{topic}</h3>
-                
-                {topicChats.map(chat => (
-                  <button
-                    key={chat.id}
-                    onClick={() => onSelectChat(chat.id)}
-                    className={`w-full text-left px-3 py-2 rounded-md mb-1 transition-colors ${
-                      activeChat?.id === chat.id
-                        ? 'bg-white/20'
-                        : 'hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="font-medium truncate">{chat.title}</div>
-                    <div className="text-xs text-white/50 truncate">{chat.lastMessage}</div>
-                  </button>
-                ))}
+      <div className="space-y-2">
+        {conversations.map((conv) => (
+          <Card key={conv.id} className="bg-white/10 border-white/20 cursor-pointer hover:bg-white/15 transition-colors">
+            <CardContent className="p-3">
+              <div className="flex items-start gap-3">
+                <MessageSquare className="h-5 w-5 text-blue-400 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-white text-sm truncate">{conv.title}</h3>
+                  <p className="text-xs text-gray-400 truncate">{conv.lastMessage}</p>
+                  <p className="text-xs text-gray-500 mt-1">{conv.time}</p>
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-white/50 text-center">
-              No conversations found
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="mt-auto pt-4">
+        <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
+          <Settings className="h-4 w-4 mr-2" />
+          Settings
+        </Button>
+      </div>
     </div>
   );
 };
-
-export default ChatSidebar;
