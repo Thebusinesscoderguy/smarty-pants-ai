@@ -51,24 +51,6 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Gamified Learning Experience</h2>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-8 max-w-2xl mx-auto">
-              <div className="text-yellow-400 text-3xl mb-4">🏆</div>
-              <h3 className="text-xl font-semibold mb-4">Achievements & Progress Tracking</h3>
-              <p className="text-white/70">Unlock badges, earn points, and level up as you progress. Visual progress indicators and learning analytics help students stay motivated and understand their strengths.</p>
-            </div>
-          </div>
-
-          <div className="mt-24 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Parent & Teacher Monitoring</h2>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-8 max-w-2xl mx-auto">
-              <div className="text-orange-400 text-3xl mb-4">👨‍👩‍👧‍👦</div>
-              <h3 className="text-xl font-semibold mb-4">Comprehensive Dashboards</h3>
-              <p className="text-white/70">Parents and teachers can monitor student progress through detailed analytics, achievement tracking, and performance reports to support learning outcomes.</p>
-            </div>
-          </div>
-
           <div className="mt-24">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
             <div className="max-w-3xl mx-auto">
