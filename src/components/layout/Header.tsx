@@ -10,7 +10,6 @@ import { useState, useEffect } from 'react';
 export const Header = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     console.log('Header: Auth state updated:', {
@@ -20,38 +19,6 @@ export const Header = () => {
       userEmail: user?.email
     });
   }, [user, loading]);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      
-      console.log("Header: Starting Google sign-in...");
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/pricing`,
-        },
-      });
-
-      if (error) {
-        console.error('Header: Google sign-in error:', error);
-        throw error;
-      }
-
-      console.log('Header: Google sign-in initiated successfully');
-      
-    } catch (error: any) {
-      console.error("Header: Google auth error:", error);
-      
-      toast({
-        title: "Google Sign In Failed",
-        description: error.message || "Failed to authenticate with Google",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
@@ -95,10 +62,9 @@ export const Header = () => {
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10" 
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              onClick={() => navigate('/auth')}
             >
-              {isLoading ? "Signing in..." : "Log in"}
+              Log in
             </Button>
             <Button 
               className="bg-white text-black hover:bg-gray-200" 
