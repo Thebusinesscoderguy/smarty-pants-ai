@@ -1,5 +1,6 @@
+
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Mic, BookOpen, Calculator, BarChart3 } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ContactForm } from '@/components/contact/ContactForm';
@@ -18,52 +19,17 @@ const Index = () => {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Learn Faster with <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">AI</span>
             </h1>
-            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8">
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-              <Button 
-                size="lg" 
-                className="bg-white text-black hover:bg-gray-200 h-16"
-                onClick={() => navigate('/chat')}
-              >
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Text Chat
-              </Button>
-              <Button 
-                size="lg" 
-                className="bg-purple-600 hover:bg-purple-700 h-16"
-                onClick={() => navigate('/voice')}
-              >
-                <Mic className="mr-2 h-5 w-5" />
-                Voice Chat
-              </Button>
-              <Button 
-                size="lg" 
-                className="bg-blue-600 hover:bg-blue-700 h-16"
-                onClick={() => navigate('/math')}
-              >
-                <Calculator className="mr-2 h-5 w-5" />
-                Math Solver
-              </Button>
-              <Button 
-                size="lg" 
-                className="bg-orange-600 hover:bg-orange-700 h-16"
-                onClick={() => navigate('/progress')}
-              >
-                <BarChart3 className="mr-2 h-5 w-5" />
-                Progress
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-purple-500/50 hover:bg-purple-500/10 text-purple-300 h-16"
-                onClick={() => navigate('/pricing')}
-              >
-                <BookOpen className="mr-2 h-5 w-5" />
-                Get Started
-              </Button>
-            </div>
+            <Button 
+              size="lg" 
+              className="bg-purple-600 hover:bg-purple-700 h-16 px-12"
+              onClick={() => navigate('/pricing')}
+            >
+              <BookOpen className="mr-2 h-5 w-5" />
+              Get Started
+            </Button>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mt-16">
@@ -81,6 +47,58 @@ const Index = () => {
               <div className="text-green-400 text-2xl mb-4">📚</div>
               <h3 className="text-xl font-semibold mb-2">Study Material Analysis</h3>
               <p className="text-white/70">Upload your notes and documents, and our AI will help you understand and quiz you on the content.</p>
+            </div>
+          </div>
+
+          <div className="mt-24 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Gamified Learning Experience</h2>
+            <div className="grid md:grid-cols-2 gap-8 mt-12">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-yellow-400 text-3xl mb-4">🏆</div>
+                <h3 className="text-xl font-semibold mb-4">Achievements & Rewards</h3>
+                <p className="text-white/70">Unlock badges, earn points, and level up as you progress through your learning journey. Our gamification system keeps students motivated with meaningful rewards for completing lessons, maintaining study streaks, and mastering difficult concepts.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-blue-400 text-3xl mb-4">📊</div>
+                <h3 className="text-xl font-semibold mb-4">Progress Tracking</h3>
+                <p className="text-white/70">Visual progress indicators, learning analytics, and detailed performance insights help students understand their strengths and areas for improvement. Set goals, track daily study time, and celebrate milestones along the way.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-purple-400 text-3xl mb-4">🎯</div>
+                <h3 className="text-xl font-semibold mb-4">Challenges & Quests</h3>
+                <p className="text-white/70">Engage with daily challenges, weekly quests, and special learning events. Complete subject-specific missions, participate in knowledge competitions, and climb leaderboards while building real understanding.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-green-400 text-3xl mb-4">⭐</div>
+                <h3 className="text-xl font-semibold mb-4">Customizable Experience</h3>
+                <p className="text-white/70">Personalize your learning environment with themes, avatars, and study preferences. Set notification schedules, choose reward types, and create a learning space that motivates you to succeed.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-24 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Parent & Teacher Monitoring</h2>
+            <div className="grid md:grid-cols-2 gap-8 mt-12">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-orange-400 text-3xl mb-4">👨‍👩‍👧‍👦</div>
+                <h3 className="text-xl font-semibold mb-4">Parent Dashboard</h3>
+                <p className="text-white/70">Stay connected with your child's learning journey through comprehensive progress reports, achievement notifications, and study time analytics. Monitor completion rates, identify learning patterns, and support your child's educational goals with detailed insights into their strengths and areas needing attention.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-red-400 text-3xl mb-4">👩‍🏫</div>
+                <h3 className="text-xl font-semibold mb-4">Teacher Analytics</h3>
+                <p className="text-white/70">Empower educators with detailed student performance analytics, assignment tracking, and learning outcome assessments. Generate progress reports, identify students who need additional support, and customize learning paths based on individual student needs and classroom objectives.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-cyan-400 text-3xl mb-4">📈</div>
+                <h3 className="text-xl font-semibold mb-4">Real-time Insights</h3>
+                <p className="text-white/70">Access live learning data, study session reports, and immediate notifications when students achieve milestones or need help. Track engagement levels, time spent on different subjects, and learning velocity to make informed decisions about educational support.</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
+                <div className="text-pink-400 text-3xl mb-4">📋</div>
+                <h3 className="text-xl font-semibold mb-4">Custom Reports</h3>
+                <p className="text-white/70">Generate detailed progress reports for parent-teacher conferences, academic reviews, and educational planning. Export data in multiple formats, schedule automated report delivery, and create custom metrics that align with educational standards and learning objectives.</p>
+              </div>
             </div>
           </div>
           
@@ -118,7 +136,7 @@ const Index = () => {
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-purple-500/50 transition-all duration-300 text-left">
                 <h3 className="text-xl font-semibold mb-4">How does voice learning work?</h3>
-                <p className="text-white/70 mb-3">Click on the "Voice Chat" button to access our voice learning feature. You can record questions and receive spoken responses from our AI tutor.</p>
+                <p className="text-white/70 mb-3">Our voice learning feature allows you to have natural conversations with our AI tutor. You can ask questions and receive spoken responses, making learning more interactive and engaging.</p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 hover:border-green-500/50 transition-all duration-300 text-left">
                 <h3 className="text-xl font-semibold mb-4">What content can Teachly help me with?</h3>
