@@ -27,53 +27,34 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Handle OAuth callback - check on page load
+  // Listen for auth state changes (this handles OAuth callbacks automatically)
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      console.log('Checking for OAuth session...');
-      
-      // Get current session directly
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Session check error:', error);
-        setAuthError(error.message);
-        toast({
-          title: "Authentication failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (session?.user) {
-        console.log('Session found, user authenticated');
-        toast({
-          title: "Success!",
-          description: "Successfully signed in with Google",
-        });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
         
-        // Clean URL and redirect
-        window.history.replaceState({}, document.title, '/auth');
-        navigate('/pricing');
-        return;
+        if (event === 'SIGNED_IN' && session) {
+          console.log('User signed in successfully');
+          toast({
+            title: "Success!",
+            description: "Successfully signed in with Google",
+          });
+          
+          // Small delay to ensure everything is processed
+          setTimeout(() => {
+            navigate('/pricing');
+          }, 100);
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+        }
       }
-    };
+    );
 
-    // Check for OAuth callback indicators
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    if (window.location.hash.includes('access_token') || 
-        window.location.hash.includes('code') ||
-        urlParams.has('code') ||
-        hashParams.has('access_token')) {
-      console.log('OAuth callback detected with params:', { 
-        hash: window.location.hash, 
-        search: window.location.search 
-      });
-      handleOAuthCallback();
-    }
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
