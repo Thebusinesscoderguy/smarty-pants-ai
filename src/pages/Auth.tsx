@@ -18,18 +18,18 @@ const Auth = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     if (user && !loading) {
+      console.log('User authenticated, redirecting to pricing');
       navigate('/pricing');
     }
   }, [user, loading, navigate]);
 
-  // Enhanced OAuth redirect handling
+  // Simplified OAuth redirect handling
   useEffect(() => {
     const handleAuthRedirect = async () => {
-      // Check for any auth-related URL parameters
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const searchParams = new URLSearchParams(window.location.search);
       
@@ -40,50 +40,52 @@ const Auth = () => {
         searchParams.has('error');
       
       if (hasAuthParams) {
-        console.log('Detected OAuth redirect, processing...');
+        console.log('Detected OAuth redirect params');
         setIsRedirecting(true);
         
-        try {
-          // Handle error in URL
-          const error = hashParams.get('error') || searchParams.get('error');
-          const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
-          
-          if (error) {
-            console.error('OAuth error:', error, errorDescription);
-            setAuthError(errorDescription || error);
-            toast({
-              title: "Authentication failed",
-              description: errorDescription || error,
-              variant: "destructive",
-            });
-            setIsRedirecting(false);
-            // Clean the URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            return;
-          }
+        // Check for errors first
+        const error = hashParams.get('error') || searchParams.get('error');
+        const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
+        
+        if (error) {
+          console.error('OAuth error:', error, errorDescription);
+          setAuthError(errorDescription || error);
+          toast({
+            title: "Authentication failed",
+            description: errorDescription || error,
+            variant: "destructive",
+          });
+          setIsRedirecting(false);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        }
 
-          // Wait a moment for auth state to update
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Check session after OAuth redirect
-          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        try {
+          // Get the current session - Supabase should have processed the OAuth callback
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
             console.error('Session error:', sessionError);
             throw sessionError;
           }
           
-          if (sessionData.session) {
-            console.log('OAuth session established successfully');
-            // Clean the URL before redirecting
+          if (session) {
+            console.log('Session established successfully');
+            // Clean the URL and let the auth context handle the redirect
             window.history.replaceState({}, document.title, window.location.pathname);
-            navigate('/pricing');
-          } else {
-            console.log('No session found after OAuth, waiting for auth state change...');
-            // Give auth state change listener time to process
-            setTimeout(() => {
-              if (!user) {
-                console.error('Authentication completed but no session established');
+            setIsRedirecting(false);
+            // The useEffect above will handle navigation once user state updates
+            return;
+          }
+          
+          // If no session yet, wait a bit for the auth state to update
+          console.log('No session found immediately, waiting for auth state change...');
+          
+          // Set a timeout to show error if session isn't established
+          setTimeout(() => {
+            supabase.auth.getSession().then(({ data: { session: laterSession } }) => {
+              if (!laterSession) {
+                console.error('Session still not established after delay');
                 setAuthError('Authentication completed but session could not be established. Please try again.');
                 toast({
                   title: "Authentication failed",
@@ -91,11 +93,17 @@ const Auth = () => {
                   variant: "destructive",
                 });
                 setIsRedirecting(false);
+                window.history.replaceState({}, document.title, window.location.pathname);
+              } else {
+                console.log('Session established after delay');
+                setIsRedirecting(false);
+                window.history.replaceState({}, document.title, window.location.pathname);
               }
-            }, 2000);
-          }
+            });
+          }, 3000);
+          
         } catch (error: any) {
-          console.error('Error handling OAuth redirect:', error);
+          console.error('Error processing OAuth redirect:', error);
           setAuthError(error.message);
           toast({
             title: "Authentication error",
@@ -103,7 +111,6 @@ const Auth = () => {
             variant: "destructive",
           });
           setIsRedirecting(false);
-          // Clean the URL
           window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
@@ -112,7 +119,7 @@ const Auth = () => {
     if (!loading) {
       handleAuthRedirect();
     }
-  }, [loading, navigate, user]);
+  }, [loading, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +172,7 @@ const Auth = () => {
       
       console.log("Starting Google sign-in...");
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth`,
@@ -182,7 +189,6 @@ const Auth = () => {
       }
 
       console.log('Google sign-in initiated successfully');
-      // Don't set isRedirecting here, let the redirect happen naturally
       
     } catch (error: any) {
       console.error("Google auth error:", error);
