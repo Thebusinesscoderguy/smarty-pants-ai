@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
 import { toast } from '@/components/ui/use-toast';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
+import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import ChatHeader from '@/components/voice/ChatHeader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import MessageList from '@/components/MessageList';
@@ -20,7 +20,13 @@ const Voice = () => {
   const { user } = useAuth();
   const [textMessage, setTextMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [selectedVoice, setSelectedVoice] = useState('alloy');
+  
+  const {
+    isVoiceEnabled,
+    selectedVoice,
+    toggleVoice,
+    changeVoice
+  } = useVoiceSettings();
 
   const {
     messages,
@@ -282,7 +288,7 @@ const Voice = () => {
 
           <VoiceSettings 
             selectedVoice={selectedVoice}
-            setSelectedVoice={setSelectedVoice}
+            setSelectedVoice={changeVoice}
             isQuizMode={isQuizMode}
             setIsQuizMode={setIsQuizMode}
             totalTokensUsed={totalTokensUsed}
@@ -290,6 +296,8 @@ const Voice = () => {
             inputTokens={inputTokens}
             outputTokens={outputTokens}
             isTokenLimitReached={isTokenLimitReached}
+            isVoiceEnabled={isVoiceEnabled}
+            onToggleVoice={toggleVoice}
           />
 
           <QuizModeAnalysis 

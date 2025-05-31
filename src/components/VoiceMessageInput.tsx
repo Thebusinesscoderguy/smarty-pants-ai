@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizontal, Mic, Volume, FileInput, X } from 'lucide-react';
+import { SendHorizontal, Mic, Volume, Upload, X } from 'lucide-react';
 
 interface MessageInputProps {
   textMessage: string;
@@ -84,16 +84,17 @@ const VoiceMessageInput = ({
             <input
               type="file"
               id="file-upload"
-              className="absolute inset-0 w-full opacity-0 cursor-pointer"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               onChange={handleFileChange}
               disabled={disabled}
+              accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
             />
             <Button
               variant="outline"
               className="bg-white/5 border-white/20 hover:bg-white/10"
               disabled={disabled}
             >
-              <FileInput className="h-5 w-5" />
+              <Upload className="h-5 w-5" />
             </Button>
           </div>
           

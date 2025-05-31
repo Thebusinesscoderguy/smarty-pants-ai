@@ -8,9 +8,10 @@ export const useVoiceSettings = () => {
   const { toast } = useToast();
 
   const toggleVoice = () => {
-    setIsVoiceEnabled(!isVoiceEnabled);
+    const newState = !isVoiceEnabled;
+    setIsVoiceEnabled(newState);
     toast({
-      title: isVoiceEnabled ? "Voice responses disabled" : "Voice responses enabled",
+      title: newState ? "Voice responses enabled" : "Voice responses disabled",
       duration: 2000,
     });
   };
@@ -31,4 +32,3 @@ export const useVoiceSettings = () => {
     changeVoice,
   };
 };
-
