@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,10 +26,9 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Simple OAuth redirect handling
+  // Handle OAuth redirect from Google
   useEffect(() => {
     const handleAuthRedirect = async () => {
-      // Check for error in URL
       const urlParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       
@@ -43,32 +43,48 @@ const Auth = () => {
           description: errorDescription || error,
           variant: "destructive",
         });
-        // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
 
-      // Check if we have auth fragments (successful OAuth)
-      if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
-        console.log('OAuth callback detected, cleaning URL...');
+      // Check if we have OAuth tokens in the URL
+      if (window.location.hash.includes('access_token')) {
+        console.log('OAuth callback detected, processing session...');
         
-        // Let Supabase handle the session automatically through onAuthStateChange
-        // Just clean the URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        toast({
-          title: "Success!",
-          description: "Successfully signed in with Google",
-        });
-
-        // Force a check for the current session and redirect
-        setTimeout(async () => {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            console.log('Session confirmed, redirecting to pricing');
-            navigate('/pricing');
+        try {
+          // Get the session from the URL hash
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Session error:', error);
+            throw error;
           }
-        }, 1000);
+          
+          if (data.session) {
+            console.log('Session established successfully');
+            toast({
+              title: "Success!",
+              description: "Successfully signed in with Google",
+            });
+            
+            // Clean the URL and redirect
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate('/pricing');
+          } else {
+            throw new Error('No session found after OAuth');
+          }
+        } catch (error: any) {
+          console.error('OAuth session processing error:', error);
+          setAuthError('Failed to complete authentication. Please try again.');
+          toast({
+            title: "Authentication Error",
+            description: "Failed to complete authentication. Please try again.",
+            variant: "destructive",
+          });
+        }
+        
+        // Clean URL regardless
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
     
@@ -99,14 +115,20 @@ const Auth = () => {
           description: "Account created. Please check your email for verification.",
         });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Sign in error:', error);
+          throw error;
+        }
         
-        navigate('/pricing');
+        if (data.user) {
+          console.log('User signed in successfully');
+          navigate('/pricing');
+        }
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
