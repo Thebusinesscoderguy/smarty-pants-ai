@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -26,15 +27,15 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Handle OAuth callback with session polling
+  // Handle OAuth callback with extended session polling
   useEffect(() => {
     const handleOAuthCallback = () => {
       console.log('OAuth callback detected, waiting for session...');
       
-      // Poll for session establishment
+      // Poll for session establishment with longer timeout
       const pollForSession = async () => {
         let attempts = 0;
-        const maxAttempts = 10;
+        const maxAttempts = 20; // Increased from 10 to 20 (10 seconds total)
         
         const checkSession = async () => {
           attempts++;
@@ -71,10 +72,10 @@ const Auth = () => {
             setTimeout(checkSession, 500);
           } else {
             console.log('Max attempts reached, session not found');
-            setAuthError('Authentication timed out. Please try again.');
+            setAuthError('Session establishment timed out. Please try signing in again.');
             toast({
-              title: "Authentication timeout",
-              description: "Please try signing in again.",
+              title: "Authentication timeout", 
+              description: "The login process took too long. Please try again.",
               variant: "destructive",
             });
           }
@@ -86,10 +87,18 @@ const Auth = () => {
       pollForSession();
     };
 
-    // Only run if we're on auth page and have OAuth callback indicators
+    // Check for OAuth callback indicators - be more comprehensive
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
     if (window.location.hash.includes('access_token') || 
         window.location.hash.includes('code') ||
-        window.location.search.includes('code=')) {
+        urlParams.has('code') ||
+        hashParams.has('access_token')) {
+      console.log('OAuth callback detected with params:', { 
+        hash: window.location.hash, 
+        search: window.location.search 
+      });
       handleOAuthCallback();
     }
   }, [navigate]);
