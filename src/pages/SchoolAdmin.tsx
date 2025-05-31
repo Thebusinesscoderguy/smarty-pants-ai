@@ -10,7 +10,8 @@ import { SchoolOverview } from '@/components/admin/SchoolOverview';
 import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
-import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp } from 'lucide-react';
+import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
+import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain } from 'lucide-react';
 
 const SchoolAdmin = () => {
   return (
@@ -27,7 +28,7 @@ const SchoolAdmin = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 bg-white/10">
+            <TabsList className="grid w-full grid-cols-8 bg-white/10">
               <TabsTrigger value="overview" className="data-[state=active]:bg-white/20">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Overview
@@ -51,6 +52,10 @@ const SchoolAdmin = () => {
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Analytics
+              </TabsTrigger>
+              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-white/20">
+                <Brain className="h-4 w-4 mr-2" />
+                Student Analysis
               </TabsTrigger>
               <TabsTrigger value="billing" className="data-[state=active]:bg-white/20">
                 <CreditCard className="h-4 w-4 mr-2" />
@@ -81,6 +86,10 @@ const SchoolAdmin = () => {
 
               <TabsContent value="analytics" className="space-y-6">
                 <EnhancedAnalytics />
+              </TabsContent>
+
+              <TabsContent value="student-analytics" className="space-y-6">
+                <StudentAnalyticsView />
               </TabsContent>
 
               <TabsContent value="billing" className="space-y-6">

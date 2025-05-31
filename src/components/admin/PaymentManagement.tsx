@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Users, Calendar, CheckCircle } from 'lucide-react';
+import { CreditCard, Users, Calendar, CheckCircle, Plus, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,11 +29,40 @@ export const PaymentManagement = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [schoolAccount, setSchoolAccount] = useState<SchoolAccount | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [studentCount, setStudentCount] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
     fetchSubscriptionData();
+    fetchStudentCount();
   }, [user]);
+
+  const fetchStudentCount = async () => {
+    if (!user) return;
+
+    try {
+      // Get school account first
+      const { data: schoolData } = await supabase
+        .from('school_accounts')
+        .select('id')
+        .eq('admin_user_id', user.id)
+        .single();
+
+      if (schoolData) {
+        // Count active student invitations
+        const { data: invitations, error } = await supabase
+          .from('student_invitations')
+          .select('id')
+          .eq('school_id', schoolData.id);
+
+        if (!error) {
+          setStudentCount(invitations?.length || 0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching student count:', error);
+    }
+  };
 
   const fetchSubscriptionData = async () => {
     if (!user) return;
@@ -130,9 +158,49 @@ export const PaymentManagement = () => {
     }
   };
 
+  const purchaseAdditionalStudents = async (count: number) => {
+    const costPerStudent = 5; // $5 per additional student
+    const totalCost = count * costPerStudent;
+
+    try {
+      // This would integrate with Stripe for actual payment
+      // For now, we'll just update the student limit
+      if (schoolAccount) {
+        const { error } = await supabase
+          .from('school_accounts')
+          .update({
+            student_limit: schoolAccount.student_limit + count
+          })
+          .eq('id', schoolAccount.id);
+
+        if (error) throw error;
+
+        setSchoolAccount({
+          ...schoolAccount,
+          student_limit: schoolAccount.student_limit + count
+        });
+
+        toast({
+          title: "Students Added",
+          description: `Added ${count} student slots for $${totalCost}`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error purchasing additional students:', error);
+      toast({
+        title: "Error",
+        description: "Failed to purchase additional student slots",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (isLoading) {
     return <div className="animate-pulse">Loading subscription data...</div>;
   }
+
+  const isNearLimit = subscription && studentCount >= (subscription.max_students * 0.8);
+  const isOverLimit = subscription && studentCount > subscription.max_students;
 
   return (
     <div className="space-y-6">
@@ -140,6 +208,44 @@ export const PaymentManagement = () => {
         <h2 className="text-2xl font-bold text-white">Subscription Management</h2>
         <p className="text-gray-400">Manage your school's subscription and billing</p>
       </div>
+
+      {/* Student Usage Warning */}
+      {subscription && (isNearLimit || isOverLimit) && (
+        <Card className={`border ${isOverLimit ? 'border-red-500/50 bg-red-500/10' : 'border-yellow-500/50 bg-yellow-500/10'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={`h-5 w-5 ${isOverLimit ? 'text-red-400' : 'text-yellow-400'}`} />
+              <div>
+                <p className={`font-medium ${isOverLimit ? 'text-red-300' : 'text-yellow-300'}`}>
+                  {isOverLimit ? 'Student Limit Exceeded' : 'Approaching Student Limit'}
+                </p>
+                <p className="text-sm text-gray-400">
+                  You have {studentCount} students out of {subscription.max_students} allowed. 
+                  {isOverLimit && ' Additional charges may apply.'}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => purchaseAdditionalStudents(10)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add 10 Students ($50)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => purchaseAdditionalStudents(25)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add 25 Students ($125)
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Current Subscription Status */}
       {subscription && (
@@ -164,7 +270,10 @@ export const PaymentManagement = () => {
                 <div>
                   <p className="text-sm text-gray-400">Students</p>
                   <p className="font-medium text-white">
-                    {subscription.student_count}/{subscription.max_students}
+                    {studentCount}/{subscription.max_students}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Extra students: $5 each
                   </p>
                 </div>
               </div>
@@ -196,6 +305,7 @@ export const PaymentManagement = () => {
                 <CardTitle className="text-white text-center">Starter Plan</CardTitle>
                 <div className="text-2xl font-bold text-white text-center">$29/month</div>
                 <p className="text-gray-400 text-center">Up to 100 students</p>
+                <p className="text-sm text-gray-500 text-center">Additional students: $5 each</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 mb-6">
