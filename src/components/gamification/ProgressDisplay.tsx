@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Target, Clock, BookOpen } from 'lucide-react';
-import { useGamification } from '@/hooks/useGamification';
+import { useQuests } from '@/hooks/useQuests';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Demo data for non-logged in users
 const demoUserProgress = [
   {
     subject: "Mathematics",
-    level: 3,
     completion_percentage: 75,
     completed_lessons: 15,
     total_lessons: 20,
@@ -18,7 +17,6 @@ const demoUserProgress = [
   },
   {
     subject: "Science",
-    level: 2,
     completion_percentage: 60,
     completed_lessons: 12,
     total_lessons: 20,
@@ -26,7 +24,6 @@ const demoUserProgress = [
   },
   {
     subject: "English",
-    level: 4,
     completion_percentage: 85,
     completed_lessons: 17,
     total_lessons: 20,
@@ -37,7 +34,7 @@ const demoUserProgress = [
 const demoChallenges = [
   {
     id: '1',
-    title: "Complete 3 Math Lessons",
+    title: "Complete 3 Math Problems",
     description: "Practice algebra and geometry concepts",
     target_value: 3,
     current_value: 2,
@@ -94,42 +91,20 @@ const demoAchievements = [
 
 export const ProgressDisplay = () => {
   const { user } = useAuth();
-  const { userProgress, userLevel, challenges, userAchievements, isLoading } = useGamification();
+  const { dailyQuests, subjectAssignments, isLoading } = useQuests();
 
   // Use demo data if user is not logged in
-  const displayProgress = user ? userProgress : demoUserProgress;
-  const displayLevel = user ? userLevel : 3;
-  const displayChallenges = user ? challenges : demoChallenges;
-  const displayAchievements = user ? userAchievements : demoAchievements;
+  const displayProgress = user ? subjectAssignments : demoUserProgress;
+  const displayChallenges = user ? dailyQuests : demoChallenges;
+  const displayAchievements = user ? [] : demoAchievements;
   const displayLoading = user ? isLoading : false;
 
   if (displayLoading) {
     return <div className="animate-pulse">Loading progress...</div>;
   }
 
-  const nextLevelProgress = ((displayLevel - 1) % 5) * 20;
-
   return (
     <div className="space-y-6">
-      {/* Level Progress */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Level {displayLevel}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress to Level {displayLevel + 1}</span>
-              <span>{nextLevelProgress}%</span>
-            </div>
-            <Progress value={nextLevelProgress} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Subject Progress */}
       <Card>
         <CardHeader>
@@ -143,9 +118,10 @@ export const ProgressDisplay = () => {
             {displayProgress.map((subject, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">{subject.subject}</span>
+                  <span className="font-medium">
+                    {subject.subjects?.name || subject.subject}
+                  </span>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">Level {subject.level}</Badge>
                     <span className="text-sm text-gray-600">
                       {subject.completion_percentage}%
                     </span>
@@ -162,12 +138,12 @@ export const ProgressDisplay = () => {
         </CardContent>
       </Card>
 
-      {/* Daily Challenges */}
+      {/* Daily Quests */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-green-500" />
-            Today's Challenges
+            Today's Quests
           </CardTitle>
         </CardHeader>
         <CardContent>

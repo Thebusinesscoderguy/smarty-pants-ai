@@ -93,6 +93,47 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_analytics: {
+        Row: {
+          correct_attempts: number | null
+          id: string
+          last_updated: string
+          strength_score: number | null
+          subject_id: string
+          topic_name: string
+          total_attempts: number | null
+          user_id: string
+        }
+        Insert: {
+          correct_attempts?: number | null
+          id?: string
+          last_updated?: string
+          strength_score?: number | null
+          subject_id: string
+          topic_name: string
+          total_attempts?: number | null
+          user_id: string
+        }
+        Update: {
+          correct_attempts?: number | null
+          id?: string
+          last_updated?: string
+          strength_score?: number | null
+          subject_id?: string
+          topic_name?: string
+          total_attempts?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_analytics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           content: string | null
@@ -214,6 +255,36 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_verification_codes: {
+        Row: {
+          created_at: string
+          expires_at: string
+          guardian_email: string
+          id: string
+          used: boolean | null
+          user_id: string
+          verification_code: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          guardian_email: string
+          id?: string
+          used?: boolean | null
+          user_id: string
+          verification_code: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          guardian_email?: string
+          id?: string
+          used?: boolean | null
+          user_id?: string
+          verification_code?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -243,6 +314,159 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      quests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_by_id: string | null
+          description: string
+          difficulty: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          subject_id: string | null
+          target_value: number
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_by_id?: string | null
+          description: string
+          difficulty: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          subject_id?: string | null
+          target_value: number
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_by_id?: string | null
+          description?: string
+          difficulty?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          subject_id?: string | null
+          target_value?: number
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quests_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_accounts: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          plan_type: string
+          school_name: string
+          student_limit: number
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan_type?: string
+          school_name: string
+          student_limit?: number
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan_type?: string
+          school_name?: string
+          student_limit?: number
+        }
+        Relationships: []
+      }
+      school_student_relationships: {
+        Row: {
+          enrolled_at: string
+          id: string
+          is_active: boolean
+          school_id: string
+          student_id: string
+        }
+        Insert: {
+          enrolled_at?: string
+          id?: string
+          is_active?: boolean
+          school_id: string
+          student_id: string
+        }
+        Update: {
+          enrolled_at?: string
+          id?: string
+          is_active?: boolean
+          school_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_student_relationships_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subject_assignments: {
+        Row: {
+          assigned_by: string
+          assigned_by_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          subject_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_by_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subject_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_by_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subject_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_assignments_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subjects: {
         Row: {
@@ -420,6 +644,44 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_quest_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string
+          current_value: number | null
+          id: string
+          quest_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          quest_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          quest_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]
