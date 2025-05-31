@@ -27,67 +27,40 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Handle OAuth callback with extended session polling
+  // Handle OAuth callback - check on page load
   useEffect(() => {
-    const handleOAuthCallback = () => {
-      console.log('OAuth callback detected, waiting for session...');
+    const handleOAuthCallback = async () => {
+      console.log('Checking for OAuth session...');
       
-      // Poll for session establishment with longer timeout
-      const pollForSession = async () => {
-        let attempts = 0;
-        const maxAttempts = 20; // Increased from 10 to 20 (10 seconds total)
-        
-        const checkSession = async () => {
-          attempts++;
-          console.log(`Checking for session, attempt ${attempts}`);
-          
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Session check error:', error);
-            setAuthError(error.message);
-            toast({
-              title: "Authentication failed",
-              description: error.message,
-              variant: "destructive",
-            });
-            return;
-          }
+      // Get current session directly
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session check error:', error);
+        setAuthError(error.message);
+        toast({
+          title: "Authentication failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
-          if (session?.user) {
-            console.log('Session found, user authenticated');
-            toast({
-              title: "Success!",
-              description: "Successfully signed in with Google",
-            });
-            
-            // Clean URL and redirect
-            window.history.replaceState({}, document.title, window.location.pathname);
-            navigate('/pricing');
-            return;
-          }
-          
-          // If no session yet and we haven't exceeded max attempts, try again
-          if (attempts < maxAttempts) {
-            setTimeout(checkSession, 500);
-          } else {
-            console.log('Max attempts reached, session not found');
-            setAuthError('Session establishment timed out. Please try signing in again.');
-            toast({
-              title: "Authentication timeout", 
-              description: "The login process took too long. Please try again.",
-              variant: "destructive",
-            });
-          }
-        };
+      if (session?.user) {
+        console.log('Session found, user authenticated');
+        toast({
+          title: "Success!",
+          description: "Successfully signed in with Google",
+        });
         
-        checkSession();
-      };
-      
-      pollForSession();
+        // Clean URL and redirect
+        window.history.replaceState({}, document.title, '/auth');
+        navigate('/pricing');
+        return;
+      }
     };
 
-    // Check for OAuth callback indicators - be more comprehensive
+    // Check for OAuth callback indicators
     const urlParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     
