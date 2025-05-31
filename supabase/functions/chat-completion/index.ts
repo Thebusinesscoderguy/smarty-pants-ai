@@ -20,40 +20,46 @@ serve(async (req) => {
       throw new Error('Messages must be provided as an array');
     }
 
+    // Check if OpenAI API key is available
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     // Check if the system prompt includes quiz mode instructions
     const isQuizMode = messages.some(msg => 
       msg.role === 'system' && 
+      msg.content && 
       msg.content.includes('quiz mode')
-    );
-
-    // Extract performance data if present in system message
-    const performanceData = messages.find(msg => 
-      msg.role === 'system' && 
-      msg.content.includes('Strengths:')
     );
 
     // Call OpenAI API for chat completion with natural conversational style
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o', // Using GPT-4o for better natural responses
+        model: 'gpt-4o',
         messages: messages,
-        max_tokens: 800, // Increased for more complete thoughts
-        temperature: isQuizMode ? 0.6 : 0.8, // Higher temperature for more natural responses
+        max_tokens: 800,
+        temperature: isQuizMode ? 0.6 : 0.8,
       }),
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ error: { message: 'Unknown OpenAI API error' } }));
       console.error("OpenAI API error:", error);
-      throw new Error(error.error?.message || 'Failed to generate completion');
+      throw new Error(error.error?.message || `OpenAI API returned status ${response.status}`);
     }
 
     const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response from OpenAI API');
+    }
+
     const text = data.choices[0].message.content;
 
     // Log usage data for debugging
