@@ -52,33 +52,19 @@ const Index = () => {
 
           <div className="mt-24 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Gamified Learning Experience</h2>
-            <div className="grid md:grid-cols-2 gap-8 mt-12">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <div className="text-yellow-400 text-3xl mb-4">🏆</div>
-                <h3 className="text-xl font-semibold mb-4">Achievements & Rewards</h3>
-                <p className="text-white/70">Unlock badges, earn points, and level up as you progress. Our gamification system keeps students motivated with meaningful rewards and study streaks.</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <div className="text-blue-400 text-3xl mb-4">📊</div>
-                <h3 className="text-xl font-semibold mb-4">Progress Tracking</h3>
-                <p className="text-white/70">Visual progress indicators and learning analytics help students understand their strengths and areas for improvement. Set goals and celebrate milestones.</p>
-              </div>
+            <div className="bg-white/5 border border-white/10 rounded-lg p-8 max-w-2xl mx-auto">
+              <div className="text-yellow-400 text-3xl mb-4">🏆</div>
+              <h3 className="text-xl font-semibold mb-4">Achievements & Progress Tracking</h3>
+              <p className="text-white/70">Unlock badges, earn points, and level up as you progress. Visual progress indicators and learning analytics help students stay motivated and understand their strengths.</p>
             </div>
           </div>
 
           <div className="mt-24 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Parent & Teacher Monitoring</h2>
-            <div className="grid md:grid-cols-2 gap-8 mt-12">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <div className="text-orange-400 text-3xl mb-4">👨‍👩‍👧‍👦</div>
-                <h3 className="text-xl font-semibold mb-4">Parent Dashboard</h3>
-                <p className="text-white/70">Stay connected with your child's learning journey through comprehensive progress reports, achievement notifications, and study time analytics.</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-left">
-                <div className="text-red-400 text-3xl mb-4">👩‍🏫</div>
-                <h3 className="text-xl font-semibold mb-4">Teacher Analytics</h3>
-                <p className="text-white/70">Empower educators with detailed student performance analytics, assignment tracking, and learning outcome assessments.</p>
-              </div>
+            <div className="bg-white/5 border border-white/10 rounded-lg p-8 max-w-2xl mx-auto">
+              <div className="text-orange-400 text-3xl mb-4">👨‍👩‍👧‍👦</div>
+              <h3 className="text-xl font-semibold mb-4">Comprehensive Dashboards</h3>
+              <p className="text-white/70">Parents and teachers can monitor student progress through detailed analytics, achievement tracking, and performance reports to support learning outcomes.</p>
             </div>
           </div>
           
