@@ -12,21 +12,6 @@ import { Footer } from '@/components/layout/Footer';
 const Progress = () => {
   const { user } = useAuth();
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-            <p className="text-gray-400">Please log in to view your progress.</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Header />
@@ -36,8 +21,18 @@ const Progress = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Learning Progress</h1>
             <p className="text-gray-400">
-              Track your achievements, monitor progress, and customize your learning experience.
+              {user ? 
+                "Track your achievements, monitor progress, and customize your learning experience." :
+                "Demo: See how you can track achievements, monitor progress, and customize your learning experience."
+              }
             </p>
+            {!user && (
+              <div className="mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                <p className="text-blue-200 text-sm">
+                  🚀 This is a demo showing sample progress data. Sign up to track your actual learning progress!
+                </p>
+              </div>
+            )}
           </div>
 
           <Tabs defaultValue="progress" className="w-full">

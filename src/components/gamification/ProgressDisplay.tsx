@@ -4,15 +4,110 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Target, Clock, BookOpen } from 'lucide-react';
 import { useGamification } from '@/hooks/useGamification';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Demo data for non-logged in users
+const demoUserProgress = [
+  {
+    subject: "Mathematics",
+    level: 3,
+    completion_percentage: 75,
+    completed_lessons: 15,
+    total_lessons: 20,
+    time_spent: 240
+  },
+  {
+    subject: "Science",
+    level: 2,
+    completion_percentage: 60,
+    completed_lessons: 12,
+    total_lessons: 20,
+    time_spent: 180
+  },
+  {
+    subject: "English",
+    level: 4,
+    completion_percentage: 85,
+    completed_lessons: 17,
+    total_lessons: 20,
+    time_spent: 300
+  }
+];
+
+const demoChallenges = [
+  {
+    id: '1',
+    title: "Complete 3 Math Lessons",
+    description: "Practice algebra and geometry concepts",
+    target_value: 3,
+    current_value: 2,
+    completed: false
+  },
+  {
+    id: '2',
+    title: "Study for 30 Minutes",
+    description: "Focus on your weakest subject",
+    target_value: 30,
+    current_value: 30,
+    completed: true
+  },
+  {
+    id: '3',
+    title: "Solve 10 Problems",
+    description: "Practice problem-solving skills",
+    target_value: 10,
+    current_value: 7,
+    completed: false
+  }
+];
+
+const demoAchievements = [
+  {
+    id: '1',
+    name: "First Steps",
+    description: "Completed your first lesson",
+    icon: "🎯",
+    earned_at: "2024-01-15"
+  },
+  {
+    id: '2',
+    name: "Speed Learner",
+    description: "Completed 5 lessons in one day",
+    icon: "⚡",
+    earned_at: "2024-01-20"
+  },
+  {
+    id: '3',
+    name: "Math Master",
+    description: "Achieved 80% in mathematics",
+    icon: "🧮",
+    earned_at: "2024-01-25"
+  },
+  {
+    id: '4',
+    name: "Consistent Learner",
+    description: "Studied for 7 days straight",
+    icon: "📚",
+    earned_at: "2024-01-30"
+  }
+];
 
 export const ProgressDisplay = () => {
+  const { user } = useAuth();
   const { userProgress, userLevel, challenges, userAchievements, isLoading } = useGamification();
 
-  if (isLoading) {
+  // Use demo data if user is not logged in
+  const displayProgress = user ? userProgress : demoUserProgress;
+  const displayLevel = user ? userLevel : 3;
+  const displayChallenges = user ? challenges : demoChallenges;
+  const displayAchievements = user ? userAchievements : demoAchievements;
+  const displayLoading = user ? isLoading : false;
+
+  if (displayLoading) {
     return <div className="animate-pulse">Loading progress...</div>;
   }
 
-  const nextLevelProgress = ((userLevel - 1) % 5) * 20;
+  const nextLevelProgress = ((displayLevel - 1) % 5) * 20;
 
   return (
     <div className="space-y-6">
@@ -21,13 +116,13 @@ export const ProgressDisplay = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-yellow-500" />
-            Level {userLevel}
+            Level {displayLevel}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Progress to Level {userLevel + 1}</span>
+              <span>Progress to Level {displayLevel + 1}</span>
               <span>{nextLevelProgress}%</span>
             </div>
             <Progress value={nextLevelProgress} className="h-2" />
@@ -45,7 +140,7 @@ export const ProgressDisplay = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {userProgress.map((subject, index) => (
+            {displayProgress.map((subject, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{subject.subject}</span>
@@ -77,7 +172,7 @@ export const ProgressDisplay = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {challenges.map((challenge) => (
+            {displayChallenges.map((challenge) => (
               <div key={challenge.id} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{challenge.title}</span>
@@ -105,7 +200,7 @@ export const ProgressDisplay = () => {
       </Card>
 
       {/* Recent Achievements */}
-      {userAchievements.length > 0 && (
+      {displayAchievements.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -115,7 +210,7 @@ export const ProgressDisplay = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {userAchievements.slice(0, 4).map((achievement) => (
+              {displayAchievements.slice(0, 4).map((achievement) => (
                 <div 
                   key={achievement.id}
                   className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border"

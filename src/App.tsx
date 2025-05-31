@@ -22,13 +22,10 @@ const App = () => {
           <Route path="/voice" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/math" element={<ProtectedRoute><MathSolver /></ProtectedRoute>} />
-          <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
+          <Route path="/progress" element={<Progress />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
       </BrowserRouter>
     </AuthProvider>
   );
-};
-
-export default App;
