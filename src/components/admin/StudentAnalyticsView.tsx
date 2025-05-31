@@ -18,11 +18,11 @@ interface StudentData {
   strengths: string[];
   weak_areas: string[];
   last_activity: string;
-  subject_performance: Array<{
-    subject: string;
-    strength_score: number;
-    weakness_score: number;
-    performance: number;
+  topic_performance: Array<{
+    topic: string;
+    past_score: number;
+    current_score: number;
+    improvement: number;
   }>;
 }
 
@@ -59,25 +59,42 @@ export const StudentAnalyticsView = () => {
 
       if (invitationsError) throw invitationsError;
 
-      // Generate mock analytics data for demonstration
+      // Generate mock analytics data with specific topics
+      const specificTopics = [
+        'Algebra 1 Slope Intercept',
+        'Geometry Area Formulas',
+        'Quadratic Equations',
+        'Linear Systems',
+        'Exponential Functions',
+        'Trigonometry Basics',
+        'Statistics Mean/Median',
+        'Probability Fundamentals'
+      ];
+
       const studentsData: StudentData[] = invitations?.map((invitation, index) => {
         const studentName = `${invitation.first_name || 'Student'} ${invitation.last_name || index + 1}`;
-        const subjects = ['Mathematics', 'Science', 'English', 'History', 'Art'];
         
+        // Generate topic performance data
+        const topicPerformance = specificTopics.slice(0, Math.floor(Math.random() * 3) + 4).map(topic => {
+          const pastScore = Math.floor(Math.random() * 40) + 40; // 40-80%
+          const currentScore = Math.floor(Math.random() * 40) + 50; // 50-90%
+          return {
+            topic,
+            past_score: pastScore,
+            current_score: currentScore,
+            improvement: currentScore - pastScore
+          };
+        });
+
         return {
           student_id: `student_${index}`,
           student_name: studentName,
           completion_percentage: Math.floor(Math.random() * 40) + 60, // 60-100%
           total_time_spent: Math.floor(Math.random() * 500) + 100, // 100-600 minutes
-          strengths: subjects.slice(0, Math.floor(Math.random() * 3) + 1),
-          weak_areas: subjects.slice(-Math.floor(Math.random() * 2) - 1),
+          strengths: topicPerformance.filter(t => t.current_score >= 80).map(t => t.topic),
+          weak_areas: topicPerformance.filter(t => t.current_score < 60).map(t => t.topic),
           last_activity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          subject_performance: subjects.map(subject => ({
-            subject,
-            strength_score: Math.random(),
-            weakness_score: Math.random(),
-            performance: Math.floor(Math.random() * 40) + 50 // 50-90%
-          }))
+          topic_performance: topicPerformance
         };
       }) || [];
 
@@ -108,7 +125,7 @@ export const StudentAnalyticsView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Student Analytics</h2>
-          <p className="text-gray-400">Detailed progress analysis with strengths and weaknesses</p>
+          <p className="text-gray-400">Detailed progress analysis with topic-specific improvements</p>
         </div>
         
         <div className="flex gap-4">
@@ -158,7 +175,7 @@ export const StudentAnalyticsView = () => {
           <StrengthsWeaknessesChart
             studentId={selectedStudentData.student_id}
             studentName={selectedStudentData.student_name}
-            data={selectedStudentData.subject_performance}
+            data={selectedStudentData.topic_performance}
           />
         </div>
       ) : null}
