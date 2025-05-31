@@ -2,11 +2,42 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FaPaypal } from 'react-icons/fa';
 import { CheckCircle, Users, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
+import { useState } from 'react';
 
 const Pricing = () => {
-  return <div className="flex flex-col min-h-screen bg-black text-white">
+  const [isLoading, setIsLoading] = useState({ individual: false, business: false });
+
+  const handleSubscription = async (planType: 'individual' | 'business') => {
+    try {
+      setIsLoading(prev => ({ ...prev, [planType]: true }));
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { planType }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to start payment process",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(prev => ({ ...prev, [planType]: false }));
+    }
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-black text-white">
       <header className="py-6 text-center">
         <h1 className="text-3xl font-bold">Teachly</h1>
       </header>
@@ -36,7 +67,7 @@ const Pricing = () => {
             <CardContent className="space-y-6 text-center">
               <div>
                 <p className="text-xl mb-2">Full access to all features</p>
-                <p className="text-white/70 mb-4">Start with a 14-day free trial</p>
+                <p className="text-white/70 mb-4">Start learning immediately</p>
               </div>
               
               <ul className="space-y-3 text-lg">
@@ -67,17 +98,17 @@ const Pricing = () => {
               </ul>
               
               <div className="bg-white/5 p-4 rounded-lg">
-                <p className="font-medium">No credit card required for trial</p>
-                <p className="text-sm text-white/70">Cancel anytime before the trial ends</p>
+                <p className="font-medium">Secure payment via Stripe</p>
+                <p className="text-sm text-white/70">Cancel anytime from your dashboard</p>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
-              <Button className="w-full bg-white text-black hover:bg-gray-200 flex items-center justify-center gap-2">
-                <FaPaypal />
-                Start Your 14-Day Free Trial
-              </Button>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                <Link to="/features" className="w-full">Try Features Now</Link>
+              <Button 
+                className="w-full bg-white text-black hover:bg-gray-200"
+                onClick={() => handleSubscription('individual')}
+                disabled={isLoading.individual}
+              >
+                {isLoading.individual ? "Processing..." : "Subscribe Now"}
               </Button>
             </CardFooter>
           </Card>
@@ -141,29 +172,23 @@ const Pricing = () => {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2">
-                <FaPaypal />
-                Start Business Trial
-              </Button>
-              <Button className="w-full bg-white text-black hover:bg-gray-200">
-                <Link to="/features" className="w-full">Contact Sales</Link>
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                onClick={() => handleSubscription('business')}
+                disabled={isLoading.business}
+              >
+                {isLoading.business ? "Processing..." : "Subscribe Now"}
               </Button>
             </CardFooter>
           </Card>
-        </div>
-
-        <div className="mt-8 max-w-md text-center">
-          <Link to="/features">
-            <Button variant="outline" className="border-white/20 hover:bg-white/5">
-              Skip to Features Demo
-            </Button>
-          </Link>
         </div>
       </main>
 
       <footer className="py-6 text-center text-sm text-white/70">
         © 2025 EduAI
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Pricing;

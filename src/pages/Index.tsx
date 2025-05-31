@@ -61,7 +61,7 @@ const Index = () => {
                 onClick={() => navigate('/pricing')}
               >
                 <BookOpen className="mr-2 h-5 w-5" />
-                Pricing
+                Get Started
               </Button>
             </div>
           </div>
