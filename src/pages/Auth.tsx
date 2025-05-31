@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -30,25 +29,16 @@ const Auth = () => {
   // Improved OAuth redirect handling
   useEffect(() => {
     const handleAuthRedirect = async () => {
-      // Check if we're on a redirect from OAuth
+      // Check URL for auth parameters
+      const urlParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const searchParams = new URLSearchParams(window.location.search);
       
-      const hasAuthParams = 
-        hashParams.has('access_token') || 
-        hashParams.has('error') ||
-        searchParams.has('code') ||
-        searchParams.has('error');
+      // Check for OAuth callback parameters
+      const code = urlParams.get('code');
+      const error = urlParams.get('error') || hashParams.get('error');
+      const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
       
-      if (!hasAuthParams) return;
-      
-      console.log('Processing OAuth redirect...');
-      setIsRedirecting(true);
-      
-      // Check for errors first
-      const error = hashParams.get('error') || searchParams.get('error');
-      const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
-      
+      // If we have an error, handle it
       if (error) {
         console.error('OAuth error:', error, errorDescription);
         setAuthError(errorDescription || error);
@@ -57,69 +47,51 @@ const Auth = () => {
           description: errorDescription || error,
           variant: "destructive",
         });
-        setIsRedirecting(false);
         // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
-
-      try {
-        console.log('Getting session after OAuth redirect...');
+      
+      // If we have a code or access token, we're processing an OAuth callback
+      if (code || hashParams.has('access_token')) {
+        console.log('Processing OAuth callback...');
+        setIsRedirecting(true);
         
-        // Try to get the session multiple times with delays
-        let session = null;
-        let attempts = 0;
-        const maxAttempts = 5;
-        
-        while (!session && attempts < maxAttempts) {
-          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        try {
+          // Exchange the code for a session using Supabase's built-in method
+          const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code || '');
           
           if (sessionError) {
-            console.error('Session error on attempt', attempts + 1, ':', sessionError);
-          } else if (currentSession) {
-            session = currentSession;
-            console.log('Session found on attempt', attempts + 1);
-            break;
+            console.error('Session exchange error:', sessionError);
+            setAuthError('Failed to establish session. Please try signing in again.');
+            toast({
+              title: "Authentication failed",
+              description: "Could not establish a session. Please try again.",
+              variant: "destructive",
+            });
+          } else if (data.session) {
+            console.log('OAuth session established successfully');
+            toast({
+              title: "Success!",
+              description: "Successfully signed in with Google",
+            });
           }
           
-          attempts++;
-          if (attempts < maxAttempts) {
-            console.log(`Session not found, waiting 1 second before attempt ${attempts + 1}...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-        
-        if (session) {
-          console.log('OAuth session established successfully');
-          toast({
-            title: "Success!",
-            description: "Successfully signed in with Google",
-          });
-          // Clean URL and let auth context handle redirect
+          // Clean URL regardless of outcome
           window.history.replaceState({}, document.title, window.location.pathname);
-          setIsRedirecting(false);
-        } else {
-          console.error('Failed to establish session after', maxAttempts, 'attempts');
-          setAuthError('Authentication completed but session could not be established. Please try again.');
+          
+        } catch (error: any) {
+          console.error('Error processing OAuth callback:', error);
+          setAuthError('Authentication failed. Please try again.');
           toast({
-            title: "Authentication failed",
-            description: "Could not establish a session. Please try signing in again.",
+            title: "Authentication error",
+            description: "An error occurred during authentication",
             variant: "destructive",
           });
-          setIsRedirecting(false);
           window.history.replaceState({}, document.title, window.location.pathname);
+        } finally {
+          setIsRedirecting(false);
         }
-        
-      } catch (error: any) {
-        console.error('Error processing OAuth redirect:', error);
-        setAuthError(error.message);
-        toast({
-          title: "Authentication error",
-          description: error.message || "An error occurred during authentication",
-          variant: "destructive",
-        });
-        setIsRedirecting(false);
-        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
     
