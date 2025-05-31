@@ -166,7 +166,48 @@ const Chat = () => {
 
   const getTextResponse = async (userMessage: string, currentChat: Chat) => {
     try {
-      const responseText = `I've processed your message: "${userMessage}". How can I help you further?`;
+      // Get previous messages for context (limit to last 8 for token efficiency)
+      const conversationHistory = currentChat.messages
+        .slice(-8)
+        .map(m => ({
+          role: m.isFromUser ? "user" : "assistant", 
+          content: m.content
+        }));
+      
+      // Check if this appears to be a quiz-related message
+      const isQuizRequest = userMessage.toLowerCase().includes('quiz') || 
+                           userMessage.toLowerCase().includes('test') || 
+                           userMessage.toLowerCase().includes('question');
+      
+      // Create a natural, conversational system prompt
+      let systemPrompt = `You are Teachly, a friendly and knowledgeable AI tutor. You're here to help students learn in a warm, encouraging way. Be conversational and natural - like a helpful friend who happens to know a lot about various subjects.
+
+Keep your responses engaging and personalized. Don't be overly formal or robotic. If someone asks a question, dive right into helping them rather than announcing that you're processing their message.`;
+
+      // Add quiz mode context if this is a quiz request
+      if (isQuizRequest) {
+        systemPrompt += `\n\nYou're currently in quiz mode! Ask thoughtful educational questions and provide encouraging feedback on answers. Make learning fun and interactive.`;
+      }
+
+      // Generate AI response using OpenAI's chat completion API
+      const completionResponse = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            ...conversationHistory,
+            { role: "user", content: userMessage }
+          ]
+        }
+      });
+
+      if (completionResponse.error) {
+        throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+      }
+
+      const responseText = completionResponse.data.text;
       
       const aiResponse: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
@@ -207,7 +248,7 @@ const Chat = () => {
       const processingMessageId = `processing-${Date.now()}`;
       const processingMessage: ChatMessage = {
         id: processingMessageId,
-        content: "Generating voice response...",
+        content: "Generating response...",
         isFromUser: false,
         timestamp: new Date(),
       };
@@ -224,34 +265,76 @@ const Chat = () => {
       setActiveChat(chatWithProcessing);
 
       try {
-        // Generate voice response
-        const responseText = `I've processed your message: "${userMessage}". How can I help you further?`;
+        // Get previous messages for context (limit to last 8 for token efficiency)
+        const conversationHistory = currentChat.messages
+          .slice(-8)
+          .map(m => ({
+            role: m.isFromUser ? "user" : "assistant", 
+            content: m.content
+          }));
         
-        const response = await supabase.functions.invoke('text-to-voice', {
-          body: { 
-            text: responseText,
-            voice: selectedVoice || 'alloy'
+        // Check if this appears to be a quiz-related message
+        const isQuizRequest = userMessage.toLowerCase().includes('quiz') || 
+                             userMessage.toLowerCase().includes('test') || 
+                             userMessage.toLowerCase().includes('question');
+        
+        // Create a natural, conversational system prompt
+        let systemPrompt = `You are Teachly, a friendly and knowledgeable AI tutor. You're here to help students learn in a warm, encouraging way. Be conversational and natural - like a helpful friend who happens to know a lot about various subjects.
+
+Keep your responses engaging and personalized. Don't be overly formal or robotic. If someone asks a question, dive right into helping them rather than announcing that you're processing their message.`;
+
+        // Add quiz mode context if this is a quiz request
+        if (isQuizRequest) {
+          systemPrompt += `\n\nYou're currently in quiz mode! Ask thoughtful educational questions and provide encouraging feedback on answers. Make learning fun and interactive.`;
+        }
+
+        // Generate AI response using OpenAI's chat completion API
+        const completionResponse = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              {
+                role: "system",
+                content: systemPrompt
+              },
+              ...conversationHistory,
+              { role: "user", content: userMessage }
+            ]
           }
         });
 
-        if (response.error) {
-          if (response.error.message && response.error.message.includes('API key')) {
-            setApiKeyError(true);
+        if (completionResponse.error) {
+          throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+        }
+
+        const responseText = completionResponse.data.text;
+
+        // Generate voice response if voice is enabled
+        let audioUrl;
+        if (voiceEnabled) {
+          const response = await supabase.functions.invoke('text-to-voice', {
+            body: { 
+              text: responseText,
+              voice: selectedVoice || 'alloy'
+            }
+          });
+
+          if (response.error) {
+            if (response.error.message && response.error.message.includes('API key')) {
+              setApiKeyError(true);
+            }
+            console.warn('Voice generation failed, continuing with text only:', response.error);
+          } else {
+            const base64Audio = response.data.audioContent;
+            const byteCharacters = atob(base64Audio);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+            audioUrl = URL.createObjectURL(audioBlob);
           }
-          throw new Error(response.error.message || 'Failed to generate speech');
         }
-
-        const base64Audio = response.data.audioContent;
-
-        const byteCharacters = atob(base64Audio);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
-
-        const audioUrl = URL.createObjectURL(audioBlob);
 
         // Remove processing message and add the real response
         const aiMessageId = `ai-${Date.now()}`;
@@ -279,12 +362,14 @@ const Chat = () => {
         setOutputTokens(prev => prev + aiTokens);
         setTotalTokensUsed(prev => prev + aiTokens);
 
-        // Auto-play the audio response
-        setTimeout(() => {
-          if (aiMessageId) {
-            handlePlayAudio(aiMessageId);
-          }
-        }, 500);
+        // Auto-play the audio response if available
+        if (audioUrl) {
+          setTimeout(() => {
+            if (aiMessageId) {
+              handlePlayAudio(aiMessageId);
+            }
+          }, 500);
+        }
 
       } catch (error: any) {
         // Remove processing message on error
