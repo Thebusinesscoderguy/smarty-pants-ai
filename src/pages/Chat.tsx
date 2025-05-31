@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import ChatArea from '@/components/chat/ChatArea';
+import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import { Plus, MicOff, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -51,6 +52,9 @@ const Chat = () => {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [apiKeyError, setApiKeyError] = useState(false);
   const [totalTokensUsed, setTotalTokensUsed] = useState(0);
+  const [inputTokens, setInputTokens] = useState(0);
+  const [outputTokens, setOutputTokens] = useState(0);
+  const monthlyLimit = 20000;
 
   // Voice recording functionality
   const {
@@ -146,6 +150,11 @@ const Chat = () => {
     setActiveChat(updatedChat);
     setInputMessage('');
 
+    // Update input tokens
+    const userTokens = Math.ceil(inputMessage.length / 4);
+    setInputTokens(prev => prev + userTokens);
+    setTotalTokensUsed(prev => prev + userTokens);
+
     // Get AI response (with voice if enabled)
     if (voiceEnabled) {
       getAIResponse(inputMessage, updatedChat);
@@ -157,9 +166,11 @@ const Chat = () => {
 
   const getTextResponse = async (userMessage: string, currentChat: Chat) => {
     try {
+      const responseText = `I've processed your message: "${userMessage}". How can I help you further?`;
+      
       const aiResponse: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
-        content: `I've processed your message: "${userMessage}". How can I help you further?`,
+        content: responseText,
         isFromUser: false,
         timestamp: new Date()
       };
@@ -175,8 +186,10 @@ const Chat = () => {
       
       setActiveChat(updatedWithAiChat);
       
-      // Update token usage simulation
-      setTotalTokensUsed(prev => prev + Math.ceil(userMessage.length / 4) + 10);
+      // Update output tokens
+      const aiTokens = Math.ceil(responseText.length / 4);
+      setOutputTokens(prev => prev + aiTokens);
+      setTotalTokensUsed(prev => prev + aiTokens);
       
     } catch (error: any) {
       console.error("Error in getTextResponse:", error);
@@ -212,9 +225,11 @@ const Chat = () => {
 
       try {
         // Generate voice response
+        const responseText = `I've processed your message: "${userMessage}". How can I help you further?`;
+        
         const response = await supabase.functions.invoke('text-to-voice', {
           body: { 
-            text: `I've processed your message: "${userMessage}". How can I help you further?`,
+            text: responseText,
             voice: selectedVoice || 'alloy'
           }
         });
@@ -242,7 +257,7 @@ const Chat = () => {
         const aiMessageId = `ai-${Date.now()}`;
         const aiMessage: ChatMessage = {
           id: aiMessageId,
-          content: `I've processed your message: "${userMessage}". How can I help you further?`,
+          content: responseText,
           timestamp: new Date(),
           audioUrl: audioUrl,
           isFromUser: false
@@ -259,8 +274,10 @@ const Chat = () => {
         
         setActiveChat(updatedWithAiChat);
         
-        // Update token usage simulation
-        setTotalTokensUsed(prev => prev + Math.ceil(userMessage.length / 4) + 10);
+        // Update output tokens
+        const aiTokens = Math.ceil(responseText.length / 4);
+        setOutputTokens(prev => prev + aiTokens);
+        setTotalTokensUsed(prev => prev + aiTokens);
 
         // Auto-play the audio response
         setTimeout(() => {
@@ -584,6 +601,16 @@ const Chat = () => {
                   )}
                 </Button>
               </div>
+            </div>
+
+            {/* Token Usage Display */}
+            <div className="px-4 py-2 border-b border-white/10">
+              <TokenUsageDisplay 
+                totalTokensUsed={totalTokensUsed}
+                monthlyLimit={monthlyLimit}
+                inputTokens={inputTokens}
+                outputTokens={outputTokens}
+              />
             </div>
             
             <ChatArea 
