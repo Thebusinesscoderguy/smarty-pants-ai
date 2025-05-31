@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookOpen, Edit, Trash2 } from 'lucide-react';
+import { Plus, BookOpen, Edit, Trash2, Upload, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -38,6 +37,7 @@ export const CurriculumManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [editingCurriculum, setEditingCurriculum] = useState<Curriculum | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const { user } = useAuth();
   
   const [newCurriculum, setNewCurriculum] = useState({
@@ -46,7 +46,8 @@ export const CurriculumManagement = () => {
     subject_id: '',
     grade_level: '',
     content: {
-      ai_instructions: '',
+      curriculum_file_content: '',
+      ai_instructions: 'Follow the uploaded curriculum guidelines when helping students. Reference specific topics, learning objectives, and teaching methods outlined in the curriculum.',
       topics: [],
       learning_objectives: ''
     }
@@ -96,6 +97,30 @@ export const CurriculumManagement = () => {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    try {
+      const text = await file.text();
+      setNewCurriculum(prev => ({
+        ...prev,
+        content: {
+          ...prev.content,
+          curriculum_file_content: text
+        }
+      }));
+      setUploadedFile(file);
+      toast({
+        title: "File Uploaded",
+        description: `${file.name} has been processed and will be used to guide the AI tutor.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to process the uploaded file.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const createCurriculum = async () => {
     if (!newCurriculum.title.trim() || !newCurriculum.subject_id) return;
 
@@ -136,15 +161,17 @@ export const CurriculumManagement = () => {
         subject_id: '',
         grade_level: '',
         content: {
-          ai_instructions: '',
+          curriculum_file_content: '',
+          ai_instructions: 'Follow the uploaded curriculum guidelines when helping students. Reference specific topics, learning objectives, and teaching methods outlined in the curriculum.',
           topics: [],
           learning_objectives: ''
         }
       });
+      setUploadedFile(null);
       
       toast({
         title: "Curriculum Created",
-        description: `"${newCurriculum.title}" has been created successfully`,
+        description: `"${newCurriculum.title}" curriculum has been uploaded and will guide the AI tutor.`,
       });
     } catch (error: any) {
       console.error('Error creating curriculum:', error);
@@ -227,30 +254,33 @@ export const CurriculumManagement = () => {
       {/* Header with create button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Curriculum Management</h2>
-          <p className="text-gray-400">Define subject-specific curricula that guide AI interactions</p>
+          <h2 className="text-2xl font-bold text-white">School Curriculum Management</h2>
+          <p className="text-gray-400">Upload your school's curriculum files to guide the AI tutor</p>
         </div>
         
         <Dialog>
           <DialogTrigger asChild>
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
-              Create Curriculum
+              Upload Curriculum
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white">Create New Curriculum</DialogTitle>
+              <DialogTitle className="text-white">Upload School Curriculum</DialogTitle>
+              <p className="text-gray-400 text-sm">
+                Upload your curriculum files (PDF, DOC, TXT) to help the AI tutor follow your school's specific guidelines
+              </p>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title" className="text-white">Title *</Label>
+                  <Label htmlFor="title" className="text-white">Curriculum Title *</Label>
                   <Input
                     id="title"
                     value={newCurriculum.title}
                     onChange={(e) => setNewCurriculum({ ...newCurriculum, title: e.target.value })}
-                    placeholder="Algebra I Curriculum"
+                    placeholder="e.g., 9th Grade Algebra I"
                     className="bg-white/10 border-white/20 text-white"
                   />
                 </div>
@@ -281,6 +311,37 @@ export const CurriculumManagement = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* File Upload Section */}
+              <div className="border-2 border-dashed border-white/20 rounded-lg p-6">
+                <div className="text-center">
+                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Label htmlFor="file-upload" className="text-white cursor-pointer">
+                    <span className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">
+                      Choose Curriculum File
+                    </span>
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file);
+                      }}
+                      className="hidden"
+                    />
+                  </Label>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Upload PDF, DOC, or TXT files containing your curriculum
+                  </p>
+                  {uploadedFile && (
+                    <div className="mt-3 flex items-center justify-center space-x-2 text-green-400">
+                      <FileText className="h-4 w-4" />
+                      <span className="text-sm">{uploadedFile.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
               
               <div>
                 <Label htmlFor="description" className="text-white">Description</Label>
@@ -288,14 +349,14 @@ export const CurriculumManagement = () => {
                   id="description"
                   value={newCurriculum.description}
                   onChange={(e) => setNewCurriculum({ ...newCurriculum, description: e.target.value })}
-                  placeholder="Comprehensive algebra curriculum covering..."
+                  placeholder="Brief description of this curriculum..."
                   className="bg-white/10 border-white/20 text-white"
                   rows={3}
                 />
               </div>
 
               <div>
-                <Label htmlFor="ai-instructions" className="text-white">AI Instructions *</Label>
+                <Label htmlFor="ai-instructions" className="text-white">AI Instructions (Optional)</Label>
                 <Textarea
                   id="ai-instructions"
                   value={newCurriculum.content.ai_instructions}
@@ -303,22 +364,7 @@ export const CurriculumManagement = () => {
                     ...newCurriculum, 
                     content: { ...newCurriculum.content, ai_instructions: e.target.value }
                   })}
-                  placeholder="When helping students with this subject, focus on..."
-                  className="bg-white/10 border-white/20 text-white"
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="objectives" className="text-white">Learning Objectives</Label>
-                <Textarea
-                  id="objectives"
-                  value={newCurriculum.content.learning_objectives}
-                  onChange={(e) => setNewCurriculum({ 
-                    ...newCurriculum, 
-                    content: { ...newCurriculum.content, learning_objectives: e.target.value }
-                  })}
-                  placeholder="Students will be able to..."
+                  placeholder="Additional instructions for how the AI should use this curriculum..."
                   className="bg-white/10 border-white/20 text-white"
                   rows={3}
                 />
@@ -329,7 +375,7 @@ export const CurriculumManagement = () => {
                 disabled={isCreating || !newCurriculum.title.trim() || !newCurriculum.subject_id}
                 className="w-full"
               >
-                {isCreating ? 'Creating...' : 'Create Curriculum'}
+                {isCreating ? 'Uploading Curriculum...' : 'Upload Curriculum'}
               </Button>
             </div>
           </DialogContent>
@@ -342,9 +388,9 @@ export const CurriculumManagement = () => {
           <Card className="bg-white/10 border-white/20">
             <CardContent className="p-6 text-center">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300">No curricula created yet.</p>
+              <p className="text-gray-300">No curriculum files uploaded yet.</p>
               <p className="text-gray-400 text-sm mt-2">
-                Start by creating subject-specific curricula for your students.
+                Upload your school's curriculum files to help the AI tutor provide targeted assistance.
               </p>
             </CardContent>
           </Card>
@@ -355,6 +401,7 @@ export const CurriculumManagement = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
+                      <FileText className="h-5 w-5 text-blue-400" />
                       <h3 className="font-medium text-white">{curriculum.title}</h3>
                       {curriculum.subjects && (
                         <Badge variant="outline">{curriculum.subjects.name}</Badge>
@@ -370,7 +417,10 @@ export const CurriculumManagement = () => {
                       <p className="text-sm text-gray-300 mb-2">{curriculum.description}</p>
                     )}
                     <div className="text-xs text-gray-400">
-                      Created: {new Date(curriculum.created_at).toLocaleDateString()}
+                      <p>Uploaded: {new Date(curriculum.created_at).toLocaleDateString()}</p>
+                      {curriculum.content?.curriculum_file_content && (
+                        <p className="text-green-400 mt-1">✓ Curriculum file content loaded</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 ml-4">
