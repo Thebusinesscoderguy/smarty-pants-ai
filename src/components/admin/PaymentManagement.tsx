@@ -80,7 +80,7 @@ export const PaymentManagement = () => {
     }
   };
 
-  const createSubscription = async (planType: string, studentLimit: number) => {
+  const createSubscription = async () => {
     try {
       // Create school account if it doesn't exist
       if (!schoolAccount) {
@@ -89,8 +89,8 @@ export const PaymentManagement = () => {
           .insert({
             admin_user_id: user?.id,
             school_name: 'My School', // This would come from a form
-            student_limit: studentLimit,
-            plan_type: planType
+            student_limit: 100,
+            plan_type: 'starter'
           })
           .select()
           .single();
@@ -106,8 +106,8 @@ export const PaymentManagement = () => {
           user_id: user?.id,
           email: user?.email,
           subscribed: true,
-          subscription_tier: planType,
-          max_students: studentLimit,
+          subscription_tier: 'starter',
+          max_students: 100,
           subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         })
         .select()
@@ -118,7 +118,7 @@ export const PaymentManagement = () => {
 
       toast({
         title: "Subscription Created",
-        description: `Successfully subscribed to ${planType} plan with ${studentLimit} students`,
+        description: "Successfully subscribed to Starter plan with 100 students",
       });
     } catch (error: any) {
       console.error('Error creating subscription:', error);
@@ -133,27 +133,6 @@ export const PaymentManagement = () => {
   if (isLoading) {
     return <div className="animate-pulse">Loading subscription data...</div>;
   }
-
-  const plans = [
-    {
-      name: 'Starter',
-      price: '$29/month',
-      students: 25,
-      features: ['Basic curriculum management', 'Student progress tracking', 'Quest system']
-    },
-    {
-      name: 'Professional',
-      price: '$79/month',
-      students: 100,
-      features: ['Everything in Starter', 'Advanced analytics', 'Custom achievements', 'Priority support']
-    },
-    {
-      name: 'Enterprise',
-      price: '$199/month',
-      students: 500,
-      features: ['Everything in Professional', 'Custom integrations', 'Dedicated support', 'Advanced reporting']
-    }
-  ];
 
   return (
     <div className="space-y-6">
@@ -208,34 +187,60 @@ export const PaymentManagement = () => {
         </Card>
       )}
 
-      {/* Available Plans */}
+      {/* Available Plan */}
       {!subscription && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan) => (
-            <Card key={plan.name} className="bg-white/10 border-white/20">
+        <div className="flex justify-center">
+          <div className="w-full max-w-md">
+            <Card className="bg-white/10 border-white/20">
               <CardHeader>
-                <CardTitle className="text-white">{plan.name}</CardTitle>
-                <div className="text-2xl font-bold text-white">{plan.price}</div>
-                <p className="text-gray-400">Up to {plan.students} students</p>
+                <CardTitle className="text-white text-center">Starter Plan</CardTitle>
+                <div className="text-2xl font-bold text-white text-center">$29/month</div>
+                <p className="text-gray-400 text-center">Up to 100 students</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 mb-6">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center text-sm text-gray-300">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                      {feature}
-                    </li>
-                  ))}
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Curriculum management
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Student progress tracking
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Quest system
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Advanced analytics
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Custom achievements
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Priority support
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Custom integrations
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Advanced reporting
+                  </li>
                 </ul>
                 <Button 
-                  onClick={() => createSubscription(plan.name.toLowerCase(), plan.students)}
+                  onClick={createSubscription}
                   className="w-full"
                 >
-                  Subscribe to {plan.name}
+                  Subscribe to Starter Plan
                 </Button>
               </CardContent>
             </Card>
-          ))}
+          </div>
         </div>
       )}
 
@@ -267,7 +272,7 @@ export const PaymentManagement = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </div>
       )}
     </div>
   );
