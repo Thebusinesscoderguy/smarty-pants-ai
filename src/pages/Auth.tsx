@@ -19,11 +19,39 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  // Redirect authenticated users immediately
+  // Check for OAuth callback and handle authentication state
   useEffect(() => {
-    if (user && !loading) {
+    // Handle OAuth callback
+    const handleOAuthCallback = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('OAuth callback error:', error);
+        setAuthError(error.message);
+        toast({
+          title: "Authentication Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data?.session) {
+        console.log('OAuth callback successful, user authenticated');
+        toast({
+          title: "Success!",
+          description: "Successfully signed in with Google",
+        });
+        navigate('/pricing');
+      }
+    };
+
+    // Check if this is an OAuth callback (has session but we're still on auth page)
+    if (!loading && user) {
       console.log('User authenticated, redirecting to pricing');
       navigate('/pricing');
+    } else if (!loading && !user) {
+      // Check for OAuth callback parameters in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('code')) {
+        handleOAuthCallback();
+      }
     }
   }, [user, loading, navigate]);
 
@@ -81,7 +109,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/pricing`,
+          redirectTo: `${window.location.origin}/auth`,
         },
       });
 
