@@ -19,6 +19,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
+  // Redirect authenticated users immediately
   useEffect(() => {
     if (user && !loading) {
       console.log('User authenticated, redirecting to pricing');
@@ -26,57 +27,43 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Simple OAuth redirect handling
+  // Handle OAuth callback
   useEffect(() => {
-    const handleAuthRedirect = async () => {
-      // Check for error in URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      
-      const error = urlParams.get('error') || hashParams.get('error');
-      const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+    const handleOAuthCallback = async () => {
+      const { data, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.error('OAuth error:', error, errorDescription);
-        setAuthError(errorDescription || error);
+        console.error('OAuth session error:', error);
+        setAuthError(error.message);
         toast({
           title: "Authentication failed",
-          description: errorDescription || error,
+          description: error.message,
           variant: "destructive",
         });
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
 
-      // Check if we have auth fragments (successful OAuth)
-      if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
-        console.log('OAuth callback detected, cleaning URL...');
-        
-        // Let Supabase handle the session automatically through onAuthStateChange
-        // Just clean the URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
+      if (data.session?.user) {
+        console.log('OAuth session found, user authenticated');
         toast({
           title: "Success!",
           description: "Successfully signed in with Google",
         });
-
-        // Force a check for the current session and redirect
-        setTimeout(async () => {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            console.log('Session confirmed, redirecting to pricing');
-            navigate('/pricing');
-          }
-        }, 1000);
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Navigate to pricing
+        navigate('/pricing');
       }
     };
-    
-    if (!loading) {
-      handleAuthRedirect();
+
+    // Only run if we're on auth page and have URL fragments
+    if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
+      console.log('OAuth callback detected');
+      handleOAuthCallback();
     }
-  }, [loading, navigate]);
+  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
