@@ -15,50 +15,51 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  // Check for OAuth callback and handle authentication state
+  // Handle OAuth callback and authentication state
   useEffect(() => {
-    // Handle OAuth callback
-    const handleOAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('OAuth callback error:', error);
-        setAuthError(error.message);
-        toast({
-          title: "Authentication Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else if (data?.session) {
-        console.log('OAuth callback successful, user authenticated');
-        toast({
-          title: "Success!",
-          description: "Successfully signed in with Google",
-        });
-        navigate('/pricing');
+    const handleAuthState = async () => {
+      // First check if this is an OAuth callback
+      const urlParams = new URLSearchParams(window.location.search);
+      const isOAuthCallback = urlParams.get('code') || urlParams.get('error');
+
+      if (isOAuthCallback) {
+        console.log('OAuth callback detected, waiting for session...');
+        // Give some time for the auth state to be established
+        setTimeout(() => {
+          if (user) {
+            console.log('OAuth successful, redirecting to pricing');
+            navigate('/pricing');
+          } else {
+            console.log('OAuth callback but no user found');
+            toast({
+              title: "Authentication Error",
+              description: "Failed to complete Google sign-in",
+              variant: "destructive",
+            });
+          }
+          setIsCheckingAuth(false);
+        }, 2000);
+      } else {
+        // Regular auth page visit
+        if (!loading && user) {
+          console.log('User already authenticated, redirecting to pricing');
+          navigate('/pricing');
+        } else {
+          setIsCheckingAuth(false);
+        }
       }
     };
 
-    // Check if this is an OAuth callback (has session but we're still on auth page)
-    if (!loading && user) {
-      console.log('User authenticated, redirecting to pricing');
-      navigate('/pricing');
-    } else if (!loading && !user) {
-      // Check for OAuth callback parameters in URL
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('code')) {
-        handleOAuthCallback();
-      }
-    }
+    handleAuthState();
   }, [user, loading, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setAuthError(null);
 
     try {
       if (isSignUp) {
@@ -88,7 +89,6 @@ const Auth = () => {
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
-      setAuthError(error.message);
       toast({
         title: "Error",
         description: error.message,
@@ -102,7 +102,6 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      setAuthError(null);
       
       console.log("Starting Google sign-in...");
       
@@ -123,23 +122,21 @@ const Auth = () => {
     } catch (error: any) {
       console.error("Google auth error:", error);
       
-      const errorMessage = error.message || "Failed to authenticate with Google";
-      setAuthError(errorMessage);
-      
       toast({
         title: "Google Sign In Failed",
-        description: errorMessage,
+        description: error.message || "Failed to authenticate with Google",
         variant: "destructive",
       });
       setIsLoading(false);
     }
   };
 
-  if (loading) {
+  // Show loading state while checking authentication or handling OAuth callback
+  if (loading || isCheckingAuth) {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Checking authentication status...</p>
+        <p>Loading...</p>
       </div>
     );
   }
@@ -153,12 +150,6 @@ const Auth = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {authError && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-800 rounded-md text-sm">
-              {authError}
-            </div>
-          )}
-
           <form onSubmit={handleAuth} className="space-y-4">
             <div className="space-y-2">
               <Input
