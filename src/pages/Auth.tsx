@@ -27,9 +27,10 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Simplified OAuth redirect handling
+  // Improved OAuth redirect handling
   useEffect(() => {
     const handleAuthRedirect = async () => {
+      // Check if we're on a redirect from OAuth
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const searchParams = new URLSearchParams(window.location.search);
       
@@ -39,87 +40,93 @@ const Auth = () => {
         searchParams.has('code') ||
         searchParams.has('error');
       
-      if (hasAuthParams) {
-        console.log('Detected OAuth redirect params');
-        setIsRedirecting(true);
-        
-        // Check for errors first
-        const error = hashParams.get('error') || searchParams.get('error');
-        const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
-        
-        if (error) {
-          console.error('OAuth error:', error, errorDescription);
-          setAuthError(errorDescription || error);
-          toast({
-            title: "Authentication failed",
-            description: errorDescription || error,
-            variant: "destructive",
-          });
-          setIsRedirecting(false);
-          window.history.replaceState({}, document.title, window.location.pathname);
-          return;
-        }
+      if (!hasAuthParams) return;
+      
+      console.log('Processing OAuth redirect...');
+      setIsRedirecting(true);
+      
+      // Check for errors first
+      const error = hashParams.get('error') || searchParams.get('error');
+      const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
+      
+      if (error) {
+        console.error('OAuth error:', error, errorDescription);
+        setAuthError(errorDescription || error);
+        toast({
+          title: "Authentication failed",
+          description: errorDescription || error,
+          variant: "destructive",
+        });
+        setIsRedirecting(false);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
 
-        try {
-          // Get the current session - Supabase should have processed the OAuth callback
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      try {
+        console.log('Getting session after OAuth redirect...');
+        
+        // Try to get the session multiple times with delays
+        let session = null;
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (!session && attempts < maxAttempts) {
+          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
-            console.error('Session error:', sessionError);
-            throw sessionError;
+            console.error('Session error on attempt', attempts + 1, ':', sessionError);
+          } else if (currentSession) {
+            session = currentSession;
+            console.log('Session found on attempt', attempts + 1);
+            break;
           }
           
-          if (session) {
-            console.log('Session established successfully');
-            // Clean the URL and let the auth context handle the redirect
-            window.history.replaceState({}, document.title, window.location.pathname);
-            setIsRedirecting(false);
-            // The useEffect above will handle navigation once user state updates
-            return;
+          attempts++;
+          if (attempts < maxAttempts) {
+            console.log(`Session not found, waiting 1 second before attempt ${attempts + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
-          
-          // If no session yet, wait a bit for the auth state to update
-          console.log('No session found immediately, waiting for auth state change...');
-          
-          // Set a timeout to show error if session isn't established
-          setTimeout(() => {
-            supabase.auth.getSession().then(({ data: { session: laterSession } }) => {
-              if (!laterSession) {
-                console.error('Session still not established after delay');
-                setAuthError('Authentication completed but session could not be established. Please try again.');
-                toast({
-                  title: "Authentication failed",
-                  description: "Could not establish a session. Please try again.",
-                  variant: "destructive",
-                });
-                setIsRedirecting(false);
-                window.history.replaceState({}, document.title, window.location.pathname);
-              } else {
-                console.log('Session established after delay');
-                setIsRedirecting(false);
-                window.history.replaceState({}, document.title, window.location.pathname);
-              }
-            });
-          }, 3000);
-          
-        } catch (error: any) {
-          console.error('Error processing OAuth redirect:', error);
-          setAuthError(error.message);
+        }
+        
+        if (session) {
+          console.log('OAuth session established successfully');
           toast({
-            title: "Authentication error",
-            description: error.message || "An error occurred during authentication",
+            title: "Success!",
+            description: "Successfully signed in with Google",
+          });
+          // Clean URL and let auth context handle redirect
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setIsRedirecting(false);
+        } else {
+          console.error('Failed to establish session after', maxAttempts, 'attempts');
+          setAuthError('Authentication completed but session could not be established. Please try again.');
+          toast({
+            title: "Authentication failed",
+            description: "Could not establish a session. Please try signing in again.",
             variant: "destructive",
           });
           setIsRedirecting(false);
           window.history.replaceState({}, document.title, window.location.pathname);
         }
+        
+      } catch (error: any) {
+        console.error('Error processing OAuth redirect:', error);
+        setAuthError(error.message);
+        toast({
+          title: "Authentication error",
+          description: error.message || "An error occurred during authentication",
+          variant: "destructive",
+        });
+        setIsRedirecting(false);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
     
     if (!loading) {
       handleAuthRedirect();
     }
-  }, [loading, navigate]);
+  }, [loading]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,7 +226,7 @@ const Auth = () => {
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <p>Processing authentication...</p>
-        <p className="text-sm text-white/60 mt-4">Please wait while we establish your session.</p>
+        <p className="text-sm text-white/60 mt-4">Establishing your session...</p>
       </div>
     );
   }
@@ -295,17 +302,6 @@ const Auth = () => {
               <FcGoogle className="mr-2 h-4 w-4" />
               Sign in with Google
             </Button>
-            
-            <div className="text-xs text-center mt-4 text-white/50">
-              <p>For Google Sign In to work correctly:</p>
-              <ul className="list-disc list-inside mt-1 text-left">
-                <li>Make sure your application URL is added to authorized redirect URLs in Google Cloud Console.</li>
-                <li>For local testing: add <code className="bg-black/40 px-1">http://localhost:5173</code> to authorized origins in Google Cloud Console.</li>
-                <li>For production: add your public domain to authorized origins.</li>
-                <li>The callback URL in Google Cloud Console should be <code className="bg-black/40 px-1">https://twfzlbockonxopuindaw.supabase.co/auth/v1/callback</code></li>
-                <li>The site URL in Supabase must match your application URL.</li>
-              </ul>
-            </div>
           </form>
         </CardContent>
       </Card>
