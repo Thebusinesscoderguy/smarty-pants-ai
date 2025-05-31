@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Volume, VolumeX } from 'lucide-react';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 
 const OPENAI_VOICES = [
@@ -22,6 +24,8 @@ interface VoiceSettingsProps {
   inputTokens: number;
   outputTokens: number;
   isTokenLimitReached: boolean;
+  isVoiceEnabled: boolean;
+  onToggleVoice: () => void;
 }
 
 const VoiceSettings = ({
@@ -33,7 +37,9 @@ const VoiceSettings = ({
   monthlyLimit,
   inputTokens,
   outputTokens,
-  isTokenLimitReached
+  isTokenLimitReached,
+  isVoiceEnabled,
+  onToggleVoice
 }: VoiceSettingsProps) => {
   return (
     <div className="flex flex-row items-center gap-4 mb-2">
@@ -43,8 +49,24 @@ const VoiceSettings = ({
         inputTokens={inputTokens}
         outputTokens={outputTokens}
       />
+      
       <div className="flex items-center gap-2">
-        <label htmlFor="voice-select" className="text-sm font-medium text-white/80">Voice:</label>
+        <label htmlFor="voice-toggle" className="text-sm font-medium text-white/80">Voice:</label>
+        <Button
+          id="voice-toggle"
+          variant="outline"
+          size="sm"
+          onClick={onToggleVoice}
+          className={`bg-white/5 border-white/20 hover:bg-white/10 ${isVoiceEnabled ? 'text-green-400' : 'text-red-400'}`}
+          disabled={isTokenLimitReached}
+        >
+          {isVoiceEnabled ? <Volume className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          {isVoiceEnabled ? 'On' : 'Off'}
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <label htmlFor="voice-select" className="text-sm font-medium text-white/80">Voice Type:</label>
         <Select value={selectedVoice} onValueChange={setSelectedVoice} disabled={isTokenLimitReached}>
           <SelectTrigger id="voice-select" className="w-[140px] bg-white/5 border-white/20">
             <SelectValue placeholder="Choose voice" />
