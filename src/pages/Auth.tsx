@@ -26,61 +26,85 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Check for URL hash to see if returning from OAuth
+  // Enhanced OAuth redirect handling
   useEffect(() => {
     const handleAuthRedirect = async () => {
-      // Check for hash parameters OR query parameters (covers both scenarios)
-      const hasAuthParams = (
-        window.location.hash && window.location.hash.includes('access_token')
-      ) || (
-        window.location.search && (
-          window.location.search.includes('access_token') ||
-          window.location.search.includes('error') ||
-          window.location.search.includes('code')
-        )
-      );
+      // Check for any auth-related URL parameters
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      const hasAuthParams = 
+        hashParams.has('access_token') || 
+        hashParams.has('error') ||
+        searchParams.has('code') ||
+        searchParams.has('error');
       
       if (hasAuthParams) {
-        console.log('Detected OAuth redirect with auth parameters');
+        console.log('Detected OAuth redirect, processing...');
         setIsRedirecting(true);
         
         try {
-          // Process the URL regardless of parameter type
-          const { data, error } = await supabase.auth.getSession();
+          // Handle error in URL
+          const error = hashParams.get('error') || searchParams.get('error');
+          const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
           
           if (error) {
-            console.error('Error processing OAuth redirect:', error);
+            console.error('OAuth error:', error, errorDescription);
+            setAuthError(errorDescription || error);
             toast({
               title: "Authentication failed",
-              description: error.message,
+              description: errorDescription || error,
               variant: "destructive",
             });
             setIsRedirecting(false);
+            // Clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
             return;
           }
+
+          // Wait a moment for auth state to update
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          if (data.session) {
-            console.log('Successfully authenticated via OAuth');
-            // Clean URL
+          // Check session after OAuth redirect
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            throw sessionError;
+          }
+          
+          if (sessionData.session) {
+            console.log('OAuth session established successfully');
+            // Clean the URL before redirecting
             window.history.replaceState({}, document.title, window.location.pathname);
             navigate('/pricing');
           } else {
-            console.error('No session found after OAuth redirect');
-            setIsRedirecting(false);
-            toast({
-              title: "Authentication failed",
-              description: "Could not establish a session. Please try again.",
-              variant: "destructive",
-            });
+            console.log('No session found after OAuth, waiting for auth state change...');
+            // Give auth state change listener time to process
+            setTimeout(() => {
+              if (!user) {
+                console.error('Authentication completed but no session established');
+                setAuthError('Authentication completed but session could not be established. Please try again.');
+                toast({
+                  title: "Authentication failed",
+                  description: "Could not establish a session. Please try again.",
+                  variant: "destructive",
+                });
+                setIsRedirecting(false);
+              }
+            }, 2000);
           }
         } catch (error: any) {
           console.error('Error handling OAuth redirect:', error);
-          setIsRedirecting(false);
+          setAuthError(error.message);
           toast({
             title: "Authentication error",
             description: error.message || "An error occurred during authentication",
             variant: "destructive",
           });
+          setIsRedirecting(false);
+          // Clean the URL
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
     };
@@ -88,7 +112,7 @@ const Auth = () => {
     if (!loading) {
       handleAuthRedirect();
     }
-  }, [loading, navigate]);
+  }, [loading, navigate, user]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +124,9 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`
+          }
         });
 
         if (error) throw error;
@@ -134,11 +161,28 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      setIsRedirecting(true);
       setAuthError(null);
       
-      console.log("Google auth initiated");
-      await signInWithGoogle();
+      console.log("Starting Google sign-in...");
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Google sign-in error:', error);
+        throw error;
+      }
+
+      console.log('Google sign-in initiated successfully');
+      // Don't set isRedirecting here, let the redirect happen naturally
       
     } catch (error: any) {
       console.error("Google auth error:", error);
@@ -152,7 +196,6 @@ const Auth = () => {
         variant: "destructive",
       });
       setIsLoading(false);
-      setIsRedirecting(false);
     }
   };
 
@@ -169,8 +212,8 @@ const Auth = () => {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Redirecting to Google for authentication...</p>
-        <p className="text-sm text-white/60 mt-4">If you're not redirected within a few seconds, please check your popup blocker.</p>
+        <p>Processing authentication...</p>
+        <p className="text-sm text-white/60 mt-4">Please wait while we establish your session.</p>
       </div>
     );
   }
