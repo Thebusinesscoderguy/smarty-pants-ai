@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -61,13 +60,22 @@ const Auth = () => {
           title: "Success!",
           description: "Successfully signed in with Google",
         });
+
+        // Force a check for the current session and redirect
+        setTimeout(async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            console.log('Session confirmed, redirecting to pricing');
+            navigate('/pricing');
+          }
+        }, 1000);
       }
     };
     
     if (!loading) {
       handleAuthRedirect();
     }
-  }, [loading]);
+  }, [loading, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
