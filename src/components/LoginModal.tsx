@@ -13,7 +13,6 @@ import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface LoginModalProps {
@@ -27,7 +26,6 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const navigate = useNavigate();
-  const { signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,15 +60,34 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
-      await signInWithGoogle();
-      // No need to close modal here as the redirect will happen
+      
+      console.log("Starting Google sign-in...");
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+        },
+      });
+
+      if (error) {
+        console.error('Google sign-in error:', error);
+        throw error;
+      }
+
+      console.log('Google sign-in initiated successfully');
+      
     } catch (error: any) {
-      setIsGoogleLoading(false);
+      console.error("Google auth error:", error);
+      
+      const errorMessage = error.message || "Failed to authenticate with Google";
+      
       toast({
-        title: "Google login failed",
-        description: error.message || "Unable to authenticate with Google",
+        title: "Google Sign In Failed",
+        description: errorMessage,
         variant: "destructive",
       });
+      setIsGoogleLoading(false);
     }
   };
 
