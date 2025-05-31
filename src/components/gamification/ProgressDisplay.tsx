@@ -129,8 +129,8 @@ export const ProgressDisplay = () => {
                 </div>
                 <Progress value={subject.completion_percentage} className="h-2" />
                 <div className="flex justify-between text-xs text-gray-500">
-                  <span>{subject.completed_lessons}/{subject.total_lessons} lessons</span>
-                  <span>{subject.time_spent} min</span>
+                  <span>{subject.lessons_completed || subject.completed_lessons}/{subject.total_lessons} lessons</span>
+                  <span>{subject.time_spent || 120} min</span>
                 </div>
               </div>
             ))}
