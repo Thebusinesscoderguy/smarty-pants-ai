@@ -9,6 +9,7 @@ import { Plus, Mail, UserPlus, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentInvitation {
   id: string;
@@ -26,6 +27,7 @@ export const StudentManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAuth();
   const [newInvite, setNewInvite] = useState({
     email: '',
     firstName: '',
@@ -59,7 +61,7 @@ export const StudentManagement = () => {
   };
 
   const createInvitation = async () => {
-    if (!newInvite.email.trim()) return;
+    if (!newInvite.email.trim() || !user) return;
 
     try {
       setIsCreatingInvite(true);
@@ -68,7 +70,8 @@ export const StudentManagement = () => {
         .insert({
           email: newInvite.email,
           first_name: newInvite.firstName || null,
-          last_name: newInvite.lastName || null
+          last_name: newInvite.lastName || null,
+          invited_by_id: user.id
         })
         .select()
         .single();

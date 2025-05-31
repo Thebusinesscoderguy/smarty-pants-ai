@@ -34,6 +34,32 @@ interface Subject {
   name: string;
 }
 
+// Type guards for safe conversion
+const isValidQuestType = (type: string): type is 'daily' | 'weekly' => {
+  return type === 'daily' || type === 'weekly';
+};
+
+const isValidDifficulty = (difficulty: string): difficulty is 'basic' | 'intermediate' | 'hard' => {
+  return difficulty === 'basic' || difficulty === 'intermediate' || difficulty === 'hard';
+};
+
+// Convert database quest to typed Quest
+const convertDatabaseQuest = (dbQuest: any): Quest => {
+  return {
+    id: dbQuest.id,
+    title: dbQuest.title,
+    description: dbQuest.description,
+    type: isValidQuestType(dbQuest.type) ? dbQuest.type : 'daily',
+    difficulty: isValidDifficulty(dbQuest.difficulty) ? dbQuest.difficulty : 'basic',
+    target_value: dbQuest.target_value,
+    subject_id: dbQuest.subject_id,
+    created_by: dbQuest.created_by,
+    is_active: dbQuest.is_active,
+    created_at: dbQuest.created_at,
+    subjects: dbQuest.subjects
+  };
+};
+
 export const QuestManagement = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -67,7 +93,10 @@ export const QuestManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setQuests(data || []);
+      
+      // Convert database results to typed Quest objects
+      const convertedQuests = (data || []).map(convertDatabaseQuest);
+      setQuests(convertedQuests);
     } catch (error: any) {
       console.error('Error fetching quests:', error);
       toast({
@@ -119,7 +148,9 @@ export const QuestManagement = () => {
 
       if (error) throw error;
 
-      setQuests([data, ...quests]);
+      // Convert and add the new quest
+      const convertedQuest = convertDatabaseQuest(data);
+      setQuests([convertedQuest, ...quests]);
       setNewQuest({
         title: '',
         description: '',
