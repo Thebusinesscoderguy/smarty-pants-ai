@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,40 +26,70 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Handle OAuth callback
+  // Handle OAuth callback with session polling
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession();
+    const handleOAuthCallback = () => {
+      console.log('OAuth callback detected, waiting for session...');
       
-      if (error) {
-        console.error('OAuth session error:', error);
-        setAuthError(error.message);
-        toast({
-          title: "Authentication failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
+      // Poll for session establishment
+      const pollForSession = async () => {
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const checkSession = async () => {
+          attempts++;
+          console.log(`Checking for session, attempt ${attempts}`);
+          
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Session check error:', error);
+            setAuthError(error.message);
+            toast({
+              title: "Authentication failed",
+              description: error.message,
+              variant: "destructive",
+            });
+            return;
+          }
 
-      if (data.session?.user) {
-        console.log('OAuth session found, user authenticated');
-        toast({
-          title: "Success!",
-          description: "Successfully signed in with Google",
-        });
+          if (session?.user) {
+            console.log('Session found, user authenticated');
+            toast({
+              title: "Success!",
+              description: "Successfully signed in with Google",
+            });
+            
+            // Clean URL and redirect
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate('/pricing');
+            return;
+          }
+          
+          // If no session yet and we haven't exceeded max attempts, try again
+          if (attempts < maxAttempts) {
+            setTimeout(checkSession, 500);
+          } else {
+            console.log('Max attempts reached, session not found');
+            setAuthError('Authentication timed out. Please try again.');
+            toast({
+              title: "Authentication timeout",
+              description: "Please try signing in again.",
+              variant: "destructive",
+            });
+          }
+        };
         
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Navigate to pricing
-        navigate('/pricing');
-      }
+        checkSession();
+      };
+      
+      pollForSession();
     };
 
-    // Only run if we're on auth page and have URL fragments
-    if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
-      console.log('OAuth callback detected');
+    // Only run if we're on auth page and have OAuth callback indicators
+    if (window.location.hash.includes('access_token') || 
+        window.location.hash.includes('code') ||
+        window.location.search.includes('code=')) {
       handleOAuthCallback();
     }
   }, [navigate]);
