@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { BookOpen } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
@@ -26,7 +25,6 @@ const Index = () => {
               size="lg" 
               onClick={() => navigate('/pricing')}
             >
-              <BookOpen className="mr-2 h-5 w-5" />
               Get Started
             </Button>
           </div>
