@@ -37,7 +37,7 @@ export const StudentManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const { user } = useAuth();
+  const { user, isSchoolAdmin } = useAuth();
   
   const [newStudent, setNewStudent] = useState({
     email: '',
@@ -49,24 +49,45 @@ export const StudentManagement = () => {
     fetchStudentData();
   }, []);
 
+  const getOrCreateSchoolId = async () => {
+    if (isSchoolAdmin && user?.id === 'temp-admin-id') {
+      // For mock admin, return a mock school ID
+      return 'temp-school-id';
+    }
+
+    // Get the school ID for the current admin
+    const { data: schoolData, error: schoolError } = await supabase
+      .from('school_accounts')
+      .select('id')
+      .eq('admin_user_id', user?.id)
+      .single();
+
+    if (schoolError) {
+      throw new Error('No school account found for this admin');
+    }
+
+    return schoolData.id;
+  };
+
   const fetchStudentData = async () => {
     try {
       setIsLoading(true);
       
-      // Get the school ID for the current admin
-      const { data: schoolData, error: schoolError } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', user?.id)
-        .single();
+      const schoolId = await getOrCreateSchoolId();
 
-      if (schoolError) throw schoolError;
+      if (schoolId === 'temp-school-id') {
+        // For mock admin, set mock data
+        setInvitations([]);
+        setEnrolledStudents([]);
+        setIsLoading(false);
+        return;
+      }
 
       // Fetch pending invitations
       const { data: invitationsData, error: invitationsError } = await supabase
         .from('student_invitations')
         .select('*')
-        .eq('school_id', schoolData.id)
+        .eq('school_id', schoolId)
         .eq('used', false)
         .order('created_at', { ascending: false });
 
@@ -76,7 +97,7 @@ export const StudentManagement = () => {
       const { data: enrolledData, error: enrolledError } = await supabase
         .from('school_student_relationships')
         .select('*')
-        .eq('school_id', schoolData.id)
+        .eq('school_id', schoolId)
         .eq('is_active', true);
 
       if (enrolledError) throw enrolledError;
@@ -102,14 +123,31 @@ export const StudentManagement = () => {
     try {
       setIsCreating(true);
       
-      // Get the school ID for the current admin
-      const { data: schoolData, error: schoolError } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', user?.id)
-        .single();
+      const schoolId = await getOrCreateSchoolId();
 
-      if (schoolError) throw schoolError;
+      if (schoolId === 'temp-school-id') {
+        // For mock admin, create a mock invitation
+        const mockInvitation: StudentInvitation = {
+          id: `temp-${Date.now()}`,
+          email: newStudent.email,
+          first_name: newStudent.firstName || null,
+          last_name: newStudent.lastName || null,
+          invitation_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          used: false
+        };
+
+        setInvitations([mockInvitation, ...invitations]);
+        setNewStudent({ email: '', firstName: '', lastName: '' });
+        
+        toast({
+          title: "Mock Invitation Created! 📧",
+          description: `Mock invitation created for ${newStudent.email}`,
+        });
+        
+        return;
+      }
 
       const { data, error } = await supabase
         .from('student_invitations')
@@ -118,7 +156,7 @@ export const StudentManagement = () => {
           first_name: newStudent.firstName || null,
           last_name: newStudent.lastName || null,
           invited_by_id: user?.id,
-          school_id: schoolData.id
+          school_id: schoolId
         })
         .select()
         .single();
@@ -133,7 +171,7 @@ export const StudentManagement = () => {
             to: newStudent.email,
             studentName: `${newStudent.firstName} ${newStudent.lastName}`.trim() || 'Student',
             invitationCode: data.invitation_code,
-            schoolName: 'Your School' // You can fetch this from school_accounts if needed
+            schoolName: 'Your School'
           }
         });
 
@@ -168,7 +206,7 @@ export const StudentManagement = () => {
       console.error('Error creating invitation:', error);
       toast({
         title: "Error",
-        description: "Failed to create student invitation",
+        description: error.message || "Failed to create student invitation",
         variant: "destructive"
       });
     } finally {
