@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageList } from '@/components/MessageList';
-import { VoiceMessageInput } from '@/components/VoiceMessageInput';
+import MessageList from '@/components/MessageList';
+import VoiceMessageInput from '@/components/VoiceMessageInput';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
@@ -14,10 +14,11 @@ import { Send, Mic, MicOff } from 'lucide-react';
 export const ChatArea = () => {
   const { user } = useAuth();
   const [input, setInput] = useState('');
-  const { messages, sendMessage, isLoading } = useMessageHandler();
-  const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
-  const { settings } = useVoiceSettings();
+  const { messages, getAIResponse, handlePlayAudio, handlePauseAudio } = useMessageHandler();
+  const { isRecording, handleStartRecording, handleStopRecording } = useVoiceRecorder();
+  const { selectedVoice } = useVoiceSettings();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,11 +28,20 @@ export const ChatArea = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (input.trim() && !isLoading) {
-      await sendMessage(input);
-      setInput('');
+  const sendMessage = async (messageText: string) => {
+    if (messageText.trim() && !isLoading) {
+      setIsLoading(true);
+      try {
+        await getAIResponse(messageText, selectedVoice);
+      } finally {
+        setIsLoading(false);
+      }
     }
+  };
+
+  const handleSendMessage = async () => {
+    await sendMessage(input);
+    setInput('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -44,7 +54,11 @@ export const ChatArea = () => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <MessageList messages={messages} />
+        <MessageList 
+          messages={messages} 
+          onPlayAudio={handlePlayAudio}
+          onPauseAudio={handlePauseAudio}
+        />
         <div ref={messagesEndRef} />
       </div>
       
@@ -65,7 +79,12 @@ export const ChatArea = () => {
           >
             <Send className="h-4 w-4" />
           </Button>
-          <VoiceMessageInput />
+          <Button
+            onClick={isRecording ? handleStopRecording : handleStartRecording}
+            className={`${isRecording ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+          >
+            {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
     </div>
