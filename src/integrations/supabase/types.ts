@@ -234,6 +234,36 @@ export type Database = {
           },
         ]
       }
+      onboarding_status: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          has_completed_payment: boolean | null
+          has_provided_guardian_email: boolean | null
+          has_verified_guardian: boolean | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          has_completed_payment?: boolean | null
+          has_provided_guardian_email?: boolean | null
+          has_verified_guardian?: boolean | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          has_completed_payment?: boolean | null
+          has_provided_guardian_email?: boolean | null
+          has_verified_guardian?: boolean | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       parent_child_relationships: {
         Row: {
           child_id: string | null
@@ -290,6 +320,7 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           gamification_enabled: boolean | null
+          guardian_email: string | null
           id: string
           leaderboard_visible: boolean | null
           role: Database["public"]["Enums"]["user_role"]
@@ -299,6 +330,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           gamification_enabled?: boolean | null
+          guardian_email?: string | null
           id: string
           leaderboard_visible?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -308,6 +340,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           gamification_enabled?: boolean | null
+          guardian_email?: string | null
           id?: string
           leaderboard_visible?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -423,6 +456,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "school_student_relationships_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_invitations: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          first_name: string | null
+          id: string
+          invitation_code: string
+          invited_by_id: string
+          last_name: string | null
+          school_id: string | null
+          used: boolean | null
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invitation_code?: string
+          invited_by_id: string
+          last_name?: string | null
+          school_id?: string | null
+          used?: boolean | null
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invitation_code?: string
+          invited_by_id?: string
+          last_name?: string | null
+          school_id?: string | null
+          used?: boolean | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_invitations_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "school_accounts"

@@ -6,6 +6,8 @@ import Auth from './pages/Auth';
 import Pricing from './pages/Pricing';
 import NotFound from './pages/NotFound';
 import Progress from './pages/Progress';
+import Onboarding from './pages/Onboarding';
+import SchoolAdmin from './pages/SchoolAdmin';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
 import Chat from './pages/Chat';
@@ -19,6 +21,8 @@ const App = () => {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
           <Route path="/voice" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/math" element={<ProtectedRoute><MathSolver /></ProtectedRoute>} />
