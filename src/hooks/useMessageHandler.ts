@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Message } from '@/types/message';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
@@ -185,10 +184,10 @@ export const useMessageHandler = () => {
         }
 
         // Regular AI response for non-math queries or when math solving fails
-        // Get previous messages for context (limit to last 10 for token efficiency)
+        // Get previous messages for context (limit to last 8 for token efficiency)
         const conversationHistory = messages
           .filter(m => m.id !== 'welcome-message' && !m.id?.startsWith('processing-'))
-          .slice(-10)
+          .slice(-8)
           .map(m => ({
             role: m.isFromUser ? "user" : "assistant", 
             content: m.text
@@ -204,24 +203,28 @@ export const useMessageHandler = () => {
           setIsQuizMode(true);
         }
         
+        // Create a natural, conversational system prompt
+        let systemPrompt = `You are Teachly, a friendly and knowledgeable AI tutor. You're here to help students learn in a warm, encouraging way. Be conversational and natural - like a helpful friend who happens to know a lot about various subjects.
+
+Keep your responses engaging and personalized. Don't be overly formal or robotic. If someone asks a question, dive right into helping them rather than announcing that you're processing their message.`;
+
+        // Add quiz mode context if active
+        if (isQuizMode) {
+          systemPrompt += `\n\nYou're currently in quiz mode! Ask thoughtful educational questions and provide encouraging feedback on answers. Make learning fun and interactive.`;
+        }
+
+        // Add performance context if available
+        if (responseTimes.length > 0) {
+          systemPrompt += `\n\nBased on previous interactions, the student seems to be strong in: ${userStrengths.join(', ') || 'various areas'} and could use more practice with: ${userWeaknesses.join(', ') || 'some topics'}. Tailor your help accordingly.`;
+        }
+
         // Generate AI response using OpenAI's chat completion API
         const completionResponse = await supabase.functions.invoke('chat-completion', {
           body: {
             messages: [
               {
                 role: "system",
-                content: `You are a helpful, friendly AI assistant named Teachly. Be conversational, thoughtful, and helpful with your responses. Keep responses concise yet informative.
-                
-                ${isQuizMode ? "You are in quiz mode. Ask educational questions and provide feedback on the user's answers. Focus on helping them learn." : ""}
-                
-                ${responseTimes.length > 0 ? `Here's some information about the user's performance:
-                - Strengths: ${userStrengths.join(', ') || 'Not enough data yet'}
-                - Weaknesses: ${userWeaknesses.join(', ') || 'Not enough data yet'}
-                - Response times: Fast: ${getFastResponseTopics()}, Slow: ${getSlowResponseTopics()}` : ""}
-                
-                When responding to user questions, be natural and conversational. Don't use phrases like "I've processed your message" or other robotic language.
-                
-                If the user asks about math problems, let them know that complex mathematical calculations are automatically solved using Wolfram|Alpha for maximum accuracy.`
+                content: systemPrompt
               },
               ...conversationHistory,
               { role: "user", content: userMessage }

@@ -32,7 +32,7 @@ serve(async (req) => {
       msg.content.includes('Strengths:')
     );
 
-    // Call OpenAI API for chat completion with appropriate instruction
+    // Call OpenAI API for chat completion with natural conversational style
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -40,10 +40,10 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Using GPT-4o-mini for better responses at lower cost
+        model: 'gpt-4o', // Using GPT-4o for better natural responses
         messages: messages,
-        max_tokens: 500,
-        temperature: isQuizMode ? 0.4 : 0.7, // Lower temperature for more factual quiz responses
+        max_tokens: 800, // Increased for more complete thoughts
+        temperature: isQuizMode ? 0.6 : 0.8, // Higher temperature for more natural responses
       }),
     });
 
