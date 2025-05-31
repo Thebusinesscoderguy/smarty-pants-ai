@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,6 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -26,19 +26,16 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Improved OAuth redirect handling
+  // Simple OAuth redirect handling
   useEffect(() => {
     const handleAuthRedirect = async () => {
-      // Check URL for auth parameters
+      // Check for error in URL
       const urlParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       
-      // Check for OAuth callback parameters
-      const code = urlParams.get('code');
       const error = urlParams.get('error') || hashParams.get('error');
       const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
       
-      // If we have an error, handle it
       if (error) {
         console.error('OAuth error:', error, errorDescription);
         setAuthError(errorDescription || error);
@@ -51,47 +48,19 @@ const Auth = () => {
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
-      
-      // If we have a code or access token, we're processing an OAuth callback
-      if (code || hashParams.has('access_token')) {
-        console.log('Processing OAuth callback...');
-        setIsRedirecting(true);
+
+      // Check if we have auth fragments (successful OAuth)
+      if (window.location.hash.includes('access_token') || window.location.hash.includes('code')) {
+        console.log('OAuth callback detected, cleaning URL...');
         
-        try {
-          // Exchange the code for a session using Supabase's built-in method
-          const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code || '');
-          
-          if (sessionError) {
-            console.error('Session exchange error:', sessionError);
-            setAuthError('Failed to establish session. Please try signing in again.');
-            toast({
-              title: "Authentication failed",
-              description: "Could not establish a session. Please try again.",
-              variant: "destructive",
-            });
-          } else if (data.session) {
-            console.log('OAuth session established successfully');
-            toast({
-              title: "Success!",
-              description: "Successfully signed in with Google",
-            });
-          }
-          
-          // Clean URL regardless of outcome
-          window.history.replaceState({}, document.title, window.location.pathname);
-          
-        } catch (error: any) {
-          console.error('Error processing OAuth callback:', error);
-          setAuthError('Authentication failed. Please try again.');
-          toast({
-            title: "Authentication error",
-            description: "An error occurred during authentication",
-            variant: "destructive",
-          });
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } finally {
-          setIsRedirecting(false);
-        }
+        // Let Supabase handle the session automatically through onAuthStateChange
+        // Just clean the URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        toast({
+          title: "Success!",
+          description: "Successfully signed in with Google",
+        });
       }
     };
     
@@ -155,10 +124,6 @@ const Auth = () => {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
         },
       });
 
@@ -189,16 +154,6 @@ const Auth = () => {
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <p>Checking authentication status...</p>
-      </div>
-    );
-  }
-
-  if (isRedirecting) {
-    return (
-      <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
-        <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Processing authentication...</p>
-        <p className="text-sm text-white/60 mt-4">Establishing your session...</p>
       </div>
     );
   }
