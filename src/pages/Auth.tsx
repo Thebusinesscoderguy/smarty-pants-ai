@@ -27,36 +27,6 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  // Listen for auth state changes (this handles OAuth callbacks automatically)
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
-        
-        if (event === 'SIGNED_IN' && session) {
-          console.log('User signed in successfully');
-          toast({
-            title: "Success!",
-            description: "Successfully signed in with Google",
-          });
-          
-          // Small delay to ensure everything is processed
-          setTimeout(() => {
-            navigate('/pricing');
-          }, 100);
-        }
-        
-        if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -111,7 +81,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${window.location.origin}/pricing`,
         },
       });
 
