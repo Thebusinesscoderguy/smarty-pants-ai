@@ -272,7 +272,7 @@ export const PaymentManagement = () => {
               </div>
             </div>
           </CardContent>
-        </div>
+        </Card>
       )}
     </div>
   );
