@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,13 @@ const Auth = () => {
 
   // Check URL params and redirect authenticated users
   useEffect(() => {
+    console.log('Auth page: Effect triggered', {
+      hasUser: !!user,
+      loading,
+      pathname: location.pathname,
+      search: location.search
+    });
+
     // Check if signup mode should be enabled from URL
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('signup') === 'true') {
@@ -29,10 +35,10 @@ const Auth = () => {
 
     // Redirect authenticated users
     if (!loading && user) {
-      console.log('User already authenticated, redirecting to pricing');
-      navigate('/pricing');
+      console.log('Auth page: User already authenticated, redirecting to pricing');
+      navigate('/pricing', { replace: true });
     }
-  }, [user, loading, navigate, location.search]);
+  }, [user, loading, navigate, location.search, location.pathname]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +120,16 @@ const Auth = () => {
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // If user is authenticated, don't render the auth form (redirect will happen)
+  if (user) {
+    return (
+      <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <p>Redirecting...</p>
       </div>
     );
   }

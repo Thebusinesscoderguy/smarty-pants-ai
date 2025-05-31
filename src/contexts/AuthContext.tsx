@@ -18,10 +18,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthContext: Setting up auth state management...');
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.email);
+      async (event, currentSession) => {
+        console.log('AuthContext: Auth state changed:', {
+          event,
+          hasSession: !!currentSession,
+          userId: currentSession?.user?.id,
+          userEmail: currentSession?.user?.email
+        });
+        
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);
@@ -29,22 +37,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log('Initial session check:', currentSession?.user?.email || 'No session');
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setLoading(false);
-    });
+    const checkSession = async () => {
+      try {
+        console.log('AuthContext: Checking for existing session...');
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('AuthContext: Error getting session:', error);
+        } else {
+          console.log('AuthContext: Initial session check:', {
+            hasSession: !!currentSession,
+            userId: currentSession?.user?.id,
+            userEmail: currentSession?.user?.email
+          });
+        }
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setLoading(false);
+      } catch (error) {
+        console.error('AuthContext: Error in checkSession:', error);
+        setLoading(false);
+      }
+    };
+
+    checkSession();
 
     return () => {
+      console.log('AuthContext: Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    console.log('Signing out...');
+    console.log('AuthContext: Signing out...');
     await supabase.auth.signOut();
   };
+
+  console.log('AuthContext: Current state:', {
+    hasUser: !!user,
+    hasSession: !!session,
+    loading,
+    userId: user?.id,
+    userEmail: user?.email
+  });
 
   return (
     <AuthContext.Provider value={{ session, user, loading, signOut }}>
