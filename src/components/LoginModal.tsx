@@ -9,11 +9,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -24,7 +22,6 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,38 +54,9 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsGoogleLoading(true);
-      
-      console.log("Starting Google sign-in...");
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth`,
-        },
-      });
-
-      if (error) {
-        console.error('Google sign-in error:', error);
-        throw error;
-      }
-
-      console.log('Google sign-in initiated successfully');
-      
-    } catch (error: any) {
-      console.error("Google auth error:", error);
-      
-      const errorMessage = error.message || "Failed to authenticate with Google";
-      
-      toast({
-        title: "Google Sign In Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      setIsGoogleLoading(false);
-    }
+  const handleUseAuthPage = () => {
+    onClose();
+    navigate('/auth');
   };
 
   return (
@@ -129,32 +97,16 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             {isLoading ? "Logging in..." : "Log In"}
           </Button>
           
-          <div className="relative flex justify-center text-xs uppercase my-4">
-            <span className="bg-black px-2 text-white/70">Or continue with</span>
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/20"></span>
-            </div>
+          <div className="text-center">
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
+              onClick={handleUseAuthPage}
+            >
+              More login options
+            </Button>
           </div>
-
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
-          >
-            {isGoogleLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting to Google...
-              </>
-            ) : (
-              <>
-                <FcGoogle className="mr-2 h-4 w-4" />
-                Sign in with Google
-              </>
-            )}
-          </Button>
         </form>
       </DialogContent>
     </Dialog>

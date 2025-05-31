@@ -9,10 +9,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { FcGoogle } from 'react-icons/fc';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -24,7 +23,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,38 +64,9 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    try {
-      setIsGoogleLoading(true);
-      
-      console.log("Starting Google sign-up...");
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth`,
-        },
-      });
-
-      if (error) {
-        console.error('Google sign-up error:', error);
-        throw error;
-      }
-
-      console.log('Google sign-up initiated successfully');
-      
-    } catch (error: any) {
-      console.error("Google auth error:", error);
-      
-      const errorMessage = error.message || "Failed to authenticate with Google";
-      
-      toast({
-        title: "Google Sign Up Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      setIsGoogleLoading(false);
-    }
+  const handleUseAuthPage = () => {
+    onClose();
+    navigate('/auth?signup=true');
   };
 
   return (
@@ -147,32 +117,16 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
             {isLoading ? "Creating account..." : "Sign Up"}
           </Button>
           
-          <div className="relative flex justify-center text-xs uppercase my-4">
-            <span className="bg-black px-2 text-white/70">Or continue with</span>
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/20"></span>
-            </div>
+          <div className="text-center">
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
+              onClick={handleUseAuthPage}
+            >
+              More signup options
+            </Button>
           </div>
-
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
-            onClick={handleGoogleSignUp}
-            disabled={isGoogleLoading}
-          >
-            {isGoogleLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting to Google...
-              </>
-            ) : (
-              <>
-                <FcGoogle className="mr-2 h-4 w-4" />
-                Sign up with Google
-              </>
-            )}
-          </Button>
         </form>
       </DialogContent>
     </Dialog>

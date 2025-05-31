@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,47 +15,24 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useAuth();
 
-  // Handle OAuth callback and authentication state
+  // Check URL params and redirect authenticated users
   useEffect(() => {
-    const handleAuthState = async () => {
-      // First check if this is an OAuth callback
-      const urlParams = new URLSearchParams(window.location.search);
-      const isOAuthCallback = urlParams.get('code') || urlParams.get('error');
+    // Check if signup mode should be enabled from URL
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('signup') === 'true') {
+      setIsSignUp(true);
+    }
 
-      if (isOAuthCallback) {
-        console.log('OAuth callback detected, waiting for session...');
-        // Give some time for the auth state to be established
-        setTimeout(() => {
-          if (user) {
-            console.log('OAuth successful, redirecting to pricing');
-            navigate('/pricing');
-          } else {
-            console.log('OAuth callback but no user found');
-            toast({
-              title: "Authentication Error",
-              description: "Failed to complete Google sign-in",
-              variant: "destructive",
-            });
-          }
-          setIsCheckingAuth(false);
-        }, 2000);
-      } else {
-        // Regular auth page visit
-        if (!loading && user) {
-          console.log('User already authenticated, redirecting to pricing');
-          navigate('/pricing');
-        } else {
-          setIsCheckingAuth(false);
-        }
-      }
-    };
-
-    handleAuthState();
-  }, [user, loading, navigate]);
+    // Redirect authenticated users
+    if (!loading && user) {
+      console.log('User already authenticated, redirecting to pricing');
+      navigate('/pricing');
+    }
+  }, [user, loading, navigate, location.search]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +85,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${window.location.origin}/pricing`,
         },
       });
 
@@ -131,8 +108,8 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while checking authentication or handling OAuth callback
-  if (loading || isCheckingAuth) {
+  // Show loading state while checking authentication
+  if (loading) {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />

@@ -1,15 +1,11 @@
 
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import LoginModal from '@/components/LoginModal';
-import SignupModal from '@/components/SignupModal';
 import ApiKeyForm from '@/components/ApiKeyForm';
-import { useState } from 'react';
 
 export const Header = () => {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   return (
@@ -28,21 +24,19 @@ export const Header = () => {
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10" 
-              onClick={() => setIsLoginOpen(true)}
+              onClick={() => navigate('/auth')}
             >
               Log in
             </Button>
             <Button 
               className="bg-white text-black hover:bg-gray-200" 
-              onClick={() => setIsSignupOpen(true)}
+              onClick={() => navigate('/auth?signup=true')}
             >
               Sign up
             </Button>
           </>
         )}
       </div>
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} />
     </header>
   );
 };
