@@ -7,7 +7,10 @@ import { StudentManagement } from '@/components/admin/StudentManagement';
 import { QuestManagement } from '@/components/admin/QuestManagement';
 import { AchievementManagement } from '@/components/admin/AchievementManagement';
 import { SchoolOverview } from '@/components/admin/SchoolOverview';
-import { Users, Target, Trophy, BarChart3 } from 'lucide-react';
+import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
+import { PaymentManagement } from '@/components/admin/PaymentManagement';
+import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
+import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp } from 'lucide-react';
 
 const SchoolAdmin = () => {
   return (
@@ -19,12 +22,12 @@ const SchoolAdmin = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">School Administration</h1>
             <p className="text-gray-400">
-              Manage students, create quests, track achievements, and monitor progress
+              Complete school management platform with curriculum, payments, and analytics
             </p>
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/10">
+            <TabsList className="grid w-full grid-cols-7 bg-white/10">
               <TabsTrigger value="overview" className="data-[state=active]:bg-white/20">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Overview
@@ -33,6 +36,10 @@ const SchoolAdmin = () => {
                 <Users className="h-4 w-4 mr-2" />
                 Students
               </TabsTrigger>
+              <TabsTrigger value="curriculum" className="data-[state=active]:bg-white/20">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Curriculum
+              </TabsTrigger>
               <TabsTrigger value="quests" className="data-[state=active]:bg-white/20">
                 <Target className="h-4 w-4 mr-2" />
                 Quests
@@ -40,6 +47,14 @@ const SchoolAdmin = () => {
               <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20">
                 <Trophy className="h-4 w-4 mr-2" />
                 Achievements
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="data-[state=active]:bg-white/20">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Billing
               </TabsTrigger>
             </TabsList>
 
@@ -52,12 +67,24 @@ const SchoolAdmin = () => {
                 <StudentManagement />
               </TabsContent>
 
+              <TabsContent value="curriculum" className="space-y-6">
+                <CurriculumManagement />
+              </TabsContent>
+
               <TabsContent value="quests" className="space-y-6">
                 <QuestManagement />
               </TabsContent>
 
               <TabsContent value="achievements" className="space-y-6">
                 <AchievementManagement />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-6">
+                <EnhancedAnalytics />
+              </TabsContent>
+
+              <TabsContent value="billing" className="space-y-6">
+                <PaymentManagement />
               </TabsContent>
             </div>
           </Tabs>

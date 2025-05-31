@@ -39,6 +39,60 @@ export type Database = {
         }
         Relationships: []
       }
+      curricula: {
+        Row: {
+          content: Json
+          created_at: string
+          description: string | null
+          grade_level: string | null
+          id: string
+          is_active: boolean
+          school_id: string | null
+          subject_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          description?: string | null
+          grade_level?: string | null
+          id?: string
+          is_active?: boolean
+          school_id?: string | null
+          subject_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          description?: string | null
+          grade_level?: string | null
+          id?: string
+          is_active?: boolean
+          school_id?: string | null
+          subject_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curricula_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curricula_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_challenges: {
         Row: {
           challenge_date: string
@@ -173,6 +227,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          curriculum_id: string | null
           file_url: string | null
           id: string
           is_from_user: boolean | null
@@ -182,6 +237,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string | null
+          curriculum_id?: string | null
           file_url?: string | null
           id?: string
           is_from_user?: boolean | null
@@ -191,13 +247,22 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string | null
+          curriculum_id?: string | null
           file_url?: string | null
           id?: string
           is_from_user?: boolean | null
           type?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "curricula"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       modules: {
         Row: {
@@ -463,6 +528,57 @@ export type Database = {
           },
         ]
       }
+      student_activity_logs: {
+        Row: {
+          activity_type: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          metadata: Json | null
+          school_id: string | null
+          score: number | null
+          student_id: string | null
+          subject_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          metadata?: Json | null
+          school_id?: string | null
+          score?: number | null
+          student_id?: string | null
+          subject_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          metadata?: Json | null
+          school_id?: string | null
+          score?: number | null
+          student_id?: string | null
+          subject_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_activity_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_activity_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_invitations: {
         Row: {
           created_at: string | null
@@ -572,6 +688,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          max_students: number | null
+          stripe_customer_id: string | null
+          student_count: number | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          max_students?: number | null
+          stripe_customer_id?: string | null
+          student_count?: number | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          max_students?: number | null
+          stripe_customer_id?: string | null
+          student_count?: number | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       teacher_student_relationships: {
         Row: {
           created_at: string | null
@@ -622,18 +780,21 @@ export type Database = {
           achievement_id: string | null
           earned_at: string | null
           id: string
+          school_id: string | null
           user_id: string | null
         }
         Insert: {
           achievement_id?: string | null
           earned_at?: string | null
           id?: string
+          school_id?: string | null
           user_id?: string | null
         }
         Update: {
           achievement_id?: string | null
           earned_at?: string | null
           id?: string
+          school_id?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -642,6 +803,13 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_achievements_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -739,6 +907,7 @@ export type Database = {
           current_value: number | null
           id: string
           quest_id: string
+          school_id: string | null
           user_id: string
         }
         Insert: {
@@ -748,6 +917,7 @@ export type Database = {
           current_value?: number | null
           id?: string
           quest_id: string
+          school_id?: string | null
           user_id: string
         }
         Update: {
@@ -757,6 +927,7 @@ export type Database = {
           current_value?: number | null
           id?: string
           quest_id?: string
+          school_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -765,6 +936,13 @@ export type Database = {
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_quest_progress_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
             referencedColumns: ["id"]
           },
         ]

@@ -7,6 +7,8 @@ import { StudentDashboard } from '@/components/monitoring/StudentDashboard';
 import { GameSettings } from '@/components/gamification/GameSettings';
 import { SubjectProgress } from '@/components/subjects/SubjectProgress';
 import { StrengthsWeaknesses } from '@/components/analytics/StrengthsWeaknesses';
+import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
+import { StudentAchievements } from '@/components/student/StudentAchievements';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
@@ -41,14 +43,14 @@ const Progress = () => {
               <TabsTrigger value="quests" className="data-[state=active]:bg-white/20">
                 Quests
               </TabsTrigger>
+              <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20">
+                Achievements
+              </TabsTrigger>
               <TabsTrigger value="subjects" className="data-[state=active]:bg-white/20">
                 Subjects
               </TabsTrigger>
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
                 Analytics
-              </TabsTrigger>
-              <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20">
-                Achievements
               </TabsTrigger>
               <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20">
                 Monitoring
@@ -57,7 +59,11 @@ const Progress = () => {
 
             <div className="mt-6">
               <TabsContent value="quests" className="space-y-6">
-                <QuestDisplay />
+                {user ? <StudentQuestDisplay /> : <QuestDisplay />}
+              </TabsContent>
+
+              <TabsContent value="achievements" className="space-y-6">
+                {user ? <StudentAchievements /> : <AchievementsList />}
               </TabsContent>
 
               <TabsContent value="subjects" className="space-y-6">
@@ -66,10 +72,6 @@ const Progress = () => {
 
               <TabsContent value="analytics" className="space-y-6">
                 <StrengthsWeaknesses />
-              </TabsContent>
-
-              <TabsContent value="achievements" className="space-y-6">
-                <AchievementsList />
               </TabsContent>
 
               <TabsContent value="monitoring" className="space-y-6">
