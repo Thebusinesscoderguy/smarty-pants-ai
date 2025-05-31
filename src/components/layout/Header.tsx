@@ -2,7 +2,6 @@
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import ApiKeyForm from '@/components/ApiKeyForm';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useState, useEffect } from 'react';
@@ -59,8 +58,6 @@ export const Header = () => {
             <Button variant="outline" className="bg-green-600 text-white hover:bg-green-700">
               <Link to="/chat">AI Tutor</Link>
             </Button>
-            {/* Only show API key form for regular users, not school admins */}
-            {!isSchoolAdmin && <ApiKeyForm />}
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10"
