@@ -46,15 +46,12 @@ export const StudentManagement = () => {
   });
 
   useEffect(() => {
-    fetchStudentData();
-  }, []);
-
-  const getOrCreateSchoolId = async () => {
-    if (isSchoolAdmin && user?.id === 'temp-admin-id') {
-      // For mock admin, return a mock school ID
-      return 'temp-school-id';
+    if (isSchoolAdmin && user) {
+      fetchStudentData();
     }
+  }, [isSchoolAdmin, user]);
 
+  const getSchoolId = async () => {
     // Get the school ID for the current admin
     const { data: schoolData, error: schoolError } = await supabase
       .from('school_accounts')
@@ -73,15 +70,7 @@ export const StudentManagement = () => {
     try {
       setIsLoading(true);
       
-      const schoolId = await getOrCreateSchoolId();
-
-      if (schoolId === 'temp-school-id') {
-        // For mock admin, set mock data
-        setInvitations([]);
-        setEnrolledStudents([]);
-        setIsLoading(false);
-        return;
-      }
+      const schoolId = await getSchoolId();
 
       // Fetch pending invitations
       const { data: invitationsData, error: invitationsError } = await supabase
@@ -123,31 +112,7 @@ export const StudentManagement = () => {
     try {
       setIsCreating(true);
       
-      const schoolId = await getOrCreateSchoolId();
-
-      if (schoolId === 'temp-school-id') {
-        // For mock admin, create a mock invitation
-        const mockInvitation: StudentInvitation = {
-          id: `temp-${Date.now()}`,
-          email: newStudent.email,
-          first_name: newStudent.firstName || null,
-          last_name: newStudent.lastName || null,
-          invitation_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          used: false
-        };
-
-        setInvitations([mockInvitation, ...invitations]);
-        setNewStudent({ email: '', firstName: '', lastName: '' });
-        
-        toast({
-          title: "Mock Invitation Created! 📧",
-          description: `Mock invitation created for ${newStudent.email}`,
-        });
-        
-        return;
-      }
+      const schoolId = await getSchoolId();
 
       const { data, error } = await supabase
         .from('student_invitations')
@@ -213,6 +178,15 @@ export const StudentManagement = () => {
       setIsCreating(false);
     }
   };
+
+  if (!isSchoolAdmin) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
+        <p className="text-gray-400">You need to be a school administrator to access this page.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <div className="animate-pulse">Loading student management...</div>;
