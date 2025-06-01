@@ -32,7 +32,7 @@ export const PaymentManagement = () => {
 
   useEffect(() => {
     fetchSubscriptionData();
-  }, [user]);
+  }, [user, isSchoolAdmin]);
 
   const fetchSubscriptionData = async () => {
     if (!user) return;
@@ -204,7 +204,7 @@ export const PaymentManagement = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading subscription data...</div>;
+    return <div className="animate-pulse text-white">Loading subscription data...</div>;
   }
 
   return (
