@@ -28,6 +28,7 @@ export const PaymentManagement = () => {
   const [schoolAccount, setSchoolAccount] = useState<SchoolAccount | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isCreatingSubscription, setIsCreatingSubscription] = useState(false);
   const [studentCount, setStudentCount] = useState(0);
   const { user } = useAuth();
 
@@ -92,6 +93,7 @@ export const PaymentManagement = () => {
 
   const createStripeSubscription = async () => {
     try {
+      setIsCreatingSubscription(true);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { planType: 'business' }
       });
@@ -108,32 +110,8 @@ export const PaymentManagement = () => {
         description: "Failed to create subscription",
         variant: "destructive"
       });
-    }
-  };
-
-  const createPayPalSubscription = async () => {
-    try {
-      // Calculate total price: base $25 + ($5 * additional students)
-      const basePrice = 25;
-      const additionalStudents = Math.max(0, studentCount - 1); // First student included
-      const totalPrice = basePrice + (additionalStudents * 5);
-
-      toast({
-        title: "PayPal Integration",
-        description: `Redirecting to PayPal for $${totalPrice}/month subscription`,
-      });
-
-      // This would integrate with PayPal's subscription API
-      // For now, we'll show a placeholder
-      console.log('PayPal subscription:', { totalPrice, studentCount });
-      
-    } catch (error: any) {
-      console.error('Error creating PayPal subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create PayPal subscription",
-        variant: "destructive"
-      });
+    } finally {
+      setIsCreatingSubscription(false);
     }
   };
 
@@ -141,7 +119,7 @@ export const PaymentManagement = () => {
     try {
       setIsCancelling(true);
       
-      // This would call Stripe or PayPal cancellation API
+      // This would call Stripe cancellation API
       const { error } = await supabase
         .from('subscribers')
         .update({ 
@@ -184,7 +162,7 @@ export const PaymentManagement = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-white">Subscription Management</h2>
-        <p className="text-gray-400">Manage your school's subscription and billing</p>
+        <p className="text-gray-400">Manage your school's subscription and billing via Stripe</p>
       </div>
 
       {/* Current Subscription Status */}
@@ -234,71 +212,55 @@ export const PaymentManagement = () => {
         </Card>
       )}
 
-      {/* Available Plans */}
+      {/* Stripe Subscription Option */}
       {!subscription && (
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Stripe Payment Option */}
-          <Card className="bg-white/10 border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white text-center">Pay with Stripe</CardTitle>
-              <div className="text-2xl font-bold text-white text-center">${calculateMonthlyPrice()}/month</div>
-              <p className="text-gray-400 text-center">Secure card payments</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Admin dashboard access
-                </li>
-                <li className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Student invitation system
-                </li>
-                <li className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Advanced analytics
-                </li>
+        <Card className="bg-white/10 border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-center">Business Plan</CardTitle>
+            <div className="text-2xl font-bold text-white text-center">${calculateMonthlyPrice()}/month</div>
+            <p className="text-gray-400 text-center">Secure payments via Stripe</p>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center text-sm text-gray-300">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                Admin dashboard access
+              </li>
+              <li className="flex items-center text-sm text-gray-300">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                Student invitation system
+              </li>
+              <li className="flex items-center text-sm text-gray-300">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                Advanced analytics & reporting
+              </li>
+              <li className="flex items-center text-sm text-gray-300">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                Priority support
+              </li>
+              <li className="flex items-center text-sm text-gray-300">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                Bulk user management
+              </li>
+            </ul>
+            <div className="bg-blue-900/20 p-4 rounded-lg mb-6">
+              <h4 className="font-semibold mb-2 text-white">Pricing Structure:</h4>
+              <ul className="text-left text-sm space-y-2 text-gray-300">
+                <li>• Base price: $25/month for admin account</li>
+                <li>• Each additional student: $5/month</li>
+                <li>• Example: 10 students = $25 + (9 × $5) = $70/month</li>
+                <li>• No setup fees or long-term commitments</li>
               </ul>
-              <Button 
-                onClick={createStripeSubscription}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                Subscribe with Stripe
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* PayPal Payment Option */}
-          <Card className="bg-white/10 border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white text-center">Pay with PayPal</CardTitle>
-              <div className="text-2xl font-bold text-white text-center">${calculateMonthlyPrice()}/month</div>
-              <p className="text-gray-400 text-center">Secure PayPal payments</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Same features as Stripe
-                </li>
-                <li className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  PayPal buyer protection
-                </li>
-                <li className="flex items-center text-sm text-gray-300">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Easy cancellation
-                </li>
-              </ul>
-              <Button 
-                onClick={createPayPalSubscription}
-                className="w-full bg-yellow-600 hover:bg-yellow-700"
-              >
-                Subscribe with PayPal
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Button 
+              onClick={createStripeSubscription}
+              disabled={isCreatingSubscription}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {isCreatingSubscription ? 'Processing...' : 'Subscribe with Stripe'}
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* School Account Info */}

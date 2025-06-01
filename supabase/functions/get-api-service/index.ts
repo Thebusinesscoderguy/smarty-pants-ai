@@ -6,8 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type ServiceType = 'google' | 'paypal';
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -19,14 +17,14 @@ serve(async (req) => {
   }
 
   try {
-    const { service } = await req.json() as { service: ServiceType };
+    const { service } = await req.json() as { service: string };
     
     console.log(`Edge function called: get-api-service for ${service}`);
     
-    if (!service || !['google', 'paypal'].includes(service)) {
-      console.error(`Invalid service specified: ${service}`);
+    if (!service || service !== 'google') {
+      console.error(`Invalid service specified: ${service}. Only 'google' is supported.`);
       return new Response(
-        JSON.stringify({ error: 'Invalid service specified' }),
+        JSON.stringify({ error: 'Invalid service specified. Only Google API is supported.' }),
         {
           status: 400,
           headers: {
@@ -37,11 +35,10 @@ serve(async (req) => {
       );
     }
     
-    // Get the appropriate API key based on the requested service
-    const apiConfig = await getServiceConfig(service);
+    // Get Google API configuration
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
     
-    // Verify that required environment variables exist
-    if (service === 'google' && !apiConfig.apiKey) {
+    if (!googleApiKey) {
       console.error('GOOGLE_API_KEY environment variable is not set');
       return new Response(
         JSON.stringify({ error: 'Google API key is not configured' }),
@@ -55,24 +52,10 @@ serve(async (req) => {
       );
     }
     
-    if (service === 'paypal' && (!apiConfig.clientId || !apiConfig.hasSecret)) {
-      console.error('PAYPAL_CLIENT_ID or PAYPAL_SECRET_KEY environment variable is not set');
-      return new Response(
-        JSON.stringify({ error: 'PayPal API credentials are not fully configured' }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
-      );
-    }
-    
-    console.log(`Successfully retrieved config for ${service}`);
+    console.log('Successfully retrieved Google API config');
     
     return new Response(
-      JSON.stringify(apiConfig),
+      JSON.stringify({ apiKey: googleApiKey }),
       {
         status: 200,
         headers: {
@@ -95,21 +78,3 @@ serve(async (req) => {
     );
   }
 });
-
-async function getServiceConfig(service: ServiceType) {
-  switch (service) {
-    case 'google':
-      return {
-        apiKey: Deno.env.get("GOOGLE_API_KEY"),
-      };
-    case 'paypal':
-      return {
-        clientId: Deno.env.get("PAYPAL_CLIENT_ID"),
-        // Never return the secret key directly to the client
-        // This is just to verify it's available
-        hasSecret: !!Deno.env.get("PAYPAL_SECRET_KEY"),
-      };
-    default:
-      throw new Error('Invalid service');
-  }
-}
