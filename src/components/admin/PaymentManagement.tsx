@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Calendar, CheckCircle } from 'lucide-react';
+import { CreditCard, Calendar, CheckCircle, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,7 +27,8 @@ export const PaymentManagement = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [schoolAccount, setSchoolAccount] = useState<SchoolAccount | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const [isCancelling, setIsCancelling] = useState(false);
+  const { user, isSchoolAdmin } = useAuth();
 
   useEffect(() => {
     fetchSubscriptionData();
@@ -39,7 +40,29 @@ export const PaymentManagement = () => {
     try {
       setIsLoading(true);
       
-      // Fetch subscription data
+      // Mock data for development
+      if (isSchoolAdmin) {
+        console.log('PaymentManagement: Using mock subscription data');
+        setSubscription({
+          id: 'mock-sub-123',
+          subscription_tier: 'Business',
+          subscribed: true,
+          subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          stripe_customer_id: 'mock-customer-123'
+        });
+        
+        setSchoolAccount({
+          id: 'mock-school-123',
+          school_name: 'Demo School',
+          plan_type: 'Business',
+          is_active: true
+        });
+        
+        setIsLoading(false);
+        return;
+      }
+
+      // Real data fetching (when not in mock mode)
       const { data: subData, error: subError } = await supabase
         .from('subscribers')
         .select('*')
@@ -52,7 +75,6 @@ export const PaymentManagement = () => {
         setSubscription(subData);
       }
 
-      // Fetch school account data
       const { data: schoolData, error: schoolError } = await supabase
         .from('school_accounts')
         .select('*')
@@ -79,7 +101,34 @@ export const PaymentManagement = () => {
 
   const createSubscription = async () => {
     try {
-      // Create school account if it doesn't exist
+      if (isSchoolAdmin) {
+        // Mock subscription creation
+        console.log('PaymentManagement: Creating mock subscription');
+        setSubscription({
+          id: 'mock-sub-new',
+          subscription_tier: 'Business',
+          subscribed: true,
+          subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          stripe_customer_id: 'mock-customer-new'
+        });
+        
+        if (!schoolAccount) {
+          setSchoolAccount({
+            id: 'mock-school-new',
+            school_name: 'My Demo School',
+            plan_type: 'Business',
+            is_active: true
+          });
+        }
+        
+        toast({
+          title: "Mock Subscription Created! 🎉",
+          description: "Successfully subscribed to Business plan with unlimited students",
+        });
+        return;
+      }
+
+      // Real subscription creation logic
       if (!schoolAccount) {
         const { data: newSchool, error: schoolError } = await supabase
           .from('school_accounts')
@@ -95,7 +144,6 @@ export const PaymentManagement = () => {
         setSchoolAccount(newSchool);
       }
 
-      // Create subscription record
       const { data: newSub, error: subError } = await supabase
         .from('subscribers')
         .insert({
@@ -125,6 +173,36 @@ export const PaymentManagement = () => {
     }
   };
 
+  const cancelSubscription = async () => {
+    try {
+      setIsCancelling(true);
+      
+      if (isSchoolAdmin) {
+        // Mock cancellation
+        console.log('PaymentManagement: Cancelling mock subscription');
+        setSubscription(null);
+        toast({
+          title: "Mock Subscription Cancelled",
+          description: "Your subscription has been cancelled successfully",
+        });
+        return;
+      }
+
+      // Real cancellation logic would go here
+      // This would typically involve calling Stripe to cancel the subscription
+      
+    } catch (error: any) {
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel subscription",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="animate-pulse">Loading subscription data...</div>;
   }
@@ -134,6 +212,11 @@ export const PaymentManagement = () => {
       <div>
         <h2 className="text-2xl font-bold text-white">Subscription Management</h2>
         <p className="text-gray-400">Manage your school's subscription and billing</p>
+        {isSchoolAdmin && (
+          <div className="mt-2 p-2 bg-blue-900/20 rounded border border-blue-500/30">
+            <p className="text-blue-300 text-sm">🧪 Running in mock mode for testing</p>
+          </div>
+        )}
       </div>
 
       {/* Current Subscription Status */}
@@ -164,10 +247,20 @@ export const PaymentManagement = () => {
                 </div>
               </div>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex items-center justify-between">
               <Badge variant={subscription.subscribed ? 'default' : 'secondary'}>
                 {subscription.subscribed ? 'Active' : 'Inactive'}
               </Badge>
+              <Button 
+                variant="destructive"
+                size="sm"
+                onClick={cancelSubscription}
+                disabled={isCancelling}
+                className="flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -179,15 +272,19 @@ export const PaymentManagement = () => {
           <div className="w-full max-w-md">
             <Card className="bg-white/10 border-white/20">
               <CardHeader>
-                <CardTitle className="text-white text-center">Starter Plan</CardTitle>
-                <div className="text-2xl font-bold text-white text-center">$29/month</div>
-                <p className="text-gray-400 text-center">Unlimited students</p>
+                <CardTitle className="text-white text-center">Business Plan</CardTitle>
+                <div className="text-2xl font-bold text-white text-center">$25/month</div>
+                <p className="text-gray-400 text-center">+ $5 per additional student</p>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center text-sm text-gray-300">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                    Unlimited students
+                    Admin dashboard access
+                  </li>
+                  <li className="flex items-center text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    Student invitation system
                   </li>
                   <li className="flex items-center text-sm text-gray-300">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
@@ -213,20 +310,12 @@ export const PaymentManagement = () => {
                     <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                     Priority support
                   </li>
-                  <li className="flex items-center text-sm text-gray-300">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                    Custom integrations
-                  </li>
-                  <li className="flex items-center text-sm text-gray-300">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                    Advanced reporting
-                  </li>
                 </ul>
                 <Button 
                   onClick={createSubscription}
                   className="w-full"
                 >
-                  Subscribe to Starter Plan
+                  Subscribe to Business Plan
                 </Button>
               </CardContent>
             </Card>
@@ -252,7 +341,7 @@ export const PaymentManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Students</p>
-                <p className="font-medium text-white">Unlimited</p>
+                <p className="font-medium text-white">5 invited (Base: $25 + 4×$5 = $45/month)</p>
               </div>
               <div>
                 <p className="text-sm text-gray-400">Status</p>

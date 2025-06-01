@@ -51,28 +51,46 @@ export const StudentManagement = () => {
     }
   }, [isSchoolAdmin, user]);
 
-  const getSchoolId = async () => {
-    // Get the school ID for the current admin
-    const { data: schoolData, error: schoolError } = await supabase
-      .from('school_accounts')
-      .select('id')
-      .eq('admin_user_id', user?.id)
-      .single();
-
-    if (schoolError) {
-      throw new Error('No school account found for this admin');
-    }
-
-    return schoolData.id;
-  };
-
   const fetchStudentData = async () => {
     try {
       setIsLoading(true);
       
+      if (isSchoolAdmin) {
+        // Mock data for development
+        console.log('StudentManagement: Using mock student data');
+        
+        // Create 5 mock invitations
+        const mockInvitations: StudentInvitation[] = Array.from({ length: 5 }, (_, i) => ({
+          id: `mock-invitation-${i + 1}`,
+          email: `student${i + 1}@example.com`,
+          first_name: `Student`,
+          last_name: `${i + 1}`,
+          invitation_code: `INVITE${String(i + 1).padStart(3, '0')}`,
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          used: false
+        }));
+        
+        const mockEnrolled: EnrolledStudent[] = [
+          {
+            id: 'mock-enrolled-1',
+            student_id: 'student-001',
+            enrolled_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            is_active: true,
+            student_email: 'enrolled@example.com',
+            student_name: 'John Enrolled'
+          }
+        ];
+        
+        setInvitations(mockInvitations);
+        setEnrolledStudents(mockEnrolled);
+        setIsLoading(false);
+        return;
+      }
+
+      // Real data fetching for production
       const schoolId = await getSchoolId();
 
-      // Fetch pending invitations
       const { data: invitationsData, error: invitationsError } = await supabase
         .from('student_invitations')
         .select('*')
@@ -82,7 +100,6 @@ export const StudentManagement = () => {
 
       if (invitationsError) throw invitationsError;
 
-      // Fetch enrolled students
       const { data: enrolledData, error: enrolledError } = await supabase
         .from('school_student_relationships')
         .select('*')
@@ -106,12 +123,53 @@ export const StudentManagement = () => {
     }
   };
 
+  const getSchoolId = async () => {
+    // Get the school ID for the current admin
+    const { data: schoolData, error: schoolError } = await supabase
+      .from('school_accounts')
+      .select('id')
+      .eq('admin_user_id', user?.id)
+      .single();
+
+    if (schoolError) {
+      throw new Error('No school account found for this admin');
+    }
+
+    return schoolData.id;
+  };
+
   const createInvitation = async () => {
     if (!newStudent.email.trim()) return;
 
     try {
       setIsCreating(true);
       
+      if (isSchoolAdmin) {
+        // Mock invitation creation
+        console.log('StudentManagement: Creating mock invitation for', newStudent.email);
+        
+        const newMockInvitation: StudentInvitation = {
+          id: `mock-invitation-${Date.now()}`,
+          email: newStudent.email,
+          first_name: newStudent.firstName || null,
+          last_name: newStudent.lastName || null,
+          invitation_code: `INVITE${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          used: false
+        };
+        
+        setInvitations([newMockInvitation, ...invitations]);
+        setNewStudent({ email: '', firstName: '', lastName: '' });
+        
+        toast({
+          title: "Mock Invitation Created! 📧",
+          description: `Mock invitation sent to ${newStudent.email}`,
+        });
+        return;
+      }
+
+      // Real invitation creation
       const schoolId = await getSchoolId();
 
       const { data, error } = await supabase
@@ -199,6 +257,11 @@ export const StudentManagement = () => {
         <div>
           <h2 className="text-2xl font-bold text-white">Student Management</h2>
           <p className="text-gray-400">Invite and manage students in your school</p>
+          {isSchoolAdmin && (
+            <div className="mt-2 p-2 bg-blue-900/20 rounded border border-blue-500/30">
+              <p className="text-blue-300 text-sm">🧪 Running in mock mode - invitations are simulated</p>
+            </div>
+          )}
         </div>
         
         <Dialog>
@@ -318,8 +381,11 @@ export const StudentManagement = () => {
                 <div key={student.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
                   <div>
                     <div className="font-medium text-white">
-                      Student ID: {student.student_id}
+                      {student.student_name || `Student ID: ${student.student_id}`}
                     </div>
+                    {student.student_email && (
+                      <div className="text-sm text-gray-300">{student.student_email}</div>
+                    )}
                     <div className="text-xs text-gray-400 mt-1">
                       Enrolled: {new Date(student.enrolled_at).toLocaleDateString()}
                     </div>

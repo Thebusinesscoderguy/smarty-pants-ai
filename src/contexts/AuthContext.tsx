@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +17,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  // TEMPORARY: Set to true to experience school admin flow
+  const [isSchoolAdmin, setIsSchoolAdmin] = useState(true);
 
   useEffect(() => {
     console.log('AuthContext: Setting up auth state management...');
