@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,14 +7,60 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, CheckCircle } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
 const Onboarding = () => {
   const [guardianEmail, setGuardianEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { setGuardianEmail: saveGuardianEmail, onboardingStatus } = useOnboarding();
+  const { user, isSchoolAdmin } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserRole();
+    }
+  }, [user]);
+
+  const fetchUserRole = async () => {
+    try {
+      setIsLoading(true);
+      
+      // If user is school admin, skip guardian email requirement
+      if (isSchoolAdmin) {
+        setUserRole('teacher');
+        setIsLoading(false);
+        navigate('/progress');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      
+      setUserRole(data.role);
+      
+      // Only parents need to provide guardian email
+      if (data.role !== 'parent') {
+        navigate('/progress');
+      }
+    } catch (error: any) {
+      console.error('Error fetching user role:', error);
+      // Default to requiring guardian email if we can't determine role
+      setUserRole('parent');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +81,16 @@ const Onboarding = () => {
     navigate('/progress');
   };
 
-  if (onboardingStatus?.has_provided_guardian_email) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  // If not a parent or already completed, redirect
+  if (userRole !== 'parent' || onboardingStatus?.has_provided_guardian_email) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col">
         <Header />
@@ -68,9 +123,9 @@ const Onboarding = () => {
         <Card className="w-full max-w-md bg-white/10 border-white/20">
           <CardHeader className="text-center">
             <Mail className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-            <CardTitle className="text-white">Guardian Contact</CardTitle>
+            <CardTitle className="text-white">Parent Guardian Contact</CardTitle>
             <p className="text-gray-300">
-              Please provide a guardian email address for account verification and updates.
+              As a parent account, please provide your email address for account verification and child progress updates.
             </p>
           </CardHeader>
           
@@ -78,14 +133,14 @@ const Onboarding = () => {
             <form onSubmit={handleSubmitEmail} className="space-y-4">
               <div>
                 <Label htmlFor="guardianEmail" className="text-white">
-                  Guardian Email Address
+                  Parent/Guardian Email Address
                 </Label>
                 <Input
                   id="guardianEmail"
                   type="email"
                   value={guardianEmail}
                   onChange={(e) => setGuardianEmail(e.target.value)}
-                  placeholder="guardian@example.com"
+                  placeholder="parent@example.com"
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   required
                 />

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,8 @@ import {
   BookOpen, 
   Download, 
   UserPlus,
-  BarChart3
+  BarChart3,
+  Brain
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -71,15 +71,49 @@ export const StudentDashboard = () => {
     }
   };
 
-  if (userRole === 'student') {
+  const generateImprovementParagraph = (student: any): string => {
+    let paragraph = `${student.student_name} is making progress in their learning journey. `;
+
+    if (student.completion_percentage >= 80) {
+      paragraph += `They demonstrate excellent engagement with ${student.completion_percentage}% completion rate. `;
+    } else if (student.completion_percentage >= 60) {
+      paragraph += `They show good progress with ${student.completion_percentage}% completion rate. `;
+    } else {
+      paragraph += `They are building momentum with ${student.completion_percentage}% completion rate. `;
+    }
+
+    if (student.strengths.length > 0) {
+      paragraph += `Strong performance in ${student.strengths.slice(0, 2).join(' and ')}. `;
+    }
+
+    if (student.weak_areas.length > 0) {
+      paragraph += `Focus areas for improvement include ${student.weak_areas.slice(0, 2).join(' and ')}. `;
+    } else {
+      paragraph += `All areas showing balanced development. `;
+    }
+
+    const hoursSpent = Math.round(student.total_time_spent / 60);
+    if (hoursSpent > 10) {
+      paragraph += `Excellent dedication with ${hoursSpent} hours of study time.`;
+    } else if (hoursSpent > 5) {
+      paragraph += `Good commitment with ${hoursSpent} hours of study time.`;
+    } else {
+      paragraph += `Encourage more regular practice to build stronger foundations.`;
+    }
+
+    return paragraph;
+  };
+
+  // Only allow school admins (teachers) to access this dashboard
+  if (userRole !== 'teacher') {
     return (
       <Card>
         <CardContent className="p-6">
           <div className="text-center">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Student Account</h3>
+            <h3 className="text-lg font-semibold mb-2">School Admin Access Only</h3>
             <p className="text-gray-600">
-              This dashboard is only available for parents and teachers.
+              This dashboard is only available for school administrators.
             </p>
           </div>
         </CardContent>
@@ -96,18 +130,16 @@ export const StudentDashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">
-            {userRole === 'parent' ? 'Parent' : 'Teacher'} Dashboard
-          </h1>
+          <h1 className="text-2xl font-bold">School Admin Dashboard</h1>
           <p className="text-gray-600">
-            Monitor student progress and performance
+            Monitor student progress and performance across your school
           </p>
         </div>
         
         {/* Add Student */}
         <div className="flex gap-2">
           <Input
-            placeholder={`Enter student ${userRole === 'parent' ? 'email' : 'email'}`}
+            placeholder="Enter student email"
             value={newStudentEmail}
             onChange={(e) => setNewStudentEmail(e.target.value)}
             className="w-64"
@@ -232,10 +264,11 @@ export const StudentDashboard = () => {
                         </div>
                       </div>
 
-                      <TabsList className="grid w-full grid-cols-3">
+                      <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="subjects">Subjects</TabsTrigger>
                         <TabsTrigger value="insights">Insights</TabsTrigger>
+                        <TabsTrigger value="improvement">Analysis</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="overview" className="space-y-4">
@@ -330,6 +363,22 @@ export const StudentDashboard = () => {
                             )}
                           </div>
                         </div>
+                      </TabsContent>
+
+                      <TabsContent value="improvement" className="space-y-4">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Brain className="h-5 w-5" />
+                              Student Progress Analysis
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-gray-700 leading-relaxed">
+                              {generateImprovementParagraph(student)}
+                            </p>
+                          </CardContent>
+                        </Card>
                       </TabsContent>
                     </Tabs>
                   </CardContent>
