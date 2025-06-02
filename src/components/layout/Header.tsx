@@ -31,28 +31,32 @@ export const Header = () => {
     }
   };
 
-  const handleDemoMode = () => {
+  const handleDemoMode = async () => {
     if (isDemoMode) {
       disableDemoMode();
       toast({
         title: "Demo Mode Disabled",
         description: "You've exited demo mode",
       });
+      navigate('/');
     } else {
-      enableDemoMode();
+      await enableDemoMode();
       toast({
         title: "Demo Mode Enabled",
         description: "You're now in school admin demo mode - all operations are real!",
       });
-      navigate('/admin');
+      // Small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate('/admin');
+      }, 100);
     }
   };
 
   console.log('Header: Rendering with user state:', {
     hasUser: !!user,
     loading,
-    showAuthButtons: !loading && !user,
-    showUserButtons: !loading && !!user,
+    showAuthButtons: !loading && !user && !isDemoMode,
+    showUserButtons: !loading && (!!user || isDemoMode),
     isSchoolAdmin,
     isDemoMode
   });
@@ -63,7 +67,7 @@ export const Header = () => {
       <div className="space-x-4">
         {loading ? (
           <div className="text-white/70">Loading...</div>
-        ) : user ? (
+        ) : (user || isDemoMode) ? (
           <>
             {isDemoMode && (
               <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm">
@@ -85,9 +89,9 @@ export const Header = () => {
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10"
-              onClick={handleSignOut}
+              onClick={isDemoMode ? handleDemoMode : handleSignOut}
             >
-              Sign Out
+              {isDemoMode ? "Exit Demo" : "Sign Out"}
             </Button>
           </>
         ) : (
