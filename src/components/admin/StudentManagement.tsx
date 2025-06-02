@@ -28,7 +28,7 @@ export const StudentManagement = () => {
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [newStudentFirstName, setNewStudentFirstName] = useState('');
   const [newStudentLastName, setNewStudentLastName] = useState('');
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
 
   useEffect(() => {
     fetchInvitations();
@@ -123,24 +123,36 @@ export const StudentManagement = () => {
         throw invitationError;
       }
 
-      // Send invitation email
-      const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-        body: {
-          email: newStudentEmail.trim(),
-          firstName: newStudentFirstName.trim(),
-          invitationCode: invitationData.invitation_code
+      // In demo mode, skip sending actual emails but show success
+      if (isDemoMode) {
+        toast({
+          title: "Demo Invitation Created",
+          description: `Demo invitation created for ${newStudentEmail}. In real mode, an email would be sent with invitation code: ${invitationData.invitation_code}`,
+        });
+      } else {
+        // Send invitation email
+        const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+          body: {
+            email: newStudentEmail.trim(),
+            firstName: newStudentFirstName.trim(),
+            invitationCode: invitationData.invitation_code
+          }
+        });
+
+        if (emailError) {
+          console.error('Error sending email:', emailError);
+          toast({
+            title: "Invitation Created",
+            description: `Invitation created for ${newStudentEmail} but email sending failed. Share this code manually: ${invitationData.invitation_code}`,
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Invitation Sent",
+            description: `Invitation sent to ${newStudentEmail}`,
+          });
         }
-      });
-
-      if (emailError) {
-        console.error('Error sending email:', emailError);
-        // Don't throw here, invitation was created successfully
       }
-
-      toast({
-        title: "Invitation Sent",
-        description: `Invitation sent to ${newStudentEmail}`,
-      });
 
       // Reset form
       setNewStudentEmail('');
@@ -195,7 +207,14 @@ export const StudentManagement = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-white">Student Management</h2>
-        <p className="text-gray-400">Invite and manage students in your school</p>
+        <p className="text-gray-400">
+          Invite and manage students in your school
+          {isDemoMode && (
+            <span className="ml-2 bg-orange-600 text-white px-2 py-1 rounded text-sm">
+              DEMO MODE - All invitations are real!
+            </span>
+          )}
+        </p>
       </div>
 
       {/* Invite Student Form */}
@@ -276,6 +295,11 @@ export const StudentManagement = () => {
                         {!invitation.used && (
                           <span>
                             Expires {new Date(invitation.expires_at).toLocaleDateString()}
+                          </span>
+                        )}
+                        {isDemoMode && !invitation.used && (
+                          <span className="text-orange-400">
+                            Code: {invitation.invitation_code}
                           </span>
                         )}
                       </div>

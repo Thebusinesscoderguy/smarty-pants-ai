@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isDemoMode } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -18,8 +18,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       path: location.pathname,
       isLoading: loading,
       isAuthenticated: !!user,
+      isDemoMode,
     });
-  }, [loading, user, location.pathname]);
+  }, [loading, user, location.pathname, isDemoMode]);
 
   if (loading) {
     return (
@@ -30,8 +31,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!user) {
-    console.log('User not authenticated, redirecting to auth page');
+  // Allow access in demo mode or if user is authenticated
+  if (!user && !isDemoMode) {
+    console.log('User not authenticated and not in demo mode, redirecting to auth page');
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 

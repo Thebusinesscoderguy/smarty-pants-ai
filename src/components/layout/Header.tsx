@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, loading, isSchoolAdmin } = useAuth();
+  const { user, loading, isSchoolAdmin, isDemoMode, enableDemoMode, disableDemoMode } = useAuth();
 
   useEffect(() => {
     console.log('Header: Auth state updated:', {
@@ -16,9 +16,10 @@ export const Header = () => {
       loading,
       userId: user?.id,
       userEmail: user?.email,
-      isSchoolAdmin
+      isSchoolAdmin,
+      isDemoMode
     });
-  }, [user, loading, isSchoolAdmin]);
+  }, [user, loading, isSchoolAdmin, isDemoMode]);
 
   const handleSignOut = async () => {
     try {
@@ -30,12 +31,30 @@ export const Header = () => {
     }
   };
 
+  const handleDemoMode = () => {
+    if (isDemoMode) {
+      disableDemoMode();
+      toast({
+        title: "Demo Mode Disabled",
+        description: "You've exited demo mode",
+      });
+    } else {
+      enableDemoMode();
+      toast({
+        title: "Demo Mode Enabled",
+        description: "You're now in school admin demo mode - all operations are real!",
+      });
+      navigate('/admin');
+    }
+  };
+
   console.log('Header: Rendering with user state:', {
     hasUser: !!user,
     loading,
     showAuthButtons: !loading && !user,
     showUserButtons: !loading && !!user,
-    isSchoolAdmin
+    isSchoolAdmin,
+    isDemoMode
   });
 
   return (
@@ -46,6 +65,11 @@ export const Header = () => {
           <div className="text-white/70">Loading...</div>
         ) : user ? (
           <>
+            {isDemoMode && (
+              <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm">
+                DEMO MODE
+              </div>
+            )}
             {isSchoolAdmin ? (
               <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
                 <Link to="/admin">School Dashboard</Link>
@@ -68,6 +92,13 @@ export const Header = () => {
           </>
         ) : (
           <>
+            <Button 
+              variant="outline" 
+              className="bg-orange-600 text-white hover:bg-orange-700" 
+              onClick={handleDemoMode}
+            >
+              Try School Admin Demo
+            </Button>
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10" 
