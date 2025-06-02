@@ -65,7 +65,8 @@ export const QuestManagement = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const { user } = useAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { user, isDemoMode } = useAuth();
   
   const [newQuest, setNewQuest] = useState({
     title: '',
@@ -111,20 +112,78 @@ export const QuestManagement = () => {
 
   const fetchSubjects = async () => {
     try {
+      console.log('Fetching subjects...');
       const { data, error } = await supabase
         .from('subjects')
         .select('id, name')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching subjects:', error);
+        throw error;
+      }
+      
+      console.log('Subjects fetched:', data);
       setSubjects(data || []);
+      
+      // If no subjects exist, create some default ones
+      if (!data || data.length === 0) {
+        console.log('No subjects found, creating default subjects...');
+        await createDefaultSubjects();
+      }
     } catch (error: any) {
-      console.error('Error fetching subjects:', error);
+      console.error('Error in fetchSubjects:', error);
+      toast({
+        title: "Info",
+        description: "Creating default subjects for your school",
+      });
+      await createDefaultSubjects();
+    }
+  };
+
+  const createDefaultSubjects = async () => {
+    try {
+      const defaultSubjects = [
+        { name: 'Mathematics', description: 'Core mathematics curriculum including algebra, geometry, and calculus' },
+        { name: 'Science', description: 'General science topics including physics, chemistry, and biology' },
+        { name: 'English', description: 'Language arts including reading, writing, and literature' },
+        { name: 'History', description: 'World history and social studies' },
+        { name: 'Computer Science', description: 'Programming, algorithms, and computer literacy' }
+      ];
+
+      const { data, error } = await supabase
+        .from('subjects')
+        .insert(defaultSubjects)
+        .select('id, name');
+
+      if (error) throw error;
+      
+      console.log('Default subjects created:', data);
+      setSubjects(data || []);
+      
+      toast({
+        title: "Subjects Created",
+        description: "Default subjects have been added to your school",
+      });
+    } catch (error: any) {
+      console.error('Error creating default subjects:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create default subjects",
+        variant: "destructive"
+      });
     }
   };
 
   const createQuest = async () => {
-    if (!newQuest.title.trim() || !newQuest.description.trim()) return;
+    if (!newQuest.title.trim() || !newQuest.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in title and description",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       setIsCreating(true);
@@ -151,6 +210,8 @@ export const QuestManagement = () => {
       // Convert and add the new quest
       const convertedQuest = convertDatabaseQuest(data);
       setQuests([convertedQuest, ...quests]);
+      
+      // Reset form
       setNewQuest({
         title: '',
         description: '',
@@ -160,9 +221,12 @@ export const QuestManagement = () => {
         subject_id: ''
       });
       
+      setIsDialogOpen(false);
+      
+      const subjectName = data.subjects?.name || 'All Subjects';
       toast({
         title: "Quest Created",
-        description: `"${newQuest.title}" has been created successfully`,
+        description: `"${newQuest.title}" created for ${subjectName}`,
       });
     } catch (error: any) {
       console.error('Error creating quest:', error);
@@ -206,7 +270,7 @@ export const QuestManagement = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading quests...</div>;
+    return <div className="animate-pulse text-white">Loading quests...</div>;
   }
 
   return (
@@ -215,10 +279,17 @@ export const QuestManagement = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Quest Management</h2>
-          <p className="text-gray-400">Create and manage daily and weekly quests for students</p>
+          <p className="text-gray-400">
+            Create and manage daily and weekly quests for students
+            {isDemoMode && (
+              <span className="ml-2 bg-orange-600 text-white px-2 py-1 rounded text-sm">
+                DEMO MODE - All operations are real!
+              </span>
+            )}
+          </p>
         </div>
         
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-purple-600 hover:bg-purple-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -237,7 +308,7 @@ export const QuestManagement = () => {
                   value={newQuest.title}
                   onChange={(e) => setNewQuest({ ...newQuest, title: e.target.value })}
                   placeholder="Complete 5 Math Problems"
-                  className="bg-white/10 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                 />
               </div>
               
@@ -248,7 +319,7 @@ export const QuestManagement = () => {
                   value={newQuest.description}
                   onChange={(e) => setNewQuest({ ...newQuest, description: e.target.value })}
                   placeholder="Practice arithmetic and problem-solving skills"
-                  className="bg-white/10 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   rows={3}
                 />
               </div>
@@ -260,9 +331,9 @@ export const QuestManagement = () => {
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectContent className="bg-gray-800 border-gray-600">
+                      <SelectItem value="daily" className="text-white hover:bg-gray-700">Daily</SelectItem>
+                      <SelectItem value="weekly" className="text-white hover:bg-gray-700">Weekly</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -273,10 +344,10 @@ export const QuestManagement = () => {
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="basic">Basic</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
+                    <SelectContent className="bg-gray-800 border-gray-600">
+                      <SelectItem value="basic" className="text-white hover:bg-gray-700">Basic</SelectItem>
+                      <SelectItem value="intermediate" className="text-white hover:bg-gray-700">Intermediate</SelectItem>
+                      <SelectItem value="hard" className="text-white hover:bg-gray-700">Hard</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -291,7 +362,7 @@ export const QuestManagement = () => {
                     min="1"
                     value={newQuest.target_value}
                     onChange={(e) => setNewQuest({ ...newQuest, target_value: parseInt(e.target.value) || 1 })}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   />
                 </div>
 
@@ -301,10 +372,10 @@ export const QuestManagement = () => {
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue placeholder="Select subject" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Subjects</SelectItem>
+                    <SelectContent className="bg-gray-800 border-gray-600">
+                      <SelectItem value="" className="text-white hover:bg-gray-700">All Subjects</SelectItem>
                       {subjects.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id}>
+                        <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-gray-700">
                           {subject.name}
                         </SelectItem>
                       ))}
@@ -316,7 +387,7 @@ export const QuestManagement = () => {
               <Button 
                 onClick={createQuest}
                 disabled={isCreating || !newQuest.title.trim() || !newQuest.description.trim()}
-                className="w-full"
+                className="w-full bg-purple-600 hover:bg-purple-700"
               >
                 {isCreating ? 'Creating...' : 'Create Quest'}
               </Button>
@@ -324,6 +395,24 @@ export const QuestManagement = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Subject Summary */}
+      {subjects.length > 0 && (
+        <Card className="bg-white/10 border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Available Subjects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {subjects.map((subject) => (
+                <Badge key={subject.id} variant="secondary" className="bg-blue-600 text-white">
+                  {subject.name}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quests list */}
       <div className="grid gap-4">
@@ -367,6 +456,7 @@ export const QuestManagement = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => toggleQuestStatus(quest.id, quest.is_active)}
+                      className="text-white border-white/30 hover:bg-white/10"
                     >
                       {quest.is_active ? 'Deactivate' : 'Activate'}
                     </Button>
