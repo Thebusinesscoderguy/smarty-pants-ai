@@ -129,6 +129,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [isDemoMode]);
 
+  const ensureDemoSchoolExists = async () => {
+    try {
+      console.log('Ensuring demo school exists...');
+      
+      // First check if it exists
+      const { data: existingSchool, error: checkError } = await supabase
+        .from('school_accounts')
+        .select('id, school_name')
+        .eq('admin_user_id', DEMO_USER.id)
+        .maybeSingle();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking for existing school:', checkError);
+        throw checkError;
+      }
+      
+      if (existingSchool) {
+        console.log('Demo school already exists:', existingSchool);
+        return existingSchool;
+      }
+      
+      // Create the demo school if it doesn't exist
+      console.log('Creating demo school account...');
+      const { data: newSchool, error: createError } = await supabase
+        .from('school_accounts')
+        .insert({
+          admin_user_id: DEMO_USER.id,
+          school_name: 'Demo School',
+          plan_type: 'school',
+          student_limit: 1000,
+          is_active: true
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('Failed to create demo school account:', createError);
+        throw createError;
+      }
+      
+      console.log('Demo school account created successfully:', newSchool);
+      return newSchool;
+      
+    } catch (error) {
+      console.error('Error in ensureDemoSchoolExists:', error);
+      throw error;
+    }
+  };
+
   const enableDemoMode = async () => {
     console.log('AuthContext: Enabling demo mode...');
     setIsDemoMode(true);
@@ -136,35 +185,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsSchoolAdmin(true);
     setLoading(false);
     
-    // Create/ensure demo school account exists for real database operations
+    // Ensure demo school account exists
     try {
-      const { data: existingSchool } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', DEMO_USER.id)
-        .single();
-      
-      if (!existingSchool) {
-        const { error } = await supabase
-          .from('school_accounts')
-          .insert({
-            admin_user_id: DEMO_USER.id,
-            school_name: 'Demo School',
-            plan_type: 'school',
-            student_limit: 1000,
-            is_active: true
-          });
-        
-        if (error) {
-          console.error('Failed to create demo school account:', error);
-        } else {
-          console.log('Demo school account created successfully');
-        }
-      } else {
-        console.log('Demo school account already exists');
-      }
+      await ensureDemoSchoolExists();
     } catch (error) {
-      console.error('Error setting up demo school:', error);
+      console.error('Failed to ensure demo school exists:', error);
+      // Don't fail the demo mode activation, but log the error
     }
   };
 

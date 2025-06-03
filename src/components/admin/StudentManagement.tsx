@@ -34,23 +34,40 @@ export const StudentManagement = () => {
     fetchInvitations();
   }, [user]);
 
+  const getSchoolAccount = async () => {
+    if (!user) {
+      throw new Error('No user found');
+    }
+
+    console.log('Getting school account for user:', user.id);
+    
+    const { data: schoolData, error: schoolError } = await supabase
+      .from('school_accounts')
+      .select('id, school_name')
+      .eq('admin_user_id', user.id)
+      .maybeSingle();
+
+    if (schoolError) {
+      console.error('Error fetching school:', schoolError);
+      throw new Error(`Failed to fetch school account: ${schoolError.message}`);
+    }
+
+    if (!schoolData) {
+      console.error('No school account found for user:', user.id);
+      throw new Error('School account not found. Please ensure your account is properly set up.');
+    }
+
+    console.log('Found school account:', schoolData);
+    return schoolData;
+  };
+
   const fetchInvitations = async () => {
     if (!user) return;
 
     try {
       setIsLoading(true);
       
-      // Get school account first
-      const { data: schoolData, error: schoolError } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', user.id)
-        .single();
-
-      if (schoolError) {
-        console.error('Error fetching school:', schoolError);
-        return;
-      }
+      const schoolData = await getSchoolAccount();
 
       // Fetch invitations for this school
       const { data: invitationsData, error: invitationsError } = await supabase
@@ -74,7 +91,7 @@ export const StudentManagement = () => {
       console.error('Error in fetchInvitations:', error);
       toast({
         title: "Error",
-        description: "Failed to load invitations",
+        description: error.message || "Failed to load invitations",
         variant: "destructive"
       });
     } finally {
@@ -95,16 +112,7 @@ export const StudentManagement = () => {
     try {
       setIsInviting(true);
 
-      // Get school account
-      const { data: schoolData, error: schoolError } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', user?.id)
-        .single();
-
-      if (schoolError) {
-        throw new Error('School account not found');
-      }
+      const schoolData = await getSchoolAccount();
 
       // Create invitation - this is real even in demo mode
       const { data: invitationData, error: invitationError } = await supabase
@@ -120,7 +128,8 @@ export const StudentManagement = () => {
         .single();
 
       if (invitationError) {
-        throw invitationError;
+        console.error('Error creating invitation:', invitationError);
+        throw new Error(`Failed to create invitation: ${invitationError.message}`);
       }
 
       // Send invitation email - real in both demo and normal mode
@@ -130,26 +139,18 @@ export const StudentManagement = () => {
             invitationId: invitationData.id,
             studentEmail: newStudentEmail.trim(),
             studentName: `${newStudentFirstName} ${newStudentLastName}`.trim() || newStudentEmail,
-            schoolName: 'Demo School',
+            schoolName: schoolData.school_name,
             invitationCode: invitationData.invitation_code
           }
         });
 
         if (emailError) {
           console.error('Error sending email:', emailError);
-          // In demo mode, show the invitation code since email might not work
-          if (isDemoMode) {
-            toast({
-              title: "Invitation Created",
-              description: `Real invitation created for ${newStudentEmail}! Share this invitation code: ${invitationData.invitation_code}`,
-            });
-          } else {
-            toast({
-              title: "Invitation Created",
-              description: `Invitation created for ${newStudentEmail} but email sending failed. Share this code manually: ${invitationData.invitation_code}`,
-              variant: "destructive"
-            });
-          }
+          // Show success with invitation code since email might not work
+          toast({
+            title: "Invitation Created",
+            description: `Real invitation created for ${newStudentEmail}! Share this invitation code: ${invitationData.invitation_code}`,
+          });
         } else {
           toast({
             title: "Invitation Sent",
