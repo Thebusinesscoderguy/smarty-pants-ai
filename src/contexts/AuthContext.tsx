@@ -1,13 +1,14 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, testSupabaseConnection } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isSchoolAdmin: boolean;
   isDemoMode: boolean;
+  supabaseConnected: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
@@ -39,9 +40,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [supabaseConnected, setSupabaseConnected] = useState(false);
 
   useEffect(() => {
     console.log('AuthContext: Setting up auth state management...');
+    
+    // Test Supabase connection first
+    const checkConnection = async () => {
+      const connected = await testSupabaseConnection();
+      setSupabaseConnected(connected);
+      
+      if (!connected) {
+        console.warn('AuthContext: Supabase connection failed - running in offline demo mode');
+        toast({
+          title: "Offline Demo Mode",
+          description: "Running in demo mode with limited functionality",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    checkConnection();
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -54,19 +73,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isDemoMode
         });
         
-        if (!isDemoMode) {
+        if (!isDemoMode && supabaseConnected) {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
           
           // Check if user is a school admin
           if (currentSession?.user) {
-            const { data: schoolData } = await supabase
-              .from('school_accounts')
-              .select('id')
-              .eq('admin_user_id', currentSession.user.id)
-              .single();
-            
-            setIsSchoolAdmin(!!schoolData);
+            try {
+              const { data: schoolData } = await supabase
+                .from('school_accounts')
+                .select('id')
+                .eq('admin_user_id', currentSession.user.id)
+                .single();
+              
+              setIsSchoolAdmin(!!schoolData);
+            } catch (error) {
+              console.error('Error checking school admin status:', error);
+              setIsSchoolAdmin(false);
+            }
           } else {
             setIsSchoolAdmin(false);
           }
@@ -76,12 +100,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Then check for existing session
+    // Then check for existing session only if connected
     const checkSession = async () => {
       try {
         console.log('AuthContext: Checking for existing session...');
         
-        if (isDemoMode) {
+        if (isDemoMode || !supabaseConnected) {
           setLoading(false);
           return;
         }
@@ -103,13 +127,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Check if user is a school admin
         if (currentSession?.user) {
-          const { data: schoolData } = await supabase
-            .from('school_accounts')
-            .select('id')
-            .eq('admin_user_id', currentSession.user.id)
-            .single();
-          
-          setIsSchoolAdmin(!!schoolData);
+          try {
+            const { data: schoolData } = await supabase
+              .from('school_accounts')
+              .select('id')
+              .eq('admin_user_id', currentSession.user.id)
+              .single();
+            
+            setIsSchoolAdmin(!!schoolData);
+          } catch (error) {
+            console.error('Error checking school admin status:', error);
+            setIsSchoolAdmin(false);
+          }
         } else {
           setIsSchoolAdmin(false);
         }
@@ -121,15 +150,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    checkSession();
+    if (supabaseConnected) {
+      checkSession();
+    } else {
+      setLoading(false);
+    }
 
     return () => {
       console.log('AuthContext: Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, [isDemoMode]);
+  }, [isDemoMode, supabaseConnected]);
 
   const ensureDemoSchoolExists = async () => {
+    // In offline demo mode, just simulate success
+    if (!supabaseConnected) {
+      console.log('Demo mode: Simulating school account creation (offline)');
+      return {
+        id: 'demo-school-id',
+        school_name: 'Demo School',
+        admin_user_id: DEMO_USER.id
+      };
+    }
+
     try {
       console.log('Ensuring demo school exists...');
       
@@ -185,12 +228,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsSchoolAdmin(true);
     setLoading(false);
     
-    // Ensure demo school account exists
-    try {
-      await ensureDemoSchoolExists();
-    } catch (error) {
-      console.error('Failed to ensure demo school exists:', error);
-      // Don't fail the demo mode activation, but log the error
+    // Only try to ensure demo school exists if Supabase is connected
+    if (supabaseConnected) {
+      try {
+        await ensureDemoSchoolExists();
+      } catch (error) {
+        console.error('Failed to ensure demo school exists:', error);
+        toast({
+          title: "Demo Mode Warning",
+          description: "Running in offline demo mode - invitations will be simulated",
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "Offline Demo Mode",
+        description: "Running in demo mode with simulated data",
+      });
     }
   };
 
@@ -208,6 +262,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       disableDemoMode();
     }
     
+    if (!supabaseConnected) {
+      return { data: null, error: { message: 'Supabase connection not available' } };
+    }
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -223,6 +281,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
     if (isDemoMode) {
       disableDemoMode();
+    }
+    
+    if (!supabaseConnected) {
+      return { data: null, error: { message: 'Supabase connection not available' } };
     }
     
     try {
@@ -250,7 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('AuthContext: Signing out...');
     if (isDemoMode) {
       disableDemoMode();
-    } else {
+    } else if (supabaseConnected) {
       await supabase.auth.signOut();
     }
   };
@@ -260,6 +322,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     isSchoolAdmin,
     isDemoMode,
+    supabaseConnected,
     signIn,
     signUp,
     signOut,
@@ -274,7 +337,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userId: user?.id,
     userEmail: user?.email,
     isSchoolAdmin,
-    isDemoMode
+    isDemoMode,
+    supabaseConnected
   });
 
   return (

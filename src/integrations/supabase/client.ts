@@ -16,3 +16,14 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// Test function to check if Supabase is working
+export const testSupabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    return !error;
+  } catch (error) {
+    console.error('Supabase connection test failed:', error);
+    return false;
+  }
+};
