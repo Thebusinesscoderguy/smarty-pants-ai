@@ -106,7 +106,7 @@ export const StudentManagement = () => {
         throw new Error('School account not found');
       }
 
-      // Create invitation
+      // Create invitation - this is real even in demo mode
       const { data: invitationData, error: invitationError } = await supabase
         .from('student_invitations')
         .insert({
@@ -123,35 +123,45 @@ export const StudentManagement = () => {
         throw invitationError;
       }
 
-      // In demo mode, skip sending actual emails but show success
-      if (isDemoMode) {
-        toast({
-          title: "Demo Invitation Created",
-          description: `Demo invitation created for ${newStudentEmail}. In real mode, an email would be sent with invitation code: ${invitationData.invitation_code}`,
-        });
-      } else {
-        // Send invitation email
+      // Send invitation email - real in both demo and normal mode
+      try {
         const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
           body: {
-            email: newStudentEmail.trim(),
-            firstName: newStudentFirstName.trim(),
+            invitationId: invitationData.id,
+            studentEmail: newStudentEmail.trim(),
+            studentName: `${newStudentFirstName} ${newStudentLastName}`.trim() || newStudentEmail,
+            schoolName: 'Demo School',
             invitationCode: invitationData.invitation_code
           }
         });
 
         if (emailError) {
           console.error('Error sending email:', emailError);
-          toast({
-            title: "Invitation Created",
-            description: `Invitation created for ${newStudentEmail} but email sending failed. Share this code manually: ${invitationData.invitation_code}`,
-            variant: "destructive"
-          });
+          // In demo mode, show the invitation code since email might not work
+          if (isDemoMode) {
+            toast({
+              title: "Invitation Created",
+              description: `Real invitation created for ${newStudentEmail}! Share this invitation code: ${invitationData.invitation_code}`,
+            });
+          } else {
+            toast({
+              title: "Invitation Created",
+              description: `Invitation created for ${newStudentEmail} but email sending failed. Share this code manually: ${invitationData.invitation_code}`,
+              variant: "destructive"
+            });
+          }
         } else {
           toast({
             title: "Invitation Sent",
-            description: `Invitation sent to ${newStudentEmail}`,
+            description: `Real invitation sent to ${newStudentEmail}${isDemoMode ? ' (Demo Mode - but invitation is real!)' : ''}`,
           });
         }
+      } catch (emailError) {
+        // If email fails, still show success with the code
+        toast({
+          title: "Invitation Created",
+          description: `Real invitation created for ${newStudentEmail}! Invitation code: ${invitationData.invitation_code}`,
+        });
       }
 
       // Reset form
@@ -210,8 +220,8 @@ export const StudentManagement = () => {
         <p className="text-gray-400">
           Invite and manage students in your school
           {isDemoMode && (
-            <span className="ml-2 bg-orange-600 text-white px-2 py-1 rounded text-sm">
-              DEMO MODE - All invitations are real!
+            <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
+              DEMO MODE - All operations are REAL!
             </span>
           )}
         </p>
@@ -223,6 +233,11 @@ export const StudentManagement = () => {
           <CardTitle className="flex items-center gap-2 text-white">
             <UserPlus className="h-5 w-5" />
             Invite Student
+            {isDemoMode && (
+              <Badge variant="secondary" className="bg-green-600">
+                Real Invitations
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -252,7 +267,7 @@ export const StudentManagement = () => {
             disabled={isInviting || !newStudentEmail.trim()}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {isInviting ? "Sending..." : "Send Invitation"}
+            {isInviting ? "Sending..." : "Send Real Invitation"}
           </Button>
         </CardContent>
       </Card>
@@ -297,8 +312,8 @@ export const StudentManagement = () => {
                             Expires {new Date(invitation.expires_at).toLocaleDateString()}
                           </span>
                         )}
-                        {isDemoMode && !invitation.used && (
-                          <span className="text-orange-400">
+                        {!invitation.used && (
+                          <span className="text-blue-400 font-mono">
                             Code: {invitation.invitation_code}
                           </span>
                         )}

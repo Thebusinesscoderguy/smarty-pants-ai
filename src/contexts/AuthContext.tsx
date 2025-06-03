@@ -17,7 +17,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Demo user object for school admin
+// Demo user object for school admin - using a consistent ID for database operations
 const DEMO_USER: User = {
   id: 'demo-school-admin-id',
   email: 'demo@school.com',
@@ -50,7 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           event,
           hasSession: !!currentSession,
           userId: currentSession?.user?.id,
-          userEmail: currentSession?.user?.email
+          userEmail: currentSession?.user?.email,
+          isDemoMode
         });
         
         if (!isDemoMode) {
@@ -135,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsSchoolAdmin(true);
     setLoading(false);
     
-    // Create/ensure demo school account exists
+    // Create/ensure demo school account exists for real database operations
     try {
       const { data: existingSchool } = await supabase
         .from('school_accounts')
@@ -159,6 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           console.log('Demo school account created successfully');
         }
+      } else {
+        console.log('Demo school account already exists');
       }
     } catch (error) {
       console.error('Error setting up demo school:', error);

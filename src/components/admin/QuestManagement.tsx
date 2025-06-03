@@ -187,6 +187,7 @@ export const QuestManagement = () => {
 
     try {
       setIsCreating(true);
+      // This creates real quests in the database, even in demo mode
       const { data, error } = await supabase
         .from('quests')
         .insert({
@@ -226,7 +227,7 @@ export const QuestManagement = () => {
       const subjectName = data.subjects?.name || 'All Subjects';
       toast({
         title: "Quest Created",
-        description: `"${newQuest.title}" created for ${subjectName}`,
+        description: `"${newQuest.title}" created for ${subjectName}${isDemoMode ? ' (Real quest in demo mode!)' : ''}`,
       });
     } catch (error: any) {
       console.error('Error creating quest:', error);
@@ -282,8 +283,8 @@ export const QuestManagement = () => {
           <p className="text-gray-400">
             Create and manage daily and weekly quests for students
             {isDemoMode && (
-              <span className="ml-2 bg-orange-600 text-white px-2 py-1 rounded text-sm">
-                DEMO MODE - All operations are real!
+              <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
+                DEMO MODE - All operations are REAL!
               </span>
             )}
           </p>
