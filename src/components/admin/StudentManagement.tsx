@@ -194,7 +194,7 @@ export const StudentManagement = () => {
 
       const schoolData = await getSchoolAccount();
 
-      // Create invitation - this is real even in demo mode
+      // Create invitation
       const { data: invitationData, error: invitationError } = await supabase
         .from('student_invitations')
         .insert({
@@ -212,9 +212,11 @@ export const StudentManagement = () => {
         throw new Error(`Failed to create invitation: ${invitationError.message}`);
       }
 
-      // Send invitation email - real in both demo and normal mode
+      console.log('Invitation created, now sending email...');
+
+      // Send invitation email
       try {
-        const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+        const { data: emailData, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
           body: {
             invitationId: invitationData.id,
             studentEmail: newStudentEmail.trim(),
@@ -224,24 +226,31 @@ export const StudentManagement = () => {
           }
         });
 
+        console.log('Email function response:', emailData);
+
         if (emailError) {
           console.error('Error sending email:', emailError);
-          // Show success with invitation code since email might not work
           toast({
             title: "Invitation Created",
-            description: `Real invitation created for ${newStudentEmail}! Share this invitation code: ${invitationData.invitation_code}`,
+            description: `Invitation created for ${newStudentEmail} but email failed to send. Share this code: ${invitationData.invitation_code}`,
+            variant: "destructive"
+          });
+        } else if (emailData?.success) {
+          toast({
+            title: "Invitation Sent Successfully! 📧",
+            description: `Email invitation sent to ${newStudentEmail}. They should receive it shortly.`,
           });
         } else {
           toast({
-            title: "Invitation Sent",
-            description: `Real invitation sent to ${newStudentEmail}${isDemoMode ? ' (Demo Mode - but invitation is real!)' : ''}`,
+            title: "Invitation Created",
+            description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}`,
           });
         }
       } catch (emailError) {
-        // If email fails, still show success with the code
+        console.error('Email function error:', emailError);
         toast({
           title: "Invitation Created",
-          description: `Real invitation created for ${newStudentEmail}! Invitation code: ${invitationData.invitation_code}`,
+          description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}`,
         });
       }
 
@@ -332,7 +341,7 @@ export const StudentManagement = () => {
             Invite Student
             {supabaseConnected ? (
               <Badge variant="secondary" className="bg-green-600">
-                Real Invitations
+                ✅ Email Enabled
               </Badge>
             ) : (
               <Badge variant="secondary" className="bg-orange-600">
@@ -368,7 +377,7 @@ export const StudentManagement = () => {
             disabled={isInviting || !newStudentEmail.trim()}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {isInviting ? "Sending..." : supabaseConnected ? "Send Real Invitation" : "Create Demo Invitation"}
+            {isInviting ? "Sending Email..." : supabaseConnected ? "📧 Send Email Invitation" : "Create Demo Invitation"}
           </Button>
         </CardContent>
       </Card>
