@@ -13,7 +13,9 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Email function called')
     const { invitationId, studentEmail, studentName, schoolName, invitationCode } = await req.json()
+    console.log('Request data:', { invitationId, studentEmail, studentName, schoolName, invitationCode })
     
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -22,6 +24,8 @@ serve(async (req) => {
 
     // Check if Resend API key is available
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    console.log('Resend API key available:', !!resendApiKey)
+    
     if (!resendApiKey) {
       console.error('RESEND_API_KEY not found')
       
@@ -81,7 +85,9 @@ serve(async (req) => {
       </div>
     `
 
-    // Send email using direct HTTP call to Resend API (simpler and more reliable)
+    console.log('Sending email to:', studentEmail)
+
+    // Send email using direct HTTP call to Resend API
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -97,6 +103,8 @@ serve(async (req) => {
     })
 
     const emailResult = await emailResponse.json()
+    console.log('Email response status:', emailResponse.status)
+    console.log('Email result:', emailResult)
 
     if (!emailResponse.ok) {
       console.error('Resend API error:', emailResult)
@@ -106,12 +114,16 @@ serve(async (req) => {
     console.log('Email sent successfully:', emailResult)
 
     // Update the invitation to mark it as sent
-    await supabaseClient
+    const { error: updateError } = await supabaseClient
       .from('student_invitations')
       .update({ 
         updated_at: new Date().toISOString()
       })
       .eq('id', invitationId)
+
+    if (updateError) {
+      console.error('Error updating invitation:', updateError)
+    }
 
     return new Response(
       JSON.stringify({ 
