@@ -85,16 +85,57 @@ export const useQuizGenerator = () => {
     if (!user) return null;
 
     try {
-      // For now, we'll show a success message but not actually save to database
-      // This will work once the database types are properly synced
-      console.log('Quiz to save:', quiz);
+      console.log('Saving quiz:', quiz);
       
+      // Insert the quiz
+      const { data: quizData, error: quizError } = await supabase
+        .from('quizzes')
+        .insert({
+          user_id: user.id,
+          title: quiz.title,
+          description: quiz.description,
+          difficulty: quiz.difficulty,
+          total_questions: quiz.questions.length,
+          subject_id: quiz.subject_id
+        })
+        .select()
+        .single();
+
+      if (quizError) {
+        console.error('Quiz creation error:', quizError);
+        throw new Error('Failed to create quiz');
+      }
+
+      // Insert the questions
+      const questionsToInsert = quiz.questions.map((question, index) => ({
+        quiz_id: quizData.id,
+        question: question.question,
+        question_type: question.type,
+        options: question.options ? JSON.stringify(question.options) : null,
+        correct_answer: question.correct_answer,
+        explanation: question.explanation,
+        points: question.points || 1,
+        order_index: index
+      }));
+
+      const { error: questionsError } = await supabase
+        .from('quiz_questions')
+        .insert(questionsToInsert);
+
+      if (questionsError) {
+        console.error('Questions creation error:', questionsError);
+        // Clean up the quiz if questions failed
+        await supabase.from('quizzes').delete().eq('id', quizData.id);
+        throw new Error('Failed to create quiz questions');
+      }
+
       toast({
-        title: "Quiz Generated",
-        description: "Quiz has been generated successfully! Database saving will be available once types are synced.",
+        title: "Success",
+        description: "Quiz saved successfully!",
       });
 
-      return 'temp-id';
+      await fetchQuizzes(); // Refresh the list
+      return quizData.id;
     } catch (error: any) {
       console.error('Error saving quiz:', error);
       toast({
@@ -110,8 +151,46 @@ export const useQuizGenerator = () => {
     if (!user) return;
 
     try {
-      // For now, return empty array until database types are synced
-      setQuizzes([]);
+      console.log('Fetching quizzes for user:', user.id);
+      
+      const { data: quizzesData, error: quizzesError } = await supabase
+        .from('quizzes')
+        .select(`
+          *,
+          quiz_questions (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (quizzesError) {
+        console.error('Error fetching quizzes:', quizzesError);
+        throw quizzesError;
+      }
+
+      console.log('Fetched quizzes:', quizzesData);
+
+      // Transform the data to match our Quiz interface
+      const formattedQuizzes: Quiz[] = (quizzesData || []).map((quizData: any) => ({
+        id: quizData.id,
+        title: quizData.title,
+        description: quizData.description,
+        difficulty: quizData.difficulty as 'easy' | 'medium' | 'hard',
+        subject_id: quizData.subject_id,
+        questions: (quizData.quiz_questions || [])
+          .sort((a: any, b: any) => a.order_index - b.order_index)
+          .map((q: any) => ({
+            id: q.id,
+            question: q.question,
+            type: q.question_type,
+            options: q.options ? JSON.parse(q.options) : undefined,
+            correct_answer: q.correct_answer,
+            explanation: q.explanation,
+            points: q.points,
+            order_index: q.order_index
+          }))
+      }));
+
+      setQuizzes(formattedQuizzes);
     } catch (error: any) {
       console.error('Error fetching quizzes:', error);
       toast({
@@ -124,10 +203,33 @@ export const useQuizGenerator = () => {
 
   const deleteQuiz = async (quizId: string) => {
     try {
-      // For now, just show success message
+      console.log('Deleting quiz:', quizId);
+      
+      // Delete quiz questions first (due to foreign key constraint)
+      const { error: questionsError } = await supabase
+        .from('quiz_questions')
+        .delete()
+        .eq('quiz_id', quizId);
+
+      if (questionsError) {
+        console.error('Error deleting quiz questions:', questionsError);
+        throw questionsError;
+      }
+
+      // Then delete the quiz
+      const { error: quizError } = await supabase
+        .from('quizzes')
+        .delete()
+        .eq('id', quizId);
+
+      if (quizError) {
+        console.error('Error deleting quiz:', quizError);
+        throw quizError;
+      }
+
       toast({
         title: "Success",
-        description: "Quiz delete functionality will be available once types are synced.",
+        description: "Quiz deleted successfully!",
       });
 
       await fetchQuizzes();
