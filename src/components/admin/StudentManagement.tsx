@@ -28,7 +28,7 @@ export const StudentManagement = () => {
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [newStudentFirstName, setNewStudentFirstName] = useState('');
   const [newStudentLastName, setNewStudentLastName] = useState('');
-  const { user, isDemoMode, supabaseConnected } = useAuth();
+  const { user, supabaseConnected } = useAuth();
 
   useEffect(() => {
     fetchInvitations();
@@ -37,14 +37,6 @@ export const StudentManagement = () => {
   const getSchoolAccount = async () => {
     if (!user) {
       throw new Error('No user found');
-    }
-
-    if (!supabaseConnected) {
-      // Return mock data for offline demo mode
-      return {
-        id: 'demo-school-id',
-        school_name: 'Demo School'
-      };
     }
 
     console.log('Getting school account for user:', user.id);
@@ -63,31 +55,27 @@ export const StudentManagement = () => {
     if (!schoolData) {
       console.error('No school account found for user:', user.id);
       
-      // In demo mode, try to create the school account
-      if (isDemoMode) {
-        try {
-          const { data: newSchool, error: createError } = await supabase
-            .from('school_accounts')
-            .insert({
-              admin_user_id: user.id,
-              school_name: 'Demo School',
-              plan_type: 'school',
-              student_limit: 1000,
-              is_active: true
-            })
-            .select()
-            .single();
-          
-          if (createError) throw createError;
-          
-          console.log('Created demo school account:', newSchool);
-          return newSchool;
-        } catch (createError) {
-          console.error('Failed to create demo school:', createError);
-          throw new Error('Failed to create demo school account');
-        }
-      } else {
-        throw new Error('School account not found. Please ensure your account is properly set up.');
+      // Create the school account if it doesn't exist
+      try {
+        const { data: newSchool, error: createError } = await supabase
+          .from('school_accounts')
+          .insert({
+            admin_user_id: user.id,
+            school_name: 'My School',
+            plan_type: 'school',
+            student_limit: 1000,
+            is_active: true
+          })
+          .select()
+          .single();
+        
+        if (createError) throw createError;
+        
+        console.log('Created school account:', newSchool);
+        return newSchool;
+      } catch (createError) {
+        console.error('Failed to create school:', createError);
+        throw new Error('Failed to create school account');
       }
     }
 
@@ -96,29 +84,11 @@ export const StudentManagement = () => {
   };
 
   const fetchInvitations = async () => {
-    if (!user) return;
+    if (!user || !supabaseConnected) return;
 
     try {
       setIsLoading(true);
       
-      if (!supabaseConnected) {
-        // Show mock data for offline demo mode
-        setInvitations([
-          {
-            id: 'demo-invitation-1',
-            email: 'student@example.com',
-            first_name: 'Demo',
-            last_name: 'Student',
-            invitation_code: 'DEMO123',
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            used: false,
-            used_at: null,
-            created_at: new Date().toISOString()
-          }
-        ]);
-        return;
-      }
-
       const schoolData = await getSchoolAccount();
 
       // Fetch invitations for this school
@@ -161,38 +131,21 @@ export const StudentManagement = () => {
       return;
     }
 
+    if (!supabaseConnected) {
+      toast({
+        title: "Error",
+        description: "Supabase connection required to send invitations",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setIsInviting(true);
-
-      if (!supabaseConnected) {
-        // Simulate invitation creation in offline mode
-        const mockInvitation = {
-          id: `demo-invitation-${Date.now()}`,
-          email: newStudentEmail.trim(),
-          first_name: newStudentFirstName.trim() || null,
-          last_name: newStudentLastName.trim() || null,
-          invitation_code: `DEMO${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          used: false,
-          used_at: null,
-          created_at: new Date().toISOString()
-        };
-
-        setInvitations(prev => [mockInvitation, ...prev]);
-        
-        toast({
-          title: "Demo Invitation Created",
-          description: `Demo invitation created for ${newStudentEmail} (Code: ${mockInvitation.invitation_code})`,
-        });
-
-        // Reset form
-        setNewStudentEmail('');
-        setNewStudentFirstName('');
-        setNewStudentLastName('');
-        return;
-      }
+      console.log('Starting invitation process for:', newStudentEmail);
 
       const schoolData = await getSchoolAccount();
+      console.log('Got school data:', schoolData);
 
       // Create invitation
       const { data: invitationData, error: invitationError } = await supabase
@@ -212,45 +165,41 @@ export const StudentManagement = () => {
         throw new Error(`Failed to create invitation: ${invitationError.message}`);
       }
 
-      console.log('Invitation created, now sending email...');
+      console.log('Invitation created successfully:', invitationData);
 
       // Send invitation email
-      try {
-        const { data: emailData, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-          body: {
-            invitationId: invitationData.id,
-            studentEmail: newStudentEmail.trim(),
-            studentName: `${newStudentFirstName} ${newStudentLastName}`.trim() || newStudentEmail,
-            schoolName: schoolData.school_name,
-            invitationCode: invitationData.invitation_code
-          }
-        });
-
-        console.log('Email function response:', emailData);
-
-        if (emailError) {
-          console.error('Error sending email:', emailError);
-          toast({
-            title: "Invitation Created",
-            description: `Invitation created for ${newStudentEmail} but email failed to send. Share this code: ${invitationData.invitation_code}`,
-            variant: "destructive"
-          });
-        } else if (emailData?.success) {
-          toast({
-            title: "Invitation Sent Successfully! 📧",
-            description: `Email invitation sent to ${newStudentEmail}. They should receive it shortly.`,
-          });
-        } else {
-          toast({
-            title: "Invitation Created",
-            description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}`,
-          });
+      console.log('Calling send-invitation-email function...');
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          invitationId: invitationData.id,
+          studentEmail: newStudentEmail.trim(),
+          studentName: `${newStudentFirstName} ${newStudentLastName}`.trim() || newStudentEmail,
+          schoolName: schoolData.school_name,
+          invitationCode: invitationData.invitation_code
         }
-      } catch (emailError) {
-        console.error('Email function error:', emailError);
+      });
+
+      console.log('Email function response:', emailData);
+      console.log('Email function error:', emailError);
+
+      if (emailError) {
+        console.error('Error calling email function:', emailError);
         toast({
           title: "Invitation Created",
-          description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}`,
+          description: `Invitation created for ${newStudentEmail} but email failed to send. Share this code manually: ${invitationData.invitation_code}`,
+          variant: "destructive"
+        });
+      } else if (emailData?.success) {
+        toast({
+          title: "Invitation Sent Successfully! 📧",
+          description: `Email invitation sent to ${newStudentEmail}. They should receive it shortly.`,
+        });
+      } else {
+        console.error('Email function returned non-success:', emailData);
+        toast({
+          title: "Invitation Created",
+          description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}. Email may have failed to send.`,
+          variant: "destructive"
         });
       }
 
@@ -275,17 +224,16 @@ export const StudentManagement = () => {
   };
 
   const deleteInvitation = async (invitationId: string) => {
-    try {
-      if (!supabaseConnected) {
-        // Remove from local state in offline mode
-        setInvitations(prev => prev.filter(inv => inv.id !== invitationId));
-        toast({
-          title: "Demo Invitation Deleted",
-          description: "Invitation has been removed (demo mode)",
-        });
-        return;
-      }
+    if (!supabaseConnected) {
+      toast({
+        title: "Error",
+        description: "Supabase connection required",
+        variant: "destructive"
+      });
+      return;
+    }
 
+    try {
       const { error } = await supabase
         .from('student_invitations')
         .delete()
@@ -309,6 +257,25 @@ export const StudentManagement = () => {
     }
   };
 
+  if (!supabaseConnected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Student Management</h2>
+          <div className="bg-red-900/50 border border-red-500 p-4 rounded-lg mt-4">
+            <div className="flex items-center gap-2 text-red-300">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-medium">Supabase Connection Required</span>
+            </div>
+            <p className="text-red-200 mt-2">
+              Student invitation management requires a Supabase connection to store data and send emails.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return <div className="animate-pulse text-white">Loading student data...</div>;
   }
@@ -319,17 +286,9 @@ export const StudentManagement = () => {
         <h2 className="text-2xl font-bold text-white">Student Management</h2>
         <p className="text-gray-400">
           Invite and manage students in your school
-          {isDemoMode && (
-            <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
-              {supabaseConnected ? 'DEMO MODE - Real Operations!' : 'OFFLINE DEMO MODE'}
-            </span>
-          )}
-          {!supabaseConnected && (
-            <span className="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              Offline Mode
-            </span>
-          )}
+          <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
+            ✅ Real Email Invitations
+          </span>
         </p>
       </div>
 
@@ -339,15 +298,9 @@ export const StudentManagement = () => {
           <CardTitle className="flex items-center gap-2 text-white">
             <UserPlus className="h-5 w-5" />
             Invite Student
-            {supabaseConnected ? (
-              <Badge variant="secondary" className="bg-green-600">
-                ✅ Email Enabled
-              </Badge>
-            ) : (
-              <Badge variant="secondary" className="bg-orange-600">
-                Simulated
-              </Badge>
-            )}
+            <Badge variant="secondary" className="bg-green-600">
+              📧 Email Enabled
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -377,7 +330,7 @@ export const StudentManagement = () => {
             disabled={isInviting || !newStudentEmail.trim()}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {isInviting ? "Sending Email..." : supabaseConnected ? "📧 Send Email Invitation" : "Create Demo Invitation"}
+            {isInviting ? "Sending Email..." : "📧 Send Email Invitation"}
           </Button>
         </CardContent>
       </Card>

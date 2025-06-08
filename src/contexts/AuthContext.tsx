@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, testSupabaseConnection } from '@/integrations/supabase/client';
@@ -51,10 +52,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSupabaseConnected(connected);
       
       if (!connected) {
-        console.warn('AuthContext: Supabase connection failed - running in offline demo mode');
+        console.warn('AuthContext: Supabase connection failed - running in offline mode');
         toast({
-          title: "Offline Demo Mode",
-          description: "Running in demo mode with limited functionality",
+          title: "Offline Mode",
+          description: "Supabase connection failed - limited functionality available",
           variant: "destructive"
         });
       }
@@ -162,65 +163,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [isDemoMode, supabaseConnected]);
 
-  const ensureDemoSchoolExists = async () => {
-    // In offline demo mode, just simulate success
-    if (!supabaseConnected) {
-      console.log('Demo mode: Simulating school account creation (offline)');
-      return {
-        id: 'demo-school-id',
-        school_name: 'Demo School',
-        admin_user_id: DEMO_USER.id
-      };
-    }
-
-    try {
-      console.log('Ensuring demo school exists...');
-      
-      // First check if it exists
-      const { data: existingSchool, error: checkError } = await supabase
-        .from('school_accounts')
-        .select('id, school_name')
-        .eq('admin_user_id', DEMO_USER.id)
-        .maybeSingle();
-      
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Error checking for existing school:', checkError);
-        throw checkError;
-      }
-      
-      if (existingSchool) {
-        console.log('Demo school already exists:', existingSchool);
-        return existingSchool;
-      }
-      
-      // Create the demo school if it doesn't exist
-      console.log('Creating demo school account...');
-      const { data: newSchool, error: createError } = await supabase
-        .from('school_accounts')
-        .insert({
-          admin_user_id: DEMO_USER.id,
-          school_name: 'Demo School',
-          plan_type: 'school',
-          student_limit: 1000,
-          is_active: true
-        })
-        .select()
-        .single();
-      
-      if (createError) {
-        console.error('Failed to create demo school account:', createError);
-        throw createError;
-      }
-      
-      console.log('Demo school account created successfully:', newSchool);
-      return newSchool;
-      
-    } catch (error) {
-      console.error('Error in ensureDemoSchoolExists:', error);
-      throw error;
-    }
-  };
-
   const enableDemoMode = async () => {
     console.log('AuthContext: Enabling demo mode...');
     setIsDemoMode(true);
@@ -228,24 +170,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsSchoolAdmin(true);
     setLoading(false);
     
-    // Only try to ensure demo school exists if Supabase is connected
-    if (supabaseConnected) {
-      try {
-        await ensureDemoSchoolExists();
-      } catch (error) {
-        console.error('Failed to ensure demo school exists:', error);
-        toast({
-          title: "Demo Mode Warning",
-          description: "Running in offline demo mode - invitations will be simulated",
-          variant: "destructive"
-        });
-      }
-    } else {
-      toast({
-        title: "Offline Demo Mode",
-        description: "Running in demo mode with simulated data",
-      });
-    }
+    toast({
+      title: "Demo Mode Enabled",
+      description: "You're now in demo mode with simulated data only",
+    });
   };
 
   const disableDemoMode = () => {
