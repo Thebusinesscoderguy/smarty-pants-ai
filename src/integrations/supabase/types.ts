@@ -226,6 +226,7 @@ export type Database = {
       messages: {
         Row: {
           content: string
+          conversation_id: string | null
           created_at: string | null
           curriculum_id: string | null
           file_url: string | null
@@ -236,6 +237,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          conversation_id?: string | null
           created_at?: string | null
           curriculum_id?: string | null
           file_url?: string | null
@@ -246,6 +248,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          conversation_id?: string | null
           created_at?: string | null
           curriculum_id?: string | null
           file_url?: string | null
