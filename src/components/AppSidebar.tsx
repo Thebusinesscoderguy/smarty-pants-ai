@@ -1,3 +1,4 @@
+
 import { 
   Home, 
   MessageSquare, 
@@ -39,7 +40,7 @@ const navigationItems = [
 ];
 
 const AppSidebar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isSchoolAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -75,7 +76,7 @@ const AppSidebar = () => {
                       <span>Profile</span>
                     </Link>
                   </SidebarMenuItem>
-                  {user.is_admin && (
+                  {isSchoolAdmin && (
                     <SidebarMenuItem>
                       <Link to="/school-admin" className="w-full">
                         <Users className="mr-2 h-4 w-4" />
