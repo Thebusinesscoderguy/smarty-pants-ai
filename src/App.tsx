@@ -1,37 +1,45 @@
 
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+import Features from "./pages/Features";
 import Chat from "./pages/Chat";
 import Voice from "./pages/Voice";
 import MathSolver from "./pages/MathSolver";
 import Progress from "./pages/Progress";
-import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
-import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import SchoolAdmin from "./pages/SchoolAdmin";
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query'
-import AcceptInvitation from '@/pages/AcceptInvitation';
+import QuizGenerator from "./pages/QuizGenerator";
+import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+const queryClient = new QueryClient();
 
 function App() {
-  const queryClient = new QueryClient()
-
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-background">
-            <Toaster />
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/accept-invitation" element={<AcceptInvitation />} />
+              <Route path="/features" element={
+                <ProtectedRoute>
+                  <Features />
+                </ProtectedRoute>
+              } />
               <Route path="/chat" element={
                 <ProtectedRoute>
                   <Chat />
@@ -47,29 +55,31 @@ function App() {
                   <MathSolver />
                 </ProtectedRoute>
               } />
+              <Route path="/quiz" element={
+                <ProtectedRoute>
+                  <QuizGenerator />
+                </ProtectedRoute>
+              } />
               <Route path="/progress" element={
                 <ProtectedRoute>
                   <Progress />
                 </ProtectedRoute>
               } />
-              <Route path="/features" element={<Features />} />
-              <Route path="/pricing" element={<Pricing />} />
               <Route path="/onboarding" element={
                 <ProtectedRoute>
                   <Onboarding />
                 </ProtectedRoute>
               } />
-              <Route path="/admin" element={
+              <Route path="/school-admin" element={
                 <ProtectedRoute>
                   <SchoolAdmin />
                 </ProtectedRoute>
               } />
-              <Route path="/accept-invitation" element={<AcceptInvitation />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

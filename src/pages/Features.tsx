@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Send, FileUp, X, MessageSquare, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { QuizFromConversation } from '@/components/quiz/QuizFromConversation';
 
 interface Message {
   id: string;
@@ -328,9 +328,14 @@ const Features = () => {
             <h1 className="text-xl font-bold">
               {currentConversationId ? 'Conversation' : 'Chat with AI Learning Assistant'}
             </h1>
-            {!user && (
-              <p className="text-sm text-gray-400">Sign in to save conversations</p>
-            )}
+            <div className="flex items-center gap-2">
+              {messages.length > 2 && (
+                <QuizFromConversation messages={messages} />
+              )}
+              {!user && (
+                <p className="text-sm text-gray-400">Sign in to save conversations</p>
+              )}
+            </div>
           </header>
           
           <main className="flex-1 overflow-hidden flex flex-col">
