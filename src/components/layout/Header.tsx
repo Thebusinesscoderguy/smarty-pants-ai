@@ -3,12 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
 import { useState, useEffect } from 'react';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, loading, isSchoolAdmin, isDemoMode, enableDemoMode, disableDemoMode } = useAuth();
+  const { user, loading, isSchoolAdmin } = useAuth();
 
   useEffect(() => {
     console.log('Header: Auth state updated:', {
@@ -16,10 +15,9 @@ export const Header = () => {
       loading,
       userId: user?.id,
       userEmail: user?.email,
-      isSchoolAdmin,
-      isDemoMode
+      isSchoolAdmin
     });
-  }, [user, loading, isSchoolAdmin, isDemoMode]);
+  }, [user, loading, isSchoolAdmin]);
 
   const handleSignOut = async () => {
     try {
@@ -31,34 +29,12 @@ export const Header = () => {
     }
   };
 
-  const handleDemoMode = async () => {
-    if (isDemoMode) {
-      disableDemoMode();
-      toast({
-        title: "Demo Mode Disabled",
-        description: "You've exited demo mode",
-      });
-      navigate('/');
-    } else {
-      await enableDemoMode();
-      toast({
-        title: "Demo Mode Enabled",
-        description: "You're now in school admin demo mode - all operations are real!",
-      });
-      // Small delay to ensure state is updated before navigation
-      setTimeout(() => {
-        navigate('/admin');
-      }, 100);
-    }
-  };
-
   console.log('Header: Rendering with user state:', {
     hasUser: !!user,
     loading,
-    showAuthButtons: !loading && !user && !isDemoMode,
-    showUserButtons: !loading && (!!user || isDemoMode),
-    isSchoolAdmin,
-    isDemoMode
+    showAuthButtons: !loading && !user,
+    showUserButtons: !loading && !!user,
+    isSchoolAdmin
   });
 
   return (
@@ -67,13 +43,8 @@ export const Header = () => {
       <div className="space-x-4">
         {loading ? (
           <div className="text-white/70">Loading...</div>
-        ) : (user || isDemoMode) ? (
+        ) : user ? (
           <>
-            {isDemoMode && (
-              <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm">
-                DEMO MODE
-              </div>
-            )}
             {isSchoolAdmin ? (
               <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
                 <Link to="/admin">School Dashboard</Link>
@@ -89,20 +60,13 @@ export const Header = () => {
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10"
-              onClick={isDemoMode ? handleDemoMode : handleSignOut}
+              onClick={handleSignOut}
             >
-              {isDemoMode ? "Exit Demo" : "Sign Out"}
+              Sign Out
             </Button>
           </>
         ) : (
           <>
-            <Button 
-              variant="outline" 
-              className="bg-orange-600 text-white hover:bg-orange-700" 
-              onClick={handleDemoMode}
-            >
-              Try School Admin Demo
-            </Button>
             <Button 
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10" 

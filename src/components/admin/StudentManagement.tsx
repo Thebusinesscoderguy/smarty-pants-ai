@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Mail, Clock, CheckCircle, Trash2, AlertTriangle } from 'lucide-react';
+import { UserPlus, Mail, Clock, CheckCircle, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +28,7 @@ export const StudentManagement = () => {
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [newStudentFirstName, setNewStudentFirstName] = useState('');
   const [newStudentLastName, setNewStudentLastName] = useState('');
-  const { user, supabaseConnected } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchInvitations();
@@ -84,7 +84,7 @@ export const StudentManagement = () => {
   };
 
   const fetchInvitations = async () => {
-    if (!user || !supabaseConnected) return;
+    if (!user) return;
 
     try {
       setIsLoading(true);
@@ -126,15 +126,6 @@ export const StudentManagement = () => {
       toast({
         title: "Error",
         description: "Please enter a valid email address",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!supabaseConnected) {
-      toast({
-        title: "Error",
-        description: "Supabase connection required to send invitations",
         variant: "destructive"
       });
       return;
@@ -224,15 +215,6 @@ export const StudentManagement = () => {
   };
 
   const deleteInvitation = async (invitationId: string) => {
-    if (!supabaseConnected) {
-      toast({
-        title: "Error",
-        description: "Supabase connection required",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
       const { error } = await supabase
         .from('student_invitations')
@@ -256,25 +238,6 @@ export const StudentManagement = () => {
       });
     }
   };
-
-  if (!supabaseConnected) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Student Management</h2>
-          <div className="bg-red-900/50 border border-red-500 p-4 rounded-lg mt-4">
-            <div className="flex items-center gap-2 text-red-300">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">Supabase Connection Required</span>
-            </div>
-            <p className="text-red-200 mt-2">
-              Student invitation management requires a Supabase connection to store data and send emails.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return <div className="animate-pulse text-white">Loading student data...</div>;
