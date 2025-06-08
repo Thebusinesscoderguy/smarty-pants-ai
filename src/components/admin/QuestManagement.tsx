@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +65,7 @@ export const QuestManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   
   const [newQuest, setNewQuest] = useState({
     title: '',
@@ -187,7 +186,6 @@ export const QuestManagement = () => {
 
     try {
       setIsCreating(true);
-      // This creates real quests in the database, even in demo mode
       const { data, error } = await supabase
         .from('quests')
         .insert({
@@ -227,7 +225,7 @@ export const QuestManagement = () => {
       const subjectName = data.subjects?.name || 'All Subjects';
       toast({
         title: "Quest Created",
-        description: `"${newQuest.title}" created for ${subjectName}${isDemoMode ? ' (Real quest in demo mode!)' : ''}`,
+        description: `"${newQuest.title}" created for ${subjectName}`,
       });
     } catch (error: any) {
       console.error('Error creating quest:', error);
@@ -282,11 +280,6 @@ export const QuestManagement = () => {
           <h2 className="text-2xl font-bold text-white">Quest Management</h2>
           <p className="text-gray-400">
             Create and manage daily and weekly quests for students
-            {isDemoMode && (
-              <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
-                DEMO MODE - All operations are REAL!
-              </span>
-            )}
           </p>
         </div>
         

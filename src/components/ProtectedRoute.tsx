@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading, isDemoMode } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -18,9 +18,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       path: location.pathname,
       isLoading: loading,
       isAuthenticated: !!user,
-      isDemoMode,
     });
-  }, [loading, user, location.pathname, isDemoMode]);
+  }, [loading, user, location.pathname]);
 
   if (loading) {
     return (
@@ -31,16 +30,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // Allow access in demo mode or if user is authenticated
-  if (!user && !isDemoMode) {
-    // Special handling for admin route - redirect to home instead of auth
-    // This allows the demo mode button on the home page to work
-    if (location.pathname === '/admin') {
-      console.log('Admin route accessed without auth, redirecting to home for demo access');
-      return <Navigate to="/" replace />;
-    }
-    
-    console.log('User not authenticated and not in demo mode, redirecting to auth page');
+  if (!user) {
+    console.log('User not authenticated, redirecting to auth page');
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
