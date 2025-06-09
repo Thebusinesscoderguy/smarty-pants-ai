@@ -1,12 +1,86 @@
+
 import { Button } from '@/components/ui/button';
 import { BookOpen } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { runSystemTests } from '@/utils/systemTester';
 
 const Index = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Auto-run comprehensive testing plan for developer review
+    const runDevTests = async () => {
+      console.log('🔧 DEV MODE: Starting comprehensive system testing...');
+      console.log('=' .repeat(60));
+      
+      try {
+        const results = await runSystemTests();
+        
+        console.log('\n📊 DEVELOPER TEST SUMMARY:');
+        console.log('=' .repeat(60));
+        
+        let totalTests = 0;
+        let totalPassed = 0;
+        let totalFailed = 0;
+        let totalSkipped = 0;
+        let criticalIssues = [];
+
+        results.forEach(suite => {
+          console.log(`\n🧪 ${suite.name}:`);
+          console.log(`  📈 Total: ${suite.totalTests}`);
+          console.log(`  ✅ Passed: ${suite.passedTests}`);
+          console.log(`  ❌ Failed: ${suite.failedTests}`);
+          console.log(`  ⏭️  Skipped: ${suite.skippedTests}`);
+          
+          // Log detailed results
+          suite.results.forEach(result => {
+            const icon = result.status === 'pass' ? '✅' : result.status === 'fail' ? '❌' : '⏭️';
+            console.log(`    ${icon} ${result.name}: ${result.message} (${result.duration}ms)`);
+            
+            if (result.status === 'fail') {
+              criticalIssues.push(`${suite.name}: ${result.name} - ${result.message}`);
+            }
+          });
+          
+          totalTests += suite.totalTests;
+          totalPassed += suite.passedTests;
+          totalFailed += suite.failedTests;
+          totalSkipped += suite.skippedTests;
+        });
+
+        console.log('\n🏁 FINAL DEVELOPER REPORT:');
+        console.log('=' .repeat(60));
+        console.log(`📊 Total Tests: ${totalTests}`);
+        console.log(`✅ Passed: ${totalPassed}`);
+        console.log(`❌ Failed: ${totalFailed}`);
+        console.log(`⏭️ Skipped: ${totalSkipped}`);
+        console.log(`📈 Success Rate: ${totalTests > 0 ? Math.round((totalPassed / totalTests) * 100) : 0}%`);
+        
+        if (criticalIssues.length > 0) {
+          console.log('\n🚨 CRITICAL ISSUES FOR USERS:');
+          console.log('=' .repeat(60));
+          criticalIssues.forEach((issue, index) => {
+            console.log(`${index + 1}. ${issue}`);
+          });
+        } else {
+          console.log('\n🎉 ALL SYSTEMS OPERATIONAL FOR USERS!');
+        }
+        
+        console.log('\n💡 DEV NOTE: Check console logs above for detailed test results');
+        console.log('=' .repeat(60));
+        
+      } catch (error) {
+        console.error('🚨 DEV ERROR: Failed to run system tests:', error);
+      }
+    };
+
+    // Run tests after a brief delay to let the page load
+    setTimeout(runDevTests, 1000);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
