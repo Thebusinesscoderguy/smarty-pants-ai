@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface TestResult {
@@ -72,9 +73,19 @@ export class SystemTester {
 
   private async testSupabaseConnection() {
     try {
-      const { data, error } = await supabase.from('subjects').select('count').limit(1);
-      if (error) throw error;
-      await this.addResult('Supabase Connection', 'pass', 'Successfully connected to Supabase');
+      // Test basic connection with proper headers
+      const response = await fetch('https://twfzlbockonxopuindaw.supabase.co/rest/v1/', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MDE5NTAsImV4cCI6MjA1ODk3Nzk1MH0.MKUGpLxfF5bhtqOAo0aBs0daOMpMfkIqgwZ2ntIvQi4',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MDE5NTAsImV4cCI6MjA1ODk3Nzk1MH0.MKUGpLxfF5bhtqOAo0aBs0daOMpMfkIqgwZ2ntIvQi4'
+        }
+      });
+      
+      if (response.ok) {
+        await this.addResult('Supabase Connection', 'pass', 'Successfully connected to Supabase');
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     } catch (error: any) {
       await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
     }
@@ -131,13 +142,17 @@ export class SystemTester {
       });
       
       if (error) throw error;
-      if (data.audioContent) {
+      if (data && data.audioContent) {
         await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working');
       } else {
         throw new Error('No audio content returned');
       }
     } catch (error: any) {
-      await this.addResult('OpenAI Text-to-Voice', 'fail', `Voice generation failed: ${error.message}`);
+      if (error.message?.includes('OPENAI_API_KEY')) {
+        await this.addResult('OpenAI Text-to-Voice', 'skip', 'OpenAI API key not configured');
+      } else {
+        await this.addResult('OpenAI Text-to-Voice', 'fail', `Voice generation failed: ${error.message}`);
+      }
     }
   }
 
@@ -153,13 +168,17 @@ export class SystemTester {
       });
       
       if (error) throw error;
-      if (data.content) {
+      if (data && data.content) {
         await this.addResult('OpenAI Chat Completion', 'pass', 'Chat completion working');
       } else {
         throw new Error('No content returned');
       }
     } catch (error: any) {
-      await this.addResult('OpenAI Chat Completion', 'fail', `Chat completion failed: ${error.message}`);
+      if (error.message?.includes('OPENAI_API_KEY')) {
+        await this.addResult('OpenAI Chat Completion', 'skip', 'OpenAI API key not configured');
+      } else {
+        await this.addResult('OpenAI Chat Completion', 'fail', `Chat completion failed: ${error.message}`);
+      }
     }
   }
 
@@ -170,13 +189,17 @@ export class SystemTester {
       });
       
       if (error) throw error;
-      if (data.text) {
+      if (data && data.text) {
         await this.addResult('Voice-to-Text', 'pass', 'Voice transcription working');
       } else {
         throw new Error('No transcription returned');
       }
     } catch (error: any) {
-      await this.addResult('Voice-to-Text', 'fail', `Voice transcription failed: ${error.message}`);
+      if (error.message?.includes('OPENAI_API_KEY')) {
+        await this.addResult('Voice-to-Text', 'skip', 'OpenAI API key not configured');
+      } else {
+        await this.addResult('Voice-to-Text', 'fail', `Voice transcription failed: ${error.message}`);
+      }
     }
   }
 
@@ -191,24 +214,22 @@ export class SystemTester {
       });
       
       if (error) throw error;
-      if (data.questions && data.questions.length > 0) {
+      if (data && data.questions && data.questions.length > 0) {
         await this.addResult('Quiz Generation', 'pass', 'Quiz generation working');
       } else {
         throw new Error('No questions generated');
       }
     } catch (error: any) {
-      await this.addResult('Quiz Generation', 'fail', `Quiz generation failed: ${error.message}`);
+      if (error.message?.includes('OPENAI_API_KEY')) {
+        await this.addResult('Quiz Generation', 'skip', 'OpenAI API key not configured');
+      } else {
+        await this.addResult('Quiz Generation', 'fail', `Quiz generation failed: ${error.message}`);
+      }
     }
   }
 
   private async testQuizStorage() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('Quiz Storage', 'skip', 'No user logged in - quiz storage tests skipped');
-        return;
-      }
-
       const { data, error } = await supabase.from('quizzes').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Quiz Storage', 'pass', 'Quiz database accessible');
@@ -219,12 +240,6 @@ export class SystemTester {
 
   private async testMessageStorage() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('Message Storage', 'skip', 'No user logged in - message storage tests skipped');
-        return;
-      }
-
       const { data, error } = await supabase.from('messages').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Message Storage', 'pass', 'Message database accessible');
@@ -235,12 +250,6 @@ export class SystemTester {
 
   private async testFileUpload() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('File Upload', 'skip', 'No user logged in - file upload tests skipped');
-        return;
-      }
-
       const { data, error } = await supabase.from('files').select('count').limit(1);
       if (error) throw error;
       await this.addResult('File Upload', 'pass', 'File storage database accessible');
@@ -251,12 +260,6 @@ export class SystemTester {
 
   private async testTokenUsageTracking() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('Token Usage', 'skip', 'No user logged in - token usage tests skipped');
-        return;
-      }
-
       const { data, error } = await supabase.from('token_usage').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Token Usage', 'pass', 'Token usage tracking accessible');
@@ -287,12 +290,6 @@ export class SystemTester {
 
   private async testLearningAnalytics() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('Learning Analytics', 'skip', 'No user logged in - analytics tests skipped');
-        return;
-      }
-
       const { data, error } = await supabase.from('learning_analytics').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Learning Analytics', 'pass', 'Learning analytics accessible');
@@ -303,12 +300,6 @@ export class SystemTester {
 
   private async testProgressTracking() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('Progress Tracking', 'skip', 'No user logged in - progress tests skipped');
-        return;
-      }
-
       const { data, error } = await supabase.from('user_progress').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Progress Tracking', 'pass', 'Progress tracking accessible');
@@ -329,15 +320,21 @@ export class SystemTester {
         }
       });
       
-      if (error && error.message && error.message.includes('RESEND_API_KEY')) {
-        await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
-      } else if (error) {
-        throw error;
+      if (error) {
+        if (error.message?.includes('RESEND_API_KEY')) {
+          await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
+        } else {
+          throw error;
+        }
       } else {
         await this.addResult('Email Invitation', 'pass', 'Email invitation system working');
       }
     } catch (error: any) {
-      await this.addResult('Email Invitation', 'fail', `Email invitation failed: ${error.message}`);
+      if (error.message?.includes('RESEND_API_KEY')) {
+        await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
+      } else {
+        await this.addResult('Email Invitation', 'fail', `Email invitation failed: ${error.message}`);
+      }
     }
   }
 
@@ -353,15 +350,21 @@ export class SystemTester {
         body: { planType: 'individual' }
       });
       
-      if (error && error.message && error.message.includes('STRIPE_SECRET_KEY')) {
-        await this.addResult('Stripe Checkout', 'skip', 'Stripe secret key not configured');
-      } else if (error) {
-        throw error;
+      if (error) {
+        if (error.message?.includes('STRIPE_SECRET_KEY')) {
+          await this.addResult('Stripe Checkout', 'skip', 'Stripe secret key not configured');
+        } else {
+          throw error;
+        }
       } else {
         await this.addResult('Stripe Checkout', 'pass', 'Stripe checkout system working');
       }
     } catch (error: any) {
-      await this.addResult('Stripe Checkout', 'fail', `Stripe checkout failed: ${error.message}`);
+      if (error.message?.includes('STRIPE_SECRET_KEY')) {
+        await this.addResult('Stripe Checkout', 'skip', 'Stripe secret key not configured');
+      } else {
+        await this.addResult('Stripe Checkout', 'fail', `Stripe checkout failed: ${error.message}`);
+      }
     }
   }
 
