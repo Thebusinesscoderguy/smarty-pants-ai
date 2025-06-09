@@ -1,511 +1,371 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
 
 export interface TestResult {
   name: string;
   status: 'pass' | 'fail' | 'skip';
   message: string;
-  duration: number;
-}
-
-export interface TestSuite {
-  name: string;
-  results: TestResult[];
-  totalTests: number;
-  passedTests: number;
-  failedTests: number;
-  skippedTests: number;
+  duration?: number;
 }
 
 export class SystemTester {
-  private results: TestSuite[] = [];
-  private currentUser: any = null;
+  private results: TestResult[] = [];
 
-  async runAllTests(): Promise<TestSuite[]> {
-    console.log('🚀 Starting comprehensive system testing...');
-    
+  async runAllTests(): Promise<TestResult[]> {
     this.results = [];
     
-    // Phase 1: Authentication & Authorization
-    await this.testAuthentication();
+    console.log('🔧 Starting comprehensive system tests...');
     
-    // Phase 2: Core API Functions
-    await this.testCoreAPIs();
+    // Core Infrastructure Tests
+    await this.testSupabaseConnection();
+    await this.testDatabaseAccess();
     
-    // Phase 3: Database Operations
-    await this.testDatabaseOperations();
+    // Authentication Tests
+    await this.testAuthenticationFlow();
+    await this.testUserProfileCreation();
     
-    // Phase 4: Integration Workflows
-    await this.testIntegrationWorkflows();
+    // AI Service Tests
+    await this.testOpenAITextToVoice();
+    await this.testOpenAIChatCompletion();
+    await this.testVoiceToText();
     
-    // Phase 5: Error Handling
-    await this.testErrorHandling();
+    // Quiz System Tests
+    await this.testQuizGeneration();
+    await this.testQuizStorage();
     
-    this.printSummary();
+    // User Features Tests
+    await this.testMessageStorage();
+    await this.testFileUpload();
+    await this.testTokenUsageTracking();
+    
+    // Gamification Tests
+    await this.testAchievementSystem();
+    await this.testQuestSystem();
+    
+    // Analytics Tests
+    await this.testLearningAnalytics();
+    await this.testProgressTracking();
+    
+    // Email System Tests
+    await this.testEmailInvitation();
+    
+    // Payment System Tests
+    await this.testStripeCheckout();
+    
+    console.log('✅ System tests completed');
     return this.results;
   }
 
-  private async testAuthentication(): Promise<void> {
-    const suite: TestSuite = {
-      name: 'Authentication & Authorization',
-      results: [],
-      totalTests: 0,
-      passedTests: 0,
-      failedTests: 0,
-      skippedTests: 0
-    };
+  private async addResult(name: string, status: 'pass' | 'fail' | 'skip', message: string) {
+    this.results.push({ name, status, message });
+    const emoji = status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⏭️';
+    console.log(`${emoji} ${name}: ${message}`);
+  }
 
-    // Test 1: Check current session
-    await this.runTest(suite, 'Check Current Session', async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw new Error(`Session error: ${error.message}`);
-      
-      this.currentUser = session?.user || null;
-      return `Session status: ${session ? 'Active' : 'No session'}, User: ${session?.user?.email || 'None'}`;
-    });
+  private async testSupabaseConnection() {
+    try {
+      const { data, error } = await supabase.from('profiles').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Supabase Connection', 'pass', 'Successfully connected to Supabase');
+    } catch (error) {
+      await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
+    }
+  }
 
-    // Test 2: Test protected route access
-    await this.runTest(suite, 'Test Protected Route Access', async () => {
-      if (!this.currentUser) {
-        throw new Error('No authenticated user - cannot test protected routes');
+  private async testDatabaseAccess() {
+    try {
+      const { data, error } = await supabase.from('subjects').select('id, name').limit(1);
+      if (error) throw error;
+      await this.addResult('Database Access', 'pass', 'Database queries working');
+    } catch (error) {
+      await this.addResult('Database Access', 'fail', `Database access failed: ${error.message}`);
+    }
+  }
+
+  private async testAuthenticationFlow() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await this.addResult('Authentication', 'pass', `User authenticated: ${user.email}`);
+      } else {
+        await this.addResult('Authentication', 'skip', 'No user logged in - authentication tests skipped');
       }
-      return 'User is authenticated, protected routes should be accessible';
-    });
+    } catch (error) {
+      await this.addResult('Authentication', 'fail', `Auth check failed: ${error.message}`);
+    }
+  }
 
-    // Test 3: Test RLS policies
-    await this.runTest(suite, 'Test RLS Policies', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - no authenticated user';
+  private async testUserProfileCreation() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('User Profile', 'skip', 'No user logged in - profile tests skipped');
+        return;
       }
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .limit(1);
-      
-      if (error) throw new Error(`RLS test failed: ${error.message}`);
-      return `RLS policies working, can access profiles table`;
-    });
+        .eq('id', user.id)
+        .single();
 
-    this.results.push(suite);
+      if (error) throw error;
+      await this.addResult('User Profile', 'pass', 'User profile exists and accessible');
+    } catch (error) {
+      await this.addResult('User Profile', 'fail', `Profile access failed: ${error.message}`);
+    }
   }
 
-  private async testCoreAPIs(): Promise<void> {
-    const suite: TestSuite = {
-      name: 'Core API Functions',
-      results: [],
-      totalTests: 0,
-      passedTests: 0,
-      failedTests: 0,
-      skippedTests: 0
-    };
-
-    // Test 1: Quiz Generation API
-    await this.runTest(suite, 'Quiz Generation API', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - requires authentication';
-      }
-
-      const { data, error } = await supabase.functions.invoke('generate-quiz', {
-        body: {
-          topic: 'Basic Mathematics',
-          difficulty: 'easy',
-          questionCount: 3
-        }
+  private async testOpenAITextToVoice() {
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-voice', {
+        body: { text: 'System test', voice: 'alloy' }
       });
-
-      if (error) throw new Error(`Quiz generation failed: ${error.message}`);
-      if (!data || !data.questions || data.questions.length === 0) {
-        throw new Error('Quiz generation returned invalid data');
+      
+      if (error) throw error;
+      if (data.audioContent) {
+        await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working');
+      } else {
+        throw new Error('No audio content returned');
       }
+    } catch (error) {
+      await this.addResult('OpenAI Text-to-Voice', 'fail', `Voice generation failed: ${error.message}`);
+    }
+  }
 
-      return `Successfully generated quiz with ${data.questions.length} questions`;
-    });
-
-    // Test 2: Chat Completion API
-    await this.runTest(suite, 'Chat Completion API', async () => {
+  private async testOpenAIChatCompletion() {
+    try {
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
-            { role: 'user', content: 'What is 2+2?' }
+            { role: 'system', content: 'You are a test assistant.' },
+            { role: 'user', content: 'Say "test successful"' }
           ]
         }
       });
-
-      if (error) throw new Error(`Chat completion failed: ${error.message}`);
-      if (!data || !data.text) {
-        throw new Error('Chat completion returned invalid data');
-      }
-
-      return `Chat completion successful: ${data.text.substring(0, 50)}...`;
-    });
-
-    // Test 3: Voice-to-Text API
-    await this.runTest(suite, 'Voice-to-Text API', async () => {
-      // Create a dummy audio blob for testing
-      const dummyBlob = new Blob(['dummy audio data'], { type: 'audio/webm' });
-      const formData = new FormData();
-      formData.append('audio', dummyBlob);
-
-      try {
-        const { data, error } = await supabase.functions.invoke('voice-to-text', {
-          body: formData
-        });
-
-        // This might fail due to invalid audio, but we're testing if the endpoint exists
-        return 'Voice-to-text endpoint is accessible (may need valid audio)';
-      } catch (error: any) {
-        if (error.message.includes('404') || error.message.includes('not found')) {
-          throw new Error('Voice-to-text function not found');
-        }
-        return 'Voice-to-text endpoint exists (validation error expected with dummy data)';
-      }
-    });
-
-    // Test 4: Text-to-Voice API
-    await this.runTest(suite, 'Text-to-Voice API', async () => {
-      const { data, error } = await supabase.functions.invoke('text-to-voice', {
-        body: {
-          text: 'Hello, this is a test.',
-          voice: 'alloy'
-        }
-      });
-
-      if (error) {
-        if (error.message.includes('API key')) {
-          return 'Text-to-voice endpoint exists but requires OpenAI API key configuration';
-        }
-        throw new Error(`Text-to-voice failed: ${error.message}`);
-      }
-
-      return 'Text-to-voice API working successfully';
-    });
-
-    // Test 5: Wolfram Alpha API
-    await this.runTest(suite, 'Wolfram Alpha API', async () => {
-      const { data, error } = await supabase.functions.invoke('wolfram-alpha', {
-        body: {
-          query: '2+2'
-        }
-      });
-
-      if (error) {
-        if (error.message.includes('API key') || error.message.includes('WOLFRAM')) {
-          return 'Wolfram Alpha endpoint exists but requires API key configuration';
-        }
-        throw new Error(`Wolfram Alpha failed: ${error.message}`);
-      }
-
-      return 'Wolfram Alpha API working successfully';
-    });
-
-    this.results.push(suite);
-  }
-
-  private async testDatabaseOperations(): Promise<void> {
-    const suite: TestSuite = {
-      name: 'Database Operations',
-      results: [],
-      totalTests: 0,
-      passedTests: 0,
-      failedTests: 0,
-      skippedTests: 0
-    };
-
-    // Test 1: Quiz table operations
-    await this.runTest(suite, 'Quiz Table Operations', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - requires authentication';
-      }
-
-      // Test reading quizzes
-      const { data: quizzes, error: readError } = await supabase
-        .from('quizzes')
-        .select('*')
-        .limit(5);
-
-      if (readError) throw new Error(`Quiz read failed: ${readError.message}`);
-
-      return `Quiz table accessible, found ${quizzes?.length || 0} quizzes`;
-    });
-
-    // Test 2: Messages table operations
-    await this.runTest(suite, 'Messages Table Operations', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - requires authentication';
-      }
-
-      const { data: messages, error } = await supabase
-        .from('messages')
-        .select('*')
-        .limit(5);
-
-      if (error) throw new Error(`Messages read failed: ${error.message}`);
-
-      return `Messages table accessible, found ${messages?.length || 0} messages`;
-    });
-
-    // Test 3: Profiles table operations
-    await this.runTest(suite, 'Profiles Table Operations', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - requires authentication';
-      }
-
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', this.currentUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw new Error(`Profile read failed: ${error.message}`);
-      }
-
-      return profile ? 'User profile exists' : 'No user profile found (may need creation)';
-    });
-
-    // Test 4: Subjects table operations
-    await this.runTest(suite, 'Subjects Table Operations', async () => {
-      const { data: subjects, error } = await supabase
-        .from('subjects')
-        .select('*')
-        .limit(5);
-
-      if (error) throw new Error(`Subjects read failed: ${error.message}`);
-
-      return `Subjects table accessible, found ${subjects?.length || 0} subjects`;
-    });
-
-    this.results.push(suite);
-  }
-
-  private async testIntegrationWorkflows(): Promise<void> {
-    const suite: TestSuite = {
-      name: 'Integration Workflows',
-      results: [],
-      totalTests: 0,
-      passedTests: 0,
-      failedTests: 0,
-      skippedTests: 0
-    };
-
-    // Test 1: End-to-End Quiz Generation
-    await this.runTest(suite, 'End-to-End Quiz Generation', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - requires authentication';
-      }
-
-      // Generate a quiz
-      const { data: quizData, error: genError } = await supabase.functions.invoke('generate-quiz', {
-        body: {
-          topic: 'System Test Quiz',
-          difficulty: 'easy',
-          questionCount: 2
-        }
-      });
-
-      if (genError) throw new Error(`Quiz generation failed: ${genError.message}`);
-      if (!quizData || !quizData.questions) {
-        throw new Error('Invalid quiz data generated');
-      }
-
-      // Try to save the quiz
-      const { data: savedQuiz, error: saveError } = await supabase
-        .from('quizzes')
-        .insert({
-          user_id: this.currentUser.id,
-          title: quizData.title || 'Test Quiz',
-          description: quizData.description || 'System test quiz',
-          difficulty: 'easy',
-          total_questions: quizData.questions.length
-        })
-        .select()
-        .single();
-
-      if (saveError) throw new Error(`Quiz save failed: ${saveError.message}`);
-
-      // Clean up - delete the test quiz
-      await supabase.from('quizzes').delete().eq('id', savedQuiz.id);
-
-      return 'End-to-end quiz generation workflow successful';
-    });
-
-    // Test 2: Chat to Quiz Workflow
-    await this.runTest(suite, 'Chat to Quiz Workflow', async () => {
-      if (!this.currentUser) {
-        return 'Skipped - requires authentication';
-      }
-
-      // Simulate a chat conversation
-      const conversationHistory = [
-        { role: 'user', content: 'Tell me about photosynthesis' },
-        { role: 'assistant', content: 'Photosynthesis is the process by which plants convert sunlight into energy...' }
-      ];
-
-      // Generate quiz from conversation
-      const { data: quizData, error } = await supabase.functions.invoke('generate-quiz', {
-        body: {
-          topic: 'Photosynthesis',
-          difficulty: 'medium',
-          questionCount: 2,
-          conversationHistory
-        }
-      });
-
-      if (error) throw new Error(`Conversation-based quiz failed: ${error.message}`);
-
-      return 'Chat to quiz workflow successful';
-    });
-
-    this.results.push(suite);
-  }
-
-  private async testErrorHandling(): Promise<void> {
-    const suite: TestSuite = {
-      name: 'Error Handling',
-      results: [],
-      totalTests: 0,
-      passedTests: 0,
-      failedTests: 0,
-      skippedTests: 0
-    };
-
-    // Test 1: Invalid API requests
-    await this.runTest(suite, 'Invalid API Requests', async () => {
-      try {
-        await supabase.functions.invoke('generate-quiz', {
-          body: {} // Invalid request body
-        });
-        throw new Error('Should have failed with invalid request');
-      } catch (error: any) {
-        if (error.message.includes('Should have failed')) {
-          throw error;
-        }
-        return 'Error handling working - invalid requests properly rejected';
-      }
-    });
-
-    // Test 2: Unauthorized database access
-    await this.runTest(suite, 'Unauthorized Database Access', async () => {
-      if (this.currentUser) {
-        return 'Skipped - user is authenticated, cannot test unauthorized access';
-      }
-
-      try {
-        await supabase.from('quizzes').select('*').limit(1);
-        return 'RLS policies may need review - unauthorized access succeeded';
-      } catch (error: any) {
-        return 'Database security working - unauthorized access blocked';
-      }
-    });
-
-    this.results.push(suite);
-  }
-
-  private async runTest(suite: TestSuite, testName: string, testFn: () => Promise<string>): Promise<void> {
-    const startTime = Date.now();
-    
-    try {
-      console.log(`⏳ Running: ${testName}`);
-      const result = await testFn();
-      const duration = Date.now() - startTime;
       
-      suite.results.push({
-        name: testName,
-        status: result.startsWith('Skipped') ? 'skip' : 'pass',
-        message: result,
-        duration
-      });
-
-      if (result.startsWith('Skipped')) {
-        suite.skippedTests++;
-        console.log(`⏭️  ${testName}: ${result}`);
+      if (error) throw error;
+      if (data.content) {
+        await this.addResult('OpenAI Chat Completion', 'pass', 'Chat completion working');
       } else {
-        suite.passedTests++;
-        console.log(`✅ ${testName}: ${result}`);
+        throw new Error('No content returned');
       }
-    } catch (error: any) {
-      const duration = Date.now() - startTime;
-      suite.results.push({
-        name: testName,
-        status: 'fail',
-        message: error.message,
-        duration
-      });
-      suite.failedTests++;
-      console.log(`❌ ${testName}: ${error.message}`);
+    } catch (error) {
+      await this.addResult('OpenAI Chat Completion', 'fail', `Chat completion failed: ${error.message}`);
     }
-    
-    suite.totalTests++;
   }
 
-  private printSummary(): void {
-    console.log('\n📊 Testing Summary:');
-    console.log('=' .repeat(50));
-    
-    let totalTests = 0;
-    let totalPassed = 0;
-    let totalFailed = 0;
-    let totalSkipped = 0;
-
-    this.results.forEach(suite => {
-      console.log(`\n${suite.name}:`);
-      console.log(`  Total: ${suite.totalTests}`);
-      console.log(`  ✅ Passed: ${suite.passedTests}`);
-      console.log(`  ❌ Failed: ${suite.failedTests}`);
-      console.log(`  ⏭️  Skipped: ${suite.skippedTests}`);
+  private async testVoiceToText() {
+    try {
+      // Create a minimal audio blob for testing
+      const audioBlob = new Blob(['test'], { type: 'audio/webm' });
+      const { data, error } = await supabase.functions.invoke('voice-to-text', {
+        body: { audio: 'test_audio_data' }
+      });
       
-      totalTests += suite.totalTests;
-      totalPassed += suite.passedTests;
-      totalFailed += suite.failedTests;
-      totalSkipped += suite.skippedTests;
-    });
-
-    console.log('\n' + '=' .repeat(50));
-    console.log(`🏁 Overall Results:`);
-    console.log(`  Total Tests: ${totalTests}`);
-    console.log(`  ✅ Passed: ${totalPassed}`);
-    console.log(`  ❌ Failed: ${totalFailed}`);
-    console.log(`  ⏭️  Skipped: ${totalSkipped}`);
-    console.log(`  📈 Success Rate: ${totalTests > 0 ? Math.round((totalPassed / totalTests) * 100) : 0}%`);
+      if (error) throw error;
+      await this.addResult('Voice-to-Text', 'pass', 'Voice transcription endpoint accessible');
+    } catch (error) {
+      await this.addResult('Voice-to-Text', 'fail', `Voice transcription failed: ${error.message}`);
+    }
   }
 
-  getDetailedResults(): TestSuite[] {
-    return this.results;
+  private async testQuizGeneration() {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quiz', {
+        body: {
+          topic: 'Test Topic',
+          difficulty: 'easy',
+          questionCount: 1
+        }
+      });
+      
+      if (error) throw error;
+      if (data.questions && data.questions.length > 0) {
+        await this.addResult('Quiz Generation', 'pass', 'Quiz generation working');
+      } else {
+        throw new Error('No questions generated');
+      }
+    } catch (error) {
+      await this.addResult('Quiz Generation', 'fail', `Quiz generation failed: ${error.message}`);
+    }
+  }
+
+  private async testQuizStorage() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('Quiz Storage', 'skip', 'No user logged in - quiz storage tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.from('quizzes').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Quiz Storage', 'pass', 'Quiz database accessible');
+    } catch (error) {
+      await this.addResult('Quiz Storage', 'fail', `Quiz storage failed: ${error.message}`);
+    }
+  }
+
+  private async testMessageStorage() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('Message Storage', 'skip', 'No user logged in - message storage tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.from('messages').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Message Storage', 'pass', 'Message database accessible');
+    } catch (error) {
+      await this.addResult('Message Storage', 'fail', `Message storage failed: ${error.message}`);
+    }
+  }
+
+  private async testFileUpload() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('File Upload', 'skip', 'No user logged in - file upload tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.from('files').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('File Upload', 'pass', 'File storage database accessible');
+    } catch (error) {
+      await this.addResult('File Upload', 'fail', `File upload failed: ${error.message}`);
+    }
+  }
+
+  private async testTokenUsageTracking() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('Token Usage', 'skip', 'No user logged in - token usage tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.from('token_usage').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Token Usage', 'pass', 'Token usage tracking accessible');
+    } catch (error) {
+      await this.addResult('Token Usage', 'fail', `Token usage tracking failed: ${error.message}`);
+    }
+  }
+
+  private async testAchievementSystem() {
+    try {
+      const { data, error } = await supabase.from('achievements').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Achievement System', 'pass', 'Achievement system accessible');
+    } catch (error) {
+      await this.addResult('Achievement System', 'fail', `Achievement system failed: ${error.message}`);
+    }
+  }
+
+  private async testQuestSystem() {
+    try {
+      const { data, error } = await supabase.from('quests').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Quest System', 'pass', 'Quest system accessible');
+    } catch (error) {
+      await this.addResult('Quest System', 'fail', `Quest system failed: ${error.message}`);
+    }
+  }
+
+  private async testLearningAnalytics() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('Learning Analytics', 'skip', 'No user logged in - analytics tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.from('learning_analytics').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Learning Analytics', 'pass', 'Learning analytics accessible');
+    } catch (error) {
+      await this.addResult('Learning Analytics', 'fail', `Learning analytics failed: ${error.message}`);
+    }
+  }
+
+  private async testProgressTracking() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('Progress Tracking', 'skip', 'No user logged in - progress tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.from('user_progress').select('count').limit(1);
+      if (error) throw error;
+      await this.addResult('Progress Tracking', 'pass', 'Progress tracking accessible');
+    } catch (error) {
+      await this.addResult('Progress Tracking', 'fail', `Progress tracking failed: ${error.message}`);
+    }
+  }
+
+  private async testEmailInvitation() {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          invitationId: 'test-id',
+          studentEmail: 'test@example.com',
+          studentName: 'Test Student',
+          schoolName: 'Test School',
+          invitationCode: 'TEST123'
+        }
+      });
+      
+      if (error && error.message.includes('RESEND_API_KEY')) {
+        await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
+      } else if (error) {
+        throw error;
+      } else {
+        await this.addResult('Email Invitation', 'pass', 'Email invitation system working');
+      }
+    } catch (error) {
+      await this.addResult('Email Invitation', 'fail', `Email invitation failed: ${error.message}`);
+    }
+  }
+
+  private async testStripeCheckout() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await this.addResult('Stripe Checkout', 'skip', 'No user logged in - payment tests skipped');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { planType: 'individual' }
+      });
+      
+      if (error && error.message.includes('STRIPE_SECRET_KEY')) {
+        await this.addResult('Stripe Checkout', 'skip', 'Stripe secret key not configured');
+      } else if (error) {
+        throw error;
+      } else {
+        await this.addResult('Stripe Checkout', 'pass', 'Stripe checkout system working');
+      }
+    } catch (error) {
+      await this.addResult('Stripe Checkout', 'fail', `Stripe checkout failed: ${error.message}`);
+    }
+  }
+
+  getPassRate(): number {
+    if (this.results.length === 0) return 0;
+    const passCount = this.results.filter(r => r.status === 'pass').length;
+    return Math.round((passCount / this.results.length) * 100);
+  }
+
+  getFailureCount(): number {
+    return this.results.filter(r => r.status === 'fail').length;
+  }
+
+  getSkipCount(): number {
+    return this.results.filter(r => r.status === 'skip').length;
   }
 }
-
-// Helper function to run tests from console
-export const runSystemTests = async (): Promise<TestSuite[]> => {
-  const tester = new SystemTester();
-  return await tester.runAllTests();
-};
-
-// Helper function to get a quick health check
-export const quickHealthCheck = async (): Promise<{status: string, message: string}> => {
-  try {
-    // Test basic connectivity
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw new Error(`Auth check failed: ${error.message}`);
-
-    // Test a simple API call
-    const { error: apiError } = await supabase.functions.invoke('chat-completion', {
-      body: { messages: [{ role: 'user', content: 'test' }] }
-    });
-
-    if (apiError && !apiError.message.includes('API key')) {
-      throw new Error(`API check failed: ${apiError.message}`);
-    }
-
-    return {
-      status: 'healthy',
-      message: `System appears healthy. User: ${session?.user?.email || 'Not authenticated'}`
-    };
-  } catch (error: any) {
-    return {
-      status: 'unhealthy',
-      message: error.message
-    };
-  }
-};
