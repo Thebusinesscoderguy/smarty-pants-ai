@@ -1,6 +1,4 @@
 
-import { WolframAlphaResult } from '@/hooks/useMathSolver';
-
 export interface Message {
   id?: string;
   text: string;
@@ -12,5 +10,4 @@ export interface Message {
   fileUrl?: string;
   fileName?: string;
   tokenCount: number;
-  mathResult?: WolframAlphaResult;
 }
