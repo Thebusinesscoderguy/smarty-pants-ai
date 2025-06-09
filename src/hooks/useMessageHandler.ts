@@ -3,7 +3,6 @@ import { Message } from '@/types/message';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
 import { useTokenUsage } from '@/hooks/useTokenUsage';
 import { useQuizMode } from '@/hooks/useQuizMode';
-import { useMathSolver } from '@/hooks/useMathSolver';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -11,7 +10,7 @@ export const useMessageHandler = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome-message',
-      text: "Welcome to Teachly! How can I assist you today? You can send text, voice messages, upload files, or ask me to solve math problems.",
+      text: "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.",
       timestamp: new Date(),
       isFromUser: false,
       type: 'text',
@@ -48,8 +47,6 @@ export const useMessageHandler = () => {
     handlePlayAudio,
     handlePauseAudio
   } = useAudioHandler();
-
-  const { solveEquation } = useMathSolver();
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,25 +76,6 @@ export const useMessageHandler = () => {
     }
   };
 
-  const isMathQuery = (text: string): boolean => {
-    const mathKeywords = [
-      'solve', 'calculate', 'integrate', 'derivative', 'equation', 'plot', 'graph',
-      'factor', 'simplify', 'expand', 'limit', 'sum', 'product', 'matrix',
-      'system', 'differential', 'polynomial', 'quadratic', 'linear'
-    ];
-    
-    const mathSymbols = /[+\-*/=^()√∫∑∏]/;
-    const mathPatterns = /\b(x\^|sin|cos|tan|log|ln|exp|sqrt|abs)\b/i;
-    const equationPattern = /\w+\s*[=]\s*\w+/;
-    
-    const lowerText = text.toLowerCase();
-    
-    return mathKeywords.some(keyword => lowerText.includes(keyword)) ||
-           mathSymbols.test(text) ||
-           mathPatterns.test(text) ||
-           equationPattern.test(text);
-  };
-
   const getAIResponse = async (userMessage: string, selectedVoice: string) => {
     try {
       const processingMessageId = `processing-${Date.now()}`;
@@ -113,77 +91,6 @@ export const useMessageHandler = () => {
       setMessages(prev => [...prev, processingMessage]);
 
       try {
-        // Check if this is a math query
-        if (isMathQuery(userMessage)) {
-          console.log("Detected math query, using Wolfram Alpha solver");
-          
-          setMessages(prev => prev.map(m => 
-            m.id === processingMessageId 
-              ? { ...m, text: "Solving your math problem with Wolfram Alpha..." }
-              : m
-          ));
-
-          const mathResult = await solveEquation(userMessage);
-          
-          if (mathResult && mathResult.success) {
-            // Format the math solution for display
-            let responseText = `Here's the solution to your math problem:\n\n`;
-            
-            // Add interpretation if available
-            if (mathResult.interpretation) {
-              responseText += `Problem: ${mathResult.interpretation}\n\n`;
-            }
-            
-            // Find and display the main result
-            const resultPod = mathResult.pods?.find(pod => 
-              pod.id === 'Result' || pod.title === 'Result'
-            );
-            
-            if (resultPod && resultPod.subpods.length > 0 && resultPod.subpods[0].plaintext) {
-              responseText += `Answer: ${resultPod.subpods[0].plaintext}\n\n`;
-            }
-            
-            // Add solution steps if available
-            const solutionPod = mathResult.pods?.find(pod => 
-              pod.id === 'Solution' || pod.title.includes('Solution')
-            );
-            
-            if (solutionPod && solutionPod.subpods.length > 0) {
-              responseText += `Solution steps:\n`;
-              solutionPod.subpods.forEach((subpod, index) => {
-                if (subpod.plaintext) {
-                  responseText += `${index + 1}. ${subpod.plaintext}\n`;
-                }
-              });
-              responseText += '\n';
-            }
-            
-            responseText += `This solution was computed using Wolfram|Alpha for maximum accuracy.`;
-            
-            setMessages(prev => prev.filter(m => m.id !== processingMessageId));
-            
-            const mathMessageId = `math-${Date.now()}`;
-            const mathMessage: Message = {
-              id: mathMessageId,
-              text: responseText,
-              timestamp: new Date(),
-              isFromUser: false,
-              type: 'text',
-              tokenCount: Math.ceil(responseText.length / 4),
-              mathResult: mathResult
-            };
-
-            setMessages(prev => [...prev, mathMessage]);
-            incrementTokenCount(0, mathMessage.tokenCount);
-            
-            return;
-          } else {
-            // Fall back to regular AI response if math solving fails
-            console.log("Math solving failed, falling back to regular AI response");
-          }
-        }
-
-        // Regular AI response for non-math queries or when math solving fails
         // Get previous messages for context (limit to last 8 for token efficiency)
         const conversationHistory = messages
           .filter(m => m.id !== 'welcome-message' && !m.id?.startsWith('processing-'))
@@ -236,7 +143,7 @@ Keep your responses engaging and personalized. Don't be overly formal or robotic
           throw new Error(completionResponse.error.message || 'Failed to generate AI response');
         }
 
-        const aiResponseText = completionResponse.data.text;
+        const aiResponseText = completionResponse.data.content;
         
         // Check if this is a quiz question and update state
         if (isQuizMode && aiResponseText.includes('?')) {
