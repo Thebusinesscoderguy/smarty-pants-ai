@@ -14,11 +14,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
-  },
-  global: {
-    headers: {
-      'apikey': SUPABASE_PUBLISHABLE_KEY,
-    }
   }
 });
 
@@ -27,16 +22,19 @@ export const testSupabaseConnection = async () => {
   try {
     console.log('Testing Supabase connection...');
     
-    // Test with a simple query
-    const { data, error } = await supabase.from('subjects').select('count').limit(1);
+    // Test with a simple query that doesn't require authentication
+    const { data, error, count } = await supabase
+      .from('subjects')
+      .select('*', { count: 'exact' })
+      .limit(1);
     
     if (error) {
       console.error('Supabase connection test error:', error);
       return { success: false, error: error.message };
     }
     
-    console.log('Supabase connection test successful');
-    return { success: true, data };
+    console.log('Supabase connection test successful:', { data, count });
+    return { success: true, data, count };
   } catch (error: any) {
     console.error('Supabase connection test failed:', error);
     return { success: false, error: error.message };
