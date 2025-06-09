@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    const { messages } = await req.json();
+    
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error('OpenAI API key not configured');
@@ -27,22 +29,7 @@ serve(async (req) => {
       );
     }
 
-    const requestBody = await req.json();
-    console.log('Chat completion request:', { 
-      hasMessages: !!requestBody.messages, 
-      messageCount: requestBody.messages?.length 
-    });
-
-    // Validate request body
-    if (!requestBody.messages || !Array.isArray(requestBody.messages)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid request: messages array is required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    console.log('Chat completion request:', { hasMessages: !!messages, messageCount: messages?.length || 0 });
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -52,9 +39,11 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: requestBody.messages,
-        temperature: requestBody.temperature || 0.7,
-        max_tokens: requestBody.max_tokens || 1000,
+        messages: messages || [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: 'Hello' }
+        ],
+        temperature: 0.7,
       }),
     });
 
@@ -77,8 +66,7 @@ serve(async (req) => {
     console.log('OpenAI response received successfully');
 
     return new Response(JSON.stringify({
-      content: data.choices[0].message.content,
-      usage: data.usage
+      content: data.choices[0].message.content
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

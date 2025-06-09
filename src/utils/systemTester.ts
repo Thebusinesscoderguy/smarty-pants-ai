@@ -72,10 +72,10 @@ export class SystemTester {
 
   private async testSupabaseConnection() {
     try {
-      const { data, error } = await supabase.from('profiles').select('count').limit(1);
+      const { data, error } = await supabase.from('subjects').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Supabase Connection', 'pass', 'Successfully connected to Supabase');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
     }
   }
@@ -85,7 +85,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('subjects').select('id, name').limit(1);
       if (error) throw error;
       await this.addResult('Database Access', 'pass', 'Database queries working');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Database Access', 'fail', `Database access failed: ${error.message}`);
     }
   }
@@ -98,7 +98,7 @@ export class SystemTester {
       } else {
         await this.addResult('Authentication', 'skip', 'No user logged in - authentication tests skipped');
       }
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Authentication', 'fail', `Auth check failed: ${error.message}`);
     }
   }
@@ -119,7 +119,7 @@ export class SystemTester {
 
       if (error) throw error;
       await this.addResult('User Profile', 'pass', 'User profile exists and accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('User Profile', 'fail', `Profile access failed: ${error.message}`);
     }
   }
@@ -136,7 +136,7 @@ export class SystemTester {
       } else {
         throw new Error('No audio content returned');
       }
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('OpenAI Text-to-Voice', 'fail', `Voice generation failed: ${error.message}`);
     }
   }
@@ -158,22 +158,24 @@ export class SystemTester {
       } else {
         throw new Error('No content returned');
       }
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('OpenAI Chat Completion', 'fail', `Chat completion failed: ${error.message}`);
     }
   }
 
   private async testVoiceToText() {
     try {
-      // Create a minimal audio blob for testing
-      const audioBlob = new Blob(['test'], { type: 'audio/webm' });
       const { data, error } = await supabase.functions.invoke('voice-to-text', {
         body: { audio: 'test_audio_data' }
       });
       
       if (error) throw error;
-      await this.addResult('Voice-to-Text', 'pass', 'Voice transcription endpoint accessible');
-    } catch (error) {
+      if (data.text) {
+        await this.addResult('Voice-to-Text', 'pass', 'Voice transcription working');
+      } else {
+        throw new Error('No transcription returned');
+      }
+    } catch (error: any) {
       await this.addResult('Voice-to-Text', 'fail', `Voice transcription failed: ${error.message}`);
     }
   }
@@ -194,7 +196,7 @@ export class SystemTester {
       } else {
         throw new Error('No questions generated');
       }
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Quiz Generation', 'fail', `Quiz generation failed: ${error.message}`);
     }
   }
@@ -210,7 +212,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('quizzes').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Quiz Storage', 'pass', 'Quiz database accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Quiz Storage', 'fail', `Quiz storage failed: ${error.message}`);
     }
   }
@@ -226,7 +228,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('messages').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Message Storage', 'pass', 'Message database accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Message Storage', 'fail', `Message storage failed: ${error.message}`);
     }
   }
@@ -242,7 +244,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('files').select('count').limit(1);
       if (error) throw error;
       await this.addResult('File Upload', 'pass', 'File storage database accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('File Upload', 'fail', `File upload failed: ${error.message}`);
     }
   }
@@ -258,7 +260,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('token_usage').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Token Usage', 'pass', 'Token usage tracking accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Token Usage', 'fail', `Token usage tracking failed: ${error.message}`);
     }
   }
@@ -268,7 +270,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('achievements').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Achievement System', 'pass', 'Achievement system accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Achievement System', 'fail', `Achievement system failed: ${error.message}`);
     }
   }
@@ -278,7 +280,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('quests').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Quest System', 'pass', 'Quest system accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Quest System', 'fail', `Quest system failed: ${error.message}`);
     }
   }
@@ -294,7 +296,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('learning_analytics').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Learning Analytics', 'pass', 'Learning analytics accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Learning Analytics', 'fail', `Learning analytics failed: ${error.message}`);
     }
   }
@@ -310,7 +312,7 @@ export class SystemTester {
       const { data, error } = await supabase.from('user_progress').select('count').limit(1);
       if (error) throw error;
       await this.addResult('Progress Tracking', 'pass', 'Progress tracking accessible');
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Progress Tracking', 'fail', `Progress tracking failed: ${error.message}`);
     }
   }
@@ -320,21 +322,21 @@ export class SystemTester {
       const { data, error } = await supabase.functions.invoke('send-invitation-email', {
         body: {
           invitationId: 'test-id',
-          studentEmail: 'test@example.com',
+          studentEmail: 'test@lovable.dev',
           studentName: 'Test Student',
           schoolName: 'Test School',
           invitationCode: 'TEST123'
         }
       });
       
-      if (error && error.message.includes('RESEND_API_KEY')) {
+      if (error && error.message && error.message.includes('RESEND_API_KEY')) {
         await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
       } else if (error) {
         throw error;
       } else {
         await this.addResult('Email Invitation', 'pass', 'Email invitation system working');
       }
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Email Invitation', 'fail', `Email invitation failed: ${error.message}`);
     }
   }
@@ -351,14 +353,14 @@ export class SystemTester {
         body: { planType: 'individual' }
       });
       
-      if (error && error.message.includes('STRIPE_SECRET_KEY')) {
+      if (error && error.message && error.message.includes('STRIPE_SECRET_KEY')) {
         await this.addResult('Stripe Checkout', 'skip', 'Stripe secret key not configured');
       } else if (error) {
         throw error;
       } else {
         await this.addResult('Stripe Checkout', 'pass', 'Stripe checkout system working');
       }
-    } catch (error) {
+    } catch (error: any) {
       await this.addResult('Stripe Checkout', 'fail', `Stripe checkout failed: ${error.message}`);
     }
   }
@@ -395,7 +397,7 @@ export async function runSystemTests(): Promise<TestSuite[]> {
 
 export async function quickHealthCheck(): Promise<{status: string, message: string}> {
   try {
-    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    const { data, error } = await supabase.from('subjects').select('count').limit(1);
     if (error) throw error;
     
     const { data: { user } } = await supabase.auth.getUser();

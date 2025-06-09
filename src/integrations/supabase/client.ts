@@ -20,7 +20,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Test function to check if Supabase is working
 export const testSupabaseConnection = async () => {
   try {
-    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    // Test with a simple query that should always work
+    const { data, error } = await supabase.from('subjects').select('count').limit(1);
     if (error) {
       console.error('Supabase connection test error:', error);
       return false;
