@@ -5,12 +5,9 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { AutoSystemTest } from "@/components/AutoSystemTest";
-import { useState } from "react";
 
 const Index = () => {
   const { user } = useAuth();
-  const [showSystemTest, setShowSystemTest] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -52,29 +49,6 @@ const Index = () => {
                   View Pricing
                 </Button>
               </Link>
-            </div>
-          )}
-        </div>
-
-        {/* System Testing Section */}
-        <div className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-4">System Status</h2>
-            <p className="text-gray-300 mb-6">
-              Real-time testing of all APIs, workflows, and integrations
-            </p>
-            <Button 
-              onClick={() => setShowSystemTest(!showSystemTest)}
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-black"
-            >
-              {showSystemTest ? 'Hide System Test' : 'Run System Test'}
-            </Button>
-          </div>
-          
-          {showSystemTest && (
-            <div className="bg-black/20 backdrop-blur rounded-lg p-6">
-              <AutoSystemTest />
             </div>
           )}
         </div>
