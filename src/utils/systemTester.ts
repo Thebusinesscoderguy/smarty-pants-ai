@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface TestResult {
@@ -6,6 +5,15 @@ export interface TestResult {
   status: 'pass' | 'fail' | 'skip';
   message: string;
   duration?: number;
+}
+
+export interface TestSuite {
+  name: string;
+  results: TestResult[];
+  totalTests: number;
+  passedTests: number;
+  failedTests: number;
+  skippedTests: number;
 }
 
 export class SystemTester {
@@ -367,5 +375,40 @@ export class SystemTester {
 
   getSkipCount(): number {
     return this.results.filter(r => r.status === 'skip').length;
+  }
+}
+
+// Export convenience functions to match the expected interface
+export async function runSystemTests(): Promise<TestSuite[]> {
+  const tester = new SystemTester();
+  const results = await tester.runAllTests();
+  
+  return [{
+    name: 'System Tests',
+    results: results,
+    totalTests: results.length,
+    passedTests: results.filter(r => r.status === 'pass').length,
+    failedTests: results.filter(r => r.status === 'fail').length,
+    skippedTests: results.filter(r => r.status === 'skip').length
+  }];
+}
+
+export async function quickHealthCheck(): Promise<{status: string, message: string}> {
+  try {
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    if (error) throw error;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    const authStatus = user ? 'authenticated' : 'anonymous';
+    
+    return {
+      status: 'healthy',
+      message: `System is operational. Database accessible, user ${authStatus}.`
+    };
+  } catch (error: any) {
+    return {
+      status: 'unhealthy',
+      message: `System issues detected: ${error.message}`
+    };
   }
 }
