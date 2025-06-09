@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ContactForm } from "@/components/contact/ContactForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 
@@ -103,7 +104,7 @@ const Index = () => {
 
         {/* CTA Section */}
         {!user && (
-          <div className="text-center">
+          <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-white mb-4">Ready to transform your learning?</h2>
             <p className="text-xl text-gray-300 mb-8">
               Join thousands of students already learning with AI
@@ -116,6 +117,9 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Contact Form */}
+      <ContactForm />
 
       <Footer />
     </div>
