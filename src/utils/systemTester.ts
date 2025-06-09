@@ -74,6 +74,20 @@ export class SystemTester {
     try {
       console.log('Testing Supabase connection...');
       
+      // Check if we can reach the Supabase instance
+      const url = 'https://twfzlbockonxopuindaw.supabase.co';
+      const response = await fetch(`${url}/rest/v1/`, {
+        method: 'HEAD',
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MDE5NTAsImV4cCI6MjA1ODk3Nzk1MH0.MKUGpLxfF5bhtqOAo0aBs0daOMpMfkIqgwZ2ntIvQi4'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Supabase instance not accessible`);
+      }
+      
+      // Now test the client connection
       const { data, error, count } = await supabase
         .from('subjects')
         .select('id, name', { count: 'exact' })
@@ -81,6 +95,9 @@ export class SystemTester {
       
       if (error) {
         console.error('Supabase connection error:', error);
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('API key authentication failed - please check Supabase configuration');
+        }
         throw new Error(`Database query failed: ${error.message}`);
       }
       
@@ -88,59 +105,38 @@ export class SystemTester {
       await this.addResult('Supabase Connection', 'pass', `Successfully connected to database (${count || 0} subjects found)`);
     } catch (error: any) {
       console.error('Connection test failed:', error);
-      await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
+      if (error.message.includes('API key') || error.message.includes('401')) {
+        await this.addResult('Supabase Connection', 'fail', 'API key authentication failed - Supabase configuration needs to be updated');
+      } else {
+        await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
+      }
     }
   }
 
   private async testDatabaseAccess() {
     try {
-      // Test multiple tables individually to avoid TypeScript issues
-      let accessibleTables = 0;
-      const totalTables = 3;
+      // Test database accessibility with proper error handling
+      const { error } = await supabase.auth.getSession();
       
-      // Test subjects table
-      try {
-        const { error: subjectsError } = await supabase.from('subjects').select('count').limit(1);
-        if (!subjectsError) {
-          accessibleTables++;
-        } else {
-          console.warn('Subjects table access issue:', subjectsError.message);
+      if (error && error.message.includes('Invalid API key')) {
+        await this.addResult('Database Access', 'fail', 'Invalid API key - database access denied');
+        return;
+      }
+      
+      // Test subjects table access
+      const { data, error: subjectsError, count } = await supabase
+        .from('subjects')
+        .select('*', { count: 'exact' })
+        .limit(1);
+        
+      if (subjectsError) {
+        if (subjectsError.message.includes('Invalid API key') || subjectsError.message.includes('401')) {
+          throw new Error('Invalid API key - authentication required for database access');
         }
-      } catch (err) {
-        console.warn('Subjects table access failed:', err);
+        throw new Error(`Database error: ${subjectsError.message}`);
       }
       
-      // Test quizzes table
-      try {
-        const { error: quizzesError } = await supabase.from('quizzes').select('count').limit(1);
-        if (!quizzesError) {
-          accessibleTables++;
-        } else {
-          console.warn('Quizzes table access issue:', quizzesError.message);
-        }
-      } catch (err) {
-        console.warn('Quizzes table access failed:', err);
-      }
-      
-      // Test messages table
-      try {
-        const { error: messagesError } = await supabase.from('messages').select('count').limit(1);
-        if (!messagesError) {
-          accessibleTables++;
-        } else {
-          console.warn('Messages table access issue:', messagesError.message);
-        }
-      } catch (err) {
-        console.warn('Messages table access failed:', err);
-      }
-      
-      if (accessibleTables === totalTables) {
-        await this.addResult('Database Access', 'pass', `All ${totalTables} core tables accessible`);
-      } else if (accessibleTables > 0) {
-        await this.addResult('Database Access', 'pass', `${accessibleTables}/${totalTables} tables accessible`);
-      } else {
-        throw new Error('No tables accessible');
-      }
+      await this.addResult('Database Access', 'pass', `Database accessible (${count || 0} subjects found)`);
     } catch (error: any) {
       await this.addResult('Database Access', 'fail', `Database access failed: ${error.message}`);
     }
@@ -151,8 +147,12 @@ export class SystemTester {
       const { data: { user }, error } = await supabase.auth.getUser();
       
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          await this.addResult('Authentication', 'skip', 'API key invalid - authentication service unavailable');
+          return;
+        }
         console.warn('Auth check error:', error.message);
-        await this.addResult('Authentication', 'skip', 'Authentication service unavailable');
+        await this.addResult('Authentication', 'skip', 'Authentication service check failed');
         return;
       }
       
@@ -303,6 +303,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Quiz Storage', 'pass', `Quiz database accessible (${count || 0} records)`);
@@ -319,6 +322,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Message Storage', 'pass', `Message database accessible (${count || 0} records)`);
@@ -335,6 +341,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('File Upload', 'pass', `File storage database accessible (${count || 0} records)`);
@@ -351,6 +360,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Token Usage', 'pass', `Token usage tracking accessible (${count || 0} records)`);
@@ -367,6 +379,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Achievement System', 'pass', `Achievement system accessible (${count || 0} records)`);
@@ -383,6 +398,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Quest System', 'pass', `Quest system accessible (${count || 0} records)`);
@@ -399,6 +417,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Learning Analytics', 'pass', `Learning analytics accessible (${count || 0} records)`);
@@ -415,6 +436,9 @@ export class SystemTester {
         .limit(1);
         
       if (error) {
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - database access denied');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       await this.addResult('Progress Tracking', 'pass', `Progress tracking accessible (${count || 0} records)`);
@@ -438,6 +462,10 @@ export class SystemTester {
       if (error) {
         if (error.message?.includes('not configured') || error.message?.includes('RESEND_API_KEY')) {
           await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
+          return;
+        }
+        if (error.message?.includes('Invalid API key') || error.message?.includes('401')) {
+          await this.addResult('Email Invitation', 'fail', 'Invalid API key - edge function access denied');
           return;
         }
         if (error.message?.includes('testing email address') || error.message?.includes('test@example.com')) {
