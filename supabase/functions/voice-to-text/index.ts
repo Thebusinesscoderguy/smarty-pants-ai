@@ -1,180 +1,114 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Process base64 in chunks to prevent memory issues
-function processBase64Chunks(base64String, chunkSize = 32768) {
-  const chunks = [];
-  let position = 0;
-  
-  while (position < base64String.length) {
-    const chunk = base64String.slice(position, position + chunkSize);
-    const binaryChunk = atob(chunk);
-    const bytes = new Uint8Array(binaryChunk.length);
-    
-    for (let i = 0; i < binaryChunk.length; i++) {
-      bytes[i] = binaryChunk.charCodeAt(i);
-    }
-    
-    chunks.push(bytes);
-    position += chunkSize;
-  }
-
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return result;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight requests
+  console.log('Request received for voice-to-text');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Request received for voice-to-text");
-    console.log(`Request method: ${req.method}`);
-    console.log(`Request URL: ${req.url}`);
-    
-    const requestData = await req.json();
-    console.log("Request data received, contains audio:", !!requestData.audio);
-    
-    const { audio } = requestData;
-    
-    if (!audio) {
-      throw new Error('No audio data provided');
-    }
-
-    // Get API key from environment variable
-    const openAIKey = Deno.env.get('OPENAI_API_KEY');
-    
-    if (!openAIKey || openAIKey.trim() === '') {
-      console.error("OPENAI_API_KEY not found or empty in environment variables");
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured on the server',
-          type: 'api_key_error'
+          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY secret in Supabase.' 
         }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
-    
-    console.log("Using server-side API key");
-    console.log("Processing audio data...");
 
+    // Get the raw body as ArrayBuffer first
+    const arrayBuffer = await req.arrayBuffer();
+    
+    // Try to parse as JSON first
+    let audioBlob;
     try {
-      // Process audio in chunks
-      const binaryAudio = processBase64Chunks(audio);
-      console.log("Audio data processed, creating form data");
+      const textDecoder = new TextDecoder();
+      const jsonString = textDecoder.decode(arrayBuffer);
+      const requestData = JSON.parse(jsonString);
       
-      // Prepare form data
-      const formData = new FormData();
-      const blob = new Blob([binaryAudio], { type: 'audio/webm' });
-      formData.append('file', blob, 'audio.webm');
-      formData.append('model', 'whisper-1');
-      
-      console.log("Sending request to OpenAI API");
-
-      // Send to OpenAI
-      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIKey}`,
-        },
-        body: formData,
-      });
-
-      console.log("OpenAI API response status:", response.status);
-      
-      if (!response.ok) {
-        let errorMessage = 'Failed to transcribe audio';
-        let errorType = 'processing_error';
-        
-        try {
-          const errorText = await response.text();
-          console.error("OpenAI API error response:", errorText);
-          
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.error?.message || errorMessage;
-          } catch (parseError) {
-            errorMessage = `Raw error: ${errorText}`;
-          }
-          
-          // Check for specific error types
-          if (response.status === 401) {
-            errorType = 'api_key_error';
-            errorMessage = 'Invalid OpenAI API key. Please contact the administrator.';
-          } else if (response.status === 429) {
-            errorType = 'rate_limit_error';
-            errorMessage = 'OpenAI rate limit exceeded. Please try again later.';
-          }
-        } catch (e) {
-          console.error("Failed to process error response:", e);
+      if (requestData.audio) {
+        // Convert base64 to blob
+        const audioData = requestData.audio.split(',')[1] || requestData.audio;
+        const binaryString = atob(audioData);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
         }
-        
-        return new Response(
-          JSON.stringify({ 
-            error: errorMessage,
-            type: errorType
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
+        audioBlob = new Blob([bytes], { type: 'audio/webm' });
+      } else {
+        throw new Error('No audio data found in request');
       }
+    } catch (parseError) {
+      console.error('JSON parse error, treating as raw audio:', parseError.message);
+      // If JSON parsing fails, treat as raw audio data
+      audioBlob = new Blob([arrayBuffer], { type: 'audio/webm' });
+    }
 
-      const result = await response.json();
-      console.log("Successfully transcribed audio to text");
+    // Create FormData for OpenAI API
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'en');
 
-      return new Response(
-        JSON.stringify({ text: result.text }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } catch (apiError) {
-      console.error("API error when calling OpenAI:", apiError);
+    console.log('Sending request to OpenAI Whisper API...');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
       return new Response(
         JSON.stringify({ 
-          error: apiError.message,
-          type: 'api_request_error'
+          error: `OpenAI API error: ${response.statusText}`,
+          details: errorText
         }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        { 
+          status: response.status, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
+
+    const data = await response.json();
+    console.log('Transcription successful:', data.text);
+
+    return new Response(JSON.stringify({
+      text: data.text
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
   } catch (error) {
-    console.error("Error in voice-to-text function:", error);
-    
-    // Determine error type and provide structured response
-    const errorType = error.message.includes('API key') ? 'api_key_error' : 'processing_error';
-    
+    console.error('Error in voice-to-text function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        source: 'voice-to-text',
-        type: errorType 
+        error: 'Internal server error',
+        message: error.message 
       }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }

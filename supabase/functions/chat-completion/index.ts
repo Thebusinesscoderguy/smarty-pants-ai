@@ -8,32 +8,42 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages } = await req.json();
-
-    if (!messages || !Array.isArray(messages)) {
-      throw new Error('Messages must be provided as an array');
-    }
-
-    // Check if OpenAI API key is available
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+      console.error('OpenAI API key not configured');
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY secret in Supabase.' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Check if the system prompt includes quiz mode instructions
-    const isQuizMode = messages.some(msg => 
-      msg.role === 'system' && 
-      msg.content && 
-      msg.content.includes('quiz mode')
-    );
+    const requestBody = await req.json();
+    console.log('Chat completion request:', { 
+      hasMessages: !!requestBody.messages, 
+      messageCount: requestBody.messages?.length 
+    });
 
-    // Call OpenAI API for chat completion with natural conversational style
+    // Validate request body
+    if (!requestBody.messages || !Array.isArray(requestBody.messages)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request: messages array is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -41,47 +51,49 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: messages,
-        max_tokens: 800,
-        temperature: isQuizMode ? 0.6 : 0.8,
+        model: 'gpt-4o-mini',
+        messages: requestBody.messages,
+        temperature: requestBody.temperature || 0.7,
+        max_tokens: requestBody.max_tokens || 1000,
       }),
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown OpenAI API error' } }));
-      console.error("OpenAI API error:", error);
-      throw new Error(error.error?.message || `OpenAI API returned status ${response.status}`);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
+      return new Response(
+        JSON.stringify({ 
+          error: `OpenAI API error: ${response.statusText}`,
+          details: errorText
+        }),
+        { 
+          status: response.status, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const data = await response.json();
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('Invalid response from OpenAI API');
-    }
+    console.log('OpenAI response received successfully');
 
-    const text = data.choices[0].message.content;
+    return new Response(JSON.stringify({
+      content: data.choices[0].message.content,
+      usage: data.usage
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
-    // Log usage data for debugging
-    console.log("Token usage:", data.usage);
-    if (isQuizMode) {
-      console.log("Quiz mode active");
-    }
-
-    return new Response(
-      JSON.stringify({ text }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
-    );
   } catch (error) {
-    console.error("Error in chat-completion function:", error);
+    console.error('Error in chat-completion function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   }
 });
