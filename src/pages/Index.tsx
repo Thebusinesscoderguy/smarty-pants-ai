@@ -1,13 +1,87 @@
-
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { BookOpen } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { BookOpen, Play, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { useNavigate } from 'react-router-dom';
+import { runSystemTests, type TestSuite } from '@/utils/systemTester';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isRunningTests, setIsRunningTests] = useState(false);
+  const [testResults, setTestResults] = useState<TestSuite[]>([]);
+  const [showResults, setShowResults] = useState(false);
+
+  const handleRunSystemTests = async () => {
+    setIsRunningTests(true);
+    setTestResults([]);
+    setShowResults(false);
+    
+    try {
+      toast({
+        title: "Running System Tests",
+        description: "Testing all APIs and integrations...",
+      });
+
+      const results = await runSystemTests();
+      setTestResults(results);
+      setShowResults(true);
+
+      const totalTests = results.reduce((sum, suite) => sum + suite.totalTests, 0);
+      const failedTests = results.reduce((sum, suite) => sum + suite.failedTests, 0);
+
+      if (failedTests > 0) {
+        toast({
+          title: "Tests Completed with Issues",
+          description: `${failedTests} out of ${totalTests} tests failed. Check results below.`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "All Tests Passed!",
+          description: `${totalTests} tests completed successfully.`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Test Execution Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsRunningTests(false);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pass':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'fail':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'skip':
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pass':
+        return 'bg-green-100 text-green-800';
+      case 'fail':
+        return 'bg-red-100 text-red-800';
+      case 'skip':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -22,13 +96,89 @@ const Index = () => {
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8">
               Teachly uses adaptive AI to personalize your learning experience, adjusting to your pace and style automatically.
             </p>
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/pricing')}
-            >
-              Get Started
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/pricing')}
+              >
+                Get Started
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg" 
+                onClick={handleRunSystemTests}
+                disabled={isRunningTests}
+                className="flex items-center gap-2"
+              >
+                {isRunningTests ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Running Tests...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4" />
+                    Test System Health
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
+
+          {/* System Test Results */}
+          {showResults && testResults.length > 0 && (
+            <div className="mb-16">
+              <h2 className="text-2xl font-bold mb-6 text-center">System Health Report</h2>
+              {testResults.map((suite, suiteIndex) => (
+                <Card key={suiteIndex} className="bg-white/10 border-white/20 mb-6">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg text-white">{suite.name}</CardTitle>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="text-white">
+                          {suite.totalTests} total
+                        </Badge>
+                        <Badge className="bg-green-100 text-green-800">
+                          {suite.passedTests} passed
+                        </Badge>
+                        {suite.failedTests > 0 && (
+                          <Badge className="bg-red-100 text-red-800">
+                            {suite.failedTests} failed
+                          </Badge>
+                        )}
+                        {suite.skippedTests > 0 && (
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            {suite.skippedTests} skipped
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-2 max-h-64 overflow-y-auto">
+                      {suite.results.map((result, resultIndex) => (
+                        <div 
+                          key={resultIndex}
+                          className="flex items-start justify-between p-3 border border-white/10 rounded-lg"
+                        >
+                          <div className="flex items-start gap-3 flex-1">
+                            {getStatusIcon(result.status)}
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm text-white">{result.name}</h4>
+                              <p className="text-sm text-gray-400 mt-1">{result.message}</p>
+                            </div>
+                          </div>
+                          <Badge className={getStatusColor(result.status)}>
+                            {result.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           <div className="grid md:grid-cols-3 gap-6 mt-16">
             <div className="bg-white/5 border border-white/10 rounded-lg p-6">
