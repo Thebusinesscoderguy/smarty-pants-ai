@@ -1,8 +1,68 @@
 
 project_id = "twfzlbockonxopuindaw"
 
-[functions.text-to-voice]
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[graphql]
+enabled = true
+port = 54329
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[functions.chat-completion]
+verify_jwt = false
+
+[functions.generate-quiz]
 verify_jwt = false
 
 [functions.voice-to-text]
 verify_jwt = false
+
+[functions.text-to-voice]
+verify_jwt = false
+
+[functions.send-invitation-email]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.get-api-service]
+verify_jwt = false
+
+[edge-runtime]
+enabled = true
+policy = "per_request"
+inspector_port = 8083
+
+[auth]
+enabled = true
+port = 54324
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://lovable.dev"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_update_enabled = true
+
+[auth.email]
+enabled = true
+double_confirm_changes = true
+max_frequency = "1s"
+
+[storage]
+enabled = true
+port = 54325
+file_size_limit = "50MiB"
