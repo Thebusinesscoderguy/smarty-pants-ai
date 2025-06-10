@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ export const SystemTestPanel = () => {
   const [currentTest, setCurrentTest] = useState<string>('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
 
-  const handleRunTests = async (forceMode: boolean = false) => {
+  const handleRunTests = async (forceMode: boolean = true) => { // Changed default to true
     setIsRunning(true);
     setTestResults([]);
     setCurrentTest('');
@@ -166,7 +167,7 @@ export const SystemTestPanel = () => {
         <CardContent className="space-y-4">
           <div className="flex gap-2 flex-wrap">
             <Button 
-              onClick={() => handleRunTests(false)} 
+              onClick={() => handleRunTests(true)} // Changed to default force mode
               disabled={isRunning}
               className="flex items-center gap-2"
             >
@@ -178,26 +179,26 @@ export const SystemTestPanel = () => {
               ) : (
                 <>
                   <Play className="h-4 w-4" />
-                  Run Full Test Suite
+                  Run System Tests
                 </>
               )}
             </Button>
 
             <Button 
-              onClick={() => handleRunTests(true)} 
+              onClick={() => handleRunTests(false)} // Changed to non-force mode
               disabled={isRunning}
               variant="outline"
-              className="flex items-center gap-2 border-orange-500 text-orange-600 hover:bg-orange-50"
+              className="flex items-center gap-2"
             >
               {isRunning ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Force Testing...
+                  Testing...
                 </>
               ) : (
                 <>
-                  <Zap className="h-4 w-4" />
-                  Force Test All (Bypass Skips)
+                  <Clock className="h-4 w-4" />
+                  Run with Skips
                 </>
               )}
             </Button>

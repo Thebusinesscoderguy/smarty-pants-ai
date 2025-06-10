@@ -49,11 +49,11 @@ export class SystemTester {
       { name: 'Database Access', fn: () => this.testDatabaseAccess() },
       { name: 'Authentication', fn: () => this.testAuthenticationFlow() },
       
-      // API tests with shorter timeouts
-      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 15000 },
-      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 10000 },
-      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 15000 },
-      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 10000 },
+      // API tests with adjusted timeouts
+      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 8000 }, // Reduced from 15000
+      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 8000 },
+      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 10000 },
+      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 8000 },
       
       // Database table tests
       { name: 'Quiz Storage', fn: () => this.testQuizStorage() },
@@ -78,7 +78,7 @@ export class SystemTester {
       
       try {
         console.log(`Running test ${i + 1}/${tests.length}: ${test.name}`);
-        await withTimeout(test.fn(), test.timeout || 8000);
+        await withTimeout(test.fn(), test.timeout || 6000); // Reduced default timeout
         const duration = Date.now() - startTime;
         
         // Update duration for the last added result
@@ -89,7 +89,7 @@ export class SystemTester {
         const duration = Date.now() - startTime;
         
         if (error.message.includes('timed out')) {
-          await this.addResult(test.name, 'fail', `Test timed out after ${test.timeout || 8000}ms`, duration);
+          await this.addResult(test.name, 'fail', `Test timed out after ${test.timeout || 6000}ms`, duration);
         } else {
           await this.addResult(test.name, 'fail', `Test failed: ${error.message}`, duration);
         }
