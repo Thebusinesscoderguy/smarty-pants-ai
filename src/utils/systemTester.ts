@@ -49,11 +49,11 @@ export class SystemTester {
       { name: 'Database Access', fn: () => this.testDatabaseAccess() },
       { name: 'Authentication', fn: () => this.testAuthenticationFlow() },
       
-      // API tests with adjusted timeouts
-      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 8000 }, // Reduced from 15000
-      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 8000 },
-      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 10000 },
-      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 8000 },
+      // API tests with reduced timeouts
+      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 5000 }, // Reduced to 5 seconds
+      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 6000 },
+      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 8000 },
+      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 5000 }, // Reduced to 5 seconds
       
       // Database table tests
       { name: 'Quiz Storage', fn: () => this.testQuizStorage() },
@@ -78,7 +78,7 @@ export class SystemTester {
       
       try {
         console.log(`Running test ${i + 1}/${tests.length}: ${test.name}`);
-        await withTimeout(test.fn(), test.timeout || 6000); // Reduced default timeout
+        await withTimeout(test.fn(), test.timeout || 5000); // Reduced default timeout to 5 seconds
         const duration = Date.now() - startTime;
         
         // Update duration for the last added result
@@ -89,7 +89,7 @@ export class SystemTester {
         const duration = Date.now() - startTime;
         
         if (error.message.includes('timed out')) {
-          await this.addResult(test.name, 'fail', `Test timed out after ${test.timeout || 6000}ms`, duration);
+          await this.addResult(test.name, 'fail', `Test timed out after ${test.timeout || 5000}ms - API response too slow`, duration);
         } else {
           await this.addResult(test.name, 'fail', `Test failed: ${error.message}`, duration);
         }
