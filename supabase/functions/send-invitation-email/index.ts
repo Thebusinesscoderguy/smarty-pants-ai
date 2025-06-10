@@ -13,13 +13,15 @@ serve(async (req) => {
 
   try {
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    console.log('Checking RESEND_API_KEY:', resendApiKey ? 'Found' : 'Not found');
+    console.log('Environment check - RESEND_API_KEY:', resendApiKey ? `Found (${resendApiKey.length} chars)` : 'Not found');
+    console.log('All environment variables:', Object.keys(Deno.env.toObject()));
     
     if (!resendApiKey) {
-      console.error('RESEND_API_KEY not configured');
+      console.error('RESEND_API_KEY not configured in environment');
       return new Response(
         JSON.stringify({ 
-          error: 'Email service not configured. Please set the RESEND_API_KEY secret in Supabase.' 
+          error: 'Email service not configured. Please set the RESEND_API_KEY secret in Supabase.',
+          type: 'configuration_error'
         }),
         { 
           status: 500, 
@@ -29,11 +31,15 @@ serve(async (req) => {
     }
 
     const { invitationId, studentEmail, studentName, schoolName, invitationCode } = await req.json();
+    console.log('Request payload received:', { invitationId, studentEmail, studentName, schoolName, invitationCode });
 
     // Validate required fields
     if (!studentEmail || !invitationCode) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: studentEmail and invitationCode' }),
+        JSON.stringify({ 
+          error: 'Missing required fields: studentEmail and invitationCode',
+          type: 'validation_error'
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -56,6 +62,8 @@ serve(async (req) => {
     };
 
     console.log('Attempting to send email via Resend API...');
+    console.log('Using API key starting with:', resendApiKey.substring(0, 10) + '...');
+    
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -65,13 +73,24 @@ serve(async (req) => {
       body: JSON.stringify(emailData),
     });
 
+    console.log('Resend API response status:', response.status);
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Resend API error:', response.status, errorText);
+      
+      let errorType = 'email_service_error';
+      if (response.status === 401) {
+        errorType = 'api_key_error';
+      } else if (response.status === 422) {
+        errorType = 'validation_error';
+      }
+      
       return new Response(
         JSON.stringify({ 
           error: `Email service error: ${response.statusText}`,
-          details: errorText
+          details: errorText,
+          type: errorType
         }),
         { 
           status: response.status, 
@@ -95,7 +114,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        message: error.message 
+        message: error.message,
+        type: 'internal_error'
       }),
       { 
         status: 500, 

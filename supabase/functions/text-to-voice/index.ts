@@ -14,8 +14,6 @@ serve(async (req) => {
 
   try {
     console.log("Request received for text-to-voice");
-    
-    // Enhanced logging of request details
     console.log(`Request method: ${req.method}`);
     console.log(`Request URL: ${req.url}`);
     
@@ -28,6 +26,7 @@ serve(async (req) => {
 
     // Get API key from environment variable
     const openAIKey = Deno.env.get('OPENAI_API_KEY');
+    console.log('OpenAI API key check:', openAIKey ? 'Found' : 'Not found');
     
     if (!openAIKey || openAIKey.trim() === '') {
       console.error("OPENAI_API_KEY not found or empty in environment variables");
@@ -42,8 +41,6 @@ serve(async (req) => {
         }
       );
     }
-    
-    console.log("Using server-side API key");
 
     console.log("Converting text to speech:", { textLength: text.length, voice });
 

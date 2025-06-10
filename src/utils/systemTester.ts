@@ -74,20 +74,7 @@ export class SystemTester {
     try {
       console.log('Testing Supabase connection...');
       
-      // Check if we can reach the Supabase instance
-      const url = 'https://twfzlbockonxopuindaw.supabase.co';
-      const response = await fetch(`${url}/rest/v1/`, {
-        method: 'HEAD',
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MDE5NTAsImV4cCI6MjA1ODk3Nzk1MH0.MKUGpLxfF5bhtqOAo0aBs0daOMpMfkIqgwZ2ntIvQi4'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Supabase instance not accessible`);
-      }
-      
-      // Now test the client connection
+      // Test the client connection directly without hardcoded API key
       const { data, error, count } = await supabase
         .from('subjects')
         .select('id, name', { count: 'exact' })
@@ -197,8 +184,13 @@ export class SystemTester {
       });
       
       if (error) {
+        console.error('Text-to-voice error details:', error);
         if (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY')) {
           await this.addResult('OpenAI Text-to-Voice', 'skip', 'OpenAI API key not configured');
+          return;
+        }
+        if (error.message?.includes('Failed to send a request to the Edge Function')) {
+          await this.addResult('OpenAI Text-to-Voice', 'fail', 'Edge function deployment or connectivity issue');
           return;
         }
         throw error;
