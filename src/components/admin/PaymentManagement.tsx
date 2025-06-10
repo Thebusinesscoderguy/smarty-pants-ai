@@ -13,7 +13,7 @@ interface Subscription {
   subscription_tier: string;
   subscribed: boolean;
   subscription_end: string;
-  stripe_customer_id: string;
+  paypal_subscription_id: string;
 }
 
 interface SchoolAccount {
@@ -91,7 +91,7 @@ export const PaymentManagement = () => {
     }
   };
 
-  const createStripeSubscription = async () => {
+  const createPayPalSubscription = async () => {
     try {
       setIsCreatingSubscription(true);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -107,7 +107,7 @@ export const PaymentManagement = () => {
       console.error('Error creating subscription:', error);
       toast({
         title: "Error",
-        description: "Failed to create subscription",
+        description: "Failed to create PayPal subscription",
         variant: "destructive"
       });
     } finally {
@@ -119,7 +119,7 @@ export const PaymentManagement = () => {
     try {
       setIsCancelling(true);
       
-      // This would call Stripe cancellation API
+      // This would call PayPal cancellation API
       const { error } = await supabase
         .from('subscribers')
         .update({ 
@@ -133,7 +133,7 @@ export const PaymentManagement = () => {
       setSubscription(null);
       toast({
         title: "Subscription Cancelled",
-        description: "Your subscription has been cancelled successfully",
+        description: "Your PayPal subscription has been cancelled successfully",
       });
       
     } catch (error: any) {
@@ -162,7 +162,7 @@ export const PaymentManagement = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-white">Subscription Management</h2>
-        <p className="text-gray-400">Manage your school's subscription and billing via Stripe</p>
+        <p className="text-gray-400">Manage your school's subscription and billing via PayPal</p>
       </div>
 
       {/* Current Subscription Status */}
@@ -212,13 +212,13 @@ export const PaymentManagement = () => {
         </Card>
       )}
 
-      {/* Stripe Subscription Option */}
+      {/* PayPal Subscription Option */}
       {!subscription && (
         <Card className="bg-white/10 border-white/20">
           <CardHeader>
             <CardTitle className="text-white text-center">Business Plan</CardTitle>
             <div className="text-2xl font-bold text-white text-center">${calculateMonthlyPrice()}/month</div>
-            <p className="text-gray-400 text-center">Secure payments via Stripe</p>
+            <p className="text-gray-400 text-center">Secure payments via PayPal</p>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 mb-6">
@@ -253,11 +253,11 @@ export const PaymentManagement = () => {
               </ul>
             </div>
             <Button 
-              onClick={createStripeSubscription}
+              onClick={createPayPalSubscription}
               disabled={isCreatingSubscription}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
-              {isCreatingSubscription ? 'Processing...' : 'Subscribe with Stripe'}
+              {isCreatingSubscription ? 'Processing...' : 'Subscribe with PayPal'}
             </Button>
           </CardContent>
         </Card>

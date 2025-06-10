@@ -14,21 +14,30 @@ const Pricing = () => {
     try {
       setIsLoading(prev => ({ ...prev, [planType]: true }));
       
+      console.log("Starting PayPal checkout for plan:", planType);
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { planType }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("PayPal checkout error:", error);
+        throw error;
+      }
+
+      console.log("PayPal checkout response:", data);
 
       if (data?.url) {
-        // Open Stripe checkout in a new tab
+        // Open PayPal checkout in a new tab
         window.open(data.url, '_blank');
+      } else {
+        throw new Error("No checkout URL received from PayPal");
       }
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: "Payment Error",
-        description: error.message || "Failed to start payment process",
+        description: error.message || "Failed to start payment process with PayPal",
         variant: "destructive",
       });
     } finally {
@@ -98,7 +107,7 @@ const Pricing = () => {
               </ul>
               
               <div className="bg-white/5 p-4 rounded-lg">
-                <p className="font-medium">Secure payment via Stripe</p>
+                <p className="font-medium">Secure payment via PayPal</p>
                 <p className="text-sm text-white/70">Cancel anytime from your dashboard</p>
               </div>
             </CardContent>
@@ -108,7 +117,7 @@ const Pricing = () => {
                 onClick={() => handleSubscription('individual')}
                 disabled={isLoading.individual}
               >
-                {isLoading.individual ? "Processing..." : "Subscribe Now"}
+                {isLoading.individual ? "Processing..." : "Subscribe with PayPal"}
               </Button>
             </CardFooter>
           </Card>
@@ -177,7 +186,7 @@ const Pricing = () => {
                 onClick={() => handleSubscription('business')}
                 disabled={isLoading.business}
               >
-                {isLoading.business ? "Processing..." : "Subscribe Now"}
+                {isLoading.business ? "Processing..." : "Subscribe with PayPal"}
               </Button>
             </CardFooter>
           </Card>
