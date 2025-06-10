@@ -13,7 +13,8 @@ interface Subscription {
   subscription_tier: string;
   subscribed: boolean;
   subscription_end: string;
-  paypal_subscription_id: string;
+  stripe_customer_id?: string;
+  paypal_subscription_id?: string;
 }
 
 interface SchoolAccount {
@@ -52,7 +53,16 @@ export const PaymentManagement = () => {
       if (subError && subError.code !== 'PGRST116') {
         console.error('Error fetching subscription:', subError);
       } else if (subData) {
-        setSubscription(subData);
+        // Map the database structure to our interface
+        const mappedSubscription: Subscription = {
+          id: subData.id,
+          subscription_tier: subData.subscription_tier || 'business',
+          subscribed: subData.subscribed,
+          subscription_end: subData.subscription_end || '',
+          stripe_customer_id: subData.stripe_customer_id,
+          paypal_subscription_id: subData.paypal_subscription_id
+        };
+        setSubscription(mappedSubscription);
       }
 
       // Fetch school account data
