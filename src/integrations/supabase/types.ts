@@ -829,6 +829,7 @@ export type Database = {
           email: string
           id: string
           max_students: number | null
+          paypal_subscription_id: string | null
           stripe_customer_id: string | null
           student_count: number | null
           subscribed: boolean
@@ -842,6 +843,7 @@ export type Database = {
           email: string
           id?: string
           max_students?: number | null
+          paypal_subscription_id?: string | null
           stripe_customer_id?: string | null
           student_count?: number | null
           subscribed?: boolean
@@ -855,6 +857,7 @@ export type Database = {
           email?: string
           id?: string
           max_students?: number | null
+          paypal_subscription_id?: string | null
           stripe_customer_id?: string | null
           student_count?: number | null
           subscribed?: boolean
