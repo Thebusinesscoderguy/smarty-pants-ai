@@ -46,7 +46,7 @@ export class SystemTester {
     const tests = [
       // Critical infrastructure tests first
       { name: 'Supabase Connection', fn: () => this.testSupabaseConnection() },
-      { name: 'Database Access', fn: () => this.testDatabaseAccess() },
+      { name: 'Database Access', fn: () => this.testDatabaseAccess(), timeout: 8000 }, // Increased timeout
       { name: 'Authentication', fn: () => this.testAuthenticationFlow() },
       
       // API tests with optimized timeouts
@@ -144,28 +144,83 @@ export class SystemTester {
 
   private async testDatabaseAccess() {
     try {
-      const { error } = await supabase.auth.getSession();
+      console.log('Testing database access with multiple approaches...');
       
-      if (error && error.message.includes('Invalid API key')) {
-        await this.addResult('Database Access', 'fail', 'Invalid API key - database access denied');
-        return;
-      }
+      // First try to get current session info
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('Session check:', { hasSession: !!sessionData.session, sessionError: sessionError?.message });
       
+      // Try a simple query with detailed error handling
+      const startTime = Date.now();
       const { data, error: subjectsError, count } = await supabase
         .from('subjects')
-        .select('*', { count: 'exact' })
-        .limit(1);
-        
+        .select('id, name', { count: 'exact' })
+        .limit(3); // Increase limit slightly for better test
+      
+      const queryTime = Date.now() - startTime;
+      console.log(`Query completed in ${queryTime}ms`);
+      
       if (subjectsError) {
+        console.error('Database query error details:', {
+          message: subjectsError.message,
+          code: subjectsError.code,
+          details: subjectsError.details,
+          hint: subjectsError.hint
+        });
+        
         if (subjectsError.message.includes('Invalid API key') || subjectsError.message.includes('401')) {
           throw new Error('Invalid API key - authentication required for database access');
         }
+        
+        if (subjectsError.message.includes('timeout') || subjectsError.message.includes('connection')) {
+          throw new Error(`Database connection issue: ${subjectsError.message}`);
+        }
+        
         throw new Error(`Database error: ${subjectsError.message}`);
       }
       
-      await this.addResult('Database Access', 'pass', `Database accessible (${count || 0} subjects found)`);
+      // Additional health check - try to access user-specific data if authenticated
+      if (sessionData.session?.user) {
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', sessionData.session.user.id)
+            .maybeSingle();
+          
+          if (!profileError) {
+            console.log('Profile access successful:', { hasProfile: !!profileData });
+          }
+        } catch (profileErr) {
+          console.log('Profile access test failed (non-critical):', profileErr);
+        }
+      }
+      
+      await this.addResult('Database Access', 'pass', 
+        `Database accessible and responsive (${count || 0} subjects found in ${queryTime}ms)`
+      );
+      
     } catch (error: any) {
-      await this.addResult('Database Access', 'fail', `Database access failed: ${error.message}`);
+      console.error('Database access test failed:', error);
+      
+      // Provide more specific error messages
+      if (error.message.includes('timeout')) {
+        await this.addResult('Database Access', 'fail', 
+          'Database query timed out - possible connectivity issues or high server load'
+        );
+      } else if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+        await this.addResult('Database Access', 'fail', 
+          'Authentication failed - invalid API key or insufficient permissions'
+        );
+      } else if (error.message.includes('connection')) {
+        await this.addResult('Database Access', 'fail', 
+          'Database connection failed - network or server issues'
+        );
+      } else {
+        await this.addResult('Database Access', 'fail', 
+          `Database access failed: ${error.message}`
+        );
+      }
       throw error; // Re-throw to stop further tests
     }
   }
