@@ -28,15 +28,20 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 10000): P
 export class SystemTester {
   private results: TestResult[] = [];
   private onProgress?: (testName: string, current: number, total: number) => void;
+  private forceTestMode: boolean = false;
 
-  constructor(onProgress?: (testName: string, current: number, total: number) => void) {
+  constructor(onProgress?: (testName: string, current: number, total: number) => void, forceTestMode: boolean = false) {
     this.onProgress = onProgress;
+    this.forceTestMode = forceTestMode;
   }
 
   async runAllTests(): Promise<TestResult[]> {
     this.results = [];
     
     console.log('🔧 Starting comprehensive system tests...');
+    if (this.forceTestMode) {
+      console.log('⚡ Force test mode enabled - bypassing skip conditions');
+    }
     
     const tests = [
       // Critical infrastructure tests first
@@ -221,10 +226,13 @@ export class SystemTester {
       
       if (error) {
         console.error('Text-to-voice error details:', error);
-        if (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY')) {
+        
+        // In force test mode, don't skip - let it fail to see the actual error
+        if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY'))) {
           await this.addResult('OpenAI Text-to-Voice', 'skip', 'OpenAI API key not configured');
           return;
         }
+        
         if (error.message?.includes('Failed to send a request to the Edge Function')) {
           await this.addResult('OpenAI Text-to-Voice', 'fail', 'Edge function deployment or connectivity issue');
           return;
@@ -254,7 +262,8 @@ export class SystemTester {
       });
       
       if (error) {
-        if (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY')) {
+        // In force test mode, don't skip - let it fail to see the actual error
+        if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY'))) {
           await this.addResult('OpenAI Chat Completion', 'skip', 'OpenAI API key not configured');
           return;
         }
@@ -278,7 +287,8 @@ export class SystemTester {
       });
       
       if (error) {
-        if (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY')) {
+        // In force test mode, don't skip - let it fail to see the actual error
+        if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY'))) {
           await this.addResult('Voice-to-Text', 'skip', 'OpenAI API key not configured');
           return;
         }
@@ -460,10 +470,12 @@ export class SystemTester {
       });
       
       if (error) {
-        if (error.message?.includes('not configured') || error.message?.includes('RESEND_API_KEY')) {
+        // In force test mode, don't skip - let it fail to see the actual error
+        if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('RESEND_API_KEY'))) {
           await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
           return;
         }
+        
         if (error.message?.includes('Invalid API key') || error.message?.includes('401')) {
           await this.addResult('Email Invitation', 'fail', 'Invalid API key - edge function access denied');
           return;

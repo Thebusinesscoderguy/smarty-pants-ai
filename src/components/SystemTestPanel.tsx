@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Play, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, Play, CheckCircle, XCircle, Clock, AlertCircle, Zap } from 'lucide-react';
 import { runSystemTests, quickHealthCheck, type TestSuite, type TestResult } from '@/utils/systemTester';
 import { toast } from '@/components/ui/use-toast';
 
@@ -15,7 +14,7 @@ export const SystemTestPanel = () => {
   const [currentTest, setCurrentTest] = useState<string>('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
 
-  const handleRunTests = async () => {
+  const handleRunTests = async (forceMode: boolean = false) => {
     setIsRunning(true);
     setTestResults([]);
     setCurrentTest('');
@@ -23,16 +22,18 @@ export const SystemTestPanel = () => {
     
     try {
       toast({
-        title: "Starting System Tests",
-        description: "Running comprehensive system tests with timeouts...",
+        title: forceMode ? "Starting Force Tests" : "Starting System Tests",
+        description: forceMode 
+          ? "Running all tests without skipping missing API keys..." 
+          : "Running comprehensive system tests with timeouts...",
       });
 
-      // Create a new SystemTester with progress callback
+      // Create a new SystemTester with progress callback and force mode
       const { SystemTester } = await import('@/utils/systemTester');
       const tester = new SystemTester((testName: string, current: number, total: number) => {
         setCurrentTest(testName);
         setProgress({ current, total });
-      });
+      }, forceMode);
 
       // Run tests with a master timeout to prevent hanging
       const timeoutPromise = new Promise<TestResult[]>((_, reject) => {
@@ -45,7 +46,7 @@ export const SystemTestPanel = () => {
       ]);
 
       const suiteResults = [{
-        name: 'System Tests',
+        name: forceMode ? 'System Tests (Force Mode)' : 'System Tests',
         results: results,
         totalTests: results.length,
         passedTests: results.filter(r => r.status === 'pass').length,
@@ -163,9 +164,9 @@ export const SystemTestPanel = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button 
-              onClick={handleRunTests} 
+              onClick={() => handleRunTests(false)} 
               disabled={isRunning}
               className="flex items-center gap-2"
             >
@@ -178,6 +179,25 @@ export const SystemTestPanel = () => {
                 <>
                   <Play className="h-4 w-4" />
                   Run Full Test Suite
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={() => handleRunTests(true)} 
+              disabled={isRunning}
+              variant="outline"
+              className="flex items-center gap-2 border-orange-500 text-orange-600 hover:bg-orange-50"
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Force Testing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" />
+                  Force Test All (Bypass Skips)
                 </>
               )}
             </Button>
