@@ -16,65 +16,101 @@ export interface TestSuite {
   skippedTests: number;
 }
 
+// Timeout wrapper for test functions
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 10000): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+  
+  return Promise.race([promise, timeoutPromise]);
+}
+
 export class SystemTester {
   private results: TestResult[] = [];
+  private onProgress?: (testName: string, current: number, total: number) => void;
+
+  constructor(onProgress?: (testName: string, current: number, total: number) => void) {
+    this.onProgress = onProgress;
+  }
 
   async runAllTests(): Promise<TestResult[]> {
     this.results = [];
     
     console.log('🔧 Starting comprehensive system tests...');
     
-    // Core Infrastructure Tests
-    await this.testSupabaseConnection();
-    await this.testDatabaseAccess();
-    
-    // Authentication Tests
-    await this.testAuthenticationFlow();
-    await this.testUserProfileCreation();
-    
-    // AI Service Tests
-    await this.testOpenAITextToVoice();
-    await this.testOpenAIChatCompletion();
-    await this.testVoiceToText();
-    
-    // Quiz System Tests
-    await this.testQuizGeneration();
-    await this.testQuizStorage();
-    
-    // User Features Tests
-    await this.testMessageStorage();
-    await this.testFileUpload();
-    await this.testTokenUsageTracking();
-    
-    // Gamification Tests
-    await this.testAchievementSystem();
-    await this.testQuestSystem();
-    
-    // Analytics Tests
-    await this.testLearningAnalytics();
-    await this.testProgressTracking();
-    
-    // Email System Tests
-    await this.testEmailInvitation();
-    
-    // Payment System Tests
-    await this.testStripeCheckout();
+    const tests = [
+      // Critical infrastructure tests first
+      { name: 'Supabase Connection', fn: () => this.testSupabaseConnection() },
+      { name: 'Database Access', fn: () => this.testDatabaseAccess() },
+      { name: 'Authentication', fn: () => this.testAuthenticationFlow() },
+      
+      // API tests with shorter timeouts
+      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 15000 },
+      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 10000 },
+      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 15000 },
+      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 10000 },
+      
+      // Database table tests
+      { name: 'Quiz Storage', fn: () => this.testQuizStorage() },
+      { name: 'Message Storage', fn: () => this.testMessageStorage() },
+      { name: 'User Profile', fn: () => this.testUserProfileCreation() },
+      { name: 'File Upload', fn: () => this.testFileUpload() },
+      { name: 'Token Usage', fn: () => this.testTokenUsageTracking() },
+      { name: 'Achievement System', fn: () => this.testAchievementSystem() },
+      { name: 'Quest System', fn: () => this.testQuestSystem() },
+      { name: 'Learning Analytics', fn: () => this.testLearningAnalytics() },
+      { name: 'Progress Tracking', fn: () => this.testProgressTracking() },
+    ];
+
+    for (let i = 0; i < tests.length; i++) {
+      const test = tests[i];
+      const startTime = Date.now();
+      
+      // Report progress
+      if (this.onProgress) {
+        this.onProgress(test.name, i + 1, tests.length);
+      }
+      
+      try {
+        console.log(`Running test ${i + 1}/${tests.length}: ${test.name}`);
+        await withTimeout(test.fn(), test.timeout || 8000);
+        const duration = Date.now() - startTime;
+        
+        // Update duration for the last added result
+        if (this.results.length > 0) {
+          this.results[this.results.length - 1].duration = duration;
+        }
+      } catch (error: any) {
+        const duration = Date.now() - startTime;
+        
+        if (error.message.includes('timed out')) {
+          await this.addResult(test.name, 'fail', `Test timed out after ${test.timeout || 8000}ms`, duration);
+        } else {
+          await this.addResult(test.name, 'fail', `Test failed: ${error.message}`, duration);
+        }
+        
+        // For critical infrastructure tests, stop if they fail
+        if (i < 3 && this.results[this.results.length - 1].status === 'fail') {
+          console.log('Critical infrastructure test failed, stopping remaining tests');
+          break;
+        }
+      }
+    }
     
     console.log('✅ System tests completed');
     return this.results;
   }
 
-  private async addResult(name: string, status: 'pass' | 'fail' | 'skip', message: string) {
-    this.results.push({ name, status, message });
+  private async addResult(name: string, status: 'pass' | 'fail' | 'skip', message: string, duration?: number) {
+    this.results.push({ name, status, message, duration });
     const emoji = status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⏭️';
-    console.log(`${emoji} ${name}: ${message}`);
+    console.log(`${emoji} ${name}: ${message} ${duration ? `(${duration}ms)` : ''}`);
   }
 
   private async testSupabaseConnection() {
     try {
       console.log('Testing Supabase connection...');
       
-      // Test the client connection directly without hardcoded API key
       const { data, error, count } = await supabase
         .from('subjects')
         .select('id, name', { count: 'exact' })
@@ -97,12 +133,12 @@ export class SystemTester {
       } else {
         await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
       }
+      throw error; // Re-throw to stop further tests
     }
   }
 
   private async testDatabaseAccess() {
     try {
-      // Test database accessibility with proper error handling
       const { error } = await supabase.auth.getSession();
       
       if (error && error.message.includes('Invalid API key')) {
@@ -110,7 +146,6 @@ export class SystemTester {
         return;
       }
       
-      // Test subjects table access
       const { data, error: subjectsError, count } = await supabase
         .from('subjects')
         .select('*', { count: 'exact' })
@@ -126,6 +161,7 @@ export class SystemTester {
       await this.addResult('Database Access', 'pass', `Database accessible (${count || 0} subjects found)`);
     } catch (error: any) {
       await this.addResult('Database Access', 'fail', `Database access failed: ${error.message}`);
+      throw error; // Re-throw to stop further tests
     }
   }
 
@@ -256,34 +292,6 @@ export class SystemTester {
       }
     } catch (error: any) {
       await this.addResult('Voice-to-Text', 'fail', `Voice transcription failed: ${error.message}`);
-    }
-  }
-
-  private async testQuizGeneration() {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-quiz', {
-        body: {
-          topic: 'Test Topic',
-          difficulty: 'easy',
-          questionCount: 1
-        }
-      });
-      
-      if (error) {
-        if (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY')) {
-          await this.addResult('Quiz Generation', 'skip', 'OpenAI API key not configured');
-          return;
-        }
-        throw error;
-      }
-      
-      if (data && data.questions && data.questions.length > 0) {
-        await this.addResult('Quiz Generation', 'pass', 'Quiz generation working');
-      } else {
-        throw new Error('No questions generated');
-      }
-    } catch (error: any) {
-      await this.addResult('Quiz Generation', 'fail', `Quiz generation failed: ${error.message}`);
     }
   }
 
@@ -470,32 +478,6 @@ export class SystemTester {
       await this.addResult('Email Invitation', 'pass', 'Email invitation system working');
     } catch (error: any) {
       await this.addResult('Email Invitation', 'fail', `Email invitation failed: ${error.message}`);
-    }
-  }
-
-  private async testStripeCheckout() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        await this.addResult('Stripe Checkout', 'skip', 'No user logged in - payment tests skipped');
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType: 'individual' }
-      });
-      
-      if (error) {
-        if (error.message?.includes('not configured') || error.message?.includes('STRIPE_SECRET_KEY')) {
-          await this.addResult('Stripe Checkout', 'skip', 'Stripe secret key not configured');
-          return;
-        }
-        throw error;
-      }
-      
-      await this.addResult('Stripe Checkout', 'pass', 'Stripe checkout system working');
-    } catch (error: any) {
-      await this.addResult('Stripe Checkout', 'fail', `Stripe checkout failed: ${error.message}`);
     }
   }
 

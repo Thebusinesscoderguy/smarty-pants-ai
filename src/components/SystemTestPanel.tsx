@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Loader2, Play, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
 import { runSystemTests, quickHealthCheck, type TestSuite, type TestResult } from '@/utils/systemTester';
 import { toast } from '@/components/ui/use-toast';
@@ -11,22 +12,42 @@ export const SystemTestPanel = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [testResults, setTestResults] = useState<TestSuite[]>([]);
   const [healthStatus, setHealthStatus] = useState<{status: string, message: string} | null>(null);
+  const [currentTest, setCurrentTest] = useState<string>('');
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   const handleRunTests = async () => {
     setIsRunning(true);
     setTestResults([]);
+    setCurrentTest('');
+    setProgress({ current: 0, total: 0 });
     
     try {
       toast({
         title: "Starting System Tests",
-        description: "Running comprehensive system tests...",
+        description: "Running comprehensive system tests with timeouts...",
       });
 
-      const results = await runSystemTests();
-      setTestResults(results);
+      // Create a new SystemTester with progress callback
+      const { SystemTester } = await import('@/utils/systemTester');
+      const tester = new SystemTester((testName: string, current: number, total: number) => {
+        setCurrentTest(testName);
+        setProgress({ current, total });
+      });
 
-      const totalTests = results.reduce((sum, suite) => sum + suite.totalTests, 0);
-      const failedTests = results.reduce((sum, suite) => sum + suite.failedTests, 0);
+      const results = await tester.runAllTests();
+      const suiteResults = [{
+        name: 'System Tests',
+        results: results,
+        totalTests: results.length,
+        passedTests: results.filter(r => r.status === 'pass').length,
+        failedTests: results.filter(r => r.status === 'fail').length,
+        skippedTests: results.filter(r => r.status === 'skip').length
+      }];
+
+      setTestResults(suiteResults);
+
+      const totalTests = suiteResults.reduce((sum, suite) => sum + suite.totalTests, 0);
+      const failedTests = suiteResults.reduce((sum, suite) => sum + suite.failedTests, 0);
 
       if (failedTests > 0) {
         toast({
@@ -48,6 +69,8 @@ export const SystemTestPanel = () => {
       });
     } finally {
       setIsRunning(false);
+      setCurrentTest('');
+      setProgress({ current: 0, total: 0 });
     }
   };
 
@@ -96,6 +119,8 @@ export const SystemTestPanel = () => {
     }
   };
 
+  const progressPercentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
+
   return (
     <div className="space-y-6">
       <Card>
@@ -105,7 +130,7 @@ export const SystemTestPanel = () => {
             System Testing Panel
           </CardTitle>
           <CardDescription>
-            Comprehensive testing of all APIs, database operations, and workflows
+            Comprehensive testing of all APIs, database operations, and workflows with timeouts and progress tracking
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -131,12 +156,27 @@ export const SystemTestPanel = () => {
             <Button 
               variant="outline" 
               onClick={handleQuickHealthCheck}
+              disabled={isRunning}
               className="flex items-center gap-2"
             >
               <CheckCircle className="h-4 w-4" />
               Quick Health Check
             </Button>
           </div>
+
+          {isRunning && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">
+                  {currentTest || 'Initializing tests...'}
+                </span>
+                <span className="text-gray-500">
+                  {progress.current}/{progress.total}
+                </span>
+              </div>
+              <Progress value={progressPercentage} className="w-full" />
+            </div>
+          )}
 
           {healthStatus && (
             <div className={`p-3 rounded-lg ${
@@ -205,9 +245,11 @@ export const SystemTestPanel = () => {
                         <Badge className={getStatusColor(result.status)}>
                           {result.status}
                         </Badge>
-                        <span className="text-xs text-gray-500">
-                          {result.duration}ms
-                        </span>
+                        {result.duration && (
+                          <span className="text-xs text-gray-500">
+                            {result.duration}ms
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
