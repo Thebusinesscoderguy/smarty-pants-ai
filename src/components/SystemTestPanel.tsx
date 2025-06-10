@@ -34,7 +34,16 @@ export const SystemTestPanel = () => {
         setProgress({ current, total });
       });
 
-      const results = await tester.runAllTests();
+      // Run tests with a master timeout to prevent hanging
+      const timeoutPromise = new Promise<TestResult[]>((_, reject) => {
+        setTimeout(() => reject(new Error("Overall test suite timed out after 60 seconds")), 60000);
+      });
+
+      const results = await Promise.race([
+        tester.runAllTests(),
+        timeoutPromise
+      ]);
+
       const suiteResults = [{
         name: 'System Tests',
         results: results,
@@ -62,11 +71,25 @@ export const SystemTestPanel = () => {
         });
       }
     } catch (error: any) {
+      console.error("Test execution error:", error);
       toast({
         title: "Test Execution Failed",
         description: error.message,
         variant: "destructive"
       });
+      
+      // Add any partial results we might have
+      if (testResults.length === 0) {
+        const partialResults = [{
+          name: 'System Tests (Incomplete)',
+          results: [],
+          totalTests: 0,
+          passedTests: 0,
+          failedTests: 0,
+          skippedTests: 0
+        }];
+        setTestResults(partialResults);
+      }
     } finally {
       setIsRunning(false);
       setCurrentTest('');
@@ -85,10 +108,16 @@ export const SystemTestPanel = () => {
         variant: result.status === 'healthy' ? 'default' : 'destructive'
       });
     } catch (error: any) {
+      console.error("Health check error:", error);
       toast({
         title: "Health Check Failed",
         description: error.message,
         variant: "destructive"
+      });
+      
+      setHealthStatus({
+        status: 'error',
+        message: `Health check failed to complete: ${error.message}`
       });
     }
   };
@@ -182,16 +211,24 @@ export const SystemTestPanel = () => {
             <div className={`p-3 rounded-lg ${
               healthStatus.status === 'healthy' 
                 ? 'bg-green-50 border border-green-200' 
+                : healthStatus.status === 'error'
+                ? 'bg-yellow-50 border border-yellow-200'
                 : 'bg-red-50 border border-red-200'
             }`}>
               <div className="flex items-center gap-2">
                 {healthStatus.status === 'healthy' ? (
                   <CheckCircle className="h-4 w-4 text-green-600" />
+                ) : healthStatus.status === 'error' ? (
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-600" />
                 )}
                 <span className="text-sm font-medium">
-                  {healthStatus.status === 'healthy' ? 'System Healthy' : 'System Issues Detected'}
+                  {healthStatus.status === 'healthy' 
+                    ? 'System Healthy' 
+                    : healthStatus.status === 'error'
+                    ? 'Health Check Error'
+                    : 'System Issues Detected'}
                 </span>
               </div>
               <p className="text-sm mt-1 text-gray-600">{healthStatus.message}</p>
