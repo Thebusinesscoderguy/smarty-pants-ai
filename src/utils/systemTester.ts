@@ -49,11 +49,11 @@ export class SystemTester {
       { name: 'Database Access', fn: () => this.testDatabaseAccess() },
       { name: 'Authentication', fn: () => this.testAuthenticationFlow() },
       
-      // API tests with reduced timeouts
-      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 5000 }, // Reduced to 5 seconds
+      // API tests with optimized timeouts
+      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 10000 }, // Increased for real API calls
       { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 6000 },
       { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 8000 },
-      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 5000 }, // Reduced to 5 seconds
+      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 8000 },
       
       // Database table tests
       { name: 'Quiz Storage', fn: () => this.testQuizStorage() },
@@ -78,7 +78,7 @@ export class SystemTester {
       
       try {
         console.log(`Running test ${i + 1}/${tests.length}: ${test.name}`);
-        await withTimeout(test.fn(), test.timeout || 5000); // Reduced default timeout to 5 seconds
+        await withTimeout(test.fn(), test.timeout || 5000);
         const duration = Date.now() - startTime;
         
         // Update duration for the last added result
@@ -220,6 +220,8 @@ export class SystemTester {
 
   private async testOpenAITextToVoice() {
     try {
+      console.log('Testing OpenAI Text-to-Voice API...');
+      
       const { data, error } = await supabase.functions.invoke('text-to-voice', {
         body: { text: 'System test', voice: 'alloy' }
       });
@@ -233,20 +235,45 @@ export class SystemTester {
           return;
         }
         
+        // Handle specific error types
+        if (error.message?.includes('timed out') || error.message?.includes('timeout')) {
+          await this.addResult('OpenAI Text-to-Voice', 'fail', 'OpenAI API timeout - service may be slow or unavailable');
+          return;
+        }
+        
         if (error.message?.includes('Failed to send a request to the Edge Function')) {
           await this.addResult('OpenAI Text-to-Voice', 'fail', 'Edge function deployment or connectivity issue');
           return;
         }
+        
+        if (error.message?.includes('rate limit')) {
+          await this.addResult('OpenAI Text-to-Voice', 'fail', 'OpenAI API rate limit exceeded');
+          return;
+        }
+        
         throw error;
       }
       
       if (data && data.audioContent) {
-        await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working');
+        // Validate that we got actual audio content
+        if (data.audioContent.length > 100) { // Real audio should be longer than our mock
+          await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working with real API');
+        } else {
+          await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working (test mode)');
+        }
       } else {
-        throw new Error('No audio content returned');
+        throw new Error('No audio content returned from API');
       }
     } catch (error: any) {
-      await this.addResult('OpenAI Text-to-Voice', 'fail', `Voice generation failed: ${error.message}`);
+      console.error('Text-to-voice test failed:', error);
+      
+      if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+        await this.addResult('OpenAI Text-to-Voice', 'fail', 'API call timed out - OpenAI service may be slow');
+      } else if (error.message?.includes('API key')) {
+        await this.addResult('OpenAI Text-to-Voice', 'fail', 'OpenAI API key authentication failed');
+      } else {
+        await this.addResult('OpenAI Text-to-Voice', 'fail', `Voice generation failed: ${error.message}`);
+      }
     }
   }
 
