@@ -1,10 +1,13 @@
 import { supabase } from '@/integrations/supabase/client';
+import { ConnectionDiagnostics } from './connectionDiagnostics';
+import { ConnectionWarmup } from './connectionWarmup';
 
 export interface TestResult {
   name: string;
   status: 'pass' | 'fail' | 'skip';
   message: string;
   duration?: number;
+  diagnostics?: any;
 }
 
 export interface TestSuite {
@@ -16,55 +19,110 @@ export interface TestSuite {
   skippedTests: number;
 }
 
-// Timeout wrapper for test functions
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 15000): Promise<T> {
+// Enhanced timeout wrapper with progressive retry and diagnostics
+async function withTimeout<T>(
+  promise: Promise<T>, 
+  timeoutMs: number = 15000,
+  testName: string = 'Unknown'
+): Promise<T> {
+  const diagnostics = ConnectionDiagnostics.getConnectionInfo();
+  const adjustedTimeout = ConnectionDiagnostics.getRecommendedTimeout(diagnostics.environment, timeoutMs);
+  
+  console.log(`⏱️ ${testName} timeout: ${adjustedTimeout}ms (environment: ${diagnostics.environment})`);
+  
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
+    setTimeout(() => {
+      const errorMsg = `Operation timed out after ${adjustedTimeout}ms (env: ${diagnostics.environment})`;
+      reject(new Error(errorMsg));
+    }, adjustedTimeout);
   });
   
   return Promise.race([promise, timeoutPromise]);
+}
+
+// Progressive retry with exponential backoff
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts: number = 3,
+  baseDelay: number = 1000,
+  testName: string = 'Unknown'
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`🔄 ${testName}: Attempt ${attempt}/${maxAttempts}`);
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      if (attempt === maxAttempts) {
+        break;
+      }
+      
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      console.log(`⏳ ${testName}: Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError!;
 }
 
 export class SystemTester {
   private results: TestResult[] = [];
   private onProgress?: (testName: string, current: number, total: number) => void;
   private forceTestMode: boolean = false;
+  private diagnostics: any;
 
   constructor(onProgress?: (testName: string, current: number, total: number) => void, forceTestMode: boolean = false) {
     this.onProgress = onProgress;
     this.forceTestMode = forceTestMode;
+    this.diagnostics = ConnectionDiagnostics.getConnectionInfo();
+    
+    // Log environment diagnostics
+    ConnectionDiagnostics.logDiagnostics(this.diagnostics);
   }
 
   async runAllTests(): Promise<TestResult[]> {
     this.results = [];
     
     console.log('🔧 Starting comprehensive system tests...');
+    console.log(`📍 Environment: ${this.diagnostics.environment}`);
+    
     if (this.forceTestMode) {
       console.log('⚡ Force test mode enabled - bypassing skip conditions');
     }
+
+    // Warmup connections before testing
+    try {
+      await ConnectionWarmup.warmupConnection();
+    } catch (error) {
+      console.warn('Connection warmup failed, proceeding with tests:', error);
+    }
     
     const tests = [
-      // Critical infrastructure tests first with longer timeouts
-      { name: 'Supabase Connection', fn: () => this.testSupabaseConnection(), timeout: 15000 },
-      { name: 'Database Access', fn: () => this.testDatabaseAccess(), timeout: 12000 },
-      { name: 'Authentication', fn: () => this.testAuthenticationFlow(), timeout: 10000 },
+      // Critical infrastructure tests with environment-adjusted timeouts
+      { name: 'Supabase Connection', fn: () => this.testSupabaseConnection(), timeout: 20000 },
+      { name: 'Database Access', fn: () => this.testDatabaseAccess(), timeout: 15000 },
+      { name: 'Authentication', fn: () => this.testAuthenticationFlow(), timeout: 12000 },
       
       // API tests with optimized timeouts
-      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 15000 },
-      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 10000 },
-      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 12000 },
-      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 12000 },
+      { name: 'OpenAI Text-to-Voice', fn: () => this.testOpenAITextToVoice(), timeout: 18000 },
+      { name: 'Email Invitation', fn: () => this.testEmailInvitation(), timeout: 12000 },
+      { name: 'OpenAI Chat Completion', fn: () => this.testOpenAIChatCompletion(), timeout: 15000 },
+      { name: 'Voice-to-Text', fn: () => this.testVoiceToText(), timeout: 15000 },
       
       // Database table tests
-      { name: 'Quiz Storage', fn: () => this.testQuizStorage(), timeout: 8000 },
-      { name: 'Message Storage', fn: () => this.testMessageStorage(), timeout: 8000 },
-      { name: 'User Profile', fn: () => this.testUserProfileCreation(), timeout: 8000 },
-      { name: 'File Upload', fn: () => this.testFileUpload(), timeout: 8000 },
-      { name: 'Token Usage', fn: () => this.testTokenUsageTracking(), timeout: 8000 },
-      { name: 'Achievement System', fn: () => this.testAchievementSystem(), timeout: 8000 },
-      { name: 'Quest System', fn: () => this.testQuestSystem(), timeout: 8000 },
-      { name: 'Learning Analytics', fn: () => this.testLearningAnalytics(), timeout: 8000 },
-      { name: 'Progress Tracking', fn: () => this.testProgressTracking(), timeout: 8000 },
+      { name: 'Quiz Storage', fn: () => this.testQuizStorage(), timeout: 10000 },
+      { name: 'Message Storage', fn: () => this.testMessageStorage(), timeout: 10000 },
+      { name: 'User Profile', fn: () => this.testUserProfileCreation(), timeout: 10000 },
+      { name: 'File Upload', fn: () => this.testFileUpload(), timeout: 10000 },
+      { name: 'Token Usage', fn: () => this.testTokenUsageTracking(), timeout: 10000 },
+      { name: 'Achievement System', fn: () => this.testAchievementSystem(), timeout: 10000 },
+      { name: 'Quest System', fn: () => this.testQuestSystem(), timeout: 10000 },
+      { name: 'Learning Analytics', fn: () => this.testLearningAnalytics(), timeout: 10000 },
+      { name: 'Progress Tracking', fn: () => this.testProgressTracking(), timeout: 10000 },
     ];
 
     for (let i = 0; i < tests.length; i++) {
@@ -77,8 +135,14 @@ export class SystemTester {
       }
       
       try {
-        console.log(`Running test ${i + 1}/${tests.length}: ${test.name} (timeout: ${test.timeout || 8000}ms)`);
-        await withTimeout(test.fn(), test.timeout || 8000);
+        console.log(`Running test ${i + 1}/${tests.length}: ${test.name}`);
+        
+        await withTimeout(
+          withRetry(() => test.fn(), 2, 1000, test.name),
+          test.timeout,
+          test.name
+        );
+        
         const duration = Date.now() - startTime;
         
         // Update duration for the last added result
@@ -89,9 +153,21 @@ export class SystemTester {
         const duration = Date.now() - startTime;
         
         if (error.message.includes('timed out')) {
-          await this.addResult(test.name, 'fail', `Test timed out after ${test.timeout || 8000}ms - API or network response too slow`, duration);
+          await this.addResult(
+            test.name, 
+            'fail', 
+            `Test timed out - ${error.message}. Environment: ${this.diagnostics.environment}`, 
+            duration,
+            { environment: this.diagnostics.environment, timeout: test.timeout }
+          );
         } else {
-          await this.addResult(test.name, 'fail', `Test failed: ${error.message}`, duration);
+          await this.addResult(
+            test.name, 
+            'fail', 
+            `Test failed: ${error.message}`, 
+            duration,
+            { environment: this.diagnostics.environment }
+          );
         }
         
         // For critical infrastructure tests, stop if they fail
@@ -106,137 +182,103 @@ export class SystemTester {
     return this.results;
   }
 
-  private async addResult(name: string, status: 'pass' | 'fail' | 'skip', message: string, duration?: number) {
-    this.results.push({ name, status, message, duration });
+  private async addResult(name: string, status: 'pass' | 'fail' | 'skip', message: string, duration?: number, diagnostics?: any) {
+    this.results.push({ name, status, message, duration, diagnostics });
     const emoji = status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⏭️';
     console.log(`${emoji} ${name}: ${message} ${duration ? `(${duration}ms)` : ''}`);
   }
 
   private async testSupabaseConnection() {
     try {
-      console.log('Testing Supabase connection with extended timeout...');
+      console.log('Testing Supabase connection with enhanced diagnostics...');
       
-      // Add retry logic for better reliability
-      let lastError;
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          console.log(`Connection attempt ${attempt}/3`);
-          
-          const { data, error, count } = await supabase
-            .from('subjects')
-            .select('id, name', { count: 'exact' })
-            .limit(1);
-          
-          if (error) {
-            console.error('Supabase connection error:', error);
-            if (error.message.includes('Invalid API key') || error.message.includes('401')) {
-              throw new Error('API key authentication failed - please check Supabase configuration');
-            }
-            throw new Error(`Database query failed: ${error.message}`);
-          }
-          
-          console.log('Connection successful:', { recordCount: count, hasData: !!data, attempt });
-          await this.addResult('Supabase Connection', 'pass', `Successfully connected to database (${count || 0} subjects found, attempt ${attempt})`);
-          return;
-        } catch (error: any) {
-          lastError = error;
-          if (attempt < 3) {
-            console.log(`Attempt ${attempt} failed, retrying in 1 second...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
+      // Measure connection timing
+      const timing = await ConnectionDiagnostics.measureConnectionTiming(
+        'https://twfzlbockonxopuindaw.supabase.co'
+      );
+      
+      if (timing.total && timing.total > 5000) {
+        console.warn(`Slow connection detected: ${timing.total}ms`);
+      }
+      
+      const startTime = Date.now();
+      const { data, error, count } = await supabase
+        .from('subjects')
+        .select('id, name', { count: 'exact' })
+        .limit(1);
+      
+      const queryTime = Date.now() - startTime;
+      console.log(`Query completed in ${queryTime}ms`);
+      
+      if (error) {
+        console.error('Supabase connection error:', error);
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('API key authentication failed - please check Supabase configuration');
         }
+        throw new Error(`Database query failed: ${error.message}`);
       }
       
-      throw lastError;
+      await this.addResult(
+        'Supabase Connection', 
+        'pass', 
+        `Connected successfully (${count || 0} subjects, ${queryTime}ms query time, env: ${this.diagnostics.environment})`,
+        queryTime,
+        { 
+          timing, 
+          environment: this.diagnostics.environment,
+          recordCount: count 
+        }
+      );
     } catch (error: any) {
-      console.error('Connection test failed after retries:', error);
-      if (error.message.includes('API key') || error.message.includes('401')) {
-        await this.addResult('Supabase Connection', 'fail', 'API key authentication failed - Supabase configuration needs to be updated');
-      } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
-        await this.addResult('Supabase Connection', 'fail', 'Connection timed out - network or server response too slow');
-      } else {
-        await this.addResult('Supabase Connection', 'fail', `Connection failed: ${error.message}`);
-      }
-      throw error; // Re-throw to stop further tests
+      console.error('Connection test failed:', error);
+      
+      const errorMessage = error.message.includes('API key') || error.message.includes('401')
+        ? 'API key authentication failed - Supabase configuration needs to be updated'
+        : error.message.includes('timeout') || error.message.includes('timed out')
+        ? `Connection timed out in ${this.diagnostics.environment} environment - network or server response too slow`
+        : `Connection failed: ${error.message}`;
+      
+      await this.addResult('Supabase Connection', 'fail', errorMessage);
+      throw error;
     }
   }
 
   private async testDatabaseAccess() {
     try {
-      console.log('Testing database access with extended timeout...');
+      console.log('Testing database access with enhanced diagnostics...');
       
-      // First try to get current session info
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log('Session check:', { hasSession: !!sessionData.session, sessionError: sessionError?.message });
+      const startTime = Date.now();
+      const { data, error, count } = await supabase
+        .from('subjects')
+        .select('id, name', { count: 'exact' })
+        .limit(3);
       
-      // Try a simple query with detailed error handling and retry logic
-      let lastError;
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          const startTime = Date.now();
-          const { data, error: subjectsError, count } = await supabase
-            .from('subjects')
-            .select('id, name', { count: 'exact' })
-            .limit(3);
-          
-          const queryTime = Date.now() - startTime;
-          console.log(`Query completed in ${queryTime}ms (attempt ${attempt})`);
-          
-          if (subjectsError) {
-            console.error('Database query error details:', {
-              message: subjectsError.message,
-              code: subjectsError.code,
-              details: subjectsError.details,
-              hint: subjectsError.hint
-            });
-            
-            if (subjectsError.message.includes('Invalid API key') || subjectsError.message.includes('401')) {
-              throw new Error('Invalid API key - authentication required for database access');
-            }
-            
-            if (subjectsError.message.includes('timeout') || subjectsError.message.includes('connection')) {
-              throw new Error(`Database connection issue: ${subjectsError.message}`);
-            }
-            
-            throw new Error(`Database error: ${subjectsError.message}`);
-          }
-          
-          await this.addResult('Database Access', 'pass', 
-            `Database accessible and responsive (${count || 0} subjects found in ${queryTime}ms, attempt ${attempt})`
-          );
-          return;
-        } catch (error: any) {
-          lastError = error;
-          if (attempt < 2) {
-            console.log(`Database access attempt ${attempt} failed, retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
+      const queryTime = Date.now() - startTime;
+      
+      if (error) {
+        console.error('Database access error:', error);
+        if (error.message.includes('Invalid API key') || error.message.includes('401')) {
+          throw new Error('Invalid API key - authentication required for database access');
         }
+        throw new Error(`Database error: ${error.message}`);
       }
       
-      throw lastError;
+      await this.addResult(
+        'Database Access', 
+        'pass', 
+        `Database responsive (${count || 0} subjects in ${queryTime}ms, env: ${this.diagnostics.environment})`
+      );
     } catch (error: any) {
       console.error('Database access test failed:', error);
       
-      // Provide more specific error messages
-      if (error.message.includes('timeout')) {
-        await this.addResult('Database Access', 'fail', 
-          'Database query timed out - possible connectivity issues or high server load'
-        );
-      } else if (error.message.includes('Invalid API key') || error.message.includes('401')) {
-        await this.addResult('Database Access', 'fail', 
-          'Authentication failed - invalid API key or insufficient permissions'
-        );
-      } else if (error.message.includes('connection')) {
-        await this.addResult('Database Access', 'fail', 
-          'Database connection failed - network or server issues'
-        );
-      } else {
-        await this.addResult('Database Access', 'fail', 
-          `Database access failed: ${error.message}`
-        );
-      }
-      throw error; // Re-throw to stop further tests
+      const errorMessage = error.message.includes('timeout')
+        ? `Database query timed out in ${this.diagnostics.environment} environment`
+        : error.message.includes('Invalid API key') || error.message.includes('401')
+        ? 'Authentication failed - invalid API key or insufficient permissions'
+        : `Database access failed: ${error.message}`;
+      
+      await this.addResult('Database Access', 'fail', errorMessage);
+      throw error;
     }
   }
 
@@ -299,13 +341,11 @@ export class SystemTester {
       if (error) {
         console.error('Text-to-voice error details:', error);
         
-        // In force test mode, don't skip - let it fail to see the actual error
         if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY'))) {
           await this.addResult('OpenAI Text-to-Voice', 'skip', 'OpenAI API key not configured');
           return;
         }
         
-        // Handle specific error types
         if (error.message?.includes('timed out') || error.message?.includes('timeout')) {
           await this.addResult('OpenAI Text-to-Voice', 'fail', 'OpenAI API timeout - service may be slow or unavailable');
           return;
@@ -325,8 +365,7 @@ export class SystemTester {
       }
       
       if (data && data.audioContent) {
-        // Validate that we got actual audio content
-        if (data.audioContent.length > 100) { // Real audio should be longer than our mock
+        if (data.audioContent.length > 100) {
           await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working with real API');
         } else {
           await this.addResult('OpenAI Text-to-Voice', 'pass', 'Voice generation working (test mode)');
@@ -359,7 +398,6 @@ export class SystemTester {
       });
       
       if (error) {
-        // In force test mode, don't skip - let it fail to see the actual error
         if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY'))) {
           await this.addResult('OpenAI Chat Completion', 'skip', 'OpenAI API key not configured');
           return;
@@ -384,7 +422,6 @@ export class SystemTester {
       });
       
       if (error) {
-        // In force test mode, don't skip - let it fail to see the actual error
         if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('OPENAI_API_KEY'))) {
           await this.addResult('Voice-to-Text', 'skip', 'OpenAI API key not configured');
           return;
@@ -567,7 +604,6 @@ export class SystemTester {
       });
       
       if (error) {
-        // In force test mode, don't skip - let it fail to see the actual error
         if (!this.forceTestMode && (error.message?.includes('not configured') || error.message?.includes('RESEND_API_KEY'))) {
           await this.addResult('Email Invitation', 'skip', 'Resend API key not configured');
           return;
@@ -622,6 +658,9 @@ export async function runSystemTests(): Promise<TestSuite[]> {
 
 export async function quickHealthCheck(): Promise<{status: string, message: string}> {
   try {
+    // Warmup connection first
+    await ConnectionWarmup.warmupConnection();
+    
     const { data, error, count } = await supabase
       .from('subjects')
       .select('*', { count: 'exact' })
@@ -633,10 +672,11 @@ export async function quickHealthCheck(): Promise<{status: string, message: stri
     
     const { data: { user } } = await supabase.auth.getUser();
     const authStatus = user ? 'authenticated' : 'anonymous';
+    const diagnostics = ConnectionDiagnostics.getConnectionInfo();
     
     return {
       status: 'healthy',
-      message: `System is operational. Database accessible (${count || 0} subjects), user ${authStatus}.`
+      message: `System operational (env: ${diagnostics.environment}). Database accessible (${count || 0} subjects), user ${authStatus}.`
     };
   } catch (error: any) {
     return {
