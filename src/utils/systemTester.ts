@@ -30,6 +30,14 @@ async function withTimeout<T>(
   
   console.log(`⏱️ ${testName} timeout: ${adjustedTimeout}ms (environment: ${diagnostics.environment})`);
   
+  // For preview environment, add connectivity pre-check
+  if (diagnostics.environment === 'preview') {
+    const hasConnectivity = await ConnectionDiagnostics.testBasicConnectivity();
+    if (!hasConnectivity) {
+      throw new Error('No internet connectivity detected in preview environment');
+    }
+  }
+  
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
       const errorMsg = `Operation timed out after ${adjustedTimeout}ms (env: ${diagnostics.environment})`;
@@ -94,6 +102,11 @@ export class SystemTester {
       console.log('⚡ Force test mode enabled - bypassing skip conditions');
     }
 
+    // For preview environment, add special handling
+    if (this.diagnostics.environment === 'preview') {
+      console.log('🌐 Preview environment detected - using enhanced connectivity strategies');
+    }
+
     // Warmup connections before testing
     try {
       await ConnectionWarmup.warmupConnection();
@@ -103,7 +116,7 @@ export class SystemTester {
     
     const tests = [
       // Critical infrastructure tests with environment-adjusted timeouts
-      { name: 'Supabase Connection', fn: () => this.testSupabaseConnection(), timeout: 20000 },
+      { name: 'Supabase Connection', fn: () => this.testSupabaseConnection(), timeout: this.diagnostics.environment === 'preview' ? 60000 : 20000 },
       { name: 'Database Access', fn: () => this.testDatabaseAccess(), timeout: 15000 },
       { name: 'Authentication', fn: () => this.testAuthenticationFlow(), timeout: 12000 },
       
@@ -160,6 +173,14 @@ export class SystemTester {
             duration,
             { environment: this.diagnostics.environment, timeout: test.timeout }
           );
+        } else if (error.message.includes('No internet connectivity')) {
+          await this.addResult(
+            test.name, 
+            'fail', 
+            `Network connectivity issue in ${this.diagnostics.environment} environment`, 
+            duration,
+            { environment: this.diagnostics.environment, connectivityIssue: true }
+          );
         } else {
           await this.addResult(
             test.name, 
@@ -197,8 +218,31 @@ export class SystemTester {
         'https://twfzlbockonxopuindaw.supabase.co'
       );
       
-      if (timing.total && timing.total > 5000) {
-        console.warn(`Slow connection detected: ${timing.total}ms`);
+      if (timing.total && timing.total > 10000) {
+        console.warn(`Very slow connection detected: ${timing.total}ms`);
+      }
+
+      // For preview environment, try a different approach
+      if (this.diagnostics.environment === 'preview') {
+        console.log('🌐 Using preview-optimized connection strategy...');
+        
+        // First, try a simple health check
+        try {
+          const healthCheck = await fetch('https://twfzlbockonxopuindaw.supabase.co/rest/v1/', {
+            method: 'HEAD',
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1OTIxMzMsImV4cCI6MjA1OTE2ODEzM30.8i4PeOsf-vWuKOeukSIAJHCMYMUaraO579wvuaFzpn0'
+            },
+            signal: AbortSignal.timeout(30000)
+          });
+          
+          if (!healthCheck.ok) {
+            throw new Error(`Health check failed: ${healthCheck.status} ${healthCheck.statusText}`);
+          }
+        } catch (error: any) {
+          console.error('Direct health check failed:', error);
+          throw new Error(`Preview environment connection failed: ${error.message}`);
+        }
       }
       
       const startTime = Date.now();
@@ -236,6 +280,8 @@ export class SystemTester {
         ? 'API key authentication failed - Supabase configuration needs to be updated'
         : error.message.includes('timeout') || error.message.includes('timed out')
         ? `Connection timed out in ${this.diagnostics.environment} environment - network or server response too slow`
+        : error.message.includes('Preview environment connection failed')
+        ? `Preview environment has connectivity issues: ${error.message}`
         : `Connection failed: ${error.message}`;
       
       await this.addResult('Supabase Connection', 'fail', errorMessage);

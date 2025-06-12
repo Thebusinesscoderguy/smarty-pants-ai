@@ -70,7 +70,7 @@ export class ConnectionDiagnostics {
       case 'editor':
         return baseTimeout * 0.75; // 25% faster for editor
       case 'preview':
-        return baseTimeout * 2; // 100% slower for preview
+        return baseTimeout * 3; // 200% slower for preview (was 2x, now 3x)
       case 'standalone':
         return baseTimeout * 1.5; // 50% slower for standalone
       default:
@@ -92,7 +92,8 @@ export class ConnectionDiagnostics {
       // Make a simple request to measure timing
       const response = await fetch(url, {
         method: 'HEAD',
-        cache: 'no-cache'
+        cache: 'no-cache',
+        mode: 'cors' // Explicitly set CORS mode for cross-origin requests
       });
       
       const endTime = performance.now();
@@ -133,5 +134,20 @@ export class ConnectionDiagnostics {
       timing,
       userAgent: diagnostics.userAgent.substring(0, 100) + '...'
     });
+  }
+
+  static async testBasicConnectivity(): Promise<boolean> {
+    try {
+      // Test basic internet connectivity first
+      const response = await fetch('https://httpbin.org/get', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(5000)
+      });
+      return response.ok;
+    } catch (error) {
+      console.warn('Basic connectivity test failed:', error);
+      return false;
+    }
   }
 }
