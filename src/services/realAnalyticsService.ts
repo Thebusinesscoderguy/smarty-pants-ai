@@ -11,8 +11,8 @@ export interface RealStudentAnalytics {
   lastActivity: string;
   topicPerformance: Array<{
     topic: string;
-    pastScore: number;
-    currentScore: number;
+    past_score: number;
+    current_score: number;
     improvement: number;
     totalInteractions: number;
   }>;
@@ -155,8 +155,8 @@ export class RealAnalyticsService {
     progressSnapshots: any[]
   ): Array<{
     topic: string;
-    pastScore: number;
-    currentScore: number;
+    past_score: number;
+    current_score: number;
     improvement: number;
     totalInteractions: number;
   }> {
@@ -166,7 +166,7 @@ export class RealAnalyticsService {
     analytics.forEach(analytic => {
       topicMap.set(analytic.topic_name, {
         topic: analytic.topic_name,
-        currentScore: Math.round(analytic.strength_score * 100),
+        current_score: Math.round(analytic.strength_score * 100),
         totalInteractions: analytic.total_attempts || 0
       });
     });
@@ -176,20 +176,20 @@ export class RealAnalyticsService {
       const existing = topicMap.get(snapshot.topic_name);
       if (existing) {
         // Use oldest snapshot as baseline (past score)
-        if (!existing.pastScore) {
-          existing.pastScore = Math.round(snapshot.performance_score * 100);
+        if (!existing.past_score) {
+          existing.past_score = Math.round(snapshot.performance_score * 100);
         }
       }
     });
 
     // Calculate improvements and fill missing past scores
     return Array.from(topicMap.values()).map(topic => {
-      if (!topic.pastScore) {
+      if (!topic.past_score) {
         // If no historical data, estimate based on current performance
-        topic.pastScore = Math.max(20, topic.currentScore - 25);
+        topic.past_score = Math.max(20, topic.current_score - 25);
       }
       
-      topic.improvement = topic.currentScore - topic.pastScore;
+      topic.improvement = topic.current_score - topic.past_score;
       return topic;
     }).slice(0, 8); // Limit to top 8 topics
   }
@@ -236,7 +236,7 @@ export class RealAnalyticsService {
                 Time Spent: ${analytics.totalTimeSpent} minutes
                 Strengths: ${analytics.strengths.join(', ')}
                 Weak Areas: ${analytics.weakAreas.join(', ')}
-                Recent Topics: ${analytics.topicPerformance.map(t => `${t.topic} (${t.currentScore}%)`).join(', ')}
+                Recent Topics: ${analytics.topicPerformance.map(t => `${t.topic} (${t.current_score}%)`).join(', ')}
                 
                 Generate a 2-3 sentence personalized insight focusing on progress, strengths to leverage, and specific next steps.
               `
