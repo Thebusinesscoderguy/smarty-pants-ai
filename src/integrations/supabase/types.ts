@@ -149,9 +149,14 @@ export type Database = {
       }
       learning_analytics: {
         Row: {
+          baseline_score: number | null
           correct_attempts: number | null
+          difficulty_level: string | null
           id: string
+          improvement_rate: number | null
+          interaction_context: Json | null
           last_updated: string
+          response_time_ms: number | null
           strength_score: number | null
           subject_id: string
           topic_name: string
@@ -159,9 +164,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          baseline_score?: number | null
           correct_attempts?: number | null
+          difficulty_level?: string | null
           id?: string
+          improvement_rate?: number | null
+          interaction_context?: Json | null
           last_updated?: string
+          response_time_ms?: number | null
           strength_score?: number | null
           subject_id: string
           topic_name: string
@@ -169,9 +179,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          baseline_score?: number | null
           correct_attempts?: number | null
+          difficulty_level?: string | null
           id?: string
+          improvement_rate?: number | null
+          interaction_context?: Json | null
           last_updated?: string
+          response_time_ms?: number | null
           strength_score?: number | null
           subject_id?: string
           topic_name?: string
@@ -181,6 +196,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "learning_analytics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_progress_snapshots: {
+        Row: {
+          average_response_time_ms: number | null
+          correct_interactions: number | null
+          created_at: string | null
+          id: string
+          performance_score: number
+          snapshot_date: string | null
+          student_id: string
+          subject_id: string | null
+          topic_name: string
+          total_interactions: number | null
+        }
+        Insert: {
+          average_response_time_ms?: number | null
+          correct_interactions?: number | null
+          created_at?: string | null
+          id?: string
+          performance_score: number
+          snapshot_date?: string | null
+          student_id: string
+          subject_id?: string | null
+          topic_name: string
+          total_interactions?: number | null
+        }
+        Update: {
+          average_response_time_ms?: number | null
+          correct_interactions?: number | null
+          created_at?: string | null
+          id?: string
+          performance_score?: number
+          snapshot_date?: string | null
+          student_id?: string
+          subject_id?: string | null
+          topic_name?: string
+          total_interactions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_progress_snapshots_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
@@ -707,6 +769,59 @@ export type Database = {
           },
           {
             foreignKeyName: "student_activity_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_interactions: {
+        Row: {
+          ai_analysis: Json | null
+          created_at: string | null
+          id: string
+          interaction_type: string
+          question_text: string | null
+          response_time_ms: number | null
+          session_id: string
+          student_id: string
+          student_response: string | null
+          subject_id: string | null
+          topic_identified: string | null
+          understanding_score: number | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          question_text?: string | null
+          response_time_ms?: number | null
+          session_id: string
+          student_id: string
+          student_response?: string | null
+          subject_id?: string | null
+          topic_identified?: string | null
+          understanding_score?: number | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          question_text?: string | null
+          response_time_ms?: number | null
+          session_id?: string
+          student_id?: string
+          student_response?: string | null
+          subject_id?: string | null
+          topic_identified?: string | null
+          understanding_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_interactions_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"

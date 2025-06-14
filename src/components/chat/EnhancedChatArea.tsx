@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Send, Bot, User, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
+import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 
 interface Message {
   id: string;
@@ -31,8 +31,10 @@ export const EnhancedChatArea = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeCurriculum, setActiveCurriculum] = useState<Curriculum | null>(null);
   const [curricula, setCurricula] = useState<Curriculum[]>([]);
+  const [messageStartTime, setMessageStartTime] = useState<number | null>(null);
   const { user } = useAuth();
   const { logActivity } = useActivityTracking();
+  const { trackInteraction, isAnalyzing } = useRealTimeAnalytics();
 
   useEffect(() => {
     if (user) {
@@ -92,8 +94,10 @@ export const EnhancedChatArea = () => {
     if (!currentMessage.trim() || !user) return;
 
     const userMessage = currentMessage;
+    const startTime = Date.now();
     setCurrentMessage('');
     setIsLoading(true);
+    setMessageStartTime(startTime);
 
     try {
       // Save user message
@@ -135,6 +139,8 @@ export const EnhancedChatArea = () => {
 
       if (error) throw error;
 
+      const responseTime = Date.now() - startTime;
+
       // Save AI response
       const { data: aiMsg, error: aiError } = await supabase
         .from('messages')
@@ -152,16 +158,27 @@ export const EnhancedChatArea = () => {
 
       setMessages(prev => [...prev, aiMsg]);
 
+      // Track interaction with real-time analytics
+      await trackInteraction(
+        'chat',
+        data.content, // AI's question/response as context
+        userMessage, // Student's response
+        activeCurriculum?.subjects.name || 'General',
+        activeCurriculum?.id,
+        responseTime
+      );
+
       // Log activity
       const subjectId = activeCurriculum?.subjects ? 
         await getSubjectId(activeCurriculum.subjects.name) : undefined;
       
-      await logActivity('chat', subjectId, 5); // 5 minutes average per conversation
+      await logActivity('chat', subjectId, 5);
 
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
       setIsLoading(false);
+      setMessageStartTime(null);
     }
   };
 
@@ -272,7 +289,7 @@ export const EnhancedChatArea = () => {
                 </div>
               ))
             )}
-            {isLoading && (
+            {(isLoading || isAnalyzing) && (
               <div className="flex gap-3 justify-start">
                 <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
                   <Bot className="h-4 w-4" />
@@ -283,6 +300,9 @@ export const EnhancedChatArea = () => {
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
+                  {isAnalyzing && (
+                    <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
+                  )}
                 </div>
               </div>
             )}
@@ -297,11 +317,11 @@ export const EnhancedChatArea = () => {
                 placeholder="Ask me anything about your studies..."
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 className="bg-white/10 border-white/20 text-white flex-1"
-                disabled={isLoading}
+                disabled={isLoading || isAnalyzing}
               />
               <Button 
                 onClick={sendMessage} 
-                disabled={!currentMessage.trim() || isLoading}
+                disabled={!currentMessage.trim() || isLoading || isAnalyzing}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Send className="h-4 w-4" />

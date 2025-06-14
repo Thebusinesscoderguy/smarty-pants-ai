@@ -9,32 +9,24 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { StrengthsWeaknessesChart } from '@/components/analytics/StrengthsWeaknessesChart';
 import { ProgressBrief } from '@/components/analytics/ProgressBrief';
-
-interface StudentData {
-  student_id: string;
-  student_name: string;
-  completion_percentage: number;
-  total_time_spent: number;
-  strengths: string[];
-  weak_areas: string[];
-  last_activity: string;
-  topic_performance: Array<{
-    topic: string;
-    past_score: number;
-    current_score: number;
-    improvement: number;
-  }>;
-}
+import { RealAnalyticsService, RealStudentAnalytics } from '@/services/realAnalyticsService';
 
 export const StudentAnalyticsView = () => {
-  const [students, setStudents] = useState<StudentData[]>([]);
+  const [students, setStudents] = useState<RealStudentAnalytics[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [insight, setInsight] = useState<string>('');
   const { user } = useAuth();
 
   useEffect(() => {
     fetchStudentAnalytics();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedStudent) {
+      generateInsight(selectedStudent);
+    }
+  }, [selectedStudent]);
 
   const fetchStudentAnalytics = async () => {
     if (!user) return;
@@ -51,57 +43,14 @@ export const StudentAnalyticsView = () => {
 
       if (schoolError) throw schoolError;
 
-      // Get student invitations
-      const { data: invitations, error: invitationsError } = await supabase
-        .from('student_invitations')
-        .select('email, first_name, last_name')
-        .eq('used', true);
-
-      if (invitationsError) throw invitationsError;
-
-      // Generate mock analytics data with specific topics
-      const specificTopics = [
-        'Algebra 1 Slope Intercept',
-        'Geometry Area Formulas',
-        'Quadratic Equations',
-        'Linear Systems',
-        'Exponential Functions',
-        'Trigonometry Basics',
-        'Statistics Mean/Median',
-        'Probability Fundamentals'
-      ];
-
-      const studentsData: StudentData[] = invitations?.map((invitation, index) => {
-        const studentName = `${invitation.first_name || 'Student'} ${invitation.last_name || index + 1}`;
-        
-        // Generate topic performance data
-        const topicPerformance = specificTopics.slice(0, Math.floor(Math.random() * 3) + 4).map(topic => {
-          const pastScore = Math.floor(Math.random() * 40) + 40; // 40-80%
-          const currentScore = Math.floor(Math.random() * 40) + 50; // 50-90%
-          return {
-            topic,
-            past_score: pastScore,
-            current_score: currentScore,
-            improvement: currentScore - pastScore
-          };
-        });
-
-        return {
-          student_id: `student_${index}`,
-          student_name: studentName,
-          completion_percentage: Math.floor(Math.random() * 40) + 60, // 60-100%
-          total_time_spent: Math.floor(Math.random() * 500) + 100, // 100-600 minutes
-          strengths: topicPerformance.filter(t => t.current_score >= 80).map(t => t.topic),
-          weak_areas: topicPerformance.filter(t => t.current_score < 60).map(t => t.topic),
-          last_activity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          topic_performance: topicPerformance
-        };
-      }) || [];
-
-      setStudents(studentsData);
-      if (studentsData.length > 0) {
-        setSelectedStudent(studentsData[0].student_id);
+      // Get real analytics data
+      const realAnalytics = await RealAnalyticsService.getAllStudentsAnalytics(schoolData.id);
+      
+      setStudents(realAnalytics);
+      if (realAnalytics.length > 0) {
+        setSelectedStudent(realAnalytics[0].studentId);
       }
+
     } catch (error: any) {
       console.error('Error fetching student analytics:', error);
       toast({
@@ -114,7 +63,17 @@ export const StudentAnalyticsView = () => {
     }
   };
 
-  const selectedStudentData = students.find(s => s.student_id === selectedStudent);
+  const generateInsight = async (studentId: string) => {
+    try {
+      const personalizedInsight = await RealAnalyticsService.generatePersonalizedInsight(studentId);
+      setInsight(personalizedInsight);
+    } catch (error) {
+      console.error('Error generating insight:', error);
+      setInsight('Unable to generate personalized insight at this time.');
+    }
+  };
+
+  const selectedStudentData = students.find(s => s.studentId === selectedStudent);
 
   if (isLoading) {
     return <div className="animate-pulse">Loading student analytics...</div>;
@@ -125,7 +84,7 @@ export const StudentAnalyticsView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Student Analytics</h2>
-          <p className="text-gray-400">Detailed progress analysis with topic-specific improvements</p>
+          <p className="text-gray-400">Real-time progress analysis with AI-powered insights</p>
         </div>
         
         <div className="flex gap-4">
@@ -140,8 +99,8 @@ export const StudentAnalyticsView = () => {
             </SelectTrigger>
             <SelectContent>
               {students.map((student) => (
-                <SelectItem key={student.student_id} value={student.student_id}>
-                  {student.student_name}
+                <SelectItem key={student.studentId} value={student.studentId}>
+                  {student.studentName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -161,21 +120,33 @@ export const StudentAnalyticsView = () => {
         </Card>
       ) : selectedStudentData ? (
         <div className="grid gap-6">
+          {/* AI-Generated Insight */}
+          {insight && (
+            <Card className="bg-white/10 border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">AI-Powered Insight</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-300 text-sm leading-relaxed">{insight}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Progress Brief */}
           <ProgressBrief
-            studentName={selectedStudentData.student_name}
-            completionPercentage={selectedStudentData.completion_percentage}
-            totalTimeSpent={selectedStudentData.total_time_spent}
+            studentName={selectedStudentData.studentName}
+            completionPercentage={selectedStudentData.completionPercentage}
+            totalTimeSpent={selectedStudentData.totalTimeSpent}
             strengths={selectedStudentData.strengths}
-            weakAreas={selectedStudentData.weak_areas}
-            lastActivity={selectedStudentData.last_activity}
+            weakAreas={selectedStudentData.weakAreas}
+            lastActivity={selectedStudentData.lastActivity}
           />
           
           {/* Strengths & Weaknesses Chart */}
           <StrengthsWeaknessesChart
-            studentId={selectedStudentData.student_id}
-            studentName={selectedStudentData.student_name}
-            data={selectedStudentData.topic_performance}
+            studentId={selectedStudentData.studentId}
+            studentName={selectedStudentData.studentName}
+            data={selectedStudentData.topicPerformance}
           />
         </div>
       ) : null}
