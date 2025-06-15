@@ -15,14 +15,9 @@ const PublicPricing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">Choose Your Plan</h1>
-            <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-8">
+            <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto">
               Select the plan that best fits your learning needs and experience the future of personalized education.
             </p>
-            <div className="bg-yellow-600/20 border border-yellow-600/30 rounded-lg p-4 max-w-2xl mx-auto">
-              <p className="text-yellow-200 font-medium">
-                🎉 Special Launch Offer: Sign up now and get your first month free!
-              </p>
-            </div>
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto">
@@ -81,7 +76,7 @@ const PublicPricing = () => {
                 <div className="bg-white/5 p-4 rounded-lg">
                   <p className="font-medium">What you get:</p>
                   <p className="text-sm text-white/70">Personal AI tutor available 24/7</p>
-                  <p className="text-sm text-white/70">Cancel anytime, no long-term commitment</p>
+                  <p className="text-sm text-white/70">Free trial available - no credit card required</p>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
@@ -91,12 +86,12 @@ const PublicPricing = () => {
                   asChild
                 >
                   <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
-                    Get Started
+                    Start Free Trial
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <p className="text-xs text-white/60 text-center">
-                  Sign up to access subscription options
+                  Sign up to start your free trial
                 </p>
               </CardFooter>
             </Card>
@@ -170,7 +165,7 @@ const PublicPricing = () => {
                   asChild
                 >
                   <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
-                    Get Started
+                    Start Free Trial
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -189,7 +184,7 @@ const PublicPricing = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2 text-white">Is there a free trial?</h3>
                   <p className="text-white/70 text-sm">
-                    Yes! Sign up now and get your first month completely free. No credit card required.
+                    Yes! Start your free trial today with full access to all features. No credit card required to begin.
                   </p>
                 </CardContent>
               </Card>
@@ -227,7 +222,7 @@ const PublicPricing = () => {
               Join thousands of students already learning faster with AI-powered education.
             </p>
             <Button className="bg-white text-black hover:bg-gray-200" size="lg" asChild>
-              <Link to="/auth?signup=true">Sign Up Free</Link>
+              <Link to="/auth?signup=true">Start Free Trial</Link>
             </Button>
           </div>
         </div>
