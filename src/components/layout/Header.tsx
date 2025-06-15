@@ -39,7 +39,21 @@ export const Header = () => {
 
   return (
     <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
-      <h1 className="text-xl font-bold">Teachly</h1>
+      <div className="flex items-center space-x-8">
+        <Link to="/">
+          <h1 className="text-xl font-bold">Teachly</h1>
+        </Link>
+        {!loading && !user && (
+          <nav className="hidden md:flex space-x-6">
+            <Link to="/how-it-works" className="text-white/80 hover:text-white transition-colors">
+              How it Works
+            </Link>
+            <Link to="/pricing" className="text-white/80 hover:text-white transition-colors">
+              Pricing
+            </Link>
+          </nav>
+        )}
+      </div>
       <div className="space-x-4">
         {loading ? (
           <div className="text-white/70">Loading...</div>
@@ -56,6 +70,9 @@ export const Header = () => {
             )}
             <Button variant="outline" className="bg-green-600 text-white hover:bg-green-700">
               <Link to="/chat">AI Tutor</Link>
+            </Button>
+            <Button variant="outline" className="bg-purple-600 text-white hover:bg-purple-700">
+              <Link to="/pricing-checkout">Subscription</Link>
             </Button>
             <Button 
               variant="outline" 

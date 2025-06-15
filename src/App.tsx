@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,9 @@ import Chat from "./pages/Chat";
 import Voice from "./pages/Voice";
 import MathSolver from "./pages/MathSolver";
 import Progress from "./pages/Progress";
-import Pricing from "./pages/Pricing";
+import PricingCheckout from "./pages/PricingCheckout";
+import PublicPricing from "./pages/PublicPricing";
+import HowItWorks from "./pages/HowItWorks";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -33,7 +36,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/pricing" element={<PublicPricing />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/accept-invitation" element={<AcceptInvitation />} />
               <Route path="/features" element={
                 <ProtectedRoute>
@@ -65,12 +69,17 @@ function App() {
                   <Progress />
                 </ProtectedRoute>
               } />
+              <Route path="/pricing-checkout" element={
+                <ProtectedRoute>
+                  <PricingCheckout />
+                </ProtectedRoute>
+              } />
               <Route path="/onboarding" element={
                 <ProtectedRoute>
                   <Onboarding />
                 </ProtectedRoute>
               } />
-              <Route path="/school-admin" element={
+              <Route path="/admin" element={
                 <ProtectedRoute>
                   <SchoolAdmin />
                 </ProtectedRoute>
