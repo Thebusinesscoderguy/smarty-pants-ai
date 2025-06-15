@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -215,8 +214,29 @@ const PublicPricing = () => {
             </div>
           </div>
 
+          {/* Demo Section */}
+          <div className="text-center mt-16 mb-12 p-8 bg-gradient-to-r from-blue-900/60 to-purple-900/60 rounded-2xl border border-white/10">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">Try a Live Demo</h2>
+            <p className="text-white/80 mb-5">
+              Experience Teachly’s AI-powered learning features right now. No signup required—test our chat, analytics, and more in a secure sandbox!
+            </p>
+            <Button
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+              size="lg"
+              asChild
+            >
+              <Link to="/system-test" className="flex items-center gap-2 justify-center">
+                Try Demo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div className="text-xs mt-3 text-white/60">
+              The demo is limited for security and data privacy.
+            </div>
+          </div>
+
           {/* Final CTA */}
-          <div className="text-center mt-16 p-8 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-2xl border border-white/10">
+          <div className="text-center mt-8 p-8 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-2xl border border-white/10">
             <h2 className="text-3xl font-bold mb-4">Ready to Start Learning?</h2>
             <p className="text-white/80 mb-6">
               Join thousands of students already learning faster with AI-powered education.
