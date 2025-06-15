@@ -31,11 +31,11 @@ export const AchievementsList = () => {
   }
 
   const isEarned = (achievementId: string) => {
-    return userAchievements.some(ua => ua.achievement_id === achievementId);
+    return userAchievements.some(ua => ua.id === achievementId);
   };
 
   const getEarnedDate = (achievementId: string) => {
-    const earned = userAchievements.find(ua => ua.achievement_id === achievementId);
+    const earned = userAchievements.find(ua => ua.id === achievementId);
     return earned?.earned_at ? new Date(earned.earned_at).toLocaleDateString() : null;
   };
 

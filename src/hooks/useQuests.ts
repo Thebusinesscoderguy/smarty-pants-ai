@@ -88,23 +88,6 @@ const convertDatabaseQuest = (dbQuest: any): Quest => {
   };
 };
 
-// Convert database subject assignment data to our SubjectAssignment interface
-const convertDatabaseSubjectAssignment = (dbAssignment: any): SubjectAssignment => {
-  return {
-    id: dbAssignment.id,
-    user_id: dbAssignment.user_id,
-    subject_id: dbAssignment.subject_id,
-    assigned_by: isValidAssignedBy(dbAssignment.assigned_by) ? dbAssignment.assigned_by : 'self',
-    assigned_by_id: dbAssignment.assigned_by_id,
-    is_active: dbAssignment.is_active,
-    created_at: dbAssignment.created_at,
-    completion_percentage: Math.floor(Math.random() * 100), // Demo data
-    lessons_completed: Math.floor(Math.random() * 20),
-    total_lessons: 20,
-    subjects: dbAssignment.subjects
-  };
-};
-
 export const useQuests = () => {
   const [dailyQuests, setDailyQuests] = useState<Quest[]>([]);
   const [weeklyQuests, setWeeklyQuests] = useState<Quest[]>([]);
@@ -211,7 +194,7 @@ export const useQuests = () => {
 
       if (weeklyError) throw weeklyError;
 
-      // Fetch user's subject assignments with real progress
+      // Fetch user's subject assignments
       const { data: subjectData, error: subjectError } = await supabase
         .from('subject_assignments')
         .select(`
@@ -226,8 +209,8 @@ export const useQuests = () => {
 
       if (subjectError) throw subjectError;
 
-      // Calculate real progress for each subject
-      const processedSubjectAssignments = await Promise.all(
+      // Calculate real progress for each subject assignment
+      const subjectAssignmentsWithProgress = await Promise.all(
         (subjectData || []).map(async (assignment) => {
           const realProgress = await calculateRealProgress(assignment.subject_id);
           
@@ -261,7 +244,6 @@ export const useQuests = () => {
       // Process quest data with type conversion
       const processedDailyQuests = (dailyQuestsData || []).map(convertDatabaseQuest);
       const processedWeeklyQuests = (weeklyQuestsData || []).map(convertDatabaseQuest);
-      const processedSubjectAssignments = (subjectData || []).map(convertDatabaseSubjectAssignment);
 
       // Separate strengths and weaknesses
       const strengthsList = analyticsData?.filter(item => item.strength_score >= 0.7) || [];
@@ -269,7 +251,7 @@ export const useQuests = () => {
 
       setDailyQuests(processedDailyQuests);
       setWeeklyQuests(processedWeeklyQuests);
-      setSubjectAssignments(processedSubjectAssignments);
+      setSubjectAssignments(subjectAssignmentsWithProgress);
       setStrengths(strengthsList);
       setWeaknesses(weaknessesList);
 
