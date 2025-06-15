@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,6 +120,59 @@ export const useQuests = () => {
     }
   }, [user]);
 
+  const calculateRealProgress = async (subjectId: string) => {
+    try {
+      // Get total curriculum items for this subject
+      const { data: curricula } = await supabase
+        .from('curricula')
+        .select('content')
+        .eq('subject_id', subjectId)
+        .eq('is_active', true);
+
+      // Count total lessons/modules in curriculum
+      let totalLessons = 0;
+      curricula?.forEach(curriculum => {
+        if (curriculum.content && typeof curriculum.content === 'object') {
+          totalLessons += Object.keys(curriculum.content).length;
+        }
+      });
+
+      // Get completed progress for this user and subject
+      const { data: progress } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', user?.id)
+        .eq('status', 'completed');
+
+      // Get learning analytics to determine mastery
+      const { data: analytics } = await supabase
+        .from('learning_analytics')
+        .select('*')
+        .eq('user_id', user?.id)
+        .eq('subject_id', subjectId);
+
+      // Calculate completion based on topics mastered (strength_score >= 0.7)
+      const masteredTopics = analytics?.filter(a => a.strength_score >= 0.7).length || 0;
+      const totalTopics = analytics?.length || 1;
+      
+      const completionPercentage = totalTopics > 0 ? Math.round((masteredTopics / totalTopics) * 100) : 0;
+      const lessonsCompleted = progress?.length || 0;
+
+      return {
+        completion_percentage: completionPercentage,
+        lessons_completed: lessonsCompleted,
+        total_lessons: Math.max(totalLessons, totalTopics, 10) // Ensure reasonable total
+      };
+    } catch (error) {
+      console.error('Error calculating real progress:', error);
+      return {
+        completion_percentage: 0,
+        lessons_completed: 0,
+        total_lessons: 10
+      };
+    }
+  };
+
   const fetchQuestData = async () => {
     try {
       setIsLoading(true);
@@ -159,7 +211,7 @@ export const useQuests = () => {
 
       if (weeklyError) throw weeklyError;
 
-      // Fetch user's subject assignments
+      // Fetch user's subject assignments with real progress
       const { data: subjectData, error: subjectError } = await supabase
         .from('subject_assignments')
         .select(`
@@ -173,6 +225,25 @@ export const useQuests = () => {
         .eq('is_active', true);
 
       if (subjectError) throw subjectError;
+
+      // Calculate real progress for each subject
+      const processedSubjectAssignments = await Promise.all(
+        (subjectData || []).map(async (assignment) => {
+          const realProgress = await calculateRealProgress(assignment.subject_id);
+          
+          return {
+            id: assignment.id,
+            user_id: assignment.user_id,
+            subject_id: assignment.subject_id,
+            assigned_by: isValidAssignedBy(assignment.assigned_by) ? assignment.assigned_by : 'self',
+            assigned_by_id: assignment.assigned_by_id,
+            is_active: assignment.is_active,
+            created_at: assignment.created_at,
+            ...realProgress,
+            subjects: assignment.subjects
+          };
+        })
+      );
 
       // Fetch learning analytics for strengths and weaknesses
       const { data: analyticsData, error: analyticsError } = await supabase

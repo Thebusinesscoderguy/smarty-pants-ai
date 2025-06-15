@@ -6,44 +6,32 @@ import { BookOpen, User, Users, School } from 'lucide-react';
 import { useQuests } from '@/hooks/useQuests';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Demo data for non-logged in users
-const demoSubjects = [
-  {
-    id: '1',
-    subjects: { name: 'Mathematics', description: 'Core mathematics curriculum' },
-    assigned_by: 'school' as const,
-    completion_percentage: 75,
-    lessons_completed: 15,
-    total_lessons: 20
-  },
-  {
-    id: '2',
-    subjects: { name: 'Science', description: 'General science topics' },
-    assigned_by: 'parent' as const,
-    completion_percentage: 60,
-    lessons_completed: 12,
-    total_lessons: 20
-  },
-  {
-    id: '3',
-    subjects: { name: 'English', description: 'Language arts and literature' },
-    assigned_by: 'self' as const,
-    completion_percentage: 90,
-    lessons_completed: 18,
-    total_lessons: 20
-  }
-];
-
 export const SubjectProgress = () => {
   const { user } = useAuth();
   const { subjectAssignments, isLoading } = useQuests();
 
-  // Use demo data if user is not logged in
-  const displaySubjects = user ? subjectAssignments : demoSubjects;
-  const displayLoading = user ? isLoading : false;
+  if (!user) {
+    return (
+      <Card className="bg-white/10 border-white/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <BookOpen className="h-5 w-5 text-blue-500" />
+            Subject Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-300">Sign in to track your subject progress</p>
+          <p className="text-gray-400 text-sm mt-2">
+            Subjects can be assigned by you, your parents, or your school
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  if (displayLoading) {
-    return <div className="animate-pulse">Loading subjects...</div>;
+  if (isLoading) {
+    return <div className="animate-pulse text-white">Loading subjects...</div>;
   }
 
   const getAssignedByIcon = (assignedBy: string) => {
@@ -65,27 +53,22 @@ export const SubjectProgress = () => {
   };
 
   return (
-    <Card>
+    <Card className="bg-white/10 border-white/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-white">
           <BookOpen className="h-5 w-5 text-blue-500" />
           Subject Progress
         </CardTitle>
-        {!user && (
-          <p className="text-sm text-gray-400">
-            Demo subjects - showing how progress is tracked per subject
-          </p>
-        )}
       </CardHeader>
       <CardContent>
-        {displaySubjects.length > 0 ? (
+        {subjectAssignments.length > 0 ? (
           <div className="space-y-4">
-            {displaySubjects.map((subject) => (
-              <div key={subject.id} className="space-y-3 p-4 border rounded-lg">
+            {subjectAssignments.map((subject) => (
+              <div key={subject.id} className="space-y-3 p-4 border border-white/20 rounded-lg">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{subject.subjects?.name}</h3>
-                    <p className="text-sm text-gray-600">{subject.subjects?.description}</p>
+                    <h3 className="font-semibold text-lg text-white">{subject.subjects?.name}</h3>
+                    <p className="text-sm text-gray-300">{subject.subjects?.description}</p>
                   </div>
                   <Badge 
                     variant="secondary" 
@@ -98,18 +81,18 @@ export const SubjectProgress = () => {
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{subject.completion_percentage || 0}%</span>
+                    <span className="text-gray-300">Progress</span>
+                    <span className="text-white">{subject.completion_percentage || 0}%</span>
                   </div>
                   <Progress 
                     value={subject.completion_percentage || 0} 
                     className="h-2" 
                   />
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-gray-400">
                     <span>
-                      {subject.lessons_completed || 0}/{subject.total_lessons || 0} lessons completed
+                      {subject.lessons_completed || 0}/{subject.total_lessons || 0} topics mastered
                     </span>
-                    <span>Assigned by {subject.assigned_by}</span>
+                    <span>Assigned {new Date(subject.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
@@ -117,9 +100,9 @@ export const SubjectProgress = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">No subjects assigned yet</p>
+            <p className="text-gray-300 mb-4">No subjects assigned yet</p>
             <p className="text-sm text-gray-400">
-              Subjects can be assigned by you, your parents, or your school
+              Start learning or ask your teacher/parent to assign subjects to track your progress
             </p>
           </div>
         )}
