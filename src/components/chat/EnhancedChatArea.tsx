@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -373,9 +374,9 @@ export const EnhancedChatArea = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block`}>
+      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-64 border-r border-gray-200`}>
         <ChatSidebar
           activeCurriculum={activeCurriculum}
           curricula={curricula}
@@ -389,13 +390,21 @@ export const EnhancedChatArea = () => {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b p-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 p-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AI</span>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">AI Learning Assistant</h1>
+              <h1 className="text-lg font-semibold text-gray-900">AI Learning Assistant</h1>
             </div>
             {activeCurriculum && (
               <Badge className="bg-blue-100 text-blue-800 border-blue-200">
@@ -405,182 +414,186 @@ export const EnhancedChatArea = () => {
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex gap-4 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}
-            >
-              {!message.is_from_user && (
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0">
-                  AI
-                </div>
-              )}
-              
-              <div className={`max-w-[80%] ${message.is_from_user ? 'order-first' : ''}`}>
-                <div className={`p-4 rounded-2xl ${
-                  message.is_from_user 
-                    ? 'bg-blue-600 text-white ml-auto' 
-                    : 'bg-gray-100 text-gray-900'
-                }`}>
-                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                  
-                  {message.audioUrl && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => playAudio(message.audioUrl!)}
-                      className="mt-2 p-1 hover:bg-white/10"
-                    >
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto p-6 space-y-6">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex gap-4 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}
+              >
+                {!message.is_from_user && (
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0">
+                    AI
+                  </div>
+                )}
                 
-                <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                  <span>{new Date(message.created_at).toLocaleTimeString()}</span>
-                  {!message.is_from_user && (
-                    <div className="flex gap-1">
+                <div className={`max-w-[80%] ${message.is_from_user ? 'order-first' : ''}`}>
+                  <div className={`p-4 rounded-2xl ${
+                    message.is_from_user 
+                      ? 'bg-blue-600 text-white ml-auto' 
+                      : 'bg-gray-100 text-gray-900'
+                  }`}>
+                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                    
+                    {message.audioUrl && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => copyMessage(message.content)}
-                        className="p-1 h-6 w-6 hover:bg-gray-200"
+                        onClick={() => playAudio(message.audioUrl!)}
+                        className="mt-2 p-1 hover:bg-white/10"
                       >
-                        <Copy className="h-3 w-3" />
+                        <Volume2 className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="p-1 h-6 w-6 hover:bg-gray-200"
-                      >
-                        <ThumbsUp className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="p-1 h-6 w-6 hover:bg-gray-200"
-                      >
-                        <ThumbsDown className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="p-1 h-6 w-6 hover:bg-gray-200"
-                      >
-                        <RotateCcw className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                    <span>{new Date(message.created_at).toLocaleTimeString()}</span>
+                    {!message.is_from_user && (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyMessage(message.content)}
+                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                        >
+                          <ThumbsUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                        >
+                          <ThumbsDown className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {message.is_from_user && (
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User className="h-4 w-4 text-gray-600" />
-                </div>
-              )}
-            </div>
-          ))}
-          
-          {(isLoading || isAnalyzing) && (
-            <div className="flex gap-4 justify-start">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white">
-                AI
-              </div>
-              <div className="bg-gray-100 text-gray-900 p-4 rounded-2xl">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-                {isAnalyzing && (
-                  <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
+                {message.is_from_user && (
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="h-4 w-4 text-gray-600" />
+                  </div>
                 )}
               </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
+            ))}
+            
+            {(isLoading || isAnalyzing) && (
+              <div className="flex gap-4 justify-start">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white">
+                  AI
+                </div>
+                <div className="bg-gray-100 text-gray-900 p-4 rounded-2xl">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                  {isAnalyzing && (
+                    <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {/* Input Area */}
-        <div className="border-t p-4">
-          {selectedFile && (
-            <div className="mb-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
-              <span className="text-sm text-gray-700">Selected: {selectedFile.name}</span>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleFileUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Upload
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)}>
-                  Remove
-                </Button>
+        <div className="border-t border-gray-200 bg-white p-4">
+          <div className="max-w-4xl mx-auto">
+            {selectedFile && (
+              <div className="mb-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
+                <span className="text-sm text-gray-700">Selected: {selectedFile.name}</span>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleFileUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Upload
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)}>
+                    Remove
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <Input
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder="Type your message..."
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                className="pr-24 py-3 rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                disabled={isLoading || isAnalyzing}
-              />
-              
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-1">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+            )}
+            
+            <div className="flex items-end gap-3">
+              <div className="flex-1 relative">
+                <Input
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  placeholder="Message AI Learning Assistant..."
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  className="min-h-[48px] py-3 pl-4 pr-32 text-base border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                  disabled={isLoading || isAnalyzing}
                 />
                 
-                <Button 
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                  disabled={isLoading || isAnalyzing}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-                
-                <Button 
-                  onClick={isRecording ? stopRecording : startRecording}
-                  variant="ghost"
-                  size="sm"
-                  className={`p-2 h-8 w-8 ${isRecording ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-gray-600'} hover:bg-gray-100`}
-                  disabled={isLoading || isAnalyzing}
-                >
-                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </Button>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                  />
+                  
+                  <Button 
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="ghost"
+                    size="sm"
+                    className="p-2 h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    disabled={isLoading || isAnalyzing}
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button 
+                    onClick={isRecording ? stopRecording : startRecording}
+                    variant="ghost"
+                    size="sm"
+                    className={`p-2 h-8 w-8 ${isRecording ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-gray-600'} hover:bg-gray-100`}
+                    disabled={isLoading || isAnalyzing}
+                  >
+                    {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setIsVoiceResponse(!isVoiceResponse)}
+                    variant="ghost"
+                    size="sm"
+                    className={`p-2 h-8 w-8 ${isVoiceResponse ? 'text-purple-600 hover:text-purple-700' : 'text-gray-400 hover:text-gray-600'} hover:bg-gray-100`}
+                    disabled={isLoading || isAnalyzing}
+                    title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
+                  >
+                    <Volume2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
+              
+              <Button 
+                onClick={sendMessage} 
+                disabled={!currentMessage.trim() || isLoading || isAnalyzing}
+                className="bg-black hover:bg-gray-800 text-white p-3 rounded-xl min-h-[48px]"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
             </div>
-            
-            <Button 
-              onClick={() => setIsVoiceResponse(!isVoiceResponse)}
-              variant="ghost"
-              size="sm"
-              className={`p-3 rounded-full ${isVoiceResponse ? 'bg-purple-100 text-purple-600 hover:bg-purple-200' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-              disabled={isLoading || isAnalyzing}
-              title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
-            >
-              <Volume2 className="h-4 w-4" />
-            </Button>
-            
-            <Button 
-              onClick={sendMessage} 
-              disabled={!currentMessage.trim() || isLoading || isAnalyzing}
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-full text-white"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
