@@ -47,11 +47,14 @@ export const EnhancedChatArea = () => {
   const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
+    console.log('EnhancedChatArea: Initializing with user:', user ? 'authenticated' : 'demo mode');
+    
     if (user) {
       fetchCurricula();
       startNewChat();
     } else {
       // For demo users, show welcome message
+      console.log('EnhancedChatArea: Setting up demo welcome message');
       setMessages([{
         id: 'welcome',
         content: "Welcome to the AI Learning Assistant! I'm here to help you with your studies. Ask me anything about any subject, and I'll provide personalized guidance.",

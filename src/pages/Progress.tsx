@@ -35,9 +35,10 @@ const Progress = () => {
 
     if (!authLoading) {
       if (user) {
+        console.log('Progress: User authenticated, fetching role...');
         fetchUserRole();
       } else {
-        console.log('Progress: No user found, using demo data');
+        console.log('Progress: No user found, activating demo mode');
         setUserRole('parent'); // Default to parent for demo
         setIsLoading(false);
       }
@@ -56,14 +57,15 @@ const Progress = () => {
 
       if (error) {
         console.error('Progress: Error fetching user role:', error);
-        throw error;
+        // Don't throw, just use fallback
+        console.log('Progress: Using fallback role due to error');
       }
       
       const finalRole = isSchoolAdmin ? 'teacher' : data?.role || 'student';
       console.log('Progress: User role determined:', finalRole);
       setUserRole(finalRole);
     } catch (error: any) {
-      console.error('Error fetching user role:', error);
+      console.error('Progress: Exception fetching user role:', error);
       setUserRole('student'); // Default fallback
     } finally {
       setIsLoading(false);
@@ -71,16 +73,21 @@ const Progress = () => {
   };
 
   const renderMonitoringTab = () => {
+    console.log('Progress: Rendering monitoring tab - user:', !!user, 'userRole:', userRole);
+    
     if (!user) {
-      // Demo version - show parent dashboard
+      console.log('Progress: Rendering DemoParentDashboard');
       return <DemoParentDashboard />;
     }
     
     if (userRole === 'parent') {
+      console.log('Progress: Rendering ParentDashboard for authenticated parent');
       return <ParentDashboard />;
     } else if (userRole === 'teacher' || isSchoolAdmin) {
+      console.log('Progress: Rendering StudentDashboard for teacher/admin');
       return <StudentDashboard />;
     } else {
+      console.log('Progress: Rendering not available message for student');
       return (
         <div className="text-center py-8">
           <p className="text-gray-400">Monitoring dashboard not available for students.</p>
@@ -89,14 +96,57 @@ const Progress = () => {
     }
   };
 
+  const renderQuestsTab = () => {
+    console.log('Progress: Rendering quests tab - user:', !!user);
+    if (user) {
+      return <StudentQuestDisplay />;
+    } else {
+      console.log('Progress: Rendering DemoQuestDisplay');
+      return <DemoQuestDisplay />;
+    }
+  };
+
+  const renderAchievementsTab = () => {
+    console.log('Progress: Rendering achievements tab - user:', !!user);
+    if (user) {
+      return <StudentAchievements />;
+    } else {
+      console.log('Progress: Rendering DemoAchievements');
+      return <DemoAchievements />;
+    }
+  };
+
+  const renderSubjectsTab = () => {
+    console.log('Progress: Rendering subjects tab - user:', !!user);
+    if (user) {
+      return <SubjectProgress />;
+    } else {
+      console.log('Progress: Rendering DemoSubjectProgress');
+      return <DemoSubjectProgress />;
+    }
+  };
+
+  const renderAnalyticsTab = () => {
+    console.log('Progress: Rendering analytics tab - user:', !!user);
+    if (user) {
+      return <StrengthsWeaknesses />;
+    } else {
+      console.log('Progress: Rendering DemoAnalytics');
+      return <DemoAnalytics />;
+    }
+  };
+
   // Show loading while auth is loading or we're fetching user role
   if (authLoading || isLoading) {
+    console.log('Progress: Showing loading state - authLoading:', authLoading, 'isLoading:', isLoading);
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-pulse">Loading dashboard...</div>
       </div>
     );
   }
+
+  console.log('Progress: Rendering main component - demo mode:', !user);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -148,35 +198,19 @@ const Progress = () => {
               </TabsContent>
 
               <TabsContent value="quests" className="space-y-6">
-                {user ? (
-                  <StudentQuestDisplay />
-                ) : (
-                  <DemoQuestDisplay />
-                )}
+                {renderQuestsTab()}
               </TabsContent>
 
               <TabsContent value="achievements" className="space-y-6">
-                {user ? (
-                  <StudentAchievements />
-                ) : (
-                  <DemoAchievements />
-                )}
+                {renderAchievementsTab()}
               </TabsContent>
 
               <TabsContent value="subjects" className="space-y-6">
-                {user ? (
-                  <SubjectProgress />
-                ) : (
-                  <DemoSubjectProgress />
-                )}
+                {renderSubjectsTab()}
               </TabsContent>
 
               <TabsContent value="analytics" className="space-y-6">
-                {user ? (
-                  <StrengthsWeaknesses />
-                ) : (
-                  <DemoAnalytics />
-                )}
+                {renderAnalyticsTab()}
               </TabsContent>
             </div>
           </Tabs>

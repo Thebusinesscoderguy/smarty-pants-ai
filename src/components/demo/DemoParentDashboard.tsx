@@ -1,11 +1,34 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Users, Brain, Clock, Trophy, Target, AlertCircle, CheckCircle, Star } from 'lucide-react';
 import { getDemoOverallStats, getDemoMonitoringData, getDemoRecentActivity, getDemoChildName, getDemoAnalyticsData } from '@/utils/demoData';
+import { useEffect } from 'react';
 
 export const DemoParentDashboard = () => {
+  console.log('DemoParentDashboard: Component rendering');
+  
+  useEffect(() => {
+    console.log('DemoParentDashboard: Component mounted, loading demo data...');
+    try {
+      const stats = getDemoOverallStats();
+      const monitoring = getDemoMonitoringData();
+      const activity = getDemoRecentActivity();
+      const childName = getDemoChildName();
+      const analytics = getDemoAnalyticsData();
+      
+      console.log('DemoParentDashboard: Demo data loaded successfully:', {
+        stats: !!stats,
+        monitoring: !!monitoring,
+        activity: !!activity,
+        childName,
+        analytics: !!analytics
+      });
+    } catch (error) {
+      console.error('DemoParentDashboard: Error loading demo data:', error);
+    }
+  }, []);
+
   const stats = getDemoOverallStats();
   const monitoring = getDemoMonitoringData();
   const activity = getDemoRecentActivity();
