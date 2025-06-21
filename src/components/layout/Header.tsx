@@ -2,12 +2,13 @@
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, loading, isSchoolAdmin } = useAuth();
+  const { user, loading, isSchoolAdmin, signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     console.log('Header: Auth state updated:', {
@@ -20,12 +21,30 @@ export const Header = () => {
   }, [user, loading, isSchoolAdmin]);
 
   const handleSignOut = async () => {
+    if (isSigningOut) return;
+    
     try {
-      console.log('Header: Signing out...');
-      await supabase.auth.signOut();
-      navigate('/');
+      console.log('Header: Starting sign out process...');
+      setIsSigningOut(true);
+      
+      await signOut();
+      
+      console.log('Header: Sign out successful, navigating to home');
+      navigate('/', { replace: true });
+      
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
     } catch (error) {
       console.error('Header: Sign out error:', error);
+      toast({
+        title: "Sign out failed",
+        description: "There was an error signing you out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -34,7 +53,8 @@ export const Header = () => {
     loading,
     showAuthButtons: !user,
     showUserButtons: !!user,
-    isSchoolAdmin
+    isSchoolAdmin,
+    isSigningOut
   });
 
   return (
@@ -76,8 +96,9 @@ export const Header = () => {
               variant="outline" 
               className="text-white border-white/30 hover:bg-white/10"
               onClick={handleSignOut}
+              disabled={isSigningOut}
             >
-              Sign Out
+              {isSigningOut ? 'Signing out...' : 'Sign Out'}
             </Button>
           </>
         ) : (
