@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { isMockDataEnabled, mockAchievements } from '@/utils/mockData';
 
 export interface Achievement {
   id: string;
@@ -43,6 +43,18 @@ export const useGamification = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    if (isMockDataEnabled()) {
+      setIsLoading(true);
+      // Use mock data
+      setAchievements(mockAchievements);
+      setUserAchievements(mockAchievements.filter(a => a.earned));
+      setChallenges([]);
+      setUserProgress([]);
+      setUserLevel(3);
+      setIsLoading(false);
+      return;
+    }
+
     if (user) {
       fetchGamificationData();
     }

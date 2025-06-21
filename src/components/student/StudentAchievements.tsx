@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +5,7 @@ import { Trophy, Star, Award, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataEnabled, mockAchievements } from '@/utils/mockData';
 
 interface Achievement {
   id: string;
@@ -23,6 +23,13 @@ export const StudentAchievements = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    if (isMockDataEnabled()) {
+      setIsLoading(true);
+      setAchievements(mockAchievements);
+      setIsLoading(false);
+      return;
+    }
+
     if (user) {
       fetchAchievements();
     }

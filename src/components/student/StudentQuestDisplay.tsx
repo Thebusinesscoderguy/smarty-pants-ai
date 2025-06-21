@@ -1,14 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Target, Trophy, Clock, CheckCircle } from 'lucide-react';
+import { Target, Trophy, Clock, CheckCircle, Calendar, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataEnabled, mockQuests } from '@/utils/mockData';
 
-interface QuestWithProgress {
+interface Quest {
   id: string;
   title: string;
   description: string;
@@ -16,21 +16,32 @@ interface QuestWithProgress {
   difficulty: string;
   target_value: number;
   current_value: number;
-  completed: boolean;
-  expires_at: string;
-  subjects?: {
-    name: string;
-  };
+  progress: number;
+  reward: string;
+  expires_at?: string;
+  completed_at?: string;
+  subjects?: { name: string };
 }
 
 export const StudentQuestDisplay = () => {
-  const [quests, setQuests] = useState<QuestWithProgress[]>([]);
+  const [activeQuests, setActiveQuests] = useState<Quest[]>([]);
+  const [completedQuests, setCompletedQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
+    if (isMockDataEnabled()) {
+      setIsLoading(true);
+      setActiveQuests(mockQuests.active);
+      setCompletedQuests(mockQuests.completed);
+      setIsLoading(false);
+      return;
+    }
+
     if (user) {
       fetchQuests();
+    } else {
+      setIsLoading(false);
     }
   }, [user]);
 
@@ -73,7 +84,7 @@ export const StudentQuestDisplay = () => {
       if (error) throw error;
 
       // Process quests with progress
-      const questsWithProgress: QuestWithProgress[] = questsData.map(quest => {
+      const questsWithProgress: Quest[] = questsData.map(quest => {
         const progress = quest.user_quest_progress?.[0];
         return {
           id: quest.id,
@@ -83,13 +94,16 @@ export const StudentQuestDisplay = () => {
           difficulty: quest.difficulty,
           target_value: quest.target_value,
           current_value: progress?.current_value || 0,
-          completed: progress?.completed || false,
+          progress: progress?.current_value || 0,
+          reward: quest.reward,
           expires_at: quest.expires_at,
+          completed_at: progress?.completed_at,
           subjects: quest.subjects
         };
       });
 
-      setQuests(questsWithProgress);
+      setActiveQuests(questsWithProgress.filter(q => !q.completed));
+      setCompletedQuests(questsWithProgress.filter(q => q.completed));
     } catch (error: any) {
       console.error('Error fetching quests:', error);
       toast({
@@ -118,9 +132,6 @@ export const StudentQuestDisplay = () => {
   if (isLoading) {
     return <div className="animate-pulse">Loading quests...</div>;
   }
-
-  const activeQuests = quests.filter(q => !q.completed);
-  const completedQuests = quests.filter(q => q.completed);
 
   return (
     <div className="space-y-6">

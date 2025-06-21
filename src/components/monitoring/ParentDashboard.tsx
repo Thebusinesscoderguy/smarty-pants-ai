@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -6,6 +5,7 @@ import { TrendingUp, TrendingDown, Users, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { isMockDataEnabled, mockParentDashboard } from '@/utils/mockData';
 
 interface StudentData {
   student_id: string;
@@ -21,6 +21,13 @@ export const ParentDashboard = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    if (isMockDataEnabled()) {
+      setIsLoading(true);
+      setStudentData(mockParentDashboard);
+      setIsLoading(false);
+      return;
+    }
+
     if (user) {
       fetchChildData();
     }
@@ -156,7 +163,10 @@ export const ParentDashboard = () => {
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2 text-white">No Child Connected</h3>
           <p className="text-gray-300">
-            No child account is connected to your parent account. Please contact your school administrator to set up the connection.
+            {isMockDataEnabled() ? 
+              "This is mock data for demonstration purposes." :
+              "No child account is connected to your parent account. Please contact your school administrator to set up the connection."
+            }
           </p>
         </CardContent>
       </Card>

@@ -1,166 +1,210 @@
-
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useQuests } from '@/hooks/useQuests';
+import { TrendingUp, TrendingDown, Brain } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Demo data for non-logged in users
-const demoAnalytics = {
-  strengths: [
-    {
-      id: '1',
-      topic_name: 'Basic Arithmetic',
-      strength_score: 0.85,
-      total_attempts: 20,
-      correct_attempts: 17,
-      subjects: { name: 'Mathematics' }
-    },
-    {
-      id: '2',
-      topic_name: 'Reading Comprehension',
-      strength_score: 0.90,
-      total_attempts: 15,
-      correct_attempts: 14,
-      subjects: { name: 'English' }
-    },
-    {
-      id: '3',
-      topic_name: 'Chemical Reactions',
-      strength_score: 0.75,
-      total_attempts: 12,
-      correct_attempts: 9,
-      subjects: { name: 'Science' }
-    }
-  ],
-  weaknesses: [
-    {
-      id: '4',
-      topic_name: 'Algebra',
-      strength_score: 0.35,
-      total_attempts: 15,
-      correct_attempts: 5,
-      subjects: { name: 'Mathematics' }
-    },
-    {
-      id: '5',
-      topic_name: 'Essay Writing',
-      strength_score: 0.40,
-      total_attempts: 10,
-      correct_attempts: 4,
-      subjects: { name: 'English' }
-    },
-    {
-      id: '6',
-      topic_name: 'Physics Concepts',
-      strength_score: 0.30,
-      total_attempts: 18,
-      correct_attempts: 5,
-      subjects: { name: 'Science' }
-    }
-  ]
-};
+import { toast } from '@/hooks/use-toast';
+import { isMockDataEnabled, mockAnalytics } from '@/utils/mockData';
 
 export const StrengthsWeaknesses = () => {
+  const [strengths, setStrengths] = useState<any[]>([]);
+  const [weaknesses, setWeaknesses] = useState<any[]>([]);
+  const [improvementParagraph, setImprovementParagraph] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  const { strengths, weaknesses, isLoading } = useQuests();
 
-  // Use demo data if user is not logged in
-  const displayStrengths = user ? strengths : demoAnalytics.strengths;
-  const displayWeaknesses = user ? weaknesses : demoAnalytics.weaknesses;
-  const displayLoading = user ? isLoading : false;
+  useEffect(() => {
+    if (isMockDataEnabled()) {
+      setIsLoading(true);
+      setStrengths(mockAnalytics.strengths);
+      setWeaknesses(mockAnalytics.weaknesses);
+      setImprovementParagraph(mockAnalytics.improvement_paragraph);
+      setIsLoading(false);
+      return;
+    }
 
-  if (displayLoading) {
-    return <div className="animate-pulse">Loading analytics...</div>;
+    if (user) {
+      fetchAnalytics();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const fetchAnalytics = async () => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+
+      // Fetch learning analytics for strengths and weaknesses
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('learning_analytics')
+        .select(`
+          *,
+          subjects (
+            name
+          )
+        `)
+        .eq('user_id', user?.id);
+
+      if (analyticsError) throw analyticsError;
+
+      // Process strengths and weaknesses
+      const strengthsList = analyticsData?.filter(item => item.strength_score >= 0.7) || [];
+      const weaknessesList = analyticsData?.filter(item => item.strength_score < 0.5) || [];
+
+      setStrengths(strengthsList);
+      setWeaknesses(weaknessesList);
+
+      // Generate improvement paragraph
+      const improvementParagraph = generateImprovementParagraph(
+        strengthsList,
+        weaknessesList
+      );
+      setImprovementParagraph(improvementParagraph);
+
+    } catch (error: any) {
+      console.error('Error fetching analytics:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load analytics data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateImprovementParagraph = (
+    strengths: any[],
+    weaknesses: any[]
+  ): string => {
+    let paragraph = "Based on your recent activity, here's a summary of your strengths and areas for improvement. ";
+
+    if (strengths.length > 0) {
+      const topStrength = strengths[0];
+      paragraph += `You're showing strong skills in ${topStrength.topic_name} with a strength score of ${Math.round(topStrength.strength_score * 100)}%. `;
+    }
+
+    if (weaknesses.length > 0) {
+      const topWeakness = weaknesses[0];
+      paragraph += `To improve, focus on ${topWeakness.topic_name} where additional practice would be beneficial. `;
+    }
+
+    paragraph += "Consistent practice and engagement will help you build a solid foundation!";
+
+    return paragraph;
+  };
+
+  if (isLoading) {
+    return <div className="animate-pulse text-white">Loading analytics...</div>;
   }
 
-  const formatPercentage = (score: number) => Math.round(score * 100);
-
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Strengths */}
-      <Card>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-white">Learning Analytics</h2>
+        <p className="text-gray-400">
+          Understand your strengths and weaknesses to improve learning
+        </p>
+      </div>
+
+      {/* Improvement Paragraph */}
+      <Card className="bg-white/10 border-white/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-green-500" />
-            Strengths
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Brain className="h-5 w-5" />
+            Learning Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {displayStrengths.length > 0 ? (
-            <div className="space-y-4">
-              {displayStrengths.map((strength) => (
-                <div key={strength.id} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-medium">{strength.topic_name}</h4>
-                      <p className="text-sm text-gray-600">{strength.subjects?.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-green-600">
-                        {formatPercentage(strength.strength_score)}%
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {strength.correct_attempts}/{strength.total_attempts} correct
-                      </div>
-                    </div>
-                  </div>
-                  <Progress 
-                    value={strength.strength_score * 100} 
-                    className="h-2"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              Complete some lessons to see your strengths!
-            </p>
-          )}
+          <p className="text-gray-300 leading-relaxed">
+            {improvementParagraph}
+          </p>
         </CardContent>
       </Card>
 
-      {/* Weaknesses */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingDown className="h-5 w-5 text-red-500" />
-            Areas for Improvement
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {displayWeaknesses.length > 0 ? (
-            <div className="space-y-4">
-              {displayWeaknesses.map((weakness) => (
-                <div key={weakness.id} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-medium">{weakness.topic_name}</h4>
-                      <p className="text-sm text-gray-600">{weakness.subjects?.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-red-600">
-                        {formatPercentage(weakness.strength_score)}%
+      {/* Strengths and Weaknesses */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Strengths */}
+        <Card className="bg-white/10 border-white/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+              Strengths
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {strengths.length > 0 ? (
+              <div className="space-y-4">
+                {strengths.map((strength, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-medium text-white">{strength.topic_name}</h4>
+                        <p className="text-sm text-gray-400">{strength.subjects?.name}</p>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {weakness.correct_attempts}/{weakness.total_attempts} correct
+                      <div className="text-right">
+                        <div className="font-semibold text-green-400">
+                          {Math.round(strength.strength_score * 100)}%
+                        </div>
                       </div>
                     </div>
+                    <Progress
+                      value={strength.strength_score * 100}
+                      className="h-2"
+                    />
                   </div>
-                  <Progress 
-                    value={weakness.strength_score * 100} 
-                    className="h-2"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              Complete some lessons to identify areas for improvement!
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-4">
+                No strengths identified yet. Keep learning to discover your strengths!
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Areas for Improvement */}
+        <Card className="bg-white/10 border-white/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <TrendingDown className="h-5 w-5 text-orange-500" />
+              Areas for Improvement
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {weaknesses.length > 0 ? (
+              <div className="space-y-4">
+                {weaknesses.map((weakness, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-medium text-white">{weakness.topic_name}</h4>
+                        <p className="text-sm text-gray-400">{weakness.subjects?.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-orange-400">
+                          {Math.round(weakness.strength_score * 100)}%
+                        </div>
+                      </div>
+                    </div>
+                    <Progress
+                      value={weakness.strength_score * 100}
+                      className="h-2"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-4">
+                No significant weaknesses detected. Keep up the great work!
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
