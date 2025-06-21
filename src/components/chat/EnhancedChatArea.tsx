@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Send, User, Upload, Mic, MicOff, Volume2 } from 'lucide-react';
+import { Send, User, Upload, Mic, MicOff, Volume2, RotateCcw, ThumbsUp, ThumbsDown, Copy, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
@@ -40,12 +40,14 @@ export const EnhancedChatArea = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isVoiceResponse, setIsVoiceResponse] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const { logActivity } = useActivityTracking();
   const { trackInteraction, isAnalyzing } = useRealTimeAnalytics();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log('EnhancedChatArea: Initializing with user:', user ? 'authenticated' : 'demo mode');
@@ -54,7 +56,6 @@ export const EnhancedChatArea = () => {
       fetchCurricula();
       startNewChat();
     } else {
-      // For demo users, show welcome message
       console.log('EnhancedChatArea: Setting up demo welcome message');
       setMessages([{
         id: 'welcome',
@@ -64,6 +65,14 @@ export const EnhancedChatArea = () => {
       }]);
     }
   }, [user]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const fetchCurricula = async () => {
     if (!user) return;
@@ -184,8 +193,6 @@ export const EnhancedChatArea = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      // Here you would process the file upload
-      // For now, we'll just add a message indicating file was uploaded
       const fileMessage = {
         id: `file_${Date.now()}`,
         content: `Uploaded file: ${selectedFile.name}`,
@@ -219,7 +226,6 @@ export const EnhancedChatArea = () => {
     setIsLoading(true);
 
     try {
-      // Add user message to UI immediately
       const userMsg = {
         id: `user_${Date.now()}`,
         content: userMessage,
@@ -228,7 +234,6 @@ export const EnhancedChatArea = () => {
       };
       setMessages(prev => [...prev, userMsg]);
 
-      // Save user message to database if authenticated
       if (user) {
         await supabase
           .from('messages')
@@ -242,7 +247,6 @@ export const EnhancedChatArea = () => {
           });
       }
 
-      // Get AI response
       let systemPrompt = "You are a helpful AI tutor. Help the student learn and understand concepts clearly and engagingly.";
       
       if (activeCurriculum) {
@@ -270,7 +274,6 @@ export const EnhancedChatArea = () => {
 
       const responseTime = Date.now() - startTime;
 
-      // Add AI response to UI
       const aiMsg = {
         id: `ai_${Date.now()}`,
         content: data.content,
@@ -278,7 +281,6 @@ export const EnhancedChatArea = () => {
         created_at: new Date().toISOString()
       };
 
-      // Generate voice response if enabled
       if (isVoiceResponse) {
         try {
           const voiceData = await supabase.functions.invoke('text-to-voice', {
@@ -302,7 +304,6 @@ export const EnhancedChatArea = () => {
 
       setMessages(prev => [...prev, aiMsg]);
 
-      // Save AI response to database if authenticated
       if (user) {
         await supabase
           .from('messages')
@@ -315,7 +316,6 @@ export const EnhancedChatArea = () => {
             conversation_id: sessionId
           });
 
-        // Track interaction with analytics
         await trackInteraction(
           'chat',
           data.content,
@@ -325,7 +325,6 @@ export const EnhancedChatArea = () => {
           responseTime
         );
 
-        // Log activity
         const subjectId = activeCurriculum?.subjects ? 
           await getSubjectId(activeCurriculum.subjects.name) : undefined;
         
@@ -369,163 +368,227 @@ export const EnhancedChatArea = () => {
     audio.play();
   };
 
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+  };
+
   return (
-    <div className="flex h-full">
+    <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
-      <ChatSidebar
-        activeCurriculum={activeCurriculum}
-        curricula={curricula}
-        onSelectCurriculum={setActiveCurriculum}
-        onNewChat={startNewChat}
-        activeSessionId={activeSessionId}
-        onSelectSession={handleSelectSession}
-      />
+      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block`}>
+        <ChatSidebar
+          activeCurriculum={activeCurriculum}
+          curricula={curricula}
+          onSelectCurriculum={setActiveCurriculum}
+          onNewChat={startNewChat}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+        />
+      </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Active Curriculum Display */}
-        {activeCurriculum && (
-          <div className="p-4 bg-blue-500/20 border-b border-blue-500/30">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{activeCurriculum.subjects.name}</Badge>
-              <span className="text-blue-200 text-sm">{activeCurriculum.title}</span>
+        {/* Header */}
+        <div className="bg-gray-800 border-b border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden text-gray-400 hover:text-white"
+              >
+                ☰
+              </Button>
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <h1 className="text-lg font-semibold">AI Learning Assistant</h1>
             </div>
-            <p className="text-xs text-blue-300 mt-1">
-              AI responses will follow your school's curriculum guidelines
-            </p>
+            <div className="flex items-center gap-2">
+              {activeCurriculum && (
+                <Badge variant="secondary" className="bg-blue-600 text-white">
+                  {activeCurriculum.subjects.name}
+                </Badge>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Messages */}
-        <Card className="flex-1 bg-white/10 border-white/20 m-4 mb-0">
-          <CardContent className="p-0">
-            <div className="h-full overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-3 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`flex gap-3 max-w-[80%] ${message.is_from_user ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.is_from_user ? 'bg-blue-500' : 'bg-gray-600'
-                    }`}>
-                      {message.is_from_user ? <User className="h-4 w-4" /> : 'AI'}
-                    </div>
-                    <div className={`p-3 rounded-lg ${
-                      message.is_from_user 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-700 text-gray-100'
-                    }`}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      {message.audioUrl && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => playAudio(message.audioUrl!)}
-                          className="mt-2 p-1"
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <p className="text-xs opacity-70 mt-1">
-                        {new Date(message.created_at).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex gap-4 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}
+            >
+              {!message.is_from_user && (
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                  AI
                 </div>
-              ))}
+              )}
               
-              {(isLoading || isAnalyzing) && (
-                <div className="flex gap-3 justify-start">
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
-                    AI
-                  </div>
-                  <div className="bg-gray-700 text-gray-100 p-3 rounded-lg">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className={`max-w-[80%] ${message.is_from_user ? 'order-first' : ''}`}>
+                <div className={`p-4 rounded-2xl ${
+                  message.is_from_user 
+                    ? 'bg-blue-600 text-white ml-auto' 
+                    : 'bg-gray-800 text-gray-100'
+                }`}>
+                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  
+                  {message.audioUrl && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => playAudio(message.audioUrl!)}
+                      className="mt-2 p-1 hover:bg-white/10"
+                    >
+                      <Volume2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                  <span>{new Date(message.created_at).toLocaleTimeString()}</span>
+                  {!message.is_from_user && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => copyMessage(message.content)}
+                        className="p-1 h-6 w-6 hover:bg-gray-700"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="p-1 h-6 w-6 hover:bg-gray-700"
+                      >
+                        <ThumbsUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="p-1 h-6 w-6 hover:bg-gray-700"
+                      >
+                        <ThumbsDown className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="p-1 h-6 w-6 hover:bg-gray-700"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                      </Button>
                     </div>
-                    {isAnalyzing && (
-                      <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
-                    )}
-                  </div>
+                  )}
+                </div>
+              </div>
+
+              {message.is_from_user && (
+                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="h-4 w-4" />
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Input Area */}
-        <div className="p-4 border-t border-white/20">
-          {selectedFile && (
-            <div className="mb-2 p-2 bg-white/10 rounded-lg flex items-center justify-between">
-              <span className="text-sm text-white">Selected: {selectedFile.name}</span>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleFileUpload}>Upload</Button>
-                <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)}>Remove</Button>
+          ))}
+          
+          {(isLoading || isAnalyzing) && (
+            <div className="flex gap-4 justify-start">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                AI
+              </div>
+              <div className="bg-gray-800 text-gray-100 p-4 rounded-2xl">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                {isAnalyzing && (
+                  <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
+                )}
               </div>
             </div>
           )}
           
-          <div className="flex gap-2 items-end">
-            <Input
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-              placeholder="Ask me anything about your studies..."
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              className="bg-white/10 border-white/20 text-white flex-1"
-              disabled={isLoading || isAnalyzing}
-            />
-            
-            <div className="flex gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="bg-gray-800 border-t border-gray-700 p-4">
+          {selectedFile && (
+            <div className="mb-3 p-3 bg-gray-700 rounded-lg flex items-center justify-between">
+              <span className="text-sm text-gray-300">Selected: {selectedFile.name}</span>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleFileUpload} className="bg-blue-600 hover:bg-blue-700">
+                  Upload
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)}>
+                  Remove
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-end gap-3">
+            <div className="flex-1 relative">
+              <Input
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                placeholder="Ask anything..."
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-16 py-3 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                disabled={isLoading || isAnalyzing}
               />
               
-              <Button 
-                onClick={() => fileInputRef.current?.click()}
-                variant="outline"
-                size="icon"
-                className="bg-white/10 border-white/20 hover:bg-white/20"
-                disabled={isLoading || isAnalyzing}
-              >
-                <Upload className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                onClick={isRecording ? stopRecording : startRecording}
-                variant="outline"
-                size="icon"
-                className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
-                disabled={isLoading || isAnalyzing}
-              >
-                {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-              </Button>
-              
-              <Button 
-                onClick={() => setIsVoiceResponse(!isVoiceResponse)}
-                variant="outline"
-                size="icon"
-                className={`${isVoiceResponse ? 'bg-purple-500 border-purple-400' : 'bg-white/10 border-white/20'} hover:bg-white/20`}
-                disabled={isLoading || isAnalyzing}
-                title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
-              >
-                <Volume2 className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                onClick={sendMessage} 
-                disabled={!currentMessage.trim() || isLoading || isAnalyzing}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-1">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                />
+                
+                <Button 
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-600"
+                  disabled={isLoading || isAnalyzing}
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+                
+                <Button 
+                  onClick={isRecording ? stopRecording : startRecording}
+                  variant="ghost"
+                  size="sm"
+                  className={`p-2 h-8 w-8 ${isRecording ? 'text-red-400 hover:text-red-300' : 'text-gray-400 hover:text-white hover:bg-gray-600'}`}
+                  disabled={isLoading || isAnalyzing}
+                >
+                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
+            
+            <Button 
+              onClick={() => setIsVoiceResponse(!isVoiceResponse)}
+              variant="ghost"
+              size="sm"
+              className={`p-3 ${isVoiceResponse ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+              disabled={isLoading || isAnalyzing}
+              title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
+            >
+              <Volume2 className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              onClick={sendMessage} 
+              disabled={!currentMessage.trim() || isLoading || isAnalyzing}
+              className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
