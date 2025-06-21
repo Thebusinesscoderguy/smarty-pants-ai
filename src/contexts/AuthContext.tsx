@@ -56,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsSchoolAdmin(false);
         }
         
+        // Always set loading to false after processing auth state
         setLoading(false);
       }
     );
@@ -69,13 +70,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('AuthContext: Error getting session:', error);
-        } else {
-          console.log('AuthContext: Initial session check:', {
-            hasSession: !!currentSession,
-            userId: currentSession?.user?.id,
-            userEmail: currentSession?.user?.email
-          });
+          setLoading(false);
+          return;
         }
+        
+        console.log('AuthContext: Initial session check:', {
+          hasSession: !!currentSession,
+          userId: currentSession?.user?.id,
+          userEmail: currentSession?.user?.email
+        });
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
