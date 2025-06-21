@@ -44,18 +44,7 @@ export const ChatSidebar = ({
     if (!user) return;
 
     try {
-      // First try to get sessions with titles from chat_sessions table
-      const { data: sessionsData, error: sessionsError } = await supabase
-        .from('chat_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-
-      if (sessionsError) {
-        console.log('Chat sessions table not found, falling back to messages grouping');
-      }
-
-      // Get messages data for sessions
+      // Get messages data grouped by conversation_id
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('conversation_id, created_at, content')
@@ -69,12 +58,9 @@ export const ChatSidebar = ({
       const sessionMap = new Map();
       messagesData?.forEach(msg => {
         if (!sessionMap.has(msg.conversation_id)) {
-          // Try to find title from chat_sessions table
-          const sessionWithTitle = sessionsData?.find(s => s.id === msg.conversation_id);
-          
           sessionMap.set(msg.conversation_id, {
             id: msg.conversation_id,
-            title: sessionWithTitle?.title || generateTitleFromContent(msg.content),
+            title: generateTitleFromContent(msg.content),
             created_at: msg.created_at,
             message_count: 1
           });
@@ -100,13 +86,6 @@ export const ChatSidebar = ({
     if (!user) return;
 
     try {
-      // Delete from chat_sessions table
-      await supabase
-        .from('chat_sessions')
-        .delete()
-        .eq('id', sessionId)
-        .eq('user_id', user.id);
-
       // Delete messages
       await supabase
         .from('messages')

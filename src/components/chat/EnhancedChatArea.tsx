@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -118,61 +117,6 @@ export const EnhancedChatArea = () => {
       setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
-    }
-  };
-
-  const generateChatTitle = async (messages: DatabaseMessage[]): Promise<string> => {
-    if (!user || messages.length < 2) return 'New Chat';
-
-    try {
-      // Get the first few user messages to understand the topic
-      const userMessages = messages
-        .filter(m => m.is_from_user && m.content.length > 10)
-        .slice(0, 3)
-        .map(m => m.content);
-
-      if (userMessages.length === 0) return 'New Chat';
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            {
-              role: 'system',
-              content: 'Generate a concise 3-4 word title for this conversation based on the main topic. Respond with just the title, no quotes or extra text.'
-            },
-            {
-              role: 'user',
-              content: `Generate a title for a conversation that includes these messages: ${userMessages.join('. ')}`
-            }
-          ]
-        }
-      });
-
-      if (error) throw error;
-      return data.content.trim() || 'New Chat';
-    } catch (error) {
-      console.error('Error generating chat title:', error);
-      return 'New Chat';
-    }
-  };
-
-  const updateChatTitle = async (sessionId: string, messages: DatabaseMessage[]) => {
-    if (!user || !sessionId) return;
-
-    try {
-      const title = await generateChatTitle(messages);
-      
-      // Store the title in a separate table or update the first message
-      await supabase
-        .from('chat_sessions')
-        .upsert({
-          id: sessionId,
-          user_id: user.id,
-          title: title,
-          updated_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.error('Error updating chat title:', error);
     }
   };
 
@@ -372,11 +316,6 @@ export const EnhancedChatArea = () => {
             curriculum_id: activeCurriculum?.id || null,
             conversation_id: sessionId
           });
-
-        // Update chat title after a few exchanges
-        if (updatedMessages.filter(m => m.is_from_user).length >= 2) {
-          await updateChatTitle(sessionId, updatedMessages);
-        }
 
         await trackInteraction(
           'chat',
