@@ -8,7 +8,7 @@ const Chat = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       <Header />
       
       <main className="flex-1">

@@ -121,6 +121,61 @@ export const EnhancedChatArea = () => {
     }
   };
 
+  const generateChatTitle = async (messages: DatabaseMessage[]): Promise<string> => {
+    if (!user || messages.length < 2) return 'New Chat';
+
+    try {
+      // Get the first few user messages to understand the topic
+      const userMessages = messages
+        .filter(m => m.is_from_user && m.content.length > 10)
+        .slice(0, 3)
+        .map(m => m.content);
+
+      if (userMessages.length === 0) return 'New Chat';
+
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: 'system',
+              content: 'Generate a concise 3-4 word title for this conversation based on the main topic. Respond with just the title, no quotes or extra text.'
+            },
+            {
+              role: 'user',
+              content: `Generate a title for a conversation that includes these messages: ${userMessages.join('. ')}`
+            }
+          ]
+        }
+      });
+
+      if (error) throw error;
+      return data.content.trim() || 'New Chat';
+    } catch (error) {
+      console.error('Error generating chat title:', error);
+      return 'New Chat';
+    }
+  };
+
+  const updateChatTitle = async (sessionId: string, messages: DatabaseMessage[]) => {
+    if (!user || !sessionId) return;
+
+    try {
+      const title = await generateChatTitle(messages);
+      
+      // Store the title in a separate table or update the first message
+      await supabase
+        .from('chat_sessions')
+        .upsert({
+          id: sessionId,
+          user_id: user.id,
+          title: title,
+          updated_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error updating chat title:', error);
+    }
+  };
+
   const startNewChat = () => {
     setActiveSessionId(null);
     setMessages([{
@@ -303,7 +358,8 @@ export const EnhancedChatArea = () => {
         }
       }
 
-      setMessages(prev => [...prev, aiMsg]);
+      const updatedMessages = [...messages, userMsg, aiMsg];
+      setMessages(updatedMessages);
 
       if (user) {
         await supabase
@@ -316,6 +372,11 @@ export const EnhancedChatArea = () => {
             curriculum_id: activeCurriculum?.id || null,
             conversation_id: sessionId
           });
+
+        // Update chat title after a few exchanges
+        if (updatedMessages.filter(m => m.is_from_user).length >= 2) {
+          await updateChatTitle(sessionId, updatedMessages);
+        }
 
         await trackInteraction(
           'chat',
@@ -374,9 +435,9 @@ export const EnhancedChatArea = () => {
   };
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-gray-900">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-64 border-r border-gray-200`}>
+      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-64 border-r border-gray-700`}>
         <ChatSidebar
           activeCurriculum={activeCurriculum}
           curricula={curricula}
@@ -390,12 +451,12 @@ export const EnhancedChatArea = () => {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 p-4">
+        <div className="bg-gray-800 border-b border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+                className="md:hidden p-2 hover:bg-gray-700 rounded-lg text-gray-300"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -404,7 +465,7 @@ export const EnhancedChatArea = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AI</span>
               </div>
-              <h1 className="text-lg font-semibold text-gray-900">AI Learning Assistant</h1>
+              <h1 className="text-lg font-semibold text-white">AI Learning Assistant</h1>
             </div>
             {activeCurriculum && (
               <Badge className="bg-blue-100 text-blue-800 border-blue-200">
@@ -415,7 +476,7 @@ export const EnhancedChatArea = () => {
         </div>
 
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-gray-900">
           <div className="max-w-4xl mx-auto p-6 space-y-6">
             {messages.map((message) => (
               <div
@@ -432,7 +493,7 @@ export const EnhancedChatArea = () => {
                   <div className={`p-4 rounded-2xl ${
                     message.is_from_user 
                       ? 'bg-blue-600 text-white ml-auto' 
-                      : 'bg-gray-100 text-gray-900'
+                      : 'bg-gray-800 text-gray-100 border border-gray-700'
                   }`}>
                     <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
@@ -441,7 +502,7 @@ export const EnhancedChatArea = () => {
                         size="sm"
                         variant="ghost"
                         onClick={() => playAudio(message.audioUrl!)}
-                        className="mt-2 p-1 hover:bg-white/10"
+                        className="mt-2 p-1 hover:bg-white/10 text-gray-300"
                       >
                         <Volume2 className="h-4 w-4" />
                       </Button>
@@ -456,28 +517,28 @@ export const EnhancedChatArea = () => {
                           size="sm"
                           variant="ghost"
                           onClick={() => copyMessage(message.content)}
-                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
                         >
                           <ThumbsUp className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
                         >
                           <ThumbsDown className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="p-1 h-6 w-6 hover:bg-gray-200"
+                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
                         >
                           <RotateCcw className="h-3 w-3" />
                         </Button>
@@ -487,8 +548,8 @@ export const EnhancedChatArea = () => {
                 </div>
 
                 {message.is_from_user && (
-                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-gray-600" />
+                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="h-4 w-4 text-gray-300" />
                   </div>
                 )}
               </div>
@@ -499,7 +560,7 @@ export const EnhancedChatArea = () => {
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white">
                   AI
                 </div>
-                <div className="bg-gray-100 text-gray-900 p-4 rounded-2xl">
+                <div className="bg-gray-800 text-gray-100 p-4 rounded-2xl border border-gray-700">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -517,16 +578,16 @@ export const EnhancedChatArea = () => {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-gray-200 bg-white p-4">
+        <div className="border-t border-gray-700 bg-gray-800 p-4">
           <div className="max-w-4xl mx-auto">
             {selectedFile && (
-              <div className="mb-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
-                <span className="text-sm text-gray-700">Selected: {selectedFile.name}</span>
+              <div className="mb-3 p-3 bg-blue-900/50 rounded-lg flex items-center justify-between border border-blue-800">
+                <span className="text-sm text-gray-300">Selected: {selectedFile.name}</span>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleFileUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
                     Upload
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)}>
+                  <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)} className="border-gray-600 text-gray-300 hover:bg-gray-700">
                     Remove
                   </Button>
                 </div>
@@ -540,7 +601,7 @@ export const EnhancedChatArea = () => {
                   onChange={(e) => setCurrentMessage(e.target.value)}
                   placeholder="Message AI Learning Assistant..."
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  className="min-h-[48px] py-3 pl-4 pr-32 text-base border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                  className="min-h-[48px] py-3 pl-4 pr-32 text-base bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
                   disabled={isLoading || isAnalyzing}
                 />
                 
@@ -557,7 +618,7 @@ export const EnhancedChatArea = () => {
                     onClick={() => fileInputRef.current?.click()}
                     variant="ghost"
                     size="sm"
-                    className="p-2 h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    className="p-2 h-8 w-8 text-gray-400 hover:text-gray-300 hover:bg-gray-600"
                     disabled={isLoading || isAnalyzing}
                   >
                     <Upload className="h-4 w-4" />
@@ -567,7 +628,7 @@ export const EnhancedChatArea = () => {
                     onClick={isRecording ? stopRecording : startRecording}
                     variant="ghost"
                     size="sm"
-                    className={`p-2 h-8 w-8 ${isRecording ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-gray-600'} hover:bg-gray-100`}
+                    className={`p-2 h-8 w-8 ${isRecording ? 'text-red-400 hover:text-red-300' : 'text-gray-400 hover:text-gray-300'} hover:bg-gray-600`}
                     disabled={isLoading || isAnalyzing}
                   >
                     {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -577,7 +638,7 @@ export const EnhancedChatArea = () => {
                     onClick={() => setIsVoiceResponse(!isVoiceResponse)}
                     variant="ghost"
                     size="sm"
-                    className={`p-2 h-8 w-8 ${isVoiceResponse ? 'text-purple-600 hover:text-purple-700' : 'text-gray-400 hover:text-gray-600'} hover:bg-gray-100`}
+                    className={`p-2 h-8 w-8 ${isVoiceResponse ? 'text-purple-400 hover:text-purple-300' : 'text-gray-400 hover:text-gray-300'} hover:bg-gray-600`}
                     disabled={isLoading || isAnalyzing}
                     title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
                   >
@@ -589,7 +650,7 @@ export const EnhancedChatArea = () => {
               <Button 
                 onClick={sendMessage} 
                 disabled={!currentMessage.trim() || isLoading || isAnalyzing}
-                className="bg-black hover:bg-gray-800 text-white p-3 rounded-xl min-h-[48px]"
+                className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl min-h-[48px] disabled:opacity-50"
               >
                 <Send className="h-5 w-5" />
               </Button>

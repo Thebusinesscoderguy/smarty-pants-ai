@@ -44,22 +44,37 @@ export const ChatSidebar = ({
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First try to get sessions with titles from chat_sessions table
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (sessionsError) {
+        console.log('Chat sessions table not found, falling back to messages grouping');
+      }
+
+      // Get messages data for sessions
+      const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('conversation_id, created_at, content')
         .eq('user_id', user.id)
         .not('conversation_id', 'is', null)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (messagesError) throw messagesError;
 
       // Group messages by conversation_id and create sessions
       const sessionMap = new Map();
-      data?.forEach(msg => {
+      messagesData?.forEach(msg => {
         if (!sessionMap.has(msg.conversation_id)) {
+          // Try to find title from chat_sessions table
+          const sessionWithTitle = sessionsData?.find(s => s.id === msg.conversation_id);
+          
           sessionMap.set(msg.conversation_id, {
             id: msg.conversation_id,
-            title: msg.content.slice(0, 30) + (msg.content.length > 30 ? '...' : ''),
+            title: sessionWithTitle?.title || generateTitleFromContent(msg.content),
             created_at: msg.created_at,
             message_count: 1
           });
@@ -74,11 +89,25 @@ export const ChatSidebar = ({
     }
   };
 
+  const generateTitleFromContent = (content: string): string => {
+    // Simple title generation from first message
+    const words = content.split(' ').slice(0, 4);
+    return words.join(' ') + (content.split(' ').length > 4 ? '...' : '');
+  };
+
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) return;
 
     try {
+      // Delete from chat_sessions table
+      await supabase
+        .from('chat_sessions')
+        .delete()
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
+
+      // Delete messages
       await supabase
         .from('messages')
         .delete()
@@ -96,7 +125,7 @@ export const ChatSidebar = ({
   };
 
   return (
-    <div className="w-80 bg-white/10 border-r border-white/20 p-4 space-y-4">
+    <div className="w-80 bg-gray-800 border-r border-gray-700 p-4 space-y-4 h-full">
       <div>
         <Button
           onClick={onNewChat}
@@ -107,11 +136,11 @@ export const ChatSidebar = ({
         </Button>
       </div>
 
-      <Separator className="bg-white/20" />
+      <Separator className="bg-gray-700" />
 
       {/* Curriculum Selection */}
       {curricula.length > 0 && (
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-gray-700 border-gray-600">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-white text-sm">
               <BookOpen className="h-4 w-4" />
@@ -123,7 +152,7 @@ export const ChatSidebar = ({
               variant={!activeCurriculum ? 'default' : 'outline'}
               size="sm"
               onClick={() => onSelectCurriculum(null)}
-              className="w-full justify-start text-xs"
+              className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500"
             >
               General Chat
             </Button>
@@ -133,7 +162,7 @@ export const ChatSidebar = ({
                 variant={activeCurriculum?.id === curriculum.id ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onSelectCurriculum(curriculum)}
-                className="w-full justify-start text-xs"
+                className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500"
               >
                 {curriculum.title}
               </Button>
@@ -142,26 +171,26 @@ export const ChatSidebar = ({
         </Card>
       )}
 
-      <Separator className="bg-white/20" />
+      <Separator className="bg-gray-700" />
 
       {/* Previous Chats */}
       <div>
         <h3 className="text-sm font-medium text-gray-300 mb-3">Previous Chats</h3>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
           {chatSessions.map((session) => (
             <div
               key={session.id}
               onClick={() => onSelectSession(session.id)}
-              className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+              className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                 activeSessionId === session.id
                   ? 'bg-blue-600/20 border border-blue-500/30'
-                  : 'bg-white/10 hover:bg-white/20'
+                  : 'bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600'
               }`}
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <MessageSquare className="h-3 w-3 text-gray-400 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-white truncate">{session.title}</p>
+                  <p className="text-sm text-white truncate font-medium">{session.title}</p>
                   <p className="text-xs text-gray-400">
                     {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
                   </p>
@@ -171,7 +200,7 @@ export const ChatSidebar = ({
                 size="sm"
                 variant="ghost"
                 onClick={(e) => deleteSession(session.id, e)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-gray-600"
               >
                 <Trash2 className="h-3 w-3 text-red-400" />
               </Button>
