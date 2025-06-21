@@ -28,6 +28,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from "@/components/ui/sidebar";
+import { toast } from "@/hooks/use-toast";
 
 const navigationItems = [
   { title: "Home", icon: Home, url: "/" },
@@ -40,12 +41,30 @@ const navigationItems = [
 ];
 
 const AppSidebar = () => {
-  const { user, logout, isSchoolAdmin } = useAuth();
+  const { user, signOut, isSchoolAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isActive = (url: string) => {
     return location.pathname === url;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "Sign out failed",
+        description: "There was an error signing you out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -91,7 +110,7 @@ const AppSidebar = () => {
                     </Link>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Button variant="ghost" onClick={() => logout(navigate)} className="justify-start w-full">
+                    <Button variant="ghost" onClick={handleSignOut} className="justify-start w-full">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Logout</span>
                     </Button>
