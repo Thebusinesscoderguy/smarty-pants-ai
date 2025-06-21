@@ -194,7 +194,7 @@ export const EnhancedChatArea = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const fileMessage = {
+      const fileMessage: DatabaseMessage = {
         id: `file_${Date.now()}`,
         content: `Uploaded file: ${selectedFile.name}`,
         is_from_user: true,
@@ -227,7 +227,7 @@ export const EnhancedChatArea = () => {
     setIsLoading(true);
 
     try {
-      const userMsg = {
+      const userMsg: DatabaseMessage = {
         id: `user_${Date.now()}`,
         content: userMessage,
         is_from_user: true,
@@ -275,7 +275,7 @@ export const EnhancedChatArea = () => {
 
       const responseTime = Date.now() - startTime;
 
-      const aiMsg = {
+      const aiMsg: DatabaseMessage = {
         id: `ai_${Date.now()}`,
         content: data.content,
         is_from_user: false,
