@@ -1,10 +1,9 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, User, Upload, Mic, MicOff, Volume2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
@@ -16,6 +15,9 @@ interface Message {
   content: string;
   is_from_user: boolean;
   created_at: string;
+  audioUrl?: string;
+  fileName?: string;
+  fileUrl?: string;
 }
 
 interface Curriculum {
@@ -34,9 +36,15 @@ export const EnhancedChatArea = () => {
   const [activeCurriculum, setActiveCurriculum] = useState<Curriculum | null>(null);
   const [curricula, setCurricula] = useState<Curriculum[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isVoiceResponse, setIsVoiceResponse] = useState(false);
   const { user } = useAuth();
   const { logActivity } = useActivityTracking();
   const { trackInteraction, isAnalyzing } = useRealTimeAnalytics();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -113,6 +121,85 @@ export const EnhancedChatArea = () => {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await processVoiceInput(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const processVoiceInput = async (audioBlob: Blob) => {
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Audio = reader.result?.toString().split(',')[1];
+        if (base64Audio) {
+          const { data, error } = await supabase.functions.invoke('voice-to-text', {
+            body: { audio: base64Audio }
+          });
+
+          if (error) throw error;
+          if (data.text) {
+            setCurrentMessage(data.text);
+          }
+        }
+      };
+      reader.readAsDataURL(audioBlob);
+    } catch (error) {
+      console.error('Error processing voice input:', error);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      // Here you would process the file upload
+      // For now, we'll just add a message indicating file was uploaded
+      const fileMessage = {
+        id: `file_${Date.now()}`,
+        content: `Uploaded file: ${selectedFile.name}`,
+        is_from_user: true,
+        created_at: new Date().toISOString(),
+        fileName: selectedFile.name
+      };
+
+      setMessages(prev => [...prev, fileMessage]);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
+  };
+
   const sendMessage = async () => {
     if (!currentMessage.trim()) return;
 
@@ -186,6 +273,29 @@ export const EnhancedChatArea = () => {
         is_from_user: false,
         created_at: new Date().toISOString()
       };
+
+      // Generate voice response if enabled
+      if (isVoiceResponse) {
+        try {
+          const voiceData = await supabase.functions.invoke('text-to-voice', {
+            body: { 
+              text: data.content,
+              voice: 'alloy'
+            }
+          });
+
+          if (voiceData.data?.audioContent) {
+            const audioBlob = new Blob([
+              new Uint8Array(atob(voiceData.data.audioContent).split('').map(c => c.charCodeAt(0)))
+            ], { type: 'audio/mp3' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            aiMsg.audioUrl = audioUrl;
+          }
+        } catch (voiceError) {
+          console.error('Error generating voice response:', voiceError);
+        }
+      }
+
       setMessages(prev => [...prev, aiMsg]);
 
       // Save AI response to database if authenticated
@@ -250,8 +360,13 @@ export const EnhancedChatArea = () => {
     fetchMessagesForSession(sessionId);
   };
 
+  const playAudio = (audioUrl: string) => {
+    const audio = new Audio(audioUrl);
+    audio.play();
+  };
+
   return (
-    <div className="flex h-[calc(100vh-200px)]">
+    <div className="flex h-screen">
       {/* Sidebar */}
       <ChatSidebar
         activeCurriculum={activeCurriculum}
@@ -290,7 +405,7 @@ export const EnhancedChatArea = () => {
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       message.is_from_user ? 'bg-blue-500' : 'bg-gray-600'
                     }`}>
-                      {message.is_from_user ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                      {message.is_from_user ? <User className="h-4 w-4" /> : 'AI'}
                     </div>
                     <div className={`p-3 rounded-lg ${
                       message.is_from_user 
@@ -298,6 +413,16 @@ export const EnhancedChatArea = () => {
                         : 'bg-gray-700 text-gray-100'
                     }`}>
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.audioUrl && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => playAudio(message.audioUrl!)}
+                          className="mt-2 p-1"
+                        >
+                          <Volume2 className="h-4 w-4" />
+                        </Button>
+                      )}
                       <p className="text-xs opacity-70 mt-1">
                         {new Date(message.created_at).toLocaleTimeString()}
                       </p>
@@ -309,7 +434,7 @@ export const EnhancedChatArea = () => {
               {(isLoading || isAnalyzing) && (
                 <div className="flex gap-3 justify-start">
                   <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
-                    <Bot className="h-4 w-4" />
+                    AI
                   </div>
                   <div className="bg-gray-700 text-gray-100 p-3 rounded-lg">
                     <div className="flex space-x-1">
@@ -328,8 +453,18 @@ export const EnhancedChatArea = () => {
         </Card>
 
         {/* Input Area */}
-        <div className="p-4">
-          <div className="flex gap-2">
+        <div className="p-4 border-t border-white/20">
+          {selectedFile && (
+            <div className="mb-2 p-2 bg-white/10 rounded-lg flex items-center justify-between">
+              <span className="text-sm text-white">Selected: {selectedFile.name}</span>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleFileUpload}>Upload</Button>
+                <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)}>Remove</Button>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex gap-2 items-end">
             <Input
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
@@ -338,13 +473,55 @@ export const EnhancedChatArea = () => {
               className="bg-white/10 border-white/20 text-white flex-1"
               disabled={isLoading || isAnalyzing}
             />
-            <Button 
-              onClick={sendMessage} 
-              disabled={!currentMessage.trim() || isLoading || isAnalyzing}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            
+            <div className="flex gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+              />
+              
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                variant="outline"
+                size="icon"
+                className="bg-white/10 border-white/20 hover:bg-white/20"
+                disabled={isLoading || isAnalyzing}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                onClick={isRecording ? stopRecording : startRecording}
+                variant="outline"
+                size="icon"
+                className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
+                disabled={isLoading || isAnalyzing}
+              >
+                {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+              
+              <Button 
+                onClick={() => setIsVoiceResponse(!isVoiceResponse)}
+                variant="outline"
+                size="icon"
+                className={`${isVoiceResponse ? 'bg-purple-500 border-purple-400' : 'bg-white/10 border-white/20'} hover:bg-white/20`}
+                disabled={isLoading || isAnalyzing}
+                title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
+              >
+                <Volume2 className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                onClick={sendMessage} 
+                disabled={!currentMessage.trim() || isLoading || isAnalyzing}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
