@@ -218,7 +218,7 @@ const PublicPricing = () => {
           <div className="text-center mt-16 mb-12 p-8 bg-gradient-to-r from-blue-900/60 to-purple-900/60 rounded-2xl border border-white/10">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">Try a Live Demo</h2>
             <p className="text-white/80 mb-5">
-              Experience TeachlyAI's AI-powered learning features right now. No signup required—test our chat, analytics, and more in a secure sandbox!
+              Experience Teachly AI's AI-powered learning features right now. No signup required—test our chat, analytics, and more in a secure sandbox!
             </p>
             <Button
               className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
