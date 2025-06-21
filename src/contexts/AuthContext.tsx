@@ -21,18 +21,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    console.log('AuthContext: Setting up auth state management...');
+    console.log('AuthContext: Initializing auth state management...');
+    
+    let isMounted = true;
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!isMounted) return;
+        
         console.log('AuthContext: Auth state changed:', {
           event,
           hasSession: !!currentSession,
           userId: currentSession?.user?.id,
-          userEmail: currentSession?.user?.email
+          userEmail: currentSession?.user?.email,
+          isInitialized
         });
         
         setSession(currentSession);
@@ -47,22 +53,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('admin_user_id', currentSession.user.id)
               .single();
             
-            setIsSchoolAdmin(!!schoolData);
+            if (isMounted) {
+              setIsSchoolAdmin(!!schoolData);
+            }
           } catch (error) {
             console.error('Error checking school admin status:', error);
-            setIsSchoolAdmin(false);
+            if (isMounted) {
+              setIsSchoolAdmin(false);
+            }
           }
         } else {
-          setIsSchoolAdmin(false);
+          if (isMounted) {
+            setIsSchoolAdmin(false);
+          }
         }
         
-        // Always set loading to false after processing auth state
-        setLoading(false);
+        // Only set loading to false after we've processed the auth state
+        if (isMounted && !isInitialized) {
+          console.log('AuthContext: Setting loading to false and marking as initialized');
+          setLoading(false);
+          setIsInitialized(true);
+        }
       }
     );
 
     // Then check for existing session
-    const checkSession = async () => {
+    const checkInitialSession = async () => {
       try {
         console.log('AuthContext: Checking for existing session...');
         
@@ -70,7 +86,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('AuthContext: Error getting session:', error);
-          setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+            setIsInitialized(true);
+          }
           return;
         }
         
@@ -80,38 +99,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           userEmail: currentSession?.user?.email
         });
         
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Check if user is a school admin
-        if (currentSession?.user) {
-          try {
-            const { data: schoolData } = await supabase
-              .from('school_accounts')
-              .select('id')
-              .eq('admin_user_id', currentSession.user.id)
-              .single();
-            
-            setIsSchoolAdmin(!!schoolData);
-          } catch (error) {
-            console.error('Error checking school admin status:', error);
+        if (isMounted) {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          // Check if user is a school admin
+          if (currentSession?.user) {
+            try {
+              const { data: schoolData } = await supabase
+                .from('school_accounts')
+                .select('id')
+                .eq('admin_user_id', currentSession.user.id)
+                .single();
+              
+              setIsSchoolAdmin(!!schoolData);
+            } catch (error) {
+              console.error('Error checking school admin status:', error);
+              setIsSchoolAdmin(false);
+            }
+          } else {
             setIsSchoolAdmin(false);
           }
-        } else {
-          setIsSchoolAdmin(false);
+          
+          // Set loading to false and mark as initialized
+          console.log('AuthContext: Initial check complete, setting loading to false');
+          setLoading(false);
+          setIsInitialized(true);
         }
-        
-        setLoading(false);
       } catch (error) {
-        console.error('AuthContext: Error in checkSession:', error);
-        setLoading(false);
+        console.error('AuthContext: Error in checkInitialSession:', error);
+        if (isMounted) {
+          setLoading(false);
+          setIsInitialized(true);
+        }
       }
     };
 
-    checkSession();
+    checkInitialSession();
 
     return () => {
       console.log('AuthContext: Cleaning up auth subscription');
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -176,6 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasUser: !!user,
     hasSession: !!session,
     loading,
+    isInitialized,
     userId: user?.id,
     userEmail: user?.email,
     isSchoolAdmin

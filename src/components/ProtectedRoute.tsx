@@ -17,13 +17,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       path: location.pathname,
       isLoading: loading,
       isAuthenticated: !!user,
+      userId: user?.id,
       timestamp: new Date().toISOString()
     });
   }, [loading, user, location.pathname]);
 
-  // Show loading only while actually loading
+  // Show loading spinner only while actually loading
   if (loading) {
-    console.log('ProtectedRoute: Still loading auth state...');
+    console.log('ProtectedRoute: Still loading auth state, showing spinner...');
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -33,13 +34,25 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   // If not loading and no user, redirect to auth
-  if (!user) {
+  if (!loading && !user) {
     console.log('ProtectedRoute: User not authenticated, redirecting to auth page');
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
-  console.log('ProtectedRoute: User authenticated, rendering protected content');
-  return <>{children}</>;
+  // If not loading and user exists, render protected content
+  if (!loading && user) {
+    console.log('ProtectedRoute: User authenticated, rendering protected content for:', user.email);
+    return <>{children}</>;
+  }
+
+  // Fallback case - should not reach here
+  console.warn('ProtectedRoute: Unexpected state - showing loading as fallback');
+  return (
+    <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
+      <Loader2 className="h-8 w-8 animate-spin mb-4" />
+      <p>Loading...</p>
+    </div>
+  );
 };
 
 export default ProtectedRoute;
