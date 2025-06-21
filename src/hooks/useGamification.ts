@@ -47,13 +47,14 @@ export const useGamification = () => {
   useEffect(() => {
     if (isMockDataEnabled()) {
       setIsLoading(true);
-      // Use mock data with proper typing
-      const mockAchievementsWithCriteria = mockAchievements.map(achievement => ({
+      // Properly type the mock achievements
+      const mockAchievementsWithCriteria: Achievement[] = mockAchievements.map(achievement => ({
         ...achievement,
+        type: achievement.type as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge',
         criteria: achievement.type === 'milestone' ? { lessons_completed: 1 } : {}
       }));
       setAchievements(mockAchievementsWithCriteria);
-      setUserAchievements(mockAchievementsWithCriteria.filter(a => a.earned));
+      setUserAchievements(mockAchievementsWithCriteria.filter(a => a.earned_at));
       setChallenges([]);
       setUserProgress([]);
       setUserLevel(3);

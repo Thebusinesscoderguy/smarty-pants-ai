@@ -96,10 +96,8 @@ export const StudentQuestDisplay = () => {
           difficulty: quest.difficulty,
           target_value: quest.target_value,
           current_value: progress?.current_value || 0,
-          progress: progress?.current_value || 0,
-          reward: quest.reward,
           expires_at: quest.expires_at,
-          completed_at: progress?.completed_at,
+          completed: progress?.completed || false,
           subjects: quest.subjects
         };
       });
@@ -169,16 +167,22 @@ export const StudentQuestDisplay = () => {
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-medium text-white">{quest.title}</h4>
                         <Badge variant="outline" className="text-xs">
-                          {getTypeIcon(quest.type)}
+                          {quest.type === 'daily' ? <Clock className="h-4 w-4" /> : <Target className="h-4 w-4" />}
                           <span className="ml-1">{quest.type}</span>
                         </Badge>
-                        <div className={`w-2 h-2 rounded-full ${getDifficultyColor(quest.difficulty)}`} />
+                        <div className={`w-2 h-2 rounded-full ${quest.difficulty === 'basic' ? 'bg-green-500' : quest.difficulty === 'intermediate' ? 'bg-yellow-500' : 'bg-red-500'}`} />
                       </div>
                       <p className="text-sm text-gray-300 mb-3">{quest.description}</p>
                       {quest.subjects && (
                         <Badge variant="secondary" className="text-xs">
                           {quest.subjects.name}
                         </Badge>
+                      )}
+                      {quest.reward && (
+                        <div className="flex items-center gap-1 text-xs text-purple-400 mt-2">
+                          <Gift className="h-3 w-3" />
+                          {quest.reward}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -222,9 +226,22 @@ export const StudentQuestDisplay = () => {
                         <p className="text-sm text-gray-400">{quest.description}</p>
                       </div>
                     </div>
-                    <Badge variant="default" className="bg-green-500/20 text-green-300">
-                      Completed
-                    </Badge>
+                    <div className="text-right">
+                      <Badge variant="default" className="bg-green-500/20 text-green-300">
+                        Completed
+                      </Badge>
+                      {quest.completed_at && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(quest.completed_at).toLocaleDateString()}
+                        </p>
+                      )}
+                      {quest.reward && (
+                        <div className="flex items-center gap-1 text-xs text-purple-400 mt-1">
+                          <Trophy className="h-3 w-3" />
+                          {quest.reward}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

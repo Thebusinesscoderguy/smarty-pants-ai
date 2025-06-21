@@ -50,6 +50,7 @@ export const useQuests = () => {
       
       setDailyQuests(mockDailyQuests);
       setWeeklyQuests(mockWeeklyQuests);
+      // Properly map mock subjects to SubjectAssignment interface
       setSubjectAssignments(mockSubjects.map(subject => ({
         id: subject.id,
         completion_percentage: subject.completion_percentage,
