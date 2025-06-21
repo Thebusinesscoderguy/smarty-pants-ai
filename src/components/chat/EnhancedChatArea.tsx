@@ -366,7 +366,7 @@ export const EnhancedChatArea = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-full">
       {/* Sidebar */}
       <ChatSidebar
         activeCurriculum={activeCurriculum}
