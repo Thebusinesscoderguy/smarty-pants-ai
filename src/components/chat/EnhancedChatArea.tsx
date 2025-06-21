@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Send, User, Upload, Mic, MicOff, Volume2, RotateCcw, ThumbsUp, ThumbsDown, Copy, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 import { ChatSidebar } from './ChatSidebar';
-import { Message } from '@/types/message';
+import { ChatHeader } from './ChatHeader';
+import { MessageBubble } from './MessageBubble';
+import { ChatInput } from './ChatInput';
+import { getDemoSession, getDemoResponse } from '@/utils/demoChatData';
 
 interface DatabaseMessage {
   id: string;
@@ -59,7 +58,7 @@ export const EnhancedChatArea = () => {
       console.log('EnhancedChatArea: Setting up demo welcome message');
       setMessages([{
         id: 'welcome',
-        content: "Welcome to the AI Learning Assistant! I'm here to help you with your studies. Ask me anything about any subject, and I'll provide personalized guidance.",
+        content: "Welcome to the AI Learning Assistant! I'm here to help you with your studies. Try our demo conversations in the sidebar, or ask me anything about any subject. I'll provide personalized guidance to help you learn and understand concepts clearly.",
         is_from_user: false,
         created_at: new Date().toISOString()
       }]);
@@ -103,7 +102,19 @@ export const EnhancedChatArea = () => {
   };
 
   const fetchMessagesForSession = async (sessionId: string) => {
-    if (!user) return;
+    if (!user) {
+      // Load demo session
+      const demoSession = getDemoSession(sessionId);
+      if (demoSession) {
+        const demoMessages = demoSession.messages.map(msg => ({
+          ...msg,
+          created_at: msg.created_at
+        }));
+        setMessages(demoMessages);
+        setActiveSessionId(sessionId);
+      }
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -122,12 +133,21 @@ export const EnhancedChatArea = () => {
 
   const startNewChat = () => {
     setActiveSessionId(null);
-    setMessages([{
-      id: 'welcome',
-      content: "Hello! I'm your AI Learning Assistant. How can I help you with your studies today?",
-      is_from_user: false,
-      created_at: new Date().toISOString()
-    }]);
+    if (user) {
+      setMessages([{
+        id: 'welcome',
+        content: "Hello! I'm your AI Learning Assistant. How can I help you with your studies today?",
+        is_from_user: false,
+        created_at: new Date().toISOString()
+      }]);
+    } else {
+      setMessages([{
+        id: 'welcome',
+        content: "Welcome to the AI Learning Assistant demo! I'm here to help you learn. Try asking me about math, science, writing, or any other subject. You can also explore the demo conversations in the sidebar!",
+        is_from_user: false,
+        created_at: new Date().toISOString()
+      }]);
+    }
   };
 
   const generateSessionId = () => {
@@ -234,6 +254,24 @@ export const EnhancedChatArea = () => {
       };
       setMessages(prev => [...prev, userMsg]);
 
+      // Handle demo vs real responses
+      if (!user) {
+        // Demo response with realistic delay
+        setTimeout(() => {
+          const demoResponse = getDemoResponse(userMessage);
+          const aiMsg: DatabaseMessage = {
+            id: `ai_${Date.now()}`,
+            content: demoResponse,
+            is_from_user: false,
+            created_at: new Date().toISOString()
+          };
+          setMessages(prev => [...prev, aiMsg]);
+          setIsLoading(false);
+        }, 1000 + Math.random() * 2000); // 1-3 second delay
+        return;
+      }
+
+      // Real API call for authenticated users
       if (user) {
         await supabase
           .from('messages')
@@ -376,122 +414,35 @@ export const EnhancedChatArea = () => {
   return (
     <div className="flex h-screen bg-gray-900">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-64 border-r border-gray-700`}>
+      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0`}>
         <ChatSidebar
           activeCurriculum={activeCurriculum}
           curricula={curricula}
           onSelectCurriculum={setActiveCurriculum}
           onNewChat={startNewChat}
           activeSessionId={activeSessionId}
-          onSelectSession={handleSelectSession}
+          onSelectSession={fetchMessagesForSession}
         />
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="bg-gray-800 border-b border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 hover:bg-gray-700 rounded-lg text-gray-300"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AI</span>
-              </div>
-              <h1 className="text-lg font-semibold text-white">AI Learning Assistant</h1>
-            </div>
-            {activeCurriculum && (
-              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                {activeCurriculum.subjects.name}
-              </Badge>
-            )}
-          </div>
-        </div>
+        <ChatHeader
+          activeCurriculum={activeCurriculum}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        />
 
         {/* Messages Container */}
         <div className="flex-1 overflow-y-auto bg-gray-900">
           <div className="max-w-4xl mx-auto p-6 space-y-6">
             {messages.map((message) => (
-              <div
+              <MessageBubble
                 key={message.id}
-                className={`flex gap-4 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}
-              >
-                {!message.is_from_user && (
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0">
-                    AI
-                  </div>
-                )}
-                
-                <div className={`max-w-[80%] ${message.is_from_user ? 'order-first' : ''}`}>
-                  <div className={`p-4 rounded-2xl ${
-                    message.is_from_user 
-                      ? 'bg-blue-600 text-white ml-auto' 
-                      : 'bg-gray-800 text-gray-100 border border-gray-700'
-                  }`}>
-                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                    
-                    {message.audioUrl && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => playAudio(message.audioUrl!)}
-                        className="mt-2 p-1 hover:bg-white/10 text-gray-300"
-                      >
-                        <Volume2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                    <span>{new Date(message.created_at).toLocaleTimeString()}</span>
-                    {!message.is_from_user && (
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyMessage(message.content)}
-                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-                        >
-                          <ThumbsUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-                        >
-                          <ThumbsDown className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-                        >
-                          <RotateCcw className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {message.is_from_user && (
-                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-gray-300" />
-                  </div>
-                )}
-              </div>
+                message={message}
+                onPlayAudio={playAudio}
+                onCopyMessage={copyMessage}
+              />
             ))}
             
             {(isLoading || isAnalyzing) && (
@@ -517,85 +468,21 @@ export const EnhancedChatArea = () => {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-gray-700 bg-gray-800 p-4">
-          <div className="max-w-4xl mx-auto">
-            {selectedFile && (
-              <div className="mb-3 p-3 bg-blue-900/50 rounded-lg flex items-center justify-between border border-blue-800">
-                <span className="text-sm text-gray-300">Selected: {selectedFile.name}</span>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleFileUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Upload
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)} className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex items-end gap-3">
-              <div className="flex-1 relative">
-                <Input
-                  value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
-                  placeholder="Message AI Learning Assistant..."
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  className="min-h-[48px] py-3 pl-4 pr-32 text-base bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
-                  disabled={isLoading || isAnalyzing}
-                />
-                
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-                  />
-                  
-                  <Button 
-                    onClick={() => fileInputRef.current?.click()}
-                    variant="ghost"
-                    size="sm"
-                    className="p-2 h-8 w-8 text-gray-400 hover:text-gray-300 hover:bg-gray-600"
-                    disabled={isLoading || isAnalyzing}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button 
-                    onClick={isRecording ? stopRecording : startRecording}
-                    variant="ghost"
-                    size="sm"
-                    className={`p-2 h-8 w-8 ${isRecording ? 'text-red-400 hover:text-red-300' : 'text-gray-400 hover:text-gray-300'} hover:bg-gray-600`}
-                    disabled={isLoading || isAnalyzing}
-                  >
-                    {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => setIsVoiceResponse(!isVoiceResponse)}
-                    variant="ghost"
-                    size="sm"
-                    className={`p-2 h-8 w-8 ${isVoiceResponse ? 'text-purple-400 hover:text-purple-300' : 'text-gray-400 hover:text-gray-300'} hover:bg-gray-600`}
-                    disabled={isLoading || isAnalyzing}
-                    title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
-                  >
-                    <Volume2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <Button 
-                onClick={sendMessage} 
-                disabled={!currentMessage.trim() || isLoading || isAnalyzing}
-                className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl min-h-[48px] disabled:opacity-50"
-              >
-                <Send className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ChatInput
+          currentMessage={currentMessage}
+          setCurrentMessage={setCurrentMessage}
+          onSendMessage={sendMessage}
+          isLoading={isLoading}
+          isAnalyzing={isAnalyzing}
+          selectedFile={selectedFile}
+          setSelectedFile={setSelectedFile}
+          isRecording={isRecording}
+          onStartRecording={() => {}} // Placeholder - implement voice recording
+          onStopRecording={() => {}} // Placeholder - implement voice recording
+          isVoiceResponse={isVoiceResponse}
+          onToggleVoiceResponse={() => setIsVoiceResponse(!isVoiceResponse)}
+          onFileUpload={handleFileUpload}
+        />
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { MessageSquarePlus, MessageSquare, Trash2, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDemoChatSessions } from '@/utils/demoChatData';
 
 interface ChatSession {
   id: string;
@@ -37,6 +38,15 @@ export const ChatSidebar = ({
   useEffect(() => {
     if (user) {
       fetchChatSessions();
+    } else {
+      // Load demo sessions for non-authenticated users
+      const demoSessions = getDemoChatSessions().map(session => ({
+        id: session.id,
+        title: session.title,
+        created_at: session.created_at,
+        message_count: session.messages.length
+      }));
+      setChatSessions(demoSessions);
     }
   }, [user]);
 
@@ -76,9 +86,25 @@ export const ChatSidebar = ({
   };
 
   const generateTitleFromContent = (content: string): string => {
-    // Simple title generation from first message
-    const words = content.split(' ').slice(0, 4);
-    return words.join(' ') + (content.split(' ').length > 4 ? '...' : '');
+    // Improved title generation
+    const cleanContent = content.replace(/[^\w\s]/g, '').trim();
+    const words = cleanContent.split(' ').filter(word => word.length > 2);
+    
+    if (words.length === 0) return 'New Chat';
+    
+    // Take first 3-4 meaningful words
+    const titleWords = words.slice(0, 4);
+    let title = titleWords.join(' ');
+    
+    // Capitalize first letter
+    title = title.charAt(0).toUpperCase() + title.slice(1).toLowerCase();
+    
+    // Add ellipsis if original content was longer
+    if (words.length > 4) {
+      title += '...';
+    }
+    
+    return title || 'New Chat';
   };
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
@@ -104,26 +130,26 @@ export const ChatSidebar = ({
   };
 
   return (
-    <div className="w-80 bg-gray-800 border-r border-gray-700 p-4 space-y-4 h-full">
-      <div>
+    <div className="w-full md:w-80 bg-gray-800 border-r border-gray-700 p-4 space-y-4 h-full flex flex-col">
+      <div className="flex-shrink-0">
         <Button
           onClick={onNewChat}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 text-sm font-medium"
         >
-          <MessageSquarePlus className="h-4 w-4 mr-2" />
-          New Chat
+          <MessageSquarePlus className="h-4 w-4 mr-2 flex-shrink-0" />
+          <span className="truncate">New Chat</span>
         </Button>
       </div>
 
-      <Separator className="bg-gray-700" />
+      <Separator className="bg-gray-700 flex-shrink-0" />
 
       {/* Curriculum Selection */}
       {curricula.length > 0 && (
-        <Card className="bg-gray-700 border-gray-600">
+        <Card className="bg-gray-700 border-gray-600 flex-shrink-0">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-white text-sm">
-              <BookOpen className="h-4 w-4" />
-              Learning Context
+              <BookOpen className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Learning Context</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -131,9 +157,9 @@ export const ChatSidebar = ({
               variant={!activeCurriculum ? 'default' : 'outline'}
               size="sm"
               onClick={() => onSelectCurriculum(null)}
-              className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500"
+              className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500 h-8"
             >
-              General Chat
+              <span className="truncate">General Chat</span>
             </Button>
             {curricula.map((curriculum) => (
               <Button
@@ -141,21 +167,21 @@ export const ChatSidebar = ({
                 variant={activeCurriculum?.id === curriculum.id ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onSelectCurriculum(curriculum)}
-                className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500"
+                className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500 h-8"
               >
-                {curriculum.title}
+                <span className="truncate">{curriculum.title}</span>
               </Button>
             ))}
           </CardContent>
         </Card>
       )}
 
-      <Separator className="bg-gray-700" />
+      <Separator className="bg-gray-700 flex-shrink-0" />
 
       {/* Previous Chats */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-300 mb-3">Previous Chats</h3>
-        <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 min-h-0">
+        <h3 className="text-sm font-medium text-gray-300 mb-3 px-1">Previous Chats</h3>
+        <div className="space-y-2 h-full overflow-y-auto custom-scrollbar">
           {chatSessions.map((session) => (
             <div
               key={session.id}
@@ -175,19 +201,21 @@ export const ChatSidebar = ({
                   </p>
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(e) => deleteSession(session.id, e)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-gray-600"
-              >
-                <Trash2 className="h-3 w-3 text-red-400" />
-              </Button>
+              {user && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => deleteSession(session.id, e)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-gray-600 flex-shrink-0"
+                >
+                  <Trash2 className="h-3 w-3 text-red-400" />
+                </Button>
+              )}
             </div>
           ))}
-          {chatSessions.length === 0 && user && (
+          {chatSessions.length === 0 && (
             <p className="text-xs text-gray-400 text-center py-4">
-              No previous chats yet
+              {user ? 'No previous chats yet' : 'Try the demo conversations above!'}
             </p>
           )}
         </div>
