@@ -12,6 +12,11 @@ import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { StudentAchievements } from '@/components/student/StudentAchievements';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { DemoParentDashboard } from '@/components/demo/DemoParentDashboard';
+import { DemoQuestDisplay } from '@/components/demo/DemoQuestDisplay';
+import { DemoAchievements } from '@/components/demo/DemoAchievements';
+import { DemoSubjectProgress } from '@/components/demo/DemoSubjectProgress';
+import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,7 +37,8 @@ const Progress = () => {
       if (user) {
         fetchUserRole();
       } else {
-        console.log('Progress: No user found');
+        console.log('Progress: No user found, using demo data');
+        setUserRole('parent'); // Default to parent for demo
         setIsLoading(false);
       }
     }
@@ -65,6 +71,11 @@ const Progress = () => {
   };
 
   const renderMonitoringTab = () => {
+    if (!user) {
+      // Demo version - show parent dashboard
+      return <DemoParentDashboard />;
+    }
+    
     if (userRole === 'parent') {
       return <ParentDashboard />;
     } else if (userRole === 'teacher' || isSchoolAdmin) {
@@ -94,24 +105,29 @@ const Progress = () => {
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Learning Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-2">
+              {user ? 'Learning Dashboard' : 'Parent Dashboard Demo'}
+            </h1>
             <p className="text-gray-400">
               {user ? 
                 "Track your quests, monitor progress, and see your learning analytics." :
-                "Demo: See how you can track quests, monitor progress, and analyze your learning."
+                "See how you can monitor your child's learning progress, quests, and achievements."
               }
             </p>
             {!user && (
               <div className="mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
                 <p className="text-blue-200 text-sm">
-                  🚀 This is a demo showing sample learning data. Sign up to track your actual progress!
+                  📊 This is a demo showing Emma Johnson's learning progress. Sign up to track your child's actual progress!
                 </p>
               </div>
             )}
           </div>
 
-          <Tabs defaultValue="quests" className="w-full">
+          <Tabs defaultValue="monitoring" className="w-full">
             <TabsList className="grid w-full grid-cols-5 bg-white/10">
+              <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20">
+                {!user ? 'Overview' : (userRole === 'parent' ? 'Child Progress' : 'Monitoring')}
+              </TabsTrigger>
               <TabsTrigger value="quests" className="data-[state=active]:bg-white/20">
                 Quests
               </TabsTrigger>
@@ -124,30 +140,43 @@ const Progress = () => {
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
                 Analytics
               </TabsTrigger>
-              <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20">
-                {userRole === 'parent' ? 'Child Progress' : 'Monitoring'}
-              </TabsTrigger>
             </TabsList>
 
             <div className="mt-6">
+              <TabsContent value="monitoring" className="space-y-6">
+                {renderMonitoringTab()}
+              </TabsContent>
+
               <TabsContent value="quests" className="space-y-6">
-                {user ? <StudentQuestDisplay /> : <QuestDisplay />}
+                {user ? (
+                  <StudentQuestDisplay />
+                ) : (
+                  <DemoQuestDisplay />
+                )}
               </TabsContent>
 
               <TabsContent value="achievements" className="space-y-6">
-                {user ? <StudentAchievements /> : <AchievementsList />}
+                {user ? (
+                  <StudentAchievements />
+                ) : (
+                  <DemoAchievements />
+                )}
               </TabsContent>
 
               <TabsContent value="subjects" className="space-y-6">
-                <SubjectProgress />
+                {user ? (
+                  <SubjectProgress />
+                ) : (
+                  <DemoSubjectProgress />
+                )}
               </TabsContent>
 
               <TabsContent value="analytics" className="space-y-6">
-                <StrengthsWeaknesses />
-              </TabsContent>
-
-              <TabsContent value="monitoring" className="space-y-6">
-                {renderMonitoringTab()}
+                {user ? (
+                  <StrengthsWeaknesses />
+                ) : (
+                  <DemoAnalytics />
+                )}
               </TabsContent>
             </div>
           </Tabs>
