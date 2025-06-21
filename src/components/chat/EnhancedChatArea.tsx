@@ -9,8 +9,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 import { ChatSidebar } from './ChatSidebar';
+import { Message } from '@/types/message';
 
-interface Message {
+interface DatabaseMessage {
   id: string;
   content: string;
   is_from_user: boolean;
@@ -30,7 +31,7 @@ interface Curriculum {
 }
 
 export const EnhancedChatArea = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<DatabaseMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeCurriculum, setActiveCurriculum] = useState<Curriculum | null>(null);
