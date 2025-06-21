@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
@@ -69,7 +68,7 @@ const HowItWorks = () => {
         {/* Hero Section */}
         <div className="max-w-7xl mx-auto text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            How Teachly Works
+            How TeachlyAI Works
           </h1>
           <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-8">
             Experience the future of personalized education with our AI-powered learning platform. 
@@ -132,7 +131,7 @@ const HowItWorks = () => {
             Ready to Transform Your Learning?
           </h2>
           <p className="text-xl text-white/80 mb-8">
-            Join thousands of students who are already learning faster and smarter with Teachly's AI-powered platform.
+            Join thousands of students who are already learning faster and smarter with TeachlyAI's AI-powered platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="bg-white text-black hover:bg-gray-200" size="lg" asChild>

@@ -48,7 +48,7 @@ const Pricing = () => {
   return (
     <div className="flex flex-col min-h-screen bg-black text-white">
       <header className="py-6 text-center">
-        <h1 className="text-3xl font-bold">Teachly</h1>
+        <h1 className="text-3xl font-bold">TeachlyAI</h1>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
