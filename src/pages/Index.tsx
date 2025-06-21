@@ -8,15 +8,11 @@ import { RoleSelection } from '@/components/RoleSelection';
 import { useNavigate } from 'react-router-dom';
 import { runSystemTests, type TestSuite } from '@/utils/systemTester';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
-
-  // Get auth state to pass to header if needed
-  const { user, loading } = useAuth();
 
   const handleRunSystemTests = async () => {
     setIsRunningTests(true);
