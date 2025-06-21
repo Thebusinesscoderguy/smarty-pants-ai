@@ -2,13 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, loading, isSchoolAdmin, signOut } = useAuth();
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { user, loading, isSchoolAdmin, signOut, isSigningOut } = useAuth();
 
   useEffect(() => {
     console.log('Header: Auth state updated:', {
@@ -16,16 +15,19 @@ export const Header = () => {
       loading,
       userId: user?.id,
       userEmail: user?.email,
-      isSchoolAdmin
+      isSchoolAdmin,
+      isSigningOut
     });
-  }, [user, loading, isSchoolAdmin]);
+  }, [user, loading, isSchoolAdmin, isSigningOut]);
 
   const handleSignOut = async () => {
-    if (isSigningOut) return;
+    if (isSigningOut) {
+      console.log('Header: Sign out already in progress');
+      return;
+    }
     
     try {
       console.log('Header: Starting sign out process...');
-      setIsSigningOut(true);
       
       await signOut();
       
@@ -38,13 +40,15 @@ export const Header = () => {
       });
     } catch (error) {
       console.error('Header: Sign out error:', error);
+      
+      // Even if sign out failed, navigate home since state was cleared
+      navigate('/', { replace: true });
+      
       toast({
-        title: "Sign out failed",
-        description: "There was an error signing you out. Please try again.",
+        title: "Session ended",
+        description: "You have been logged out. If issues persist, please refresh the page.",
         variant: "destructive",
       });
-    } finally {
-      setIsSigningOut(false);
     }
   };
 

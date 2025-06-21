@@ -41,7 +41,7 @@ const navigationItems = [
 ];
 
 const AppSidebar = () => {
-  const { user, signOut, isSchoolAdmin } = useAuth();
+  const { user, signOut, isSchoolAdmin, isSigningOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -50,18 +50,32 @@ const AppSidebar = () => {
   };
 
   const handleSignOut = async () => {
+    if (isSigningOut) {
+      console.log('AppSidebar: Sign out already in progress');
+      return;
+    }
+    
     try {
+      console.log('AppSidebar: Starting sign out process...');
+      
       await signOut();
-      navigate('/');
+      
+      console.log('AppSidebar: Sign out successful, navigating to home');
+      navigate('/', { replace: true });
+      
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account.",
       });
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('AppSidebar: Sign out error:', error);
+      
+      // Even if sign out failed, navigate home since state was cleared
+      navigate('/', { replace: true });
+      
       toast({
-        title: "Sign out failed",
-        description: "There was an error signing you out. Please try again.",
+        title: "Session ended",
+        description: "You have been logged out. If issues persist, please refresh the page.",
         variant: "destructive",
       });
     }
@@ -110,9 +124,14 @@ const AppSidebar = () => {
                     </Link>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Button variant="ghost" onClick={handleSignOut} className="justify-start w-full">
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleSignOut} 
+                      className="justify-start w-full"
+                      disabled={isSigningOut}
+                    >
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Logout</span>
+                      <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
                     </Button>
                   </SidebarMenuItem>
                 </SidebarGroupContent>

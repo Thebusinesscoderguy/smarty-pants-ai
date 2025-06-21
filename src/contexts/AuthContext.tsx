@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isSchoolAdmin: boolean;
+  isSigningOut: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
@@ -14,17 +15,83 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Sign out timeout duration (10 seconds)
+const SIGN_OUT_TIMEOUT = 10000;
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  // Force clear auth state - used as fallback
+  const forceSignOut = () => {
+    console.log('AuthContext: Force clearing auth state');
+    setSession(null);
+    setUser(null);
+    setIsSchoolAdmin(false);
+    setIsSigningOut(false);
+    
+    // Clear localStorage as backup
+    try {
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-twfzlbockonxopuindaw-auth-token');
+    } catch (error) {
+      console.warn('AuthContext: Could not clear localStorage:', error);
+    }
+  };
 
   useEffect(() => {
     console.log('AuthContext: Initializing...');
     
     let isMounted = true;
     
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        if (!isMounted) return;
+        
+        console.log('AuthContext: Auth state changed:', {
+          event,
+          hasSession: !!currentSession,
+          userId: currentSession?.user?.id,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Handle different auth events
+        switch (event) {
+          case 'SIGNED_OUT':
+            console.log('AuthContext: Processing SIGNED_OUT event');
+            setSession(null);
+            setUser(null);
+            setIsSchoolAdmin(false);
+            setIsSigningOut(false);
+            break;
+          case 'SIGNED_IN':
+          case 'TOKEN_REFRESHED':
+            console.log(`AuthContext: Processing ${event} event`);
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+            if (currentSession?.user) {
+              checkSchoolAdminStatus(currentSession.user.id);
+            }
+            break;
+          default:
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+            if (currentSession?.user) {
+              checkSchoolAdminStatus(currentSession.user.id);
+            } else {
+              setIsSchoolAdmin(false);
+            }
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -55,29 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        if (!isMounted) return;
-        
-        console.log('AuthContext: Auth state changed:', {
-          event,
-          hasSession: !!currentSession,
-          userId: currentSession?.user?.id
-        });
-        
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          await checkSchoolAdminStatus(currentSession.user.id);
-        } else {
-          setIsSchoolAdmin(false);
-        }
-        
-        setLoading(false);
-      }
-    );
 
     initializeAuth();
 
@@ -139,23 +183,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    if (isSigningOut) {
+      console.log('AuthContext: Sign out already in progress, ignoring');
+      return;
+    }
+
     try {
-      console.log('AuthContext: Starting sign out...');
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('AuthContext: Sign out error:', error);
+      console.log('AuthContext: Starting sign out process...');
+      const startTime = performance.now();
+      setIsSigningOut(true);
+
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Sign out timeout'));
+        }, SIGN_OUT_TIMEOUT);
+      });
+
+      // Create the sign out promise
+      const signOutPromise = supabase.auth.signOut();
+
+      // Race between sign out and timeout
+      try {
+        await Promise.race([signOutPromise, timeoutPromise]);
+        const endTime = performance.now();
+        console.log(`AuthContext: Sign out completed in ${endTime - startTime}ms`);
+      } catch (error) {
+        console.warn('AuthContext: Sign out timed out or failed:', error);
+        // Force sign out regardless of Supabase response
+        forceSignOut();
         throw error;
       }
-      
-      // Clear local state immediately
-      setSession(null);
-      setUser(null);
-      setIsSchoolAdmin(false);
-      
+
       console.log('AuthContext: Sign out completed successfully');
     } catch (error) {
       console.error('AuthContext: Sign out failed:', error);
+      // Always force clear state even if sign out failed
+      forceSignOut();
       throw error;
     }
   };
@@ -164,6 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     isSchoolAdmin,
+    isSigningOut,
     signIn,
     signUp,
     signOut,
@@ -173,7 +238,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasUser: !!user,
     loading,
     userId: user?.id,
-    isSchoolAdmin
+    isSchoolAdmin,
+    isSigningOut
   });
 
   return (
