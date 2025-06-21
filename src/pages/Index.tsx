@@ -9,7 +9,6 @@ import { ContactForm } from '@/components/contact/ContactForm';
 import { useNavigate } from 'react-router-dom';
 import { runSystemTests, type TestSuite } from '@/utils/systemTester';
 import { toast } from '@/hooks/use-toast';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,38 +22,38 @@ const Index = () => {
 
   const videoSlides = [
     {
-      title: "Authentication & Onboarding",
-      description: "Sign up and complete your personalized learning profile",
-      image: "/placeholder.svg?height=600&width=1000&text=Auth+Login+Page",
+      title: "Sign Up & Get Started",
+      description: "Create your account and set up your learning profile",
+      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=800&fit=crop",
       audioText: "Start your learning journey by creating your account and setting up your personalized learning preferences."
     },
     {
-      title: "Student Dashboard Overview",
-      description: "Your personalized learning hub with progress tracking and subject assignments",
-      image: "/placeholder.svg?height=600&width=1000&text=Student+Dashboard+Interface",
+      title: "Student Dashboard",
+      description: "Track your progress and manage your subjects",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=800&fit=crop",
       audioText: "Your student dashboard provides a comprehensive view of your learning progress, current subjects, and daily achievements."
     },
     {
-      title: "AI Chat Interface",
-      description: "Interactive conversations with your AI tutor for instant help and explanations",
-      image: "/placeholder.svg?height=600&width=1000&text=AI+Chat+Conversation+Screen",
+      title: "AI Tutor Chat",
+      description: "Get instant help from your AI tutor",
+      image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=800&fit=crop",
       audioText: "Chat with your AI tutor anytime to get explanations, ask questions, and receive personalized learning guidance."
     },
     {
-      title: "Quests & Gamification",
-      description: "Complete learning quests and unlock achievements to stay motivated",
-      image: "/placeholder.svg?height=600&width=1000&text=Quest+System+Achievements",
+      title: "Quests & Achievements",
+      description: "Complete challenges and unlock rewards",
+      image: "https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=1200&h=800&fit=crop",
       audioText: "Stay motivated with our gamified learning system featuring daily quests, achievements, and progress rewards."
     },
     {
       title: "School Administration",
-      description: "Comprehensive dashboard for teachers and administrators to monitor student progress",
-      image: "/placeholder.svg?height=600&width=1000&text=School+Admin+Dashboard",
+      description: "Monitor student progress and manage your school",
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=800&fit=crop",
       audioText: "Educators can monitor student progress, assign subjects, and track learning outcomes across their institution."
     }
   ];
 
-  // Scroll detection for auto-starting video demo
+  // Auto-start video when scrolled into view
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -65,7 +64,7 @@ const Index = () => {
         });
       },
       {
-        threshold: 0.5, // Start when 50% of the element is visible
+        threshold: 0.6,
       }
     );
 
@@ -115,7 +114,7 @@ const Index = () => {
       audio.play();
     }
     
-    // Auto-advance slides every 6 seconds when playing (longer for audio)
+    // Auto-advance slides every 4 seconds
     const interval = setInterval(async () => {
       setCurrentSlide(prev => {
         const nextSlide = prev + 1;
@@ -142,12 +141,11 @@ const Index = () => {
         
         return nextSlide;
       });
-    }, 6000);
+    }, 4000);
   };
 
-  const stopVideoDemo = () => {
+  const pauseVideoDemo = () => {
     setIsVideoPlaying(false);
-    setCurrentSlide(0);
     if (currentAudio) {
       currentAudio.pause();
       setCurrentAudio(null);
@@ -266,63 +264,56 @@ const Index = () => {
           {/* Video Demo Section */}
           <div className="mb-16" ref={videoDemoRef}>
             <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">See How TeachlyAI Works</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">See TeachlyAI in Action</h2>
               <p className="text-lg text-white/80 mb-6">
-                Watch our platform in action - from student dashboards to AI tutoring and gamified learning.
+                Explore our platform features - from student dashboards to AI tutoring and gamified learning.
               </p>
             </div>
 
-            <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl">
+            <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
               {/* Video Player Interface */}
               <div className="relative aspect-video bg-gray-900">
-                <Carousel className="w-full h-full">
-                  <CarouselContent>
-                    {videoSlides.map((slide, index) => (
-                      <CarouselItem key={index} className={`${currentSlide === index ? 'block' : 'hidden'}`}>
-                        <div className="relative w-full h-full">
-                          <img
-                            src={slide.image}
-                            alt={slide.title}
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Video overlay with title */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                            <h3 className="text-xl font-semibold text-white mb-2">
-                              {slide.title}
-                            </h3>
-                            <p className="text-gray-300 text-sm">
-                              {slide.description}
-                            </p>
-                          </div>
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-
-                {/* Video Controls Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  {isVideoPlaying && (
-                    <Button
-                      onClick={stopVideoDemo}
-                      className="bg-black/50 hover:bg-black/70 text-white border-0 rounded-full p-4"
-                      size="icon"
-                    >
-                      <Pause className="h-8 w-8" />
-                    </Button>
-                  )}
+                <img
+                  src={videoSlides[currentSlide].image}
+                  alt={videoSlides[currentSlide].title}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Video overlay with content */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      {videoSlides[currentSlide].title}
+                    </h3>
+                    <p className="text-gray-200 text-lg">
+                      {videoSlides[currentSlide].description}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Progress Bar */}
+                {/* Video Controls */}
+                {isVideoPlaying && (
+                  <div className="absolute top-4 right-4">
+                    <Button
+                      onClick={pauseVideoDemo}
+                      className="bg-black/50 hover:bg-black/70 text-white border-0 rounded-full"
+                      size="icon"
+                    >
+                      <Pause className="h-5 w-5" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Progress indicator */}
                 <div className="absolute bottom-4 left-4 right-4">
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-white/20 rounded-full h-1">
+                    <div className="flex-1 bg-white/30 rounded-full h-1">
                       <div 
                         className="bg-white rounded-full h-full transition-all duration-300"
                         style={{ width: `${((currentSlide + 1) / videoSlides.length) * 100}%` }}
                       />
                     </div>
-                    <span className="text-white text-xs font-mono">
+                    <span className="text-white text-sm font-mono">
                       {currentSlide + 1}/{videoSlides.length}
                     </span>
                   </div>
