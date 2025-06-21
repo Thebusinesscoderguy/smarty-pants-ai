@@ -1,80 +1,69 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, BarChart, Clock, Target, Brain } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, Cell } from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, TrendingDown, Brain, Clock, Target, BarChart3 } from 'lucide-react';
 import { getDemoAnalyticsData, getDemoChildName } from '@/utils/demoData';
 
 export const DemoAnalytics = () => {
   const analytics = getDemoAnalyticsData();
   const childName = getDemoChildName();
 
-  const formatPercentage = (score: number) => Math.round(score * 100);
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0];
-      return (
-        <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
-          <p className="font-medium text-white">{label}</p>
-          <p className="text-sm text-blue-400">
-            Score: {data.value}%
-          </p>
-        </div>
-      );
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'improving': return <TrendingUp className="h-3 w-3 text-green-400" />;
+      case 'declining': return <TrendingDown className="h-3 w-3 text-red-400" />;
+      case 'needs_attention': return <Target className="h-3 w-3 text-orange-400" />;
+      default: return <BarChart3 className="h-3 w-3 text-gray-400" />;
     }
-    return null;
   };
 
-  const strengthsChartData = analytics.strengths.map(item => ({
-    topic: item.topic_name.length > 15 ? item.topic_name.substring(0, 15) + '...' : item.topic_name,
-    score: formatPercentage(item.strength_score),
-    subject: item.subjects.name
-  }));
-
-  const weaknessesChartData = analytics.weaknesses.map(item => ({
-    topic: item.topic_name.length > 15 ? item.topic_name.substring(0, 15) + '...' : item.topic_name,
-    score: formatPercentage(item.strength_score),
-    subject: item.subjects.name
-  }));
+  const getTrendColor = (trend: string) => {
+    switch (trend) {
+      case 'improving': return 'text-green-400';
+      case 'declining': return 'text-red-400';
+      case 'needs_attention': return 'text-orange-400';
+      default: return 'text-gray-400';
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-white mb-2">{childName}'s Learning Analytics</h2>
         <p className="text-gray-400">
-          AI-powered insights into learning patterns, strengths, and areas for improvement
+          Detailed insights into learning patterns, strengths, and areas for improvement
         </p>
       </div>
 
-      {/* Analytics Overview */}
+      {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-white/10 border-white/20">
           <CardContent className="p-4 text-center">
-            <TrendingUp className="h-6 w-6 text-green-400 mx-auto mb-2" />
+            <Brain className="h-8 w-8 text-purple-400 mx-auto mb-2" />
             <div className="text-2xl font-bold text-white">{analytics.strengths.length}</div>
-            <div className="text-sm text-gray-400">Strong Areas</div>
+            <div className="text-sm text-gray-400">Strong Topics</div>
           </CardContent>
         </Card>
         <Card className="bg-white/10 border-white/20">
           <CardContent className="p-4 text-center">
-            <Target className="h-6 w-6 text-orange-400 mx-auto mb-2" />
+            <Target className="h-8 w-8 text-orange-400 mx-auto mb-2" />
             <div className="text-2xl font-bold text-white">{analytics.weaknesses.length}</div>
-            <div className="text-sm text-gray-400">Focus Areas</div>
+            <div className="text-sm text-gray-400">Need Focus</div>
           </CardContent>
         </Card>
         <Card className="bg-white/10 border-white/20">
           <CardContent className="p-4 text-center">
-            <BarChart className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+            <TrendingUp className="h-8 w-8 text-green-400 mx-auto mb-2" />
             <div className="text-2xl font-bold text-white">
-              {Math.round(analytics.strengths.reduce((sum, s) => sum + s.strength_score, 0) / analytics.strengths.length * 100)}%
+              {Math.round((analytics.strengths.reduce((sum, s) => sum + s.strength_score, 0) / analytics.strengths.length) * 100)}%
             </div>
             <div className="text-sm text-gray-400">Avg Strength</div>
           </CardContent>
         </Card>
         <Card className="bg-white/10 border-white/20">
           <CardContent className="p-4 text-center">
-            <Brain className="h-6 w-6 text-purple-400 mx-auto mb-2" />
+            <Clock className="h-8 w-8 text-blue-400 mx-auto mb-2" />
             <div className="text-2xl font-bold text-white">
               {analytics.strengths.reduce((sum, s) => sum + s.total_attempts, 0) + 
                analytics.weaknesses.reduce((sum, w) => sum + w.total_attempts, 0)}
@@ -84,269 +73,186 @@ export const DemoAnalytics = () => {
         </Card>
       </div>
 
-      {/* Progress Over Time Chart */}
+      {/* Learning Progress Over Time */}
       <Card className="bg-white/10 border-white/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <TrendingUp className="h-5 w-5" />
-            Learning Progress Over Time
-          </CardTitle>
+          <CardTitle className="text-white">Learning Progress Trend</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={analytics.progressOverTime}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#9ca3af"
-                  fontSize={12}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis 
-                  stroke="#9ca3af"
-                  fontSize={12}
-                  domain={[0, 100]}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#3b82f6" 
-                  strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="space-y-4">
+            {analytics.progressOverTime.map((point, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="w-24 text-sm text-gray-400">
+                  {new Date(point.date).toLocaleDateString()}
+                </div>
+                <div className="flex-1">
+                  <Progress value={point.score} className="h-3" />
+                </div>
+                <div className="text-sm text-white font-medium w-12 text-right">
+                  {point.score}%
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Strengths and Weaknesses Side by Side */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Strengths */}
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              Top Strengths
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {analytics.strengths.map((strength, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-medium text-white">{strength.topic_name}</h4>
-                      <p className="text-sm text-gray-400">{strength.subjects.name}</p>
+      {/* Strengths Analysis */}
+      <Card className="bg-white/10 border-white/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <TrendingUp className="h-5 w-5 text-green-500" />
+            Learning Strengths ({analytics.strengths.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {analytics.strengths.map((strength, index) => (
+              <div key={index} className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h4 className="font-medium text-white">{strength.topic_name}</h4>
+                    <p className="text-sm text-gray-400">{strength.subjects.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1 text-green-400">
+                      {getTrendIcon(strength.improvement_trend)}
+                      <span className="text-lg font-bold">
+                        {Math.round(strength.strength_score * 100)}%
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-green-400">
-                        {formatPercentage(strength.strength_score)}%
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {strength.correct_attempts}/{strength.total_attempts} correct
-                      </div>
+                    <div className="text-xs text-gray-500">
+                      {strength.correct_attempts}/{strength.total_attempts} correct
                     </div>
                   </div>
+                </div>
+                
+                <div className="space-y-2">
                   <Progress 
                     value={strength.strength_score * 100} 
                     className="h-2"
                   />
-                  <div className="flex justify-between text-xs">
-                    <span className={`${
-                      strength.improvement_trend === 'improving' ? 'text-green-400' :
-                      strength.improvement_trend === 'stable' ? 'text-blue-400' :
-                      'text-yellow-400'
-                    }`}>
-                      {strength.improvement_trend === 'improving' ? '📈 Improving' :
-                       strength.improvement_trend === 'stable' ? '➡️ Stable' :
-                       '⚠️ Needs attention'}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-400">
+                      Last practiced: {new Date(strength.last_practiced).toLocaleDateString()}
                     </span>
-                    <span className="text-gray-500">
-                      Last: {new Date(strength.last_practiced).toLocaleDateString()}
-                    </span>
+                    <Badge variant="outline" className={`${getTrendColor(strength.improvement_trend)} border-current`}>
+                      {strength.improvement_trend.replace('_', ' ')}
+                    </Badge>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Areas for Improvement */}
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <TrendingDown className="h-5 w-5 text-orange-500" />
-              Areas for Improvement
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {analytics.weaknesses.map((weakness, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-medium text-white">{weakness.topic_name}</h4>
-                      <p className="text-sm text-gray-400">{weakness.subjects.name}</p>
+      {/* Weaknesses Analysis */}
+      <Card className="bg-white/10 border-white/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <TrendingDown className="h-5 w-5 text-orange-500" />
+            Areas Needing Focus ({analytics.weaknesses.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {analytics.weaknesses.map((weakness, index) => (
+              <div key={index} className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h4 className="font-medium text-white">{weakness.topic_name}</h4>
+                    <p className="text-sm text-gray-400">{weakness.subjects.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1 text-orange-400">
+                      {getTrendIcon(weakness.improvement_trend)}
+                      <span className="text-lg font-bold">
+                        {Math.round(weakness.strength_score * 100)}%
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-orange-400">
-                        {formatPercentage(weakness.strength_score)}%
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {weakness.correct_attempts}/{weakness.total_attempts} correct
-                      </div>
+                    <div className="text-xs text-gray-500">
+                      {weakness.correct_attempts}/{weakness.total_attempts} correct
                     </div>
                   </div>
+                </div>
+                
+                <div className="space-y-2">
                   <Progress 
                     value={weakness.strength_score * 100} 
                     className="h-2"
                   />
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className={`${
-                        weakness.improvement_trend === 'slowly_improving' ? 'text-blue-400' :
-                        'text-red-400'
-                      }`}>
-                        {weakness.improvement_trend === 'slowly_improving' ? '📊 Slowly improving' : '🚨 Needs attention'}
-                      </span>
-                      <span className="text-gray-500">
-                        Last: {new Date(weakness.last_practiced).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-xs text-blue-300 bg-blue-500/10 p-2 rounded">
-                      💡 {weakness.recommended_action}
-                    </p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-400">
+                      Last practiced: {new Date(weakness.last_practiced).toLocaleDateString()}
+                    </span>
+                    <Badge variant="outline" className={`${getTrendColor(weakness.improvement_trend)} border-current`}>
+                      {weakness.improvement_trend.replace('_', ' ')}
+                    </Badge>
                   </div>
+                  {weakness.recommended_action && (
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded p-2 mt-2">
+                      <p className="text-xs text-blue-300">
+                        <strong>Recommendation:</strong> {weakness.recommended_action}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Performance Charts */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white">Strengths Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsBarChart data={strengthsChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="topic" 
-                    stroke="#9ca3af"
-                    fontSize={10}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    stroke="#9ca3af"
-                    fontSize={12}
-                    domain={[0, 100]}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="score" fill="#10b981">
-                    {strengthsChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill="#10b981" />
-                    ))}
-                  </Bar>
-                </RechartsBarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white">Areas Needing Focus</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsBarChart data={weaknessesChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="topic" 
-                    stroke="#9ca3af"
-                    fontSize={10}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    stroke="#9ca3af"
-                    fontSize={12}
-                    domain={[0, 100]}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="score" fill="#f59e0b">
-                    {weaknessesChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill="#f59e0b" />
-                    ))}
-                  </Bar>
-                </RechartsBarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Insights */}
+      {/* Subject Performance Breakdown */}
       <Card className="bg-white/10 border-white/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <Brain className="h-5 w-5" />
-            AI Learning Insights
-          </CardTitle>
+          <CardTitle className="text-white">Performance by Subject</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium text-white mb-3">Learning Pattern Analysis</h4>
-              <div className="space-y-3 text-sm">
-                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <p className="text-green-300 font-medium">🎯 Strong Foundation</p>
-                  <p className="text-gray-300">
-                    {childName} shows excellent mastery in {analytics.strengths[0]?.topic_name}, 
-                    consistently scoring above 90%. This indicates strong foundational understanding.
-                  </p>
+          <div className="space-y-4">
+            {['Mathematics', 'English Literature', 'Chemistry', 'World History'].map((subject) => {
+              const subjectStrengths = analytics.strengths.filter(s => s.subjects.name === subject);
+              const subjectWeaknesses = analytics.weaknesses.filter(w => w.subjects.name === subject);
+              const avgScore = subjectStrengths.length > 0 
+                ? Math.round((subjectStrengths.reduce((sum, s) => sum + s.strength_score, 0) / subjectStrengths.length) * 100)
+                : 0;
+
+              return (
+                <div key={subject} className="p-4 bg-black/20 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-white">{subject}</h4>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-white">{avgScore}%</div>
+                      <div className="text-xs text-gray-400">Average Score</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-3">
+                    <div>
+                      <div className="text-xs text-green-400 mb-1">Strong Areas ({subjectStrengths.length})</div>
+                      <div className="space-y-1">
+                        {subjectStrengths.slice(0, 2).map((strength, idx) => (
+                          <div key={idx} className="text-xs text-gray-300 bg-green-500/10 px-2 py-1 rounded">
+                            {strength.topic_name} ({Math.round(strength.strength_score * 100)}%)
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-orange-400 mb-1">Needs Work ({subjectWeaknesses.length})</div>
+                      <div className="space-y-1">
+                        {subjectWeaknesses.slice(0, 2).map((weakness, idx) => (
+                          <div key={idx} className="text-xs text-gray-300 bg-orange-500/10 px-2 py-1 rounded">
+                            {weakness.topic_name} ({Math.round(weakness.strength_score * 100)}%)
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <p className="text-blue-300 font-medium">📊 Learning Velocity</p>
-                  <p className="text-gray-300">
-                    Progress has been steady with a 13% improvement over the past month. 
-                    The learning curve shows consistent engagement and skill development.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-medium text-white mb-3">Recommendations</h4>
-              <div className="space-y-3 text-sm">
-                <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                  <p className="text-orange-300 font-medium">⚡ Focus Area</p>
-                  <p className="text-gray-300">
-                    {analytics.weaknesses[0]?.topic_name} needs additional practice. Consider 
-                    scheduling 2-3 extra sessions per week with simplified examples.
-                  </p>
-                </div>
-                <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                  <p className="text-purple-300 font-medium">🎓 Next Steps</p>
-                  <p className="text-gray-300">
-                    Ready to advance in {analytics.strengths[1]?.topic_name}. Consider introducing 
-                    more challenging problems to maintain engagement and growth.
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

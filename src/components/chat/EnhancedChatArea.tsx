@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Send, Bot, User, BookOpen } from 'lucide-react';
+import { Send, Bot, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
+import { ChatSidebar } from './ChatSidebar';
 
 interface Message {
   id: string;
@@ -31,7 +33,7 @@ export const EnhancedChatArea = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeCurriculum, setActiveCurriculum] = useState<Curriculum | null>(null);
   const [curricula, setCurricula] = useState<Curriculum[]>([]);
-  const [messageStartTime, setMessageStartTime] = useState<number | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const { user } = useAuth();
   const { logActivity } = useActivityTracking();
   const { trackInteraction, isAnalyzing } = useRealTimeAnalytics();
@@ -39,7 +41,15 @@ export const EnhancedChatArea = () => {
   useEffect(() => {
     if (user) {
       fetchCurricula();
-      fetchMessages();
+      startNewChat();
+    } else {
+      // For demo users, show welcome message
+      setMessages([{
+        id: 'welcome',
+        content: "Welcome to the AI Learning Assistant! I'm here to help you with your studies. Ask me anything about any subject, and I'll provide personalized guidance.",
+        is_from_user: false,
+        created_at: new Date().toISOString()
+      }]);
     }
   }, [user]);
 
@@ -47,7 +57,6 @@ export const EnhancedChatArea = () => {
     if (!user) return;
 
     try {
-      // Get user's school
       const { data: schoolRelation } = await supabase
         .from('school_student_relationships')
         .select('school_id')
@@ -72,7 +81,7 @@ export const EnhancedChatArea = () => {
     }
   };
 
-  const fetchMessages = async () => {
+  const fetchMessagesForSession = async (sessionId: string) => {
     if (!user) return;
 
     try {
@@ -80,8 +89,8 @@ export const EnhancedChatArea = () => {
         .from('messages')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: true })
-        .limit(50);
+        .eq('conversation_id', sessionId)
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       setMessages(data || []);
@@ -90,35 +99,60 @@ export const EnhancedChatArea = () => {
     }
   };
 
+  const startNewChat = () => {
+    setActiveSessionId(null);
+    setMessages([{
+      id: 'welcome',
+      content: "Hello! I'm your AI Learning Assistant. How can I help you with your studies today?",
+      is_from_user: false,
+      created_at: new Date().toISOString()
+    }]);
+  };
+
+  const generateSessionId = () => {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
   const sendMessage = async () => {
-    if (!currentMessage.trim() || !user) return;
+    if (!currentMessage.trim()) return;
 
     const userMessage = currentMessage;
     const startTime = Date.now();
+    const sessionId = activeSessionId || generateSessionId();
+    
+    if (!activeSessionId) {
+      setActiveSessionId(sessionId);
+    }
+
     setCurrentMessage('');
     setIsLoading(true);
-    setMessageStartTime(startTime);
 
     try {
-      // Save user message
-      const { data: userMsg, error: userError } = await supabase
-        .from('messages')
-        .insert({
-          user_id: user.id,
-          content: userMessage,
-          is_from_user: true,
-          type: 'text',
-          curriculum_id: activeCurriculum?.id || null
-        })
-        .select()
-        .single();
-
-      if (userError) throw userError;
-
+      // Add user message to UI immediately
+      const userMsg = {
+        id: `user_${Date.now()}`,
+        content: userMessage,
+        is_from_user: true,
+        created_at: new Date().toISOString()
+      };
       setMessages(prev => [...prev, userMsg]);
 
-      // Get AI response with curriculum context
-      let systemPrompt = "You are a helpful AI tutor. Help the student learn and understand concepts.";
+      // Save user message to database if authenticated
+      if (user) {
+        await supabase
+          .from('messages')
+          .insert({
+            user_id: user.id,
+            content: userMessage,
+            is_from_user: true,
+            type: 'text',
+            curriculum_id: activeCurriculum?.id || null,
+            conversation_id: sessionId
+          });
+      }
+
+      // Get AI response
+      let systemPrompt = "You are a helpful AI tutor. Help the student learn and understand concepts clearly and engagingly.";
       
       if (activeCurriculum) {
         systemPrompt += ` You are currently teaching based on this curriculum: "${activeCurriculum.title}". `;
@@ -132,6 +166,10 @@ export const EnhancedChatArea = () => {
         body: {
           messages: [
             { role: 'system', content: systemPrompt },
+            ...messages.slice(-5).map(m => ({
+              role: m.is_from_user ? 'user' : 'assistant',
+              content: m.content
+            })),
             { role: 'user', content: userMessage }
           ]
         }
@@ -141,44 +179,55 @@ export const EnhancedChatArea = () => {
 
       const responseTime = Date.now() - startTime;
 
-      // Save AI response
-      const { data: aiMsg, error: aiError } = await supabase
-        .from('messages')
-        .insert({
-          user_id: user.id,
-          content: data.content,
-          is_from_user: false,
-          type: 'text',
-          curriculum_id: activeCurriculum?.id || null
-        })
-        .select()
-        .single();
-
-      if (aiError) throw aiError;
-
+      // Add AI response to UI
+      const aiMsg = {
+        id: `ai_${Date.now()}`,
+        content: data.content,
+        is_from_user: false,
+        created_at: new Date().toISOString()
+      };
       setMessages(prev => [...prev, aiMsg]);
 
-      // Track interaction with real-time analytics
-      await trackInteraction(
-        'chat',
-        data.content, // AI's question/response as context
-        userMessage, // Student's response
-        activeCurriculum?.subjects.name || 'General',
-        activeCurriculum?.id,
-        responseTime
-      );
+      // Save AI response to database if authenticated
+      if (user) {
+        await supabase
+          .from('messages')
+          .insert({
+            user_id: user.id,
+            content: data.content,
+            is_from_user: false,
+            type: 'text',
+            curriculum_id: activeCurriculum?.id || null,
+            conversation_id: sessionId
+          });
 
-      // Log activity
-      const subjectId = activeCurriculum?.subjects ? 
-        await getSubjectId(activeCurriculum.subjects.name) : undefined;
-      
-      await logActivity('chat', subjectId, 5);
+        // Track interaction with analytics
+        await trackInteraction(
+          'chat',
+          data.content,
+          userMessage,
+          activeCurriculum?.subjects.name || 'General',
+          activeCurriculum?.id,
+          responseTime
+        );
+
+        // Log activity
+        const subjectId = activeCurriculum?.subjects ? 
+          await getSubjectId(activeCurriculum.subjects.name) : undefined;
+        
+        await logActivity('chat', subjectId, 5);
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
+      setMessages(prev => [...prev, {
+        id: `error_${Date.now()}`,
+        content: "Sorry, I encountered an error. Please try again.",
+        is_from_user: false,
+        created_at: new Date().toISOString()
+      }]);
     } finally {
       setIsLoading(false);
-      setMessageStartTime(null);
     }
   };
 
@@ -196,75 +245,43 @@ export const EnhancedChatArea = () => {
     }
   };
 
-  const selectCurriculum = (curriculum: Curriculum) => {
-    setActiveCurriculum(curriculum);
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    fetchMessagesForSession(sessionId);
   };
 
   return (
-    <div className="space-y-4">
-      {/* Curriculum Selection */}
-      {curricula.length > 0 && (
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <BookOpen className="h-5 w-5" />
-              Select Learning Context
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={!activeCurriculum ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActiveCurriculum(null)}
-              >
-                General Chat
-              </Button>
-              {curricula.map((curriculum) => (
-                <Button
-                  key={curriculum.id}
-                  variant={activeCurriculum?.id === curriculum.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => selectCurriculum(curriculum)}
-                  className="flex items-center gap-2"
-                >
-                  {curriculum.title}
-                  <Badge variant="secondary" className="text-xs">
-                    {curriculum.subjects.name}
-                  </Badge>
-                </Button>
-              ))}
-            </div>
-            {activeCurriculum && (
-              <div className="mt-3 p-3 bg-blue-500/20 rounded-lg">
-                <p className="text-sm text-blue-200">
-                  <strong>Active:</strong> {activeCurriculum.title} ({activeCurriculum.subjects.name})
-                </p>
-                <p className="text-xs text-blue-300 mt-1">
-                  The AI will follow your school's curriculum guidelines for this subject.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+    <div className="flex h-[calc(100vh-200px)]">
+      {/* Sidebar */}
+      <ChatSidebar
+        activeCurriculum={activeCurriculum}
+        curricula={curricula}
+        onSelectCurriculum={setActiveCurriculum}
+        onNewChat={startNewChat}
+        activeSessionId={activeSessionId}
+        onSelectSession={handleSelectSession}
+      />
 
-      {/* Chat Messages */}
-      <Card className="bg-white/10 border-white/20">
-        <CardContent className="p-0">
-          <div className="h-96 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 ? (
-              <div className="text-center text-gray-400 py-8">
-                <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Start a conversation! Ask me anything about your studies.</p>
-                {activeCurriculum && (
-                  <p className="text-sm mt-2">
-                    I'll help you with {activeCurriculum.subjects.name} based on your school's curriculum.
-                  </p>
-                )}
-              </div>
-            ) : (
-              messages.map((message) => (
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Active Curriculum Display */}
+        {activeCurriculum && (
+          <div className="p-4 bg-blue-500/20 border-b border-blue-500/30">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{activeCurriculum.subjects.name}</Badge>
+              <span className="text-blue-200 text-sm">{activeCurriculum.title}</span>
+            </div>
+            <p className="text-xs text-blue-300 mt-1">
+              AI responses will follow your school's curriculum guidelines
+            </p>
+          </div>
+        )}
+
+        {/* Messages */}
+        <Card className="flex-1 bg-white/10 border-white/20 m-4 mb-0">
+          <CardContent className="p-0">
+            <div className="h-full overflow-y-auto p-4 space-y-4">
+              {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex gap-3 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}
@@ -280,56 +297,57 @@ export const EnhancedChatArea = () => {
                         ? 'bg-blue-500 text-white' 
                         : 'bg-gray-700 text-gray-100'
                     }`}>
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {new Date(message.created_at).toLocaleTimeString()}
                       </p>
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-            {(isLoading || isAnalyzing) && (
-              <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div className="bg-gray-700 text-gray-100 p-3 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              ))}
+              
+              {(isLoading || isAnalyzing) && (
+                <div className="flex gap-3 justify-start">
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
+                    <Bot className="h-4 w-4" />
                   </div>
-                  {isAnalyzing && (
-                    <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
-                  )}
+                  <div className="bg-gray-700 text-gray-100 p-3 rounded-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    {isAnalyzing && (
+                      <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Input Area */}
-          <div className="border-t border-white/20 p-4">
-            <div className="flex gap-2">
-              <Input
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder="Ask me anything about your studies..."
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                className="bg-white/10 border-white/20 text-white flex-1"
-                disabled={isLoading || isAnalyzing}
-              />
-              <Button 
-                onClick={sendMessage} 
-                disabled={!currentMessage.trim() || isLoading || isAnalyzing}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Input Area */}
+        <div className="p-4">
+          <div className="flex gap-2">
+            <Input
+              value={currentMessage}
+              onChange={(e) => setCurrentMessage(e.target.value)}
+              placeholder="Ask me anything about your studies..."
+              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              className="bg-white/10 border-white/20 text-white flex-1"
+              disabled={isLoading || isAnalyzing}
+            />
+            <Button 
+              onClick={sendMessage} 
+              disabled={!currentMessage.trim() || isLoading || isAnalyzing}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
