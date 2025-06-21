@@ -16,30 +16,46 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Progress = () => {
-  const { user, isSchoolAdmin } = useAuth();
+  const { user, isSchoolAdmin, loading: authLoading } = useAuth();
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchUserRole();
-    } else {
-      setIsLoading(false);
+    console.log('Progress: Component mounted with auth state:', {
+      hasUser: !!user,
+      authLoading,
+      userId: user?.id,
+      isSchoolAdmin
+    });
+
+    if (!authLoading) {
+      if (user) {
+        fetchUserRole();
+      } else {
+        console.log('Progress: No user found');
+        setIsLoading(false);
+      }
     }
-  }, [user]);
+  }, [user, authLoading, isSchoolAdmin]);
 
   const fetchUserRole = async () => {
     try {
+      console.log('Progress: Fetching user role for user:', user?.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user?.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Progress: Error fetching user role:', error);
+        throw error;
+      }
       
-      // Override role if user is school admin
-      setUserRole(isSchoolAdmin ? 'teacher' : data.role);
+      const finalRole = isSchoolAdmin ? 'teacher' : data?.role || 'student';
+      console.log('Progress: User role determined:', finalRole);
+      setUserRole(finalRole);
     } catch (error: any) {
       console.error('Error fetching user role:', error);
       setUserRole('student'); // Default fallback
@@ -62,7 +78,8 @@ const Progress = () => {
     }
   };
 
-  if (isLoading) {
+  // Show loading while auth is loading or we're fetching user role
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-pulse">Loading dashboard...</div>

@@ -17,33 +17,30 @@ const Auth = () => {
   const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading } = useAuth();
 
-  // Check URL params and redirect authenticated users
+  // Handle URL params and redirect authenticated users
   useEffect(() => {
-    console.log('Auth page: Effect triggered', {
+    console.log('Auth: Effect triggered', {
       hasUser: !!user,
       loading,
-      pathname: location.pathname,
-      search: location.search
+      pathname: location.pathname
     });
 
-    // Check if signup mode should be enabled from URL
+    // Set signup mode from URL
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('signup') === 'true') {
       setIsSignUp(true);
     }
 
-    // Redirect authenticated users
+    // Redirect authenticated users (only when auth loading is complete)
     if (!loading && user) {
-      console.log('Auth page: User already authenticated, redirecting to onboarding');
-      setIsRedirecting(true);
+      console.log('Auth: User authenticated, redirecting to onboarding');
       navigate('/onboarding', { replace: true });
     }
-  }, [user, loading, navigate, location.search, location.pathname]);
+  }, [user, loading, navigate, location.search]);
 
   const getUserRole = () => {
     const urlParams = new URLSearchParams(location.search);
@@ -88,8 +85,8 @@ const Auth = () => {
         
         if (error) throw error;
         
-        console.log('Auth: Login successful, navigating to onboarding');
-        navigate('/onboarding');
+        console.log('Auth: Login successful');
+        // Navigation will be handled by the useEffect when user state updates
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -135,8 +132,18 @@ const Auth = () => {
     }
   };
 
-  // Show loading state only when redirecting authenticated users
-  if (isRedirecting || (user && !loading)) {
+  // Show loading only while auth context is loading
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // If user exists, show redirecting message (brief moment before redirect happens)
+  if (user) {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -145,7 +152,7 @@ const Auth = () => {
     );
   }
 
-  // Show the auth form for unauthenticated users (regardless of loading state)
+  // Show auth form for non-authenticated users
   const role = getUserRole();
   const roleTitle = role === 'school' ? 'School Account' : role === 'parent' ? 'Parent Account' : 'TeachlyAI';
 

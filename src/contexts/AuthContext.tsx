@@ -21,14 +21,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    console.log('AuthContext: Initializing auth state management...');
+    console.log('AuthContext: Initializing...');
     
     let isMounted = true;
     
-    // Set up auth state listener first
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('AuthContext: Error getting initial session:', error);
+        } else {
+          console.log('AuthContext: Initial session:', { 
+            hasSession: !!initialSession, 
+            userId: initialSession?.user?.id 
+          });
+          
+          if (isMounted) {
+            setSession(initialSession);
+            setUser(initialSession?.user ?? null);
+            
+            // Check school admin status if user exists
+            if (initialSession?.user) {
+              await checkSchoolAdminStatus(initialSession.user.id);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('AuthContext: Error in initialization:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          console.log('AuthContext: Initialization complete, loading set to false');
+        }
+      }
+    };
+
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!isMounted) return;
@@ -36,113 +68,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('AuthContext: Auth state changed:', {
           event,
           hasSession: !!currentSession,
-          userId: currentSession?.user?.id,
-          userEmail: currentSession?.user?.email,
-          isInitialized
+          userId: currentSession?.user?.id
         });
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Check if user is a school admin
+        // Check school admin status
         if (currentSession?.user) {
-          try {
-            const { data: schoolData } = await supabase
-              .from('school_accounts')
-              .select('id')
-              .eq('admin_user_id', currentSession.user.id)
-              .single();
-            
-            if (isMounted) {
-              setIsSchoolAdmin(!!schoolData);
-            }
-          } catch (error) {
-            console.error('Error checking school admin status:', error);
-            if (isMounted) {
-              setIsSchoolAdmin(false);
-            }
-          }
+          await checkSchoolAdminStatus(currentSession.user.id);
         } else {
-          if (isMounted) {
-            setIsSchoolAdmin(false);
-          }
+          setIsSchoolAdmin(false);
         }
         
-        // Only set loading to false after we've processed the auth state
-        if (isMounted && !isInitialized) {
-          console.log('AuthContext: Setting loading to false and marking as initialized');
-          setLoading(false);
-          setIsInitialized(true);
-        }
+        // Set loading to false after processing auth change
+        setLoading(false);
       }
     );
 
-    // Then check for existing session
-    const checkInitialSession = async () => {
-      try {
-        console.log('AuthContext: Checking for existing session...');
-        
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('AuthContext: Error getting session:', error);
-          if (isMounted) {
-            setLoading(false);
-            setIsInitialized(true);
-          }
-          return;
-        }
-        
-        console.log('AuthContext: Initial session check:', {
-          hasSession: !!currentSession,
-          userId: currentSession?.user?.id,
-          userEmail: currentSession?.user?.email
-        });
-        
-        if (isMounted) {
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
-          
-          // Check if user is a school admin
-          if (currentSession?.user) {
-            try {
-              const { data: schoolData } = await supabase
-                .from('school_accounts')
-                .select('id')
-                .eq('admin_user_id', currentSession.user.id)
-                .single();
-              
-              setIsSchoolAdmin(!!schoolData);
-            } catch (error) {
-              console.error('Error checking school admin status:', error);
-              setIsSchoolAdmin(false);
-            }
-          } else {
-            setIsSchoolAdmin(false);
-          }
-          
-          // Set loading to false and mark as initialized
-          console.log('AuthContext: Initial check complete, setting loading to false');
-          setLoading(false);
-          setIsInitialized(true);
-        }
-      } catch (error) {
-        console.error('AuthContext: Error in checkInitialSession:', error);
-        if (isMounted) {
-          setLoading(false);
-          setIsInitialized(true);
-        }
-      }
-    };
-
-    checkInitialSession();
+    // Initialize auth state
+    initializeAuth();
 
     return () => {
-      console.log('AuthContext: Cleaning up auth subscription');
+      console.log('AuthContext: Cleaning up');
       isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
+  const checkSchoolAdminStatus = async (userId: string) => {
+    try {
+      const { data: schoolData } = await supabase
+        .from('school_accounts')
+        .select('id')
+        .eq('admin_user_id', userId)
+        .single();
+      
+      setIsSchoolAdmin(!!schoolData);
+    } catch (error) {
+      console.error('Error checking school admin status:', error);
+      setIsSchoolAdmin(false);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -202,11 +169,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   console.log('AuthContext: Current state:', {
     hasUser: !!user,
-    hasSession: !!session,
     loading,
-    isInitialized,
     userId: user?.id,
-    userEmail: user?.email,
     isSchoolAdmin
   });
 
