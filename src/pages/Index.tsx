@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,31 +25,31 @@ const Index = () => {
     {
       title: "Sign Up & Get Started",
       description: "Create your account and set up your learning profile",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=800&fit=crop",
+      image: "/images/auth-signup.png",
       audioText: "Start your learning journey by creating your account and setting up your personalized learning preferences."
     },
     {
       title: "Student Dashboard",
       description: "Track your progress and manage your subjects",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=800&fit=crop",
+      image: "/images/student-dashboard.png",
       audioText: "Your student dashboard provides a comprehensive view of your learning progress, current subjects, and daily achievements."
     },
     {
       title: "AI Tutor Chat",
       description: "Get instant help from your AI tutor",
-      image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=800&fit=crop",
+      image: "/images/ai-chat-interface.png",
       audioText: "Chat with your AI tutor anytime to get explanations, ask questions, and receive personalized learning guidance."
     },
     {
       title: "Quests & Achievements",
       description: "Complete challenges and unlock rewards",
-      image: "https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=1200&h=800&fit=crop",
+      image: "/images/quests-achievements.png",
       audioText: "Stay motivated with our gamified learning system featuring daily quests, achievements, and progress rewards."
     },
     {
       title: "School Administration",
       description: "Monitor student progress and manage your school",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=800&fit=crop",
+      image: "/images/school-admin-dashboard.png",
       audioText: "Educators can monitor student progress, assign subjects, and track learning outcomes across their institution."
     }
   ];
