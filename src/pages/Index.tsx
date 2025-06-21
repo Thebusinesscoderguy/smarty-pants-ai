@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ const Index = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const videoDemoRef = useRef<HTMLDivElement>(null);
 
   const videoSlides = [
     {
@@ -57,6 +58,32 @@ const Index = () => {
       step: 5
     }
   ];
+
+  // Scroll detection for auto-starting video demo
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isVideoPlaying) {
+            startVideoDemo();
+          }
+        });
+      },
+      {
+        threshold: 0.5, // Start when 50% of the element is visible
+      }
+    );
+
+    if (videoDemoRef.current) {
+      observer.observe(videoDemoRef.current);
+    }
+
+    return () => {
+      if (videoDemoRef.current) {
+        observer.unobserve(videoDemoRef.current);
+      }
+    };
+  }, [isVideoPlaying]);
 
   const generateAudio = async (text: string) => {
     try {
@@ -242,30 +269,27 @@ const Index = () => {
           </div>
 
           {/* Video Demo Section */}
-          <div className="mb-16">
+          <div className="mb-16" ref={videoDemoRef}>
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">See How TeachlyAI Works</h2>
               <p className="text-lg text-white/80 mb-6">
-                Watch this interactive demo with audio narration to understand how our AI-powered learning platform transforms your education experience.
+                This interactive demo with audio narration shows how our AI-powered learning platform transforms your education experience.
               </p>
-              <Button
-                onClick={isVideoPlaying ? stopVideoDemo : startVideoDemo}
-                className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-                size="lg"
-              >
-                {isVideoPlaying ? (
-                  <>
-                    <Pause className="h-5 w-5" />
-                    Stop Demo
-                  </>
-                ) : (
-                  <>
-                    <PlayCircle className="h-5 w-5" />
-                    <Volume2 className="h-4 w-4" />
-                    Start Demo with Audio
-                  </>
-                )}
-              </Button>
+              {isVideoPlaying && (
+                <div className="flex items-center justify-center gap-2 text-green-400 mb-4">
+                  <Volume2 className="h-5 w-5 animate-pulse" />
+                  <span>Demo playing with audio narration...</span>
+                  <Button
+                    onClick={stopVideoDemo}
+                    variant="outline"
+                    size="sm"
+                    className="ml-4"
+                  >
+                    <Pause className="h-4 w-4 mr-2" />
+                    Stop
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Card className="bg-white/10 border-white/20 overflow-hidden">
