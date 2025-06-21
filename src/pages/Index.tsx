@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Play, CheckCircle, XCircle, Clock, Loader2, PlayCircle, Pause } from 'lucide-react';
+import { BookOpen, Play, CheckCircle, XCircle, Clock, Loader2, PlayCircle, Pause, Volume2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ContactForm } from '@/components/contact/ContactForm';
@@ -18,60 +18,118 @@ const Index = () => {
   const [showResults, setShowResults] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
   const videoSlides = [
     {
       title: "Sign Up & Get Started",
-      description: "Create your account in seconds and tell us about your learning goals. No complicated setup required.",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=500&fit=crop",
+      description: "Create your account in seconds and tell us about your learning goals. Our simple signup process gets you started immediately with personalized learning paths.",
+      image: "/placeholder.svg?height=500&width=800&text=Auth+Page+Screenshot",
+      audioText: "Welcome to TeachlyAI! Getting started is simple. Just sign up with your email, tell us about your learning goals, and we'll create a personalized learning experience just for you.",
       step: 1
     },
     {
-      title: "Chat with Your AI Tutor",
-      description: "Start learning immediately with our intelligent AI tutor. Ask questions, get explanations, and receive personalized guidance.",
-      image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop",
+      title: "Student Dashboard",
+      description: "Access your personalized learning dashboard with progress tracking, subject assignments, and performance analytics all in one place.",
+      image: "/placeholder.svg?height=500&width=800&text=Student+Dashboard+Screenshot",
+      audioText: "Your student dashboard is your learning command center. Here you can see your progress across subjects, track your achievements, and monitor your learning streaks.",
       step: 2
     },
     {
-      title: "Upload Study Materials",
-      description: "Upload your documents, notes, and study materials. Our AI will analyze them and create interactive learning experiences.",
-      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop",
+      title: "Chat with AI Tutor",
+      description: "Start learning immediately with our intelligent AI tutor. Ask questions, get explanations, and receive personalized guidance with voice interactions.",
+      image: "/placeholder.svg?height=500&width=800&text=AI+Chat+Interface+Screenshot",
+      audioText: "Our AI tutor is available 24/7 to help you learn. Ask questions in text or voice, get instant explanations, and receive personalized guidance tailored to your learning style.",
       step: 3
     },
     {
-      title: "Voice Interactions",
-      description: "Learn on the go with natural voice conversations. Practice speaking and get instant feedback from your AI tutor.",
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=500&fit=crop",
+      title: "Quests & Achievements",
+      description: "Complete daily quests, unlock achievements, and earn rewards as you progress through your learning journey with our gamified system.",
+      image: "/placeholder.svg?height=500&width=800&text=Quests+and+Achievements+Screenshot",
+      audioText: "Learning becomes fun with our quest system! Complete daily challenges, unlock achievements, and earn badges as you master new concepts and reach learning milestones.",
       step: 4
     },
     {
-      title: "Track Your Progress",
-      description: "Monitor your learning journey with detailed analytics, achievements, and personalized insights to stay motivated.",
-      image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=500&fit=crop",
+      title: "School Admin Dashboard",
+      description: "Teachers and administrators can monitor student progress, assign subjects, create custom quests, and analyze learning outcomes across their institution.",
+      image: "/placeholder.svg?height=500&width=800&text=School+Admin+Dashboard+Screenshot",
+      audioText: "For educators, our school dashboard provides comprehensive oversight. Monitor student progress, assign subjects, create custom learning quests, and get detailed analytics on learning outcomes.",
       step: 5
     }
   ];
 
-  const startVideoDemo = () => {
+  const generateAudio = async (text: string) => {
+    try {
+      const response = await fetch('/api/text-to-speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          voice: 'alloy'
+        })
+      });
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        return new Audio(audioUrl);
+      }
+    } catch (error) {
+      console.log('Audio generation not available, continuing without audio');
+    }
+    return null;
+  };
+
+  const startVideoDemo = async () => {
     setIsVideoPlaying(true);
     setCurrentSlide(0);
     
-    // Auto-advance slides every 4 seconds when playing
-    const interval = setInterval(() => {
+    // Generate and play audio for first slide
+    const audio = await generateAudio(videoSlides[0].audioText);
+    if (audio) {
+      setCurrentAudio(audio);
+      audio.play();
+    }
+    
+    // Auto-advance slides every 6 seconds when playing (longer for audio)
+    const interval = setInterval(async () => {
       setCurrentSlide(prev => {
-        if (prev >= videoSlides.length - 1) {
+        const nextSlide = prev + 1;
+        if (nextSlide >= videoSlides.length) {
           setIsVideoPlaying(false);
+          if (currentAudio) {
+            currentAudio.pause();
+            setCurrentAudio(null);
+          }
           clearInterval(interval);
           return 0;
         }
-        return prev + 1;
+        
+        // Generate audio for next slide
+        generateAudio(videoSlides[nextSlide].audioText).then(audio => {
+          if (currentAudio) {
+            currentAudio.pause();
+          }
+          if (audio) {
+            setCurrentAudio(audio);
+            audio.play();
+          }
+        });
+        
+        return nextSlide;
       });
-    }, 4000);
+    }, 6000);
   };
 
   const stopVideoDemo = () => {
     setIsVideoPlaying(false);
     setCurrentSlide(0);
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+    }
   };
 
   const handleRunSystemTests = async () => {
@@ -188,7 +246,7 @@ const Index = () => {
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">See How TeachlyAI Works</h2>
               <p className="text-lg text-white/80 mb-6">
-                Watch this interactive demo to understand how our AI-powered learning platform transforms your education experience.
+                Watch this interactive demo with audio narration to understand how our AI-powered learning platform transforms your education experience.
               </p>
               <Button
                 onClick={isVideoPlaying ? stopVideoDemo : startVideoDemo}
@@ -203,7 +261,8 @@ const Index = () => {
                 ) : (
                   <>
                     <PlayCircle className="h-5 w-5" />
-                    Start Interactive Demo
+                    <Volume2 className="h-4 w-4" />
+                    Start Demo with Audio
                   </>
                 )}
               </Button>
@@ -230,9 +289,15 @@ const Index = () => {
                                 <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
                                   {slide.title}
                                 </h3>
-                                <p className="text-lg text-white/90">
+                                <p className="text-lg text-white/90 mb-4">
                                   {slide.description}
                                 </p>
+                                {isVideoPlaying && (
+                                  <div className="flex items-center justify-center gap-2 text-green-400">
+                                    <Volume2 className="h-4 w-4 animate-pulse" />
+                                    <span className="text-sm">Audio narration playing...</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
