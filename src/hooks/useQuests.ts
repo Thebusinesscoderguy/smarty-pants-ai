@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { isMockDataEnabled, mockQuests, mockSubjects } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockQuests, mockSubjects } from '@/utils/mockData';
 
 interface Quest {
   id: string;
@@ -28,6 +30,7 @@ interface SubjectAssignment {
 
 export const useQuests = () => {
   const [dailyQuests, setDailyQuests] = useState<Quest[]>([]);
+  const [weeklyQuests, setWeeklyQuests] = useState<Quest[]>([]);
   const [subjectAssignments, setSubjectAssignments] = useState<SubjectAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -35,8 +38,18 @@ export const useQuests = () => {
   useEffect(() => {
     if (isMockDataEnabled()) {
       setIsLoading(true);
-      // Use mock data
-      setDailyQuests([...mockQuests.active, ...mockQuests.completed]);
+      // Use mock data with proper Quest interface
+      const mockDailyQuests = mockQuests.active.filter(q => q.type === 'daily').map(quest => ({
+        ...quest,
+        expires_at: quest.expires_at || new Date().toISOString()
+      }));
+      const mockWeeklyQuests = mockQuests.active.filter(q => q.type === 'weekly').map(quest => ({
+        ...quest,
+        expires_at: quest.expires_at || new Date().toISOString()
+      }));
+      
+      setDailyQuests(mockDailyQuests);
+      setWeeklyQuests(mockWeeklyQuests);
       setSubjectAssignments(mockSubjects.map(subject => ({
         id: subject.id,
         completion_percentage: subject.completion_percentage,
@@ -88,6 +101,7 @@ export const useQuests = () => {
       if (subjectError) throw subjectError;
 
       setDailyQuests(dailyQuestsData || []);
+      setWeeklyQuests(weeklyQuestsData || []);
       setSubjectAssignments(subjectData || []);
 
     } catch (error: any) {
@@ -104,6 +118,7 @@ export const useQuests = () => {
 
   return {
     dailyQuests,
+    weeklyQuests,
     subjectAssignments,
     isLoading,
     refetchQuests: fetchQuests

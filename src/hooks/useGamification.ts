@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
-import { isMockDataEnabled, mockAchievements } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockAchievements } from '@/utils/mockData';
 
 export interface Achievement {
   id: string;
@@ -10,7 +12,7 @@ export interface Achievement {
   description: string;
   type: 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge';
   icon: string;
-  criteria: any;
+  criteria?: any;
   earned_at?: string;
 }
 
@@ -45,9 +47,13 @@ export const useGamification = () => {
   useEffect(() => {
     if (isMockDataEnabled()) {
       setIsLoading(true);
-      // Use mock data
-      setAchievements(mockAchievements);
-      setUserAchievements(mockAchievements.filter(a => a.earned));
+      // Use mock data with proper typing
+      const mockAchievementsWithCriteria = mockAchievements.map(achievement => ({
+        ...achievement,
+        criteria: achievement.type === 'milestone' ? { lessons_completed: 1 } : {}
+      }));
+      setAchievements(mockAchievementsWithCriteria);
+      setUserAchievements(mockAchievementsWithCriteria.filter(a => a.earned));
       setChallenges([]);
       setUserProgress([]);
       setUserLevel(3);

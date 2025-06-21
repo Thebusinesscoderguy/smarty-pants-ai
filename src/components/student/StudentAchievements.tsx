@@ -5,7 +5,8 @@ import { Trophy, Star, Award, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataEnabled, mockAchievements } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockAchievements } from '@/utils/mockData';
 
 interface Achievement {
   id: string;

@@ -23,7 +23,8 @@ export const QuestDisplay = () => {
           target_value: 3,
           current_value: 2,
           completed: false,
-          created_by: 'ai' as const
+          created_by: 'ai' as const,
+          expires_at: new Date().toISOString()
         },
         {
           id: '2',
@@ -34,7 +35,8 @@ export const QuestDisplay = () => {
           target_value: 15,
           current_value: 15,
           completed: true,
-          created_by: 'ai' as const
+          created_by: 'ai' as const,
+          expires_at: new Date().toISOString()
         }
       ],
       weekly: [
@@ -47,7 +49,8 @@ export const QuestDisplay = () => {
           target_value: 5,
           current_value: 3,
           completed: false,
-          created_by: 'ai' as const
+          created_by: 'ai' as const,
+          expires_at: new Date().toISOString()
         }
       ]
     };
@@ -185,7 +188,7 @@ export const QuestDisplay = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">{getCreatorIcon(quest.created_by)}</span>
+                        <span className="text-lg">{getCreatorIcon('ai')}</span>
                         <h3 className="font-semibold text-white">{quest.title}</h3>
                         {quest.completed && (
                           <Badge variant="default" className="bg-green-500">
@@ -244,7 +247,7 @@ export const QuestDisplay = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">{getCreatorIcon(quest.created_by)}</span>
+                        <span className="text-lg">{getCreatorIcon('ai')}</span>
                         <h3 className="font-semibold text-white">{quest.title}</h3>
                         {quest.completed && (
                           <Badge variant="default" className="bg-green-500">

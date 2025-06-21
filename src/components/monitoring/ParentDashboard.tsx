@@ -5,7 +5,8 @@ import { TrendingUp, TrendingDown, Users, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { isMockDataEnabled, mockParentDashboard } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockParentDashboard } from '@/utils/mockData';
 
 interface StudentData {
   student_id: string;

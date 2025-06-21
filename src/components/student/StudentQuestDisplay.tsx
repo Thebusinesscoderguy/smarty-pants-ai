@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -6,7 +7,8 @@ import { Target, Trophy, Clock, CheckCircle, Calendar, Gift } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataEnabled, mockQuests } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockQuests } from '@/utils/mockData';
 
 interface Quest {
   id: string;
@@ -16,11 +18,11 @@ interface Quest {
   difficulty: string;
   target_value: number;
   current_value: number;
-  progress: number;
-  reward: string;
+  completed?: boolean;
   expires_at?: string;
   completed_at?: string;
   subjects?: { name: string };
+  reward?: string;
 }
 
 export const StudentQuestDisplay = () => {

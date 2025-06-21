@@ -5,7 +5,8 @@ import { TrendingUp, TrendingDown, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { isMockDataEnabled, mockAnalytics } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockAnalytics } from '@/utils/mockData';
 
 export const StrengthsWeaknesses = () => {
   const [strengths, setStrengths] = useState<any[]>([]);

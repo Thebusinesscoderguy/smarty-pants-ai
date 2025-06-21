@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -6,7 +7,8 @@ import { BookOpen, Clock, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataEnabled, mockSubjects } from '@/utils/mockData';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { mockSubjects } from '@/utils/mockData';
 
 export const SubjectProgress = () => {
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -64,8 +66,8 @@ export const SubjectProgress = () => {
           const totalTopics = analyticsData?.length || 1;
           const completionPercentage = Math.round((masteredTopics / totalTopics) * 100);
 
-          // Calculate total time spent in this subject
-          const totalTimeSpent = analyticsData?.reduce((sum, a) => sum + (a.time_spent || 0), 0) || 0;
+          // Calculate total time spent in this subject (use response_time_ms converted to minutes)
+          const totalTimeSpent = analyticsData?.reduce((sum, a) => sum + ((a.response_time_ms || 0) / 60000), 0) || 0;
 
           // Get last activity
           const lastActivity = analyticsData
@@ -94,7 +96,7 @@ export const SubjectProgress = () => {
             completion_percentage: completionPercentage,
             lessons_completed: masteredTopics,
             total_lessons: totalTopics,
-            time_spent: totalTimeSpent,
+            time_spent: Math.round(totalTimeSpent),
             current_grade: 'A', // Mock grade
             assigned_by: assignment.assigned_by,
             last_activity: lastActivity,
