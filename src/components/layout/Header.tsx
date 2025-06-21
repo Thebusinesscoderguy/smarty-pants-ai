@@ -54,7 +54,7 @@ export const Header = () => {
           </nav>
         )}
       </div>
-      <div className="space-x-4">
+      <div className="flex items-center space-x-4">
         {user ? (
           <>
             {isSchoolAdmin ? (
