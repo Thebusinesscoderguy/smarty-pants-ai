@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,7 +40,7 @@ export const Header = () => {
     <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
       <div className="flex items-center space-x-8">
         <Link to="/">
-          <h1 className="text-xl font-bold">Teachly</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Teachly AI</h1>
         </Link>
         {!loading && !user && (
           <nav className="hidden md:flex space-x-6">
