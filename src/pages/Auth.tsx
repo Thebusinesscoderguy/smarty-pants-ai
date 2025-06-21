@@ -17,6 +17,7 @@ const Auth = () => {
   const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading } = useAuth();
@@ -39,6 +40,7 @@ const Auth = () => {
     // Redirect authenticated users
     if (!loading && user) {
       console.log('Auth page: User already authenticated, redirecting to onboarding');
+      setIsRedirecting(true);
       navigate('/onboarding', { replace: true });
     }
   }, [user, loading, navigate, location.search, location.pathname]);
@@ -86,6 +88,7 @@ const Auth = () => {
         
         if (error) throw error;
         
+        console.log('Auth: Login successful, navigating to onboarding');
         navigate('/onboarding');
       }
     } catch (error: any) {
@@ -132,18 +135,8 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
-        <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  // If user is authenticated, don't render the auth form (redirect will happen)
-  if (user) {
+  // Show loading state only when redirecting authenticated users
+  if (isRedirecting || (user && !loading)) {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -152,6 +145,7 @@ const Auth = () => {
     );
   }
 
+  // Show the auth form for unauthenticated users (regardless of loading state)
   const role = getUserRole();
   const roleTitle = role === 'school' ? 'School Account' : role === 'parent' ? 'Parent Account' : 'TeachlyAI';
 
