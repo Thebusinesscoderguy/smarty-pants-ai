@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Loader2 } from 'lucide-react';
@@ -78,27 +77,20 @@ const Index = () => {
               <Button 
                 variant="outline"
                 size="lg" 
+                onClick={() => navigate('/features')}
+                className="flex items-center gap-2"
+              >
+                <Play className="h-4 w-4" />
+                Try Demo
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg" 
                 onClick={() => navigate('/demo')}
                 className="flex items-center gap-2"
               >
                 <Play className="h-4 w-4" />
                 Watch Demo
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg" 
-                onClick={() => navigate('/auth')}
-                className="flex items-center gap-2"
-              >
-                Log In
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg" 
-                onClick={() => navigate('/auth?signup=true')}
-                className="flex items-center gap-2"
-              >
-                Sign Up
               </Button>
               <Button 
                 variant="outline"
