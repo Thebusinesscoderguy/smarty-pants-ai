@@ -32,8 +32,8 @@ export const Header = () => {
   console.log('Header: Rendering with user state:', {
     hasUser: !!user,
     loading,
-    showAuthButtons: !loading && !user,
-    showUserButtons: !loading && !!user,
+    showAuthButtons: !user,
+    showUserButtons: !!user,
     isSchoolAdmin
   });
 
@@ -43,7 +43,7 @@ export const Header = () => {
         <Link to="/">
           <h1 className="text-2xl md:text-3xl font-bold">TeachlyAI</h1>
         </Link>
-        {!loading && !user && (
+        {!user && (
           <nav className="hidden md:flex space-x-6">
             <Link to="/how-it-works" className="text-white/80 hover:text-white transition-colors">
               How it Works
@@ -55,9 +55,7 @@ export const Header = () => {
         )}
       </div>
       <div className="space-x-4">
-        {loading ? (
-          <div className="text-white/70">Loading...</div>
-        ) : user ? (
+        {user ? (
           <>
             {isSchoolAdmin ? (
               <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
