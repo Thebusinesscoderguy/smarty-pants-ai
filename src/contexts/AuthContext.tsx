@@ -2,7 +2,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -11,7 +10,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
-  logout: (navigate: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,7 +27,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const initializeAuth = async () => {
       try {
-        // Get initial session
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -44,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(initialSession);
             setUser(initialSession?.user ?? null);
             
-            // Check school admin status if user exists
             if (initialSession?.user) {
               await checkSchoolAdminStatus(initialSession.user.id);
             }
@@ -60,7 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!isMounted) return;
@@ -74,19 +69,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Check school admin status
         if (currentSession?.user) {
           await checkSchoolAdminStatus(currentSession.user.id);
         } else {
           setIsSchoolAdmin(false);
         }
         
-        // Set loading to false after processing auth change
         setLoading(false);
       }
     );
 
-    // Initialize auth state
     initializeAuth();
 
     return () => {
@@ -147,14 +139,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    console.log('AuthContext: Signing out...');
-    await supabase.auth.signOut();
-  };
-
-  const logout = async (navigate: any) => {
-    console.log('AuthContext: Logging out...');
-    await supabase.auth.signOut();
-    navigate('/');
+    try {
+      console.log('AuthContext: Starting sign out...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('AuthContext: Sign out error:', error);
+        throw error;
+      }
+      
+      // Clear local state immediately
+      setSession(null);
+      setUser(null);
+      setIsSchoolAdmin(false);
+      
+      console.log('AuthContext: Sign out completed successfully');
+    } catch (error) {
+      console.error('AuthContext: Sign out failed:', error);
+      throw error;
+    }
   };
 
   const value = {
@@ -164,7 +167,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
-    logout,
   };
 
   console.log('AuthContext: Current state:', {
