@@ -23,39 +23,34 @@ const Index = () => {
 
   const videoSlides = [
     {
-      title: "Sign Up & Get Started",
-      description: "Create your account in seconds and tell us about your learning goals. Our simple signup process gets you started immediately with personalized learning paths.",
-      image: "/placeholder.svg?height=500&width=800&text=Auth+Page+Screenshot",
-      audioText: "Welcome to TeachlyAI! Getting started is simple. Just sign up with your email, tell us about your learning goals, and we'll create a personalized learning experience just for you.",
-      step: 1
+      title: "Authentication & Onboarding",
+      description: "Sign up and complete your personalized learning profile",
+      image: "/placeholder.svg?height=600&width=1000&text=Auth+Login+Page",
+      audioText: "Start your learning journey by creating your account and setting up your personalized learning preferences."
     },
     {
-      title: "Student Dashboard",
-      description: "Access your personalized learning dashboard with progress tracking, subject assignments, and performance analytics all in one place.",
-      image: "/placeholder.svg?height=500&width=800&text=Student+Dashboard+Screenshot",
-      audioText: "Your student dashboard is your learning command center. Here you can see your progress across subjects, track your achievements, and monitor your learning streaks.",
-      step: 2
+      title: "Student Dashboard Overview",
+      description: "Your personalized learning hub with progress tracking and subject assignments",
+      image: "/placeholder.svg?height=600&width=1000&text=Student+Dashboard+Interface",
+      audioText: "Your student dashboard provides a comprehensive view of your learning progress, current subjects, and daily achievements."
     },
     {
-      title: "Chat with AI Tutor",
-      description: "Start learning immediately with our intelligent AI tutor. Ask questions, get explanations, and receive personalized guidance with voice interactions.",
-      image: "/placeholder.svg?height=500&width=800&text=AI+Chat+Interface+Screenshot",
-      audioText: "Our AI tutor is available 24/7 to help you learn. Ask questions in text or voice, get instant explanations, and receive personalized guidance tailored to your learning style.",
-      step: 3
+      title: "AI Chat Interface",
+      description: "Interactive conversations with your AI tutor for instant help and explanations",
+      image: "/placeholder.svg?height=600&width=1000&text=AI+Chat+Conversation+Screen",
+      audioText: "Chat with your AI tutor anytime to get explanations, ask questions, and receive personalized learning guidance."
     },
     {
-      title: "Quests & Achievements",
-      description: "Complete daily quests, unlock achievements, and earn rewards as you progress through your learning journey with our gamified system.",
-      image: "/placeholder.svg?height=500&width=800&text=Quests+and+Achievements+Screenshot",
-      audioText: "Learning becomes fun with our quest system! Complete daily challenges, unlock achievements, and earn badges as you master new concepts and reach learning milestones.",
-      step: 4
+      title: "Quests & Gamification",
+      description: "Complete learning quests and unlock achievements to stay motivated",
+      image: "/placeholder.svg?height=600&width=1000&text=Quest+System+Achievements",
+      audioText: "Stay motivated with our gamified learning system featuring daily quests, achievements, and progress rewards."
     },
     {
-      title: "School Admin Dashboard",
-      description: "Teachers and administrators can monitor student progress, assign subjects, create custom quests, and analyze learning outcomes across their institution.",
-      image: "/placeholder.svg?height=500&width=800&text=School+Admin+Dashboard+Screenshot",
-      audioText: "For educators, our school dashboard provides comprehensive oversight. Monitor student progress, assign subjects, create custom learning quests, and get detailed analytics on learning outcomes.",
-      step: 5
+      title: "School Administration",
+      description: "Comprehensive dashboard for teachers and administrators to monitor student progress",
+      image: "/placeholder.svg?height=600&width=1000&text=School+Admin+Dashboard",
+      audioText: "Educators can monitor student progress, assign subjects, and track learning outcomes across their institution."
     }
   ];
 
@@ -273,83 +268,67 @@ const Index = () => {
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">See How TeachlyAI Works</h2>
               <p className="text-lg text-white/80 mb-6">
-                This interactive demo with audio narration shows how our AI-powered learning platform transforms your education experience.
+                Watch our platform in action - from student dashboards to AI tutoring and gamified learning.
               </p>
-              {isVideoPlaying && (
-                <div className="flex items-center justify-center gap-2 text-green-400 mb-4">
-                  <Volume2 className="h-5 w-5 animate-pulse" />
-                  <span>Demo playing with audio narration...</span>
-                  <Button
-                    onClick={stopVideoDemo}
-                    variant="outline"
-                    size="sm"
-                    className="ml-4"
-                  >
-                    <Pause className="h-4 w-4 mr-2" />
-                    Stop
-                  </Button>
-                </div>
-              )}
             </div>
 
-            <Card className="bg-white/10 border-white/20 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="relative">
-                  <Carousel className="w-full">
-                    <CarouselContent>
-                      {videoSlides.map((slide, index) => (
-                        <CarouselItem key={index} className={`${currentSlide === index && isVideoPlaying ? 'block' : currentSlide === index ? 'block' : 'hidden'}`}>
-                          <div className="relative">
-                            <img
-                              src={slide.image}
-                              alt={slide.title}
-                              className="w-full h-96 object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                              <div className="text-center p-8 max-w-2xl">
-                                <div className="bg-purple-600/90 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mb-4 mx-auto">
-                                  {slide.step}
-                                </div>
-                                <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
-                                  {slide.title}
-                                </h3>
-                                <p className="text-lg text-white/90 mb-4">
-                                  {slide.description}
-                                </p>
-                                {isVideoPlaying && (
-                                  <div className="flex items-center justify-center gap-2 text-green-400">
-                                    <Volume2 className="h-4 w-4 animate-pulse" />
-                                    <span className="text-sm">Audio narration playing...</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+            <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl">
+              {/* Video Player Interface */}
+              <div className="relative aspect-video bg-gray-900">
+                <Carousel className="w-full h-full">
+                  <CarouselContent>
+                    {videoSlides.map((slide, index) => (
+                      <CarouselItem key={index} className={`${currentSlide === index ? 'block' : 'hidden'}`}>
+                        <div className="relative w-full h-full">
+                          <img
+                            src={slide.image}
+                            alt={slide.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Video overlay with title */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                            <h3 className="text-xl font-semibold text-white mb-2">
+                              {slide.title}
+                            </h3>
+                            <p className="text-gray-300 text-sm">
+                              {slide.description}
+                            </p>
                           </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    {!isVideoPlaying && (
-                      <>
-                        <CarouselPrevious className="left-4 bg-white/20 hover:bg-white/30 text-white border-white/30" />
-                        <CarouselNext className="right-4 bg-white/20 hover:bg-white/30 text-white border-white/30" />
-                      </>
-                    )}
-                  </Carousel>
-
-                  {/* Progress indicator */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                    {videoSlides.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`h-2 w-8 rounded-full transition-all ${
-                          index === currentSlide ? 'bg-purple-600' : 'bg-white/30'
-                        }`}
-                      />
+                        </div>
+                      </CarouselItem>
                     ))}
+                  </CarouselContent>
+                </Carousel>
+
+                {/* Video Controls Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  {isVideoPlaying && (
+                    <Button
+                      onClick={stopVideoDemo}
+                      className="bg-black/50 hover:bg-black/70 text-white border-0 rounded-full p-4"
+                      size="icon"
+                    >
+                      <Pause className="h-8 w-8" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-white/20 rounded-full h-1">
+                      <div 
+                        className="bg-white rounded-full h-full transition-all duration-300"
+                        style={{ width: `${((currentSlide + 1) / videoSlides.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-white text-xs font-mono">
+                      {currentSlide + 1}/{videoSlides.length}
+                    </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* System Test Results */}
