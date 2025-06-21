@@ -87,6 +87,22 @@ const Index = () => {
               <Button 
                 variant="outline"
                 size="lg" 
+                onClick={() => navigate('/auth')}
+                className="flex items-center gap-2"
+              >
+                Log In
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg" 
+                onClick={() => navigate('/auth?signup=true')}
+                className="flex items-center gap-2"
+              >
+                Sign Up
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg" 
                 onClick={handleRunSystemTests}
                 disabled={isRunningTests}
                 className="flex items-center gap-2"
