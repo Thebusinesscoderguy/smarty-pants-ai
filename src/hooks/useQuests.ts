@@ -92,10 +92,15 @@ export const useQuests = () => {
 
       if (weeklyError) throw weeklyError;
 
-      // Fetch user's subject assignments
+      // Fetch user's subject assignments with subjects data
       const { data: subjectData, error: subjectError } = await supabase
         .from('subject_assignments')
-        .select('*')
+        .select(`
+          *,
+          subjects (
+            name
+          )
+        `)
         .eq('user_id', user?.id)
         .eq('is_active', true);
 
@@ -103,7 +108,18 @@ export const useQuests = () => {
 
       setDailyQuests(dailyQuestsData || []);
       setWeeklyQuests(weeklyQuestsData || []);
-      setSubjectAssignments(subjectData || []);
+      
+      // Map the real data to match SubjectAssignment interface
+      const mappedSubjectAssignments: SubjectAssignment[] = (subjectData || []).map(assignment => ({
+        id: assignment.id,
+        completion_percentage: 0, // Default value since not available from basic assignment
+        lessons_completed: 0, // Default value since not available from basic assignment
+        total_lessons: 1, // Default value since not available from basic assignment
+        assigned_by: assignment.assigned_by,
+        subjects: assignment.subjects ? { name: assignment.subjects.name } : undefined
+      }));
+      
+      setSubjectAssignments(mappedSubjectAssignments);
 
     } catch (error: any) {
       console.error('Error fetching quest data:', error);
