@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,8 @@ import { Loader2 } from 'lucide-react';
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
@@ -35,24 +38,39 @@ const Auth = () => {
 
     // Redirect authenticated users
     if (!loading && user) {
-      console.log('Auth page: User already authenticated, redirecting to pricing');
-      navigate('/pricing', { replace: true });
+      console.log('Auth page: User already authenticated, redirecting to onboarding');
+      navigate('/onboarding', { replace: true });
     }
   }, [user, loading, navigate, location.search, location.pathname]);
+
+  const getUserRole = () => {
+    const urlParams = new URLSearchParams(location.search);
+    return urlParams.get('role') as 'school' | 'parent' | null;
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      const role = getUserRole();
+      
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
+        const userData: any = { 
+          email, 
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth`
+            emailRedirectTo: `${window.location.origin}/onboarding`,
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              full_name: `${firstName} ${lastName}`.trim(),
+              role: role || 'student'
+            }
           }
-        });
+        };
+
+        const { error } = await supabase.auth.signUp(userData);
 
         if (error) throw error;
         
@@ -68,7 +86,7 @@ const Auth = () => {
         
         if (error) throw error;
         
-        navigate('/pricing');
+        navigate('/onboarding');
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -91,7 +109,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/pricing`,
+          redirectTo: `${window.location.origin}/onboarding`,
         },
       });
 
@@ -134,16 +152,51 @@ const Auth = () => {
     );
   }
 
+  const role = getUserRole();
+  const roleTitle = role === 'school' ? 'School Account' : role === 'parent' ? 'Parent Account' : 'TeachlyAI';
+
   return (
     <div className="flex min-h-screen bg-black text-white items-center justify-center">
       <Card className="w-full max-w-md bg-black border border-white/20 text-white">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            {isSignUp ? "Create an account" : "Log in to Teachly"}
+            {isSignUp ? `Create ${roleTitle}` : `Log in to ${roleTitle}`}
           </CardTitle>
+          {role && (
+            <p className="text-sm text-white/70 mt-2">
+              {role === 'school' 
+                ? 'Set up your educational institution account' 
+                : 'Create an account for you and your child'
+              }
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="bg-transparent border-white/30 text-white"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="bg-transparent border-white/30 text-white"
+                    required
+                  />
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Input
                 type="email"

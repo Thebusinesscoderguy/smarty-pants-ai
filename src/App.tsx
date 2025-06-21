@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import QuizGenerator from "./pages/QuizGenerator";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SystemTest from "./pages/SystemTest";
+import Demo from "./pages/Demo";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +35,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/demo" element={<Demo />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/pricing" element={<PublicPricing />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
