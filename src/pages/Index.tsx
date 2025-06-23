@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Loader2, ArrowRight, CheckCircle, Users, Award, BookOpen, Zap, Shield, Globe, Brain, Target, Clock, Mic, MessageSquare, PieChart, Gamepad2, School, GraduationCap, Camera, FileText, Headphones, Sparkles } from 'lucide-react';
@@ -6,15 +5,19 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { RoleSelection } from '@/components/RoleSelection';
+import { CurriculumSelector } from '@/components/CurriculumSelector';
 import { useNavigate } from 'react-router-dom';
-import { runSystemTests, type TestSuite } from '@/utils/systemTester';
+import { runSystemTests } from '@/utils/systemTester';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [showDemoSelection, setShowDemoSelection] = useState(false);
+  const [showCurriculumSelector, setShowCurriculumSelector] = useState(false);
 
   const handleRunSystemTests = async () => {
     setIsRunningTests(true);
@@ -55,6 +58,18 @@ const Index = () => {
     }
   };
 
+  const handleCurriculumSelect = (curriculum: any) => {
+    if (curriculum) {
+      console.log('Selected curriculum:', curriculum);
+      // Navigate to chat with selected curriculum
+      navigate('/auth', { state: { selectedCurriculum: curriculum } });
+    } else {
+      // Navigate to custom curriculum creation
+      navigate('/auth', { state: { createCustom: true } });
+    }
+    setShowCurriculumSelector(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden">
       {/* Animated background elements */}
@@ -72,23 +87,20 @@ const Index = () => {
           <div className="text-center mb-16">
             <div className="mb-8">
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
-                Revolutionize Learning with{' '}
-                <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  AI-Powered Education
-                </span>
+                {t('hero.title')}
               </h1>
               <p className="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto mb-12 leading-relaxed">
-                Experience the future of personalized education with TeachlyAI's advanced artificial intelligence that adapts to every student's unique learning style, pace, and preferences. Transform how knowledge is absorbed, retained, and applied through cutting-edge technology that makes learning engaging, effective, and enjoyable.
+                {t('hero.subtitle')}
               </p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <Button 
                 size="lg" 
-                onClick={() => setShowRoleSelection(true)}
+                onClick={() => setShowCurriculumSelector(true)}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 px-8 py-4 text-lg font-semibold shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
               >
-                Start Your Learning Journey
+                {t('cta.start')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               
@@ -99,7 +111,7 @@ const Index = () => {
                 className="border-2 border-white/20 bg-white/5 hover:bg-white/10 text-white px-8 py-4 text-lg font-semibold backdrop-blur-sm transition-all duration-300"
               >
                 <Play className="mr-2 h-5 w-5" />
-                See Live Demo
+                {t('cta.demo')}
               </Button>
               
               <Button 
@@ -117,7 +129,7 @@ const Index = () => {
                 ) : (
                   <>
                     <CheckCircle className="mr-2 h-5 w-5" />
-                    Check System Health
+                    {t('cta.test')}
                   </>
                 )}
               </Button>
@@ -523,6 +535,12 @@ const Index = () => {
         isOpen={showDemoSelection} 
         onClose={() => setShowDemoSelection(false)} 
         mode="demo"
+      />
+
+      <CurriculumSelector
+        isOpen={showCurriculumSelector}
+        onClose={() => setShowCurriculumSelector(false)}
+        onSelect={handleCurriculumSelect}
       />
     </div>
   );

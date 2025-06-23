@@ -1,126 +1,87 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { Menu, X } from 'lucide-react';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Header = () => {
-  const navigate = useNavigate();
-  const { user, loading, isSchoolAdmin, signOut, isSigningOut } = useAuth();
-
-  useEffect(() => {
-    console.log('Header: Auth state updated:', {
-      hasUser: !!user,
-      loading,
-      userId: user?.id,
-      userEmail: user?.email,
-      isSchoolAdmin,
-      isSigningOut
-    });
-  }, [user, loading, isSchoolAdmin, isSigningOut]);
-
-  const handleSignOut = async () => {
-    if (isSigningOut) {
-      console.log('Header: Sign out already in progress');
-      return;
-    }
-    
-    try {
-      console.log('Header: Starting sign out process...');
-      
-      await signOut();
-      
-      console.log('Header: Sign out successful, navigating to home');
-      navigate('/', { replace: true });
-      
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
-      });
-    } catch (error) {
-      console.error('Header: Sign out error:', error);
-      
-      // Even if sign out failed, navigate home since state was cleared
-      navigate('/', { replace: true });
-      
-      toast({
-        title: "Session ended",
-        description: "You have been logged out. If issues persist, please refresh the page.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  console.log('Header: Rendering with user state:', {
-    hasUser: !!user,
-    loading,
-    showAuthButtons: !user,
-    showUserButtons: !!user,
-    isSchoolAdmin,
-    isSigningOut
-  });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
-    <header className="w-full px-4 md:px-6 py-4 flex items-center justify-between border-b border-white/10">
-      <div className="flex items-center space-x-8">
-        <Link to="/">
-          <h1 className="text-2xl md:text-3xl font-bold">TeachlyAI</h1>
-        </Link>
-        {!user && (
-          <nav className="hidden md:flex space-x-6">
-            <Link to="/how-it-works" className="text-white/80 hover:text-white transition-colors">
-              How it Works
-            </Link>
-            <Link to="/pricing" className="text-white/80 hover:text-white transition-colors">
-              Pricing
-            </Link>
-          </nav>
-        )}
-      </div>
-      <div className="flex items-center space-x-4">
-        {user ? (
-          <>
-            {isSchoolAdmin ? (
-              <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
-                <Link to="/admin">School Dashboard</Link>
-              </Button>
-            ) : (
-              <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-                <Link to="/progress">Dashboard</Link>
-              </Button>
-            )}
-            <Button variant="outline" className="bg-green-600 text-white hover:bg-green-700">
-              <Link to="/chat">AI Tutor</Link>
-            </Button>
-            <Button variant="outline" className="bg-purple-600 text-white hover:bg-purple-700">
-              <Link to="/pricing-checkout">Subscription</Link>
-            </Button>
+    <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <nav className="flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">T</span>
+            </div>
+            <span className="text-2xl font-bold text-white">TeachlyAI</span>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-white/80 hover:text-white transition-colors">
+              {t('nav.features')}
+            </a>
+            <a href="#pricing" className="text-white/80 hover:text-white transition-colors">
+              {t('nav.pricing')}
+            </a>
+            <a href="#about" className="text-white/80 hover:text-white transition-colors">
+              {t('nav.about')}
+            </a>
+            <a href="#contact" className="text-white/80 hover:text-white transition-colors">
+              {t('nav.contact')}
+            </a>
+            <LanguageSelector />
             <Button 
               variant="outline" 
-              className="text-white border-white/30 hover:bg-white/10"
-              onClick={handleSignOut}
-              disabled={isSigningOut}
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
             >
-              {isSigningOut ? 'Signing out...' : 'Sign Out'}
+              Sign In
             </Button>
-          </>
-        ) : (
-          <>
-            <Button 
-              variant="outline" 
-              className="text-white border-white/30 hover:bg-white/10" 
-              onClick={() => navigate('/auth')}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center space-x-4">
+            <LanguageSelector />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-white hover:bg-white/10"
             >
-              Log in
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
-            <Button 
-              className="bg-white text-black hover:bg-gray-200" 
-              onClick={() => navigate('/auth?signup=true')}
-            >
-              Sign up
-            </Button>
-          </>
+          </div>
+        </nav>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+            <div className="flex flex-col space-y-4">
+              <a href="#features" className="text-white/80 hover:text-white transition-colors py-2">
+                {t('nav.features')}
+              </a>
+              <a href="#pricing" className="text-white/80 hover:text-white transition-colors py-2">
+                {t('nav.pricing')}
+              </a>
+              <a href="#about" className="text-white/80 hover:text-white transition-colors py-2">
+                {t('nav.about')}
+              </a>
+              <a href="#contact" className="text-white/80 hover:text-white transition-colors py-2">
+                {t('nav.contact')}
+              </a>
+              <Button 
+                variant="outline" 
+                className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm mt-4"
+              >
+                Sign In
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </header>
