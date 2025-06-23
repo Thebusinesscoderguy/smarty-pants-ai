@@ -66,7 +66,7 @@ export const mockSubjects = [
     total_lessons: 30,
     time_spent: 145,
     current_grade: 'A-',
-    assigned_by: 'school', // Changed to school for consistency
+    assigned_by: 'school',
     last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
     strengths: ['Linear Equations', 'Graphing'],
     needs_work: ['Quadratic Functions'],
@@ -81,7 +81,7 @@ export const mockSubjects = [
     total_lessons: 28,
     time_spent: 98,
     current_grade: 'B+',
-    assigned_by: 'school', // Changed to school for consistency
+    assigned_by: 'school',
     last_activity: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
     strengths: ['Cell Biology', 'Chemical Reactions'],
     needs_work: ['Physics Laws', 'Molecular Structure'],
@@ -96,7 +96,7 @@ export const mockSubjects = [
     total_lessons: 30,
     time_spent: 167,
     current_grade: 'A',
-    assigned_by: 'school', // Consistent with other subjects
+    assigned_by: 'school',
     last_activity: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
     strengths: ['Creative Writing', 'Reading Comprehension'],
     needs_work: ['Grammar Rules'],
@@ -111,7 +111,7 @@ export const mockSubjects = [
     total_lessons: 28,
     time_spent: 112,
     current_grade: 'B+',
-    assigned_by: 'school', // Consistent with other subjects
+    assigned_by: 'school',
     last_activity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
     strengths: ['Ancient Civilizations', 'World Wars'],
     needs_work: ['Economic History'],
@@ -127,7 +127,7 @@ export const mockAchievements = [
     icon: '🎯',
     earned: true,
     earned_at: '2024-01-15T10:30:00Z',
-    category: 'milestone'
+    type: 'milestone'
   },
   {
     id: '2',
@@ -136,7 +136,7 @@ export const mockAchievements = [
     icon: '🧙‍♂️',
     earned: true,
     earned_at: '2024-01-20T14:15:00Z',
-    category: 'subject'
+    type: 'mastery'
   },
   {
     id: '3',
@@ -145,7 +145,7 @@ export const mockAchievements = [
     icon: '🔥',
     earned: true,
     earned_at: '2024-01-25T09:45:00Z',
-    category: 'consistency'
+    type: 'streak'
   },
   {
     id: '4',
@@ -155,7 +155,7 @@ export const mockAchievements = [
     earned: false,
     progress: 18,
     total: 25,
-    category: 'subject'
+    type: 'completion'
   },
   {
     id: '5',
@@ -165,7 +165,7 @@ export const mockAchievements = [
     earned: false,
     progress: 6,
     total: 10,
-    category: 'skill'
+    type: 'challenge'
   },
   {
     id: '6',
@@ -175,9 +175,60 @@ export const mockAchievements = [
     earned: false,
     progress: 0,
     total: 1,
-    category: 'performance'
+    type: 'milestone'
   }
 ];
+
+// Add missing mock analytics data
+export const mockAnalytics = {
+  strengths: [
+    {
+      topic_name: 'Linear Equations',
+      strength_score: 0.85,
+      subjects: { name: 'Mathematics' }
+    },
+    {
+      topic_name: 'Reading Comprehension',
+      strength_score: 0.92,
+      subjects: { name: 'English' }
+    }
+  ],
+  weaknesses: [
+    {
+      topic_name: 'Physics Laws',
+      strength_score: 0.35,
+      subjects: { name: 'Science' }
+    },
+    {
+      topic_name: 'Economic History',
+      strength_score: 0.42,
+      subjects: { name: 'History' }
+    }
+  ],
+  improvement_paragraph: "Based on your recent activity, you're showing strong skills in Linear Equations with a strength score of 85% and excellent Reading Comprehension at 92%. To improve, focus on Physics Laws and Economic History where additional practice would be beneficial. Consistent practice and engagement will help you build a solid foundation!"
+};
+
+// Add missing mock parent dashboard data
+export const mockParentDashboard = {
+  children: [
+    {
+      id: '1',
+      name: 'Emma Johnson',
+      subjects: mockSubjects,
+      weekly_activity: [
+        { day: 'Mon', minutes: 45 },
+        { day: 'Tue', minutes: 62 },
+        { day: 'Wed', minutes: 38 },
+        { day: 'Thu', minutes: 71 },
+        { day: 'Fri', minutes: 55 },
+        { day: 'Sat', minutes: 23 },
+        { day: 'Sun', minutes: 41 }
+      ],
+      overall_progress: 74,
+      recent_achievements: mockAchievements.filter(a => a.earned).slice(0, 3)
+    }
+  ]
+};
 
 export const mockStudentData = {
   student_id: 'demo-student-1',
