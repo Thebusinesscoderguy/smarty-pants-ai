@@ -1,154 +1,208 @@
 
-// Comprehensive mock data for achievements, quests, and dashboard
-export const mockAchievements = [
-  {
-    id: 'mock-1',
-    name: 'First Steps',
-    description: 'Complete your first lesson',
-    icon: '🚀',
-    type: 'milestone',
-    earned: true,
-    earned_at: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: 'mock-2',
-    name: 'Math Master',
-    description: 'Excel in mathematics',
-    icon: '🧮',
-    type: 'mastery',
-    earned: true,
-    earned_at: '2024-01-20T14:30:00Z'
-  },
-  {
-    id: 'mock-3',
-    name: 'Speed Reader',
-    description: 'Read 10 lessons in one day',
-    icon: '📚',
-    type: 'streak',
-    earned: false,
-    earned_at: null
-  },
-  {
-    id: 'mock-4',
-    name: 'Perfect Score',
-    description: 'Get 100% on 5 quizzes',
-    icon: '🎯',
-    type: 'completion',
-    earned: false,
-    earned_at: null
-  }
-];
-
+// Mock data for demo purposes
 export const mockQuests = {
   active: [
     {
-      id: 'quest-1',
-      title: 'Daily Math Challenge',
-      description: 'Complete 3 math problems today',
+      id: '1',
+      title: 'Complete 5 Math Problems',
+      description: 'Solve 5 algebra problems to improve your problem-solving skills',
       type: 'daily',
       difficulty: 'basic',
-      target_value: 3,
-      current_value: 1,
-      progress: 33,
-      reward: '50 XP',
-      expires_at: '2024-01-22T23:59:59Z',
-      subjects: { name: 'Mathematics' }
-    },
-    {
-      id: 'quest-2',
-      title: 'Science Explorer',
-      description: 'Learn about the solar system',
-      type: 'weekly',
-      difficulty: 'intermediate',
       target_value: 5,
       current_value: 3,
-      progress: 60,
-      reward: '100 XP + Badge',
-      expires_at: '2024-01-28T23:59:59Z',
-      subjects: { name: 'Science' }
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+      subjects: { name: 'Mathematics' },
+      reward: '50 XP + Math Badge'
+    },
+    {
+      id: '2',
+      title: 'Science Reading Challenge',
+      description: 'Read 3 science articles and complete comprehension questions',
+      type: 'daily',
+      difficulty: 'intermediate',
+      target_value: 3,
+      current_value: 1,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      subjects: { name: 'Science' },
+      reward: '75 XP + Science Explorer Badge'
+    },
+    {
+      id: '3',
+      title: 'Weekly Writing Goal',
+      description: 'Write 500 words across different subjects this week',
+      type: 'weekly',
+      difficulty: 'hard',
+      target_value: 500,
+      current_value: 280,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Next week
+      subjects: { name: 'English' },
+      reward: '200 XP + Writer Badge'
     }
   ],
   completed: [
     {
-      id: 'quest-3',
-      title: 'Reading Streak',
-      description: 'Read for 7 consecutive days',
-      type: 'weekly',
-      difficulty: 'basic',
-      target_value: 7,
-      current_value: 7,
-      progress: 100,
-      reward: '75 XP',
-      completed_at: '2024-01-18T16:20:00Z',
-      subjects: { name: 'Literature' }
+      id: '4',
+      title: 'History Timeline',
+      description: 'Create a timeline of major historical events',
+      type: 'daily',
+      difficulty: 'intermediate',
+      target_value: 1,
+      current_value: 1,
+      completed: true,
+      completed_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+      subjects: { name: 'History' },
+      reward: '100 XP + History Buff Badge'
     }
   ]
 };
 
 export const mockSubjects = [
   {
-    id: 'subj-1',
+    id: '1',
     name: 'Mathematics',
-    description: 'Algebra, Geometry, and Calculus',
-    completion_percentage: 75,
-    lessons_completed: 15,
-    total_lessons: 20,
-    time_spent: 180, // minutes
+    description: 'Algebra, Geometry, and Problem Solving',
+    completion_percentage: 78,
+    lessons_completed: 23,
+    total_lessons: 30,
+    time_spent: 145,
     current_grade: 'A-',
-    assigned_by: 'school',
-    last_activity: '2024-01-21T10:30:00Z',
-    strengths: ['Problem Solving', 'Algebra'],
-    needs_work: ['Geometry'],
-    recent_topics: ['Quadratic Equations', 'Linear Functions']
+    assigned_by: 'school', // Changed to school for consistency
+    last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    strengths: ['Linear Equations', 'Graphing'],
+    needs_work: ['Quadratic Functions'],
+    recent_topics: ['Systems of Equations', 'Slope-Intercept Form', 'Function Notation']
   },
   {
-    id: 'subj-2',
+    id: '2',
     name: 'Science',
-    description: 'Physics, Chemistry, and Biology',
-    completion_percentage: 60,
-    lessons_completed: 12,
-    total_lessons: 20,
-    time_spent: 150,
+    description: 'Biology, Chemistry, and Physics Fundamentals',
+    completion_percentage: 65,
+    lessons_completed: 18,
+    total_lessons: 28,
+    time_spent: 98,
     current_grade: 'B+',
-    assigned_by: 'parent',
-    last_activity: '2024-01-20T15:45:00Z',
-    strengths: ['Scientific Method', 'Biology'],
-    needs_work: ['Chemistry Formulas'],
-    recent_topics: ['Cell Structure', 'Chemical Reactions']
+    assigned_by: 'school', // Changed to school for consistency
+    last_activity: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+    strengths: ['Cell Biology', 'Chemical Reactions'],
+    needs_work: ['Physics Laws', 'Molecular Structure'],
+    recent_topics: ['Photosynthesis', 'Periodic Table', 'Newton\'s Laws']
   },
   {
-    id: 'subj-3',
-    name: 'Literature',
-    description: 'Reading comprehension and writing',
-    completion_percentage: 90,
-    lessons_completed: 18,
-    total_lessons: 20,
-    time_spent: 120,
+    id: '3',
+    name: 'English',
+    description: 'Literature, Writing, and Communication Skills',
+    completion_percentage: 82,
+    lessons_completed: 25,
+    total_lessons: 30,
+    time_spent: 167,
     current_grade: 'A',
-    assigned_by: 'self',
-    last_activity: '2024-01-21T09:15:00Z',
-    strengths: ['Reading Comprehension', 'Creative Writing'],
-    needs_work: ['Grammar'],
-    recent_topics: ['Shakespeare', 'Essay Writing']
+    assigned_by: 'school', // Consistent with other subjects
+    last_activity: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+    strengths: ['Creative Writing', 'Reading Comprehension'],
+    needs_work: ['Grammar Rules'],
+    recent_topics: ['Shakespeare Analysis', 'Essay Structure', 'Vocabulary Building']
+  },
+  {
+    id: '4',
+    name: 'History',
+    description: 'World History and Historical Analysis',
+    completion_percentage: 71,
+    lessons_completed: 20,
+    total_lessons: 28,
+    time_spent: 112,
+    current_grade: 'B+',
+    assigned_by: 'school', // Consistent with other subjects
+    last_activity: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    strengths: ['Ancient Civilizations', 'World Wars'],
+    needs_work: ['Economic History'],
+    recent_topics: ['Industrial Revolution', 'Cold War', 'Renaissance Period']
   }
 ];
 
-export const mockAnalytics = {
-  strengths: [
-    { topic: 'Algebra', score: 95, subject: 'Mathematics' },
-    { topic: 'Reading Comprehension', score: 90, subject: 'Literature' },
-    { topic: 'Biology', score: 85, subject: 'Science' }
-  ],
-  weaknesses: [
-    { topic: 'Geometry', score: 65, subject: 'Mathematics' },
-    { topic: 'Chemistry', score: 60, subject: 'Science' },
-    { topic: 'Grammar', score: 70, subject: 'Literature' }
-  ],
-  improvement_paragraph: "Emma is excelling in algebra and reading comprehension, showing strong analytical skills. She demonstrates excellent understanding in biology concepts. To continue growing, focus on geometry where visual-spatial reasoning can be strengthened through practice. Chemistry formulas would benefit from regular review and application. Grammar skills are developing well and consistent practice will build confidence."
-};
+export const mockAchievements = [
+  {
+    id: '1',
+    name: 'First Steps',
+    description: 'Complete your first lesson',
+    icon: '🎯',
+    earned: true,
+    earned_at: '2024-01-15T10:30:00Z',
+    category: 'milestone'
+  },
+  {
+    id: '2',
+    name: 'Math Wizard',
+    description: 'Solve 50 math problems correctly',
+    icon: '🧙‍♂️',
+    earned: true,
+    earned_at: '2024-01-20T14:15:00Z',
+    category: 'subject'
+  },
+  {
+    id: '3',
+    name: 'Streak Master',
+    description: 'Complete lessons for 7 days in a row',
+    icon: '🔥',
+    earned: true,
+    earned_at: '2024-01-25T09:45:00Z',
+    category: 'consistency'
+  },
+  {
+    id: '4',
+    name: 'Science Explorer',
+    description: 'Complete 25 science experiments',
+    icon: '🔬',
+    earned: false,
+    progress: 18,
+    total: 25,
+    category: 'subject'
+  },
+  {
+    id: '5',
+    name: 'Speed Reader',
+    description: 'Read 10 articles in under 30 minutes total',
+    icon: '📚',
+    earned: false,
+    progress: 6,
+    total: 10,
+    category: 'skill'
+  },
+  {
+    id: '6',
+    name: 'Perfect Score',
+    description: 'Get 100% on any quiz',
+    icon: '⭐',
+    earned: false,
+    progress: 0,
+    total: 1,
+    category: 'performance'
+  }
+];
 
-export const mockParentDashboard = {
-  student_id: 'mock-student-1',
+export const mockStudentData = {
+  student_id: 'demo-student-1',
   student_name: 'Emma Johnson',
-  ...mockAnalytics
+  total_lessons: 116,
+  completed_lessons: 86,
+  completion_percentage: 74,
+  total_time_spent: 522, // minutes
+  last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+  subjects: mockSubjects,
+  strengths: ['Mathematics', 'English'],
+  weak_areas: ['Science'],
+  weekly_activity: [
+    { day: 'Mon', minutes: 45 },
+    { day: 'Tue', minutes: 62 },
+    { day: 'Wed', minutes: 38 },
+    { day: 'Thu', minutes: 71 },
+    { day: 'Fri', minutes: 55 },
+    { day: 'Sat', minutes: 23 },
+    { day: 'Sun', minutes: 41 }
+  ],
+  performance_trend: [
+    { week: 'Week 1', score: 68 },
+    { week: 'Week 2', score: 72 },
+    { week: 'Week 3', score: 71 },
+    { week: 'Week 4', score: 74 }
+  ]
 };
