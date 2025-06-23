@@ -153,8 +153,7 @@ export const mockAchievements = [
     description: 'Complete 25 science experiments',
     icon: '🔬',
     earned: false,
-    progress: 18,
-    total: 25,
+    earned_at: null,
     type: 'completion'
   },
   {
@@ -163,8 +162,7 @@ export const mockAchievements = [
     description: 'Read 10 articles in under 30 minutes total',
     icon: '📚',
     earned: false,
-    progress: 6,
-    total: 10,
+    earned_at: null,
     type: 'challenge'
   },
   {
@@ -173,8 +171,7 @@ export const mockAchievements = [
     description: 'Get 100% on any quiz',
     icon: '⭐',
     earned: false,
-    progress: 0,
-    total: 1,
+    earned_at: null,
     type: 'milestone'
   }
 ];
@@ -208,26 +205,19 @@ export const mockAnalytics = {
   improvement_paragraph: "Based on your recent activity, you're showing strong skills in Linear Equations with a strength score of 85% and excellent Reading Comprehension at 92%. To improve, focus on Physics Laws and Economic History where additional practice would be beneficial. Consistent practice and engagement will help you build a solid foundation!"
 };
 
-// Add missing mock parent dashboard data
+// Add missing mock parent dashboard data - fixed to match StudentData interface
 export const mockParentDashboard = {
-  children: [
-    {
-      id: '1',
-      name: 'Emma Johnson',
-      subjects: mockSubjects,
-      weekly_activity: [
-        { day: 'Mon', minutes: 45 },
-        { day: 'Tue', minutes: 62 },
-        { day: 'Wed', minutes: 38 },
-        { day: 'Thu', minutes: 71 },
-        { day: 'Fri', minutes: 55 },
-        { day: 'Sat', minutes: 23 },
-        { day: 'Sun', minutes: 41 }
-      ],
-      overall_progress: 74,
-      recent_achievements: mockAchievements.filter(a => a.earned).slice(0, 3)
-    }
-  ]
+  student_id: 'demo-student-1',
+  student_name: 'Emma Johnson',
+  strengths: [
+    { topic: 'Linear Equations', score: 85, subject: 'Mathematics' },
+    { topic: 'Reading Comprehension', score: 92, subject: 'English' }
+  ],
+  weaknesses: [
+    { topic: 'Physics Laws', score: 35, subject: 'Science' },
+    { topic: 'Economic History', score: 42, subject: 'History' }
+  ],
+  improvement_paragraph: "Emma is making excellent progress with strong performance in Linear Equations (85%) and Reading Comprehension (92%). For continued growth, focus on Physics Laws and Economic History where additional practice would be beneficial. Regular practice and consistent engagement will help strengthen these areas and build confidence."
 };
 
 export const mockStudentData = {
