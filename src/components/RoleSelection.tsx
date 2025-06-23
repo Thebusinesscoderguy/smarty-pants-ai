@@ -4,48 +4,60 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { School, Users, ArrowRight } from 'lucide-react';
+import { School, Users, ArrowRight, Play } from 'lucide-react';
 
 interface RoleSelectionProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'signup' | 'demo';
 }
 
-export const RoleSelection = ({ isOpen, onClose }: RoleSelectionProps) => {
+export const RoleSelection = ({ isOpen, onClose, mode = 'signup' }: RoleSelectionProps) => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<'school' | 'parent' | null>(null);
 
   const handleRoleSelection = (role: 'school' | 'parent') => {
     setSelectedRole(role);
-    // Navigate to auth page with role parameter
-    navigate(`/auth?role=${role}&signup=true`);
+    
+    if (mode === 'demo') {
+      // Navigate to demo with role parameter
+      navigate(`/demo?role=${role}`);
+    } else {
+      // Navigate to auth page with role parameter
+      navigate(`/auth?role=${role}&signup=true`);
+    }
     onClose();
   };
 
+  const title = mode === 'demo' ? 'Choose Demo Experience' : 'Choose Your Role';
+  const description = mode === 'demo' 
+    ? 'Select which perspective you\'d like to explore in our interactive demo'
+    : 'Select how you\'ll be using TeachlyAI to get started with the right features';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-black border border-white/20 text-white max-w-2xl">
+      <DialogContent className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-white/20 text-white max-w-2xl backdrop-blur-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Choose Your Role
+          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            {title}
           </DialogTitle>
           <DialogDescription className="text-center text-white/70">
-            Select how you'll be using TeachlyAI to get started with the right features
+            {description}
           </DialogDescription>
         </DialogHeader>
         
         <div className="grid md:grid-cols-2 gap-6 mt-6">
           <Card 
-            className="bg-white/5 border-white/20 hover:bg-white/10 transition-all cursor-pointer group"
+            className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('school')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-blue-500/20 rounded-full w-fit group-hover:bg-blue-500/30 transition-colors">
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-cyan-500/30 transition-colors">
                 <School className="h-8 w-8 text-blue-400" />
               </div>
               <CardTitle className="text-white">School / Institution</CardTitle>
               <CardDescription className="text-white/70">
-                For teachers, administrators, and educational institutions
+                {mode === 'demo' ? 'See the admin dashboard and teacher tools' : 'For teachers, administrators, and educational institutions'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -56,29 +68,38 @@ export const RoleSelection = ({ isOpen, onClose }: RoleSelectionProps) => {
                 <li>• School-wide administration</li>
               </ul>
               <Button 
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('school');
                 }}
               >
-                Get Started as School
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {mode === 'demo' ? (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Try School Demo
+                  </>
+                ) : (
+                  <>
+                    Get Started as School
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
 
           <Card 
-            className="bg-white/5 border-white/20 hover:bg-white/10 transition-all cursor-pointer group"
+            className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-pink-500/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('parent')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-purple-500/20 rounded-full w-fit group-hover:bg-purple-500/30 transition-colors">
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-colors">
                 <Users className="h-8 w-8 text-purple-400" />
               </div>
               <CardTitle className="text-white">Parent / Student</CardTitle>
               <CardDescription className="text-white/70">
-                For parents and individual students
+                {mode === 'demo' ? 'Experience the student learning journey' : 'For parents and individual students'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -89,14 +110,23 @@ export const RoleSelection = ({ isOpen, onClose }: RoleSelectionProps) => {
                 <li>• Parent monitoring dashboard</li>
               </ul>
               <Button 
-                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('parent');
                 }}
               >
-                Get Started as Parent
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {mode === 'demo' ? (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Try Student Demo
+                  </>
+                ) : (
+                  <>
+                    Get Started as Parent
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
