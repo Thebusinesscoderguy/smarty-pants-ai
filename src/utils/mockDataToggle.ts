@@ -1,13 +1,11 @@
 
-// Global mock data toggle system
-let mockDataEnabled = true;
-
+// Real data mode - mock data system removed
 export const enableMockData = () => {
-  mockDataEnabled = true;
+  console.warn('Mock data system has been removed - using real data only');
 };
 
 export const disableMockData = () => {
-  mockDataEnabled = false;
+  console.log('Real data mode active');
 };
 
-export const isMockDataEnabled = () => mockDataEnabled;
+export const isMockDataEnabled = () => false;

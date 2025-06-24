@@ -21,8 +21,8 @@ import PublicPricing from "./pages/PublicPricing";
 import PricingCheckout from "./pages/PricingCheckout";
 import Onboarding from "./pages/Onboarding";
 import AcceptInvitation from "./pages/AcceptInvitation";
-import SystemTest from "./pages/SystemTest";
 import MathSolver from "./pages/MathSolver";
+import Modules from "./pages/Modules";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,7 +43,6 @@ function App() {
                 <Route path="/pricing" element={<PublicPricing />} />
                 <Route path="/pricing-checkout" element={<PricingCheckout />} />
                 <Route path="/accept-invitation" element={<AcceptInvitation />} />
-                <Route path="/system-test" element={<SystemTest />} />
                 <Route
                   path="/onboarding"
                   element={
@@ -81,6 +80,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Progress />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/modules"
+                  element={
+                    <ProtectedRoute>
+                      <Modules />
                     </ProtectedRoute>
                   }
                 />

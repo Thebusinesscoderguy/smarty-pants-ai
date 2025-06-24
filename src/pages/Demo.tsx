@@ -1,340 +1,374 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PlayCircle, Pause, ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { useNavigate } from 'react-router-dom';
+import { RoleSelection } from '@/components/RoleSelection';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const role = searchParams.get('role') || 'parent';
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
-  const videoDemoRef = useRef<HTMLDivElement>(null);
+  const role = searchParams.get('role');
+  const [showRoleSelection, setShowRoleSelection] = useState(!role);
+  const [demoStarted, setDemoStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const schoolSlides = [
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (demoStarted && !isPaused && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((time) => time - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [demoStarted, isPaused, timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const schoolDemoSteps = [
     {
-      title: "School Admin Dashboard",
-      description: "Comprehensive overview of all students, classes, and performance metrics",
-      image: "/images/school-admin-dashboard.png",
-      audioText: "Welcome to the school admin dashboard - your command center for managing students, tracking performance, and overseeing educational programs across your institution."
+      title: "School Administrator Dashboard",
+      description: "Welcome to your comprehensive management hub",
+      content: (
+        <div className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/20">
+          <h3 className="text-xl font-semibold mb-4">Dashboard Overview</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="p-4 bg-white/5 rounded-lg">
+              <p className="text-2xl font-bold text-blue-400">1,247</p>
+              <p className="text-sm text-gray-400">Total Students</p>
+            </div>
+            <div className="p-4 bg-white/5 rounded-lg">
+              <p className="text-2xl font-bold text-green-400">89%</p>
+              <p className="text-sm text-gray-400">Engagement Rate</p>
+            </div>
+          </div>
+          <p className="text-white/70">Track student progress, manage curricula, and analyze performance metrics across your entire institution.</p>
+        </div>
+      )
     },
     {
       title: "Student Management System",
-      description: "Manage student enrollment, track progress, and communicate with parents",
-      image: "/images/student-dashboard.png",
-      audioText: "Efficiently manage your student body with detailed profiles, progress tracking, and seamless communication tools for parents and guardians."
-    },
-    {
-      title: "Analytics & Reporting",
-      description: "Advanced analytics to understand learning patterns and optimize curriculum",
-      image: "/images/quests-achievements.png",
-      audioText: "Gain deep insights into learning patterns with comprehensive analytics and reporting tools that help you optimize your curriculum and teaching methods."
-    }
-  ];
-
-  const parentSlides = [
-    {
-      title: "Student Learning Dashboard",
-      description: "Your child's personalized learning hub with progress tracking and achievements",
-      image: "/images/student-dashboard.png",
-      audioText: "Welcome to your child's learning dashboard - track their progress, celebrate achievements, and stay connected with their educational journey."
-    },
-    {
-      title: "Gamified Learning Experience",
-      description: "Complete quests, earn achievements, and unlock rewards while learning",
-      image: "/images/quests-achievements.png",
-      audioText: "Experience gamified learning with engaging quests, achievement systems, and rewards that make education fun and motivating for students."
-    },
-    {
-      title: "AI-Powered Chat Assistance",
-      description: "Get instant help with homework and concepts through intelligent AI tutoring",
-      image: "/images/ai-chat-interface.png",
-      audioText: "Access intelligent AI tutoring anytime with our chat interface that provides personalized help and explanations tailored to your learning needs."
-    }
-  ];
-
-  const videoSlides = role === 'school' ? schoolSlides : parentSlides;
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !isVideoPlaying) {
-            startVideoDemo();
-          }
-        });
-      },
-      { threshold: 0.6 }
-    );
-
-    if (videoDemoRef.current) {
-      observer.observe(videoDemoRef.current);
-    }
-
-    return () => {
-      if (videoDemoRef.current) {
-        observer.unobserve(videoDemoRef.current);
-      }
-    };
-  }, [isVideoPlaying]);
-
-  const generateAudio = async (text: string) => {
-    try {
-      const response = await fetch('/api/text-to-speech', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: 'alloy' })
-      });
-
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        return new Audio(audioUrl);
-      }
-    } catch (error) {
-      console.log('Audio generation not available, continuing without audio');
-    }
-    return null;
-  };
-
-  const startVideoDemo = async () => {
-    setIsVideoPlaying(true);
-    setCurrentSlide(0);
-    
-    const audio = await generateAudio(videoSlides[0].audioText);
-    if (audio) {
-      setCurrentAudio(audio);
-      audio.play();
-    }
-    
-    const interval = setInterval(async () => {
-      setCurrentSlide(prev => {
-        const nextSlide = prev + 1;
-        if (nextSlide >= videoSlides.length) {
-          setIsVideoPlaying(false);
-          if (currentAudio) {
-            currentAudio.pause();
-            setCurrentAudio(null);
-          }
-          clearInterval(interval);
-          return 0;
-        }
-        
-        generateAudio(videoSlides[nextSlide].audioText).then(audio => {
-          if (currentAudio) {
-            currentAudio.pause();
-          }
-          if (audio) {
-            setCurrentAudio(audio);
-            audio.play();
-          }
-        });
-        
-        return nextSlide;
-      });
-    }, 5000);
-  };
-
-  const pauseVideoDemo = () => {
-    setIsVideoPlaying(false);
-    if (currentAudio) {
-      currentAudio.pause();
-      setCurrentAudio(null);
-    }
-  };
-
-  const goToSlide = (slideIndex: number) => {
-    setCurrentSlide(slideIndex);
-    if (currentAudio) {
-      currentAudio.pause();
-    }
-    generateAudio(videoSlides[slideIndex].audioText).then(audio => {
-      if (audio) {
-        setCurrentAudio(audio);
-        if (isVideoPlaying) {
-          audio.play();
-        }
-      }
-    });
-  };
-
-  const roleTitle = role === 'school' ? 'School Administration' : 'Student Learning';
-  const roleDescription = role === 'school' 
-    ? 'Discover how TeachlyAI empowers schools with comprehensive management and analytics tools'
-    : 'Experience how TeachlyAI makes learning engaging and effective for students';
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
-
-      <Header />
-
-      <main className="relative z-10 flex-1 px-4 py-12 md:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Back button */}
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="mb-8 border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
-
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              {roleTitle} <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Demo</span>
-            </h1>
-            <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-8">
-              {roleDescription}
-            </p>
+      description: "Efficiently manage your student body",
+      content: (
+        <div className="p-6 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+          <h3 className="text-xl font-semibold mb-4">Student Profiles</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div>
+                <p className="font-medium">Emma Johnson</p>
+                <p className="text-sm text-gray-400">Grade 8 • Mathematics</p>
+              </div>
+              <div className="text-green-400 font-semibold">92%</div>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div>
+                <p className="font-medium">Alex Chen</p>
+                <p className="text-sm text-gray-400">Grade 7 • Science</p>
+              </div>
+              <div className="text-yellow-400 font-semibold">78%</div>
+            </div>
           </div>
-
-          {/* Video Demo Section */}
-          <div className="mb-16" ref={videoDemoRef}>
-            <div className="relative bg-gradient-to-br from-white/5 to-white/10 rounded-2xl overflow-hidden shadow-2xl max-w-5xl mx-auto border border-white/10 backdrop-blur-sm">
-              <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900">
-                <img
-                  src={videoSlides[currentSlide].image}
-                  alt={videoSlides[currentSlide].title}
-                  className="w-full h-full object-contain bg-gray-900"
-                />
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
-                  <div className="absolute bottom-0 left-0 right-0 p-8">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-                      {videoSlides[currentSlide].title}
-                    </h3>
-                    <p className="text-gray-200 text-lg md:text-xl max-w-3xl">
-                      {videoSlides[currentSlide].description}
-                    </p>
-                  </div>
-                </div>
-
-                {!isVideoPlaying && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Button
-                      onClick={startVideoDemo}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 rounded-full p-8 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-110"
-                      size="icon"
-                    >
-                      <PlayCircle className="h-16 w-16" />
-                    </Button>
-                  </div>
-                )}
-
-                {isVideoPlaying && (
-                  <div className="absolute top-6 right-6">
-                    <Button
-                      onClick={pauseVideoDemo}
-                      className="bg-black/50 hover:bg-black/70 text-white border-0 rounded-full backdrop-blur-sm"
-                      size="icon"
-                    >
-                      <Pause className="h-6 w-6" />
-                    </Button>
-                  </div>
-                )}
-
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 bg-white/30 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full h-full transition-all duration-500"
-                        style={{ width: `${((currentSlide + 1) / videoSlides.length) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-white text-sm font-mono">
-                      {currentSlide + 1}/{videoSlides.length}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-center gap-2 mt-4">
-                    {videoSlides.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToSlide(index)}
-                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                          index === currentSlide 
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-600' 
-                            : 'bg-white/40 hover:bg-white/60'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+          <p className="text-white/70 mt-4">Monitor individual student progress, identify learning gaps, and provide targeted support.</p>
+        </div>
+      )
+    },
+    {
+      title: "Curriculum Management",
+      description: "Create and customize learning paths",
+      content: (
+        <div className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+          <h3 className="text-xl font-semibold mb-4">Custom Curricula</h3>
+          <div className="space-y-2">
+            <div className="p-3 bg-white/5 rounded-lg">
+              <p className="font-medium">Advanced Mathematics Program</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-sm text-gray-400">24 lessons • 156 students enrolled</p>
+                <Button size="sm" variant="outline" className="border-white/20 text-white">Edit</Button>
               </div>
             </div>
           </div>
+          <p className="text-white/70 mt-4">Design curricula that align with your educational goals and standards.</p>
+        </div>
+      )
+    }
+  ];
 
-          {/* Feature highlights based on role */}
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
-            {role === 'school' ? (
-              <>
-                <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                  <div className="text-4xl mb-6">🏫</div>
-                  <h3 className="text-xl font-semibold mb-4">Institution Management</h3>
-                  <p className="text-white/70 leading-relaxed">Comprehensive tools for managing students, teachers, and curriculum across your entire institution.</p>
+  const studentDemoSteps = [
+    {
+      title: "Personal Learning Dashboard",
+      description: "Your gateway to personalized education",
+      content: (
+        <div className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/20">
+          <h3 className="text-xl font-semibold mb-4">Learning Progress</h3>
+          <div className="space-y-3">
+            <div className="p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span>Mathematics</span>
+                <span className="text-blue-400">78%</span>
+              </div>
+              <Progress value={78} className="h-2" />
+            </div>
+            <div className="p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span>Science</span>
+                <span className="text-green-400">65%</span>
+              </div>
+              <Progress value={65} className="h-2" />
+            </div>
+          </div>
+          <p className="text-white/70 mt-4">Track your progress across all subjects with detailed analytics and personalized recommendations.</p>
+        </div>
+      )
+    },
+    {
+      title: "AI Chat Assistant",
+      description: "Get instant help with your studies",
+      content: (
+        <div className="p-6 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+          <h3 className="text-xl font-semibold mb-4">Chat with AI Tutor</h3>
+          <div className="space-y-3 mb-4">
+            <div className="p-3 bg-white/5 rounded-lg">
+              <p className="text-sm text-gray-400 mb-1">You</p>
+              <p>Can you help me understand quadratic equations?</p>
+            </div>
+            <div className="p-3 bg-blue-500/20 rounded-lg">
+              <p className="text-sm text-blue-400 mb-1">AI Tutor</p>
+              <p>Of course! A quadratic equation is a polynomial equation of degree 2. Let me break it down for you step by step...</p>
+            </div>
+          </div>
+          <p className="text-white/70">Get instant, personalized explanations and help with any topic, 24/7.</p>
+        </div>
+      )
+    },
+    {
+      title: "Gamified Learning",
+      description: "Earn rewards and achievements",
+      content: (
+        <div className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+          <h3 className="text-xl font-semibold mb-4">Achievements & Quests</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">🏆</span>
+                <div>
+                  <p className="font-medium">Math Champion</p>
+                  <p className="text-sm text-gray-400">Complete 50 math problems</p>
                 </div>
-                <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 backdrop-blur-sm">
-                  <div className="text-4xl mb-6">📊</div>
-                  <h3 className="text-xl font-semibold mb-4">Advanced Analytics</h3>
-                  <p className="text-white/70 leading-relaxed">Deep insights into learning patterns, performance metrics, and curriculum effectiveness.</p>
+              </div>
+              <span className="text-yellow-400">47/50</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">🔥</span>
+                <div>
+                  <p className="font-medium">7-Day Streak</p>
+                  <p className="text-sm text-gray-400">Study for 7 consecutive days</p>
                 </div>
-                <div className="p-8 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 backdrop-blur-sm">
-                  <div className="text-4xl mb-6">🎯</div>
-                  <h3 className="text-xl font-semibold mb-4">Curriculum Control</h3>
-                  <p className="text-white/70 leading-relaxed">Create, customize, and optimize learning paths tailored to your institution's needs.</p>
+              </div>
+              <span className="text-green-400">✓</span>
+            </div>
+          </div>
+          <p className="text-white/70 mt-4">Stay motivated with our gamification system that makes learning fun and rewarding.</p>
+        </div>
+      )
+    }
+  ];
+
+  const demoSteps = role === 'school' ? schoolDemoSteps : studentDemoSteps;
+
+  const startDemo = () => {
+    setDemoStarted(true);
+    setTimeLeft(15 * 60);
+    setCurrentStep(0);
+  };
+
+  const resetDemo = () => {
+    setDemoStarted(false);
+    setTimeLeft(15 * 60);
+    setCurrentStep(0);
+    setIsPaused(false);
+  };
+
+  const nextStep = () => {
+    if (currentStep < demoSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  if (!role) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
+        <Header />
+        <main className="flex items-center justify-center min-h-[80vh] px-4">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4">Choose Your Demo Experience</h1>
+            <p className="text-xl text-white/70 mb-8">Select which perspective you'd like to explore</p>
+            <Button onClick={() => setShowRoleSelection(true)} size="lg" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+              Select Role
+            </Button>
+          </div>
+        </main>
+        <Footer />
+        <RoleSelection isOpen={showRoleSelection} onClose={() => setShowRoleSelection(false)} mode="demo" />
+      </div>
+    );
+  }
+
+  const roleTitle = role === 'school' ? 'School Administration' : 'Student Learning';
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
+      <Header />
+      
+      <main className="px-4 py-12 md:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+
+            {demoStarted && (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm">
+                  <Clock className="h-4 w-4" />
+                  <span className="font-mono">{formatTime(timeLeft)}</span>
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                  <div className="text-4xl mb-6">🎮</div>
-                  <h3 className="text-xl font-semibold mb-4">Gamified Learning</h3>
-                  <p className="text-white/70 leading-relaxed">Complete quests, earn achievements, and track progress with our engaging gamification system.</p>
-                </div>
-                <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 backdrop-blur-sm">
-                  <div className="text-4xl mb-6">🤖</div>
-                  <h3 className="text-xl font-semibold mb-4">AI Tutoring</h3>
-                  <p className="text-white/70 leading-relaxed">Get personalized help and explanations from our intelligent AI tutor available 24/7.</p>
-                </div>
-                <div className="p-8 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 backdrop-blur-sm">
-                  <div className="text-4xl mb-6">📈</div>
-                  <h3 className="text-xl font-semibold mb-4">Progress Tracking</h3>
-                  <p className="text-white/70 leading-relaxed">Monitor learning journey with detailed analytics and personalized insights.</p>
-                </div>
-              </>
+                <Button
+                  onClick={() => setIsPaused(!isPaused)}
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 bg-white/5 hover:bg-white/10 text-white"
+                >
+                  {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                </Button>
+                <Button
+                  onClick={resetDemo}
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 bg-white/5 hover:bg-white/10 text-white"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </div>
 
-          {/* Call to Action */}
-          <div className="text-center mt-16">
-            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-8 md:p-12 border border-white/10 backdrop-blur-sm">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
-              <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                {role === 'school' 
-                  ? 'Transform your institution with TeachlyAI\'s comprehensive educational platform.'
-                  : 'Join thousands of students already using TeachlyAI to gamify their education and achieve better results.'
-                }
+          {!demoStarted ? (
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+                {roleTitle} <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Demo</span>
+              </h1>
+              <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-8">
+                Experience a hands-on interactive demo of TeachlyAI. You have 15 minutes to explore the features and capabilities.
               </p>
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
-                onClick={() => navigate('/auth')}
+              <Button
+                onClick={startDemo}
+                size="lg"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
               >
-                Start Your Journey Today
+                <Play className="mr-2 h-5 w-5" />
+                Start Interactive Demo
               </Button>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Progress Bar */}
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-white/70">Demo Progress</span>
+                  <span className="text-sm text-white/70">{currentStep + 1} of {demoSteps.length}</span>
+                </div>
+                <Progress value={(currentStep + 1) / demoSteps.length * 100} className="h-2" />
+              </div>
+
+              {/* Current Step */}
+              <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-white">{demoSteps[currentStep].title}</CardTitle>
+                  <p className="text-white/70">{demoSteps[currentStep].description}</p>
+                </CardHeader>
+                <CardContent>
+                  {demoSteps[currentStep].content}
+                </CardContent>
+              </Card>
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between">
+                <Button
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  variant="outline"
+                  className="border-white/20 bg-white/5 hover:bg-white/10 text-white disabled:opacity-50"
+                >
+                  Previous
+                </Button>
+                
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">
+                    {timeLeft <= 0 ? "Demo time expired" : `${formatTime(timeLeft)} remaining`}
+                  </p>
+                </div>
+
+                <Button
+                  onClick={nextStep}
+                  disabled={currentStep === demoSteps.length - 1}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                >
+                  Next
+                </Button>
+              </div>
+
+              {/* Time Up or Demo Complete */}
+              {(timeLeft <= 0 || currentStep === demoSteps.length - 1) && (
+                <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-white/10 backdrop-blur-sm">
+                  <CardContent className="text-center p-8">
+                    <h3 className="text-2xl font-bold mb-4">
+                      {timeLeft <= 0 ? "Demo Time Complete!" : "Demo Complete!"}
+                    </h3>
+                    <p className="text-white/80 mb-6">
+                      Ready to experience the full power of TeachlyAI? Sign up now to continue your learning journey.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Button
+                        onClick={() => navigate('/auth?signup=true')}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                      >
+                        Sign Up Now
+                      </Button>
+                      <Button
+                        onClick={resetDemo}
+                        variant="outline"
+                        className="border-white/20 bg-white/5 hover:bg-white/10 text-white"
+                      >
+                        Restart Demo
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
