@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +14,8 @@ export interface StudentProgress {
   subjects: SubjectProgress[];
   strengths: string[];
   weak_areas: string[];
+  test_results: TestResult[];
+  response_analytics: ResponseAnalytics;
 }
 
 export interface SubjectProgress {
@@ -23,6 +24,25 @@ export interface SubjectProgress {
   time_spent: number;
   lessons_completed: number;
   total_lessons: number;
+}
+
+export interface TestResult {
+  test_id: string;
+  test_title: string;
+  score: number;
+  total_points: number;
+  percentage: number;
+  completed_at: string;
+  time_taken_minutes: number;
+  subject: string;
+}
+
+export interface ResponseAnalytics {
+  average_response_time: number;
+  quiz_performance_trend: number[];
+  fast_response_topics: string[];
+  slow_response_topics: string[];
+  accuracy_by_topic: { [topic: string]: number };
 }
 
 export const useMonitoring = () => {
@@ -121,11 +141,35 @@ export const useMonitoring = () => {
           continue;
         }
 
+        // Get test results
+        const { data: testResults } = await supabase
+          .from('test_attempts')
+          .select(`
+            *,
+            tests (
+              title,
+              subject,
+              total_points
+            )
+          `)
+          .eq('student_id', studentId)
+          .order('completed_at', { ascending: false });
+
+        // Get response analytics
+        const { data: interactionData } = await supabase
+          .from('student_interactions')
+          .select('*')
+          .eq('student_id', studentId)
+          .order('created_at', { ascending: false })
+          .limit(100);
+
         // Process the data
         const processedData = processStudentData(
           studentId,
           profile?.display_name || 'Unknown Student',
-          progressData || []
+          progressData || [],
+          testResults || [],
+          interactionData || []
         );
 
         studentsData.push(processedData);
@@ -147,7 +191,9 @@ export const useMonitoring = () => {
   const processStudentData = (
     studentId: string,
     studentName: string,
-    progressData: any[]
+    progressData: any[],
+    testResults: any[],
+    interactionData: any[]
   ): StudentProgress => {
     const completedLessons = progressData.filter(p => p.status === 'completed');
     const totalLessons = progressData.length;
@@ -190,14 +236,47 @@ export const useMonitoring = () => {
         : 0
     }));
 
-    // Identify strengths and weak areas
+    // Process test results
+    const processedTestResults: TestResult[] = testResults.map(result => ({
+      test_id: result.test_id,
+      test_title: result.tests?.title || 'Unknown Test',
+      score: result.score || 0,
+      total_points: result.tests?.total_points || 0,
+      percentage: result.tests?.total_points > 0 
+        ? Math.round((result.score / result.tests.total_points) * 100) 
+        : 0,
+      completed_at: result.completed_at,
+      time_taken_minutes: result.time_taken_minutes || 0,
+      subject: result.tests?.subject || 'General'
+    }));
+
+    // Process response analytics
+    const responseAnalytics = processResponseAnalytics(interactionData, processedTestResults);
+
+    // Identify strengths and weak areas (including test performance)
     const strengths = subjects
       .filter(s => s.completion_percentage >= 80)
       .map(s => s.subject_name);
 
+    // Add test-based strengths
+    const testStrengths = processedTestResults
+      .filter(t => t.percentage >= 80)
+      .map(t => t.subject)
+      .filter((subject, index, arr) => arr.indexOf(subject) === index);
+
+    const allStrengths = [...new Set([...strengths, ...testStrengths])];
+
     const weakAreas = subjects
       .filter(s => s.completion_percentage < 50 && s.total_lessons > 0)
       .map(s => s.subject_name);
+
+    // Add test-based weak areas
+    const testWeakAreas = processedTestResults
+      .filter(t => t.percentage < 60)
+      .map(t => t.subject)
+      .filter((subject, index, arr) => arr.indexOf(subject) === index);
+
+    const allWeakAreas = [...new Set([...weakAreas, ...testWeakAreas])];
 
     return {
       student_id: studentId,
@@ -208,8 +287,66 @@ export const useMonitoring = () => {
       total_time_spent: totalTimeSpent,
       last_activity: lastActivity,
       subjects,
-      strengths,
-      weak_areas: weakAreas
+      strengths: allStrengths,
+      weak_areas: allWeakAreas,
+      test_results: processedTestResults,
+      response_analytics: responseAnalytics
+    };
+  };
+
+  const processResponseAnalytics = (interactionData: any[], testResults: TestResult[]): ResponseAnalytics => {
+    // Calculate average response time
+    const responseTimes = interactionData
+      .filter(i => i.response_time_ms)
+      .map(i => i.response_time_ms);
+    
+    const averageResponseTime = responseTimes.length > 0 
+      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length 
+      : 0;
+
+    // Quiz performance trend (last 10 test scores)
+    const recentTests = testResults.slice(0, 10).reverse();
+    const quizPerformanceTrend = recentTests.map(t => t.percentage);
+
+    // Fast/slow response topics
+    const topicResponseTimes = new Map();
+    interactionData.forEach(interaction => {
+      const topic = interaction.topic_identified || 'General';
+      const responseTime = interaction.response_time_ms || 0;
+      
+      if (!topicResponseTimes.has(topic)) {
+        topicResponseTimes.set(topic, []);
+      }
+      topicResponseTimes.get(topic).push(responseTime);
+    });
+
+    const fastResponseTopics: string[] = [];
+    const slowResponseTopics: string[] = [];
+    const accuracyByTopic: { [topic: string]: number } = {};
+
+    topicResponseTimes.forEach((times, topic) => {
+      const avgTime = times.reduce((sum: number, time: number) => sum + time, 0) / times.length;
+      
+      if (avgTime < 5000 && times.length >= 3) { // Less than 5 seconds, with enough data
+        fastResponseTopics.push(topic);
+      } else if (avgTime > 15000 && times.length >= 3) { // More than 15 seconds
+        slowResponseTopics.push(topic);
+      }
+
+      // Calculate accuracy for this topic
+      const topicInteractions = interactionData.filter(i => i.topic_identified === topic);
+      const correctInteractions = topicInteractions.filter(i => i.understanding_score >= 0.7);
+      accuracyByTopic[topic] = topicInteractions.length > 0 
+        ? (correctInteractions.length / topicInteractions.length) * 100 
+        : 0;
+    });
+
+    return {
+      average_response_time: Math.round(averageResponseTime),
+      quiz_performance_trend: quizPerformanceTrend,
+      fast_response_topics: fastResponseTopics,
+      slow_response_topics: slowResponseTopics,
+      accuracy_by_topic: accuracyByTopic
     };
   };
 
@@ -217,7 +354,7 @@ export const useMonitoring = () => {
     const student = studentProgress.find(s => s.student_id === studentId);
     if (!student) return null;
 
-    // Generate report data
+    // Generate comprehensive report data including test results
     const reportData = {
       student_name: student.student_name,
       generated_at: new Date().toISOString(),
@@ -230,7 +367,10 @@ export const useMonitoring = () => {
       subjects: student.subjects,
       strengths: student.strengths,
       weak_areas: student.weak_areas,
-      last_activity: student.last_activity
+      last_activity: student.last_activity,
+      test_results: student.test_results,
+      response_analytics: student.response_analytics,
+      summary: generateStudentSummary(student)
     };
 
     if (format === 'csv') {
@@ -240,16 +380,64 @@ export const useMonitoring = () => {
     }
   };
 
+  const generateStudentSummary = (student: StudentProgress): string => {
+    const testAverage = student.test_results.length > 0 
+      ? student.test_results.reduce((sum, test) => sum + test.percentage, 0) / student.test_results.length 
+      : 0;
+
+    const responseTime = student.response_analytics.average_response_time;
+    const responseSpeed = responseTime < 5000 ? 'quick' : responseTime > 15000 ? 'deliberate' : 'moderate';
+
+    let summary = `${student.student_name} shows ${student.completion_percentage}% completion across learning modules`;
+    
+    if (student.test_results.length > 0) {
+      summary += ` with an average test score of ${Math.round(testAverage)}%`;
+    }
+
+    summary += `. Response patterns indicate ${responseSpeed} thinking with an average response time of ${Math.round(responseTime/1000)} seconds.`;
+
+    if (student.strengths.length > 0) {
+      summary += ` Strong performance noted in: ${student.strengths.join(', ')}.`;
+    }
+
+    if (student.weak_areas.length > 0) {
+      summary += ` Areas needing attention include: ${student.weak_areas.join(', ')}.`;
+    }
+
+    if (student.response_analytics.fast_response_topics.length > 0) {
+      summary += ` Quick mastery demonstrated in: ${student.response_analytics.fast_response_topics.join(', ')}.`;
+    }
+
+    return summary;
+  };
+
   const generateCSVReport = (data: any) => {
     const csvContent = [
       ['Student Report'],
       ['Student Name', data.student_name],
       ['Generated At', new Date(data.generated_at).toLocaleDateString()],
       [''],
+      ['Summary'],
+      [data.summary],
+      [''],
       ['Overall Progress'],
       ['Completion Percentage', `${data.overall_progress.completion_percentage}%`],
       ['Total Time Spent', `${data.overall_progress.total_time_spent} minutes`],
       ['Lessons Completed', `${data.overall_progress.lessons_completed}/${data.overall_progress.total_lessons}`],
+      [''],
+      ['Test Results'],
+      ['Test', 'Score', 'Percentage', 'Time Taken'],
+      ...data.test_results.map((test: any) => [
+        test.test_title,
+        `${test.score}/${test.total_points}`,
+        `${test.percentage}%`,
+        `${test.time_taken_minutes} min`
+      ]),
+      [''],
+      ['Response Analytics'],
+      ['Average Response Time', `${Math.round(data.response_analytics.average_response_time/1000)} seconds`],
+      ['Fast Response Topics', data.response_analytics.fast_response_topics.join(', ')],
+      ['Slow Response Topics', data.response_analytics.slow_response_topics.join(', ')],
       [''],
       ['Subject Progress'],
       ['Subject', 'Completion %', 'Time Spent', 'Lessons Completed'],
@@ -268,8 +456,6 @@ export const useMonitoring = () => {
   };
 
   const generatePDFReport = (data: any) => {
-    // This would typically use a PDF generation library
-    // For now, return formatted text that could be converted to PDF
     return `
 STUDENT PROGRESS REPORT
 ======================
@@ -277,10 +463,22 @@ STUDENT PROGRESS REPORT
 Student: ${data.student_name}
 Generated: ${new Date(data.generated_at).toLocaleDateString()}
 
+SUMMARY
+${data.summary}
+
 OVERALL PROGRESS
 - Completion: ${data.overall_progress.completion_percentage}%
 - Time Spent: ${data.overall_progress.total_time_spent} minutes
 - Lessons: ${data.overall_progress.lessons_completed}/${data.overall_progress.total_lessons}
+
+TEST RESULTS
+${data.test_results.map((test: any) => `
+- ${test.test_title}: ${test.score}/${test.total_points} (${test.percentage}%) - ${test.time_taken_minutes} min`).join('')}
+
+RESPONSE ANALYTICS
+- Average Response Time: ${Math.round(data.response_analytics.average_response_time/1000)} seconds
+- Quick Response Topics: ${data.response_analytics.fast_response_topics.join(', ')}
+- Slower Response Topics: ${data.response_analytics.slow_response_topics.join(', ')}
 
 SUBJECT BREAKDOWN
 ${data.subjects.map((s: any) => `

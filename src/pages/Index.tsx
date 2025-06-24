@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, Award, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
+import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
@@ -41,7 +41,7 @@ const Index = () => {
               {t('hero.subtitle')}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
@@ -67,9 +67,9 @@ const Index = () => {
         <section id="features" className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Powerful Features for Modern Learning</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('features.section.title')}</h2>
               <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                Experience cutting-edge educational technology designed to make learning engaging, effective, and accessible to everyone.
+                {t('features.section.subtitle')}
               </p>
             </div>
 
@@ -78,7 +78,7 @@ const Index = () => {
                 <Brain className="h-12 w-12 text-blue-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.adaptive.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  Our AI adapts to each student's learning style, pace, and preferences, creating truly personalized educational experiences that evolve with the learner.
+                  {t('features.adaptive.desc')}
                 </p>
               </div>
 
@@ -86,7 +86,7 @@ const Index = () => {
                 <MessageSquare className="h-12 w-12 text-purple-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.voice.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  Engage in natural conversations with our AI tutor through voice or text, making learning as easy as having a conversation with a knowledgeable friend.
+                  {t('features.voice.desc')}
                 </p>
               </div>
 
@@ -94,31 +94,31 @@ const Index = () => {
                 <Lightbulb className="h-12 w-12 text-green-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.content.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  Upload any document, image, or resource and our AI instantly creates interactive lessons, quizzes, and learning materials tailored to the content.
+                  {t('features.content.desc')}
                 </p>
               </div>
 
               <div className="p-8 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300 backdrop-blur-sm">
                 <Gamepad2 className="h-12 w-12 text-orange-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">Gamified Learning Journey</h3>
+                <h3 className="text-xl font-semibold mb-4">{t('features.gamified.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  Transform education into an adventure with quests, achievements, leaderboards, and rewards that motivate students to reach their full potential.
+                  {t('features.gamified.desc')}
                 </p>
               </div>
 
               <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
                 <BarChart className="h-12 w-12 text-teal-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">Advanced Analytics</h3>
+                <h3 className="text-xl font-semibold mb-4">{t('features.analytics.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  Comprehensive insights into learning progress, strengths, weaknesses, and recommendations for improvement with detailed visual analytics.
+                  {t('features.analytics.desc')}
                 </p>
               </div>
 
               <div className="p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 hover:from-indigo-500/20 hover:to-purple-500/20 transition-all duration-300 backdrop-blur-sm">
                 <Users className="h-12 w-12 text-indigo-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">Collaborative Environment</h3>
+                <h3 className="text-xl font-semibold mb-4">{t('features.collaborative.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
-                  Connect students, teachers, and parents in a unified platform that promotes collaboration, communication, and shared learning goals.
+                  {t('features.collaborative.desc')}
                 </p>
               </div>
             </div>
@@ -216,7 +216,6 @@ const Index = () => {
 
               <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-8 border border-white/10 backdrop-blur-sm">
                 <div className="text-center mb-6">
-                  <Award className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
                   <h3 className="text-2xl font-bold mb-2">Achievement System</h3>
                   <p className="text-white/70">
                     Unlock badges, climb leaderboards, and celebrate milestones as you progress through your learning journey.
@@ -226,15 +225,15 @@ const Index = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <span className="text-white/80">Daily Learning Streak</span>
-                    <span className="text-yellow-400 font-semibold">🔥 15 days</span>
+                    <span className="text-yellow-400 font-semibold">🔥 Progress</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <span className="text-white/80">Problems Solved</span>
-                    <span className="text-green-400 font-semibold">⚡ 247</span>
+                    <span className="text-green-400 font-semibold">⚡ Tracking</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <span className="text-white/80">Current Level</span>
-                    <span className="text-blue-400 font-semibold">🏆 Expert</span>
+                    <span className="text-blue-400 font-semibold">🏆 Growing</span>
                   </div>
                 </div>
               </div>
@@ -267,7 +266,7 @@ const Index = () => {
                 {
                   name: "Dr. Emily Johnson",
                   role: "School Principal",
-                  content: "We've seen a 40% improvement in student engagement since implementing TeachlyAI. The analytics help us make data-driven decisions about our curriculum and teaching methods.",
+                  content: "We've seen significant improvement in student engagement since implementing TeachlyAI. The analytics help us make data-driven decisions about our curriculum and teaching methods.",
                   rating: 5
                 }
               ].map((testimonial, index) => (
@@ -298,8 +297,8 @@ const Index = () => {
 
             <div className="grid md:grid-cols-3 gap-8">
               <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-4">Individual</h3>
-                <div className="text-4xl font-bold mb-6">$19<span className="text-lg text-white/60">/month</span></div>
+                <h3 className="text-2xl font-bold mb-4">{t('pricing.individual')}</h3>
+                <div className="text-4xl font-bold mb-6">{t('pricing.individual.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Unlimited AI tutoring</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Progress tracking</li>
@@ -307,16 +306,16 @@ const Index = () => {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Mobile app access</li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                  Get Started
+                  {t('pricing.get.started')}
                 </Button>
               </div>
 
               <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/50 backdrop-blur-sm relative">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                  Most Popular
+                  {t('pricing.most.popular')}
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Family</h3>
-                <div className="text-4xl font-bold mb-6">$39<span className="text-lg text-white/60">/month</span></div>
+                <h3 className="text-2xl font-bold mb-4">{t('pricing.family')}</h3>
+                <div className="text-4xl font-bold mb-6">{t('pricing.family.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Up to 4 student profiles</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Parent dashboard</li>
@@ -324,21 +323,21 @@ const Index = () => {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Priority support</li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                  Get Started
+                  {t('pricing.get.started')}
                 </Button>
               </div>
 
               <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-4">School</h3>
-                <div className="text-4xl font-bold mb-6">Custom</div>
+                <h3 className="text-2xl font-bold mb-4">{t('pricing.school')}</h3>
+                <div className="text-4xl font-bold mb-6">{t('pricing.school.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Unlimited students</li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Base subscription</li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />+$5 per additional account</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Admin dashboard</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Custom curricula</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />Dedicated support</li>
                 </ul>
                 <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
-                  Contact Sales
+                  {t('pricing.contact.sales')}
                 </Button>
               </div>
             </div>
@@ -392,39 +391,47 @@ const Index = () => {
         <section id="about" className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">About TeachlyAI</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('about.title')}</h2>
               <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                We're on a mission to democratize quality education through artificial intelligence, making personalized learning accessible to every student, everywhere.
+                {t('about.subtitle')}
               </p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-2xl font-bold mb-6">Our Vision</h3>
+                <h3 className="text-2xl font-bold mb-6">{t('about.vision.title')}</h3>
                 <p className="text-white/80 leading-relaxed mb-6">
-                  We believe every student deserves access to personalized, high-quality education. Our AI-powered platform adapts to individual learning styles, making education more effective, engaging, and accessible than ever before.
+                  {t('about.vision.desc1')}
                 </p>
                 <p className="text-white/80 leading-relaxed">
-                  Founded by educators and technologists, TeachlyAI combines decades of teaching experience with cutting-edge artificial intelligence to create learning experiences that truly work for every student.
+                  {t('about.vision.desc2')}
                 </p>
               </div>
               
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-6 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center backdrop-blur-sm">
-                  <div className="text-3xl font-bold text-blue-400 mb-2">50K+</div>
-                  <div className="text-white/70">Active Students</div>
-                </div>
-                <div className="p-6 rounded-xl bg-green-500/10 border border-green-500/20 text-center backdrop-blur-sm">
-                  <div className="text-3xl font-bold text-green-400 mb-2">1M+</div>
-                  <div className="text-white/70">Lessons Completed</div>
-                </div>
-                <div className="p-6 rounded-xl bg-purple-500/10 border border-purple-500/20 text-center backdrop-blur-sm">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">95%</div>
-                  <div className="text-white/70">Satisfaction Rate</div>
-                </div>
-                <div className="p-6 rounded-xl bg-orange-500/10 border border-orange-500/20 text-center backdrop-blur-sm">
-                  <div className="text-3xl font-bold text-orange-400 mb-2">24/7</div>
-                  <div className="text-white/70">AI Support</div>
+              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-8 border border-white/10 backdrop-blur-sm">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold mb-6">Our Impact</h3>
+                  <p className="text-white/70 mb-6">
+                    Making personalized education accessible worldwide through advanced AI technology and innovative learning approaches.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-white/5 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-blue-400 mb-1">AI-Powered</div>
+                      <div className="text-white/70 text-sm">Learning Experience</div>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-green-400 mb-1">Global</div>
+                      <div className="text-white/70 text-sm">Accessibility</div>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-purple-400 mb-1">Adaptive</div>
+                      <div className="text-white/70 text-sm">Curriculum</div>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-orange-400 mb-1">Real-time</div>
+                      <div className="text-white/70 text-sm">Analytics</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -435,9 +442,9 @@ const Index = () => {
         <section id="contact" className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Get in Touch</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('contact.title')}</h2>
               <p className="text-xl text-white/70">
-                Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                {t('contact.subtitle')}
               </p>
             </div>
 
@@ -516,9 +523,9 @@ const Index = () => {
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-12 border border-white/10 backdrop-blur-sm">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Learning?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('final.cta.title')}</h2>
               <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                Join thousands of students, teachers, and parents who are already experiencing the future of education with TeachlyAI.
+                {t('final.cta.subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
@@ -526,7 +533,7 @@ const Index = () => {
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
                   onClick={() => setShowRoleSelection(true)}
                 >
-                  Start Your Free Trial
+                  {t('final.cta.trial')}
                 </Button>
                 <Button 
                   size="lg" 
@@ -534,7 +541,7 @@ const Index = () => {
                   className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
                   onClick={() => setShowDemoSelection(true)}
                 >
-                  Watch Demo
+                  {t('final.cta.demo')}
                 </Button>
               </div>
             </div>
@@ -547,13 +554,6 @@ const Index = () => {
       <RoleSelection 
         isOpen={showRoleSelection} 
         onClose={() => setShowRoleSelection(false)} 
-        mode="signup"
-      />
-
-      <RoleSelection 
-        isOpen={showDemoSelection} 
-        onClose={() => setShowDemoSelection(false)} 
-        mode="demo"
       />
     </div>
   );
