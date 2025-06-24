@@ -1004,6 +1004,136 @@ export type Database = {
         }
         Relationships: []
       }
+      test_attempts: {
+        Row: {
+          answers: Json | null
+          completed_at: string | null
+          id: string
+          percentage: number | null
+          score: number | null
+          student_id: string
+          test_id: string
+          time_taken_minutes: number | null
+          total_points: number | null
+        }
+        Insert: {
+          answers?: Json | null
+          completed_at?: string | null
+          id?: string
+          percentage?: number | null
+          score?: number | null
+          student_id: string
+          test_id: string
+          time_taken_minutes?: number | null
+          total_points?: number | null
+        }
+        Update: {
+          answers?: Json | null
+          completed_at?: string | null
+          id?: string
+          percentage?: number | null
+          score?: number | null
+          student_id?: string
+          test_id?: string
+          time_taken_minutes?: number | null
+          total_points?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string | null
+          id: string
+          options: Json | null
+          order_index: number | null
+          points: number | null
+          question: string
+          question_type: string | null
+          test_id: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string | null
+          id?: string
+          options?: Json | null
+          order_index?: number | null
+          points?: number | null
+          question: string
+          question_type?: string | null
+          test_id: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string | null
+          id?: string
+          options?: Json | null
+          order_index?: number | null
+          points?: number | null
+          question?: string
+          question_type?: string | null
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          ai_graded: boolean | null
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          id: string
+          is_mandatory: boolean | null
+          subject: string | null
+          time_limit_minutes: number | null
+          title: string
+          total_points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_graded?: boolean | null
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          subject?: string | null
+          time_limit_minutes?: number | null
+          title: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_graded?: boolean | null
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          subject?: string | null
+          time_limit_minutes?: number | null
+          title?: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       token_usage: {
         Row: {
           created_at: string | null
