@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -6,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Plus, BookOpen, MessageSquare, Zap, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDemoSessions } from '@/utils/demoChatData';
+import { getDemoChatSessions } from '@/utils/demoChatData';
 
 interface Curriculum {
   id: string;
@@ -36,7 +35,7 @@ export const ChatSidebar = ({
 }: ChatSidebarProps) => {
   const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const demoSessions = getDemoSessions();
+  const demoSessions = getDemoChatSessions();
 
   if (isCollapsed) {
     return (
@@ -96,9 +95,9 @@ export const ChatSidebar = ({
                   >
                     <div>
                       <div className="font-medium text-sm">{session.title}</div>
-                      <div className="text-xs text-gray-400 mt-1">{session.description}</div>
+                      <div className="text-xs text-gray-400 mt-1">Demo conversation</div>
                       <Badge variant="outline" className="mt-2 text-xs">
-                        {session.subject}
+                        Educational
                       </Badge>
                     </div>
                   </Button>
