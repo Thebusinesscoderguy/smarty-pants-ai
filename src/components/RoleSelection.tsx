@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { School, Users, ArrowRight, Play } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RoleSelectionProps {
   isOpen: boolean;
@@ -15,7 +16,15 @@ interface RoleSelectionProps {
 
 export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }: RoleSelectionProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedRole, setSelectedRole] = useState<'school' | 'parent' | null>(null);
+
+  // Only show role selection for demo users or during signup
+  const shouldShowRoleSelection = !user || mode === 'demo';
+
+  if (!shouldShowRoleSelection && mode !== 'demo') {
+    return null;
+  }
 
   const handleRoleSelection = (role: 'school' | 'parent') => {
     setSelectedRole(role);
@@ -27,7 +36,7 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
       // Navigate to demo with role parameter
       navigate(`/demo?role=${role}`);
     } else {
-      // Navigate to auth page with role parameter
+      // Navigate to auth page with role parameter (only for non-authenticated users)
       navigate(`/auth?role=${role}&signup=true`);
     }
     onClose();

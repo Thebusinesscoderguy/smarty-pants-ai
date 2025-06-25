@@ -1,125 +1,142 @@
 
 import { useState } from 'react';
-import { AppSidebar } from '@/components/AppSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Clock, Users, Star, Play, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { BookOpen, Clock, Users, Star, Play, Search, ArrowLeft } from 'lucide-react';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { curricula } from '@/utils/curriculaData';
 
 const Modules = () => {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedModule, setSelectedModule] = useState<any>(null);
 
   const categories = [
-    { id: 'all', name: 'All Modules', count: 12 },
-    { id: 'math', name: 'Mathematics', count: 4 },
-    { id: 'science', name: 'Science', count: 3 },
-    { id: 'english', name: 'English', count: 2 },
-    { id: 'history', name: 'History', count: 2 },
-    { id: 'programming', name: 'Programming', count: 1 }
+    { id: 'all', name: t('modules.categories.all'), count: curricula.length },
+    { id: 'math', name: t('modules.categories.math'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('math'))).length },
+    { id: 'science', name: t('modules.categories.science'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('science'))).length },
+    { id: 'english', name: t('modules.categories.english'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('english'))).length },
+    { id: 'history', name: t('modules.categories.history'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('history'))).length },
   ];
 
-  // This will be replaced with real curricula later
-  const popularModules = [
-    {
-      id: '1',
-      title: 'Complete Mathematics Foundation',
-      description: 'Comprehensive math curriculum covering algebra, geometry, and calculus with interactive problem-solving.',
-      category: 'math',
-      difficulty: 'Intermediate',
-      duration: '120 hours',
-      students: 12450,
-      rating: 4.8,
-      lessons: 30,
-      completedLessons: 0,
-      topics: ['Algebra', 'Geometry', 'Trigonometry', 'Calculus', 'Statistics'],
-      instructor: 'Dr. Sarah Chen',
-      thumbnail: '🧮'
-    },
-    {
-      id: '2',
-      title: 'Interactive Science Explorer',
-      description: 'Hands-on science curriculum with virtual labs covering physics, chemistry, and biology.',
-      category: 'science',
-      difficulty: 'Beginner',
-      duration: '90 hours',
-      students: 8920,
-      rating: 4.6,
-      lessons: 28,
-      completedLessons: 0,
-      topics: ['Physics', 'Chemistry', 'Biology', 'Earth Science', 'Environmental Science'],
-      instructor: 'Prof. Michael Rodriguez',
-      thumbnail: '🔬'
-    },
-    {
-      id: '3',
-      title: 'World Literature & Writing',
-      description: 'Explore global literature while developing advanced writing and critical thinking skills.',
-      category: 'english',
-      difficulty: 'Advanced',
-      duration: '80 hours',
-      students: 6780,
-      rating: 4.9,
-      lessons: 25,
-      completedLessons: 0,
-      topics: ['Literary Analysis', 'Creative Writing', 'Essay Writing', 'Poetry', 'World Literature'],
-      instructor: 'Dr. Emma Johnson',
-      thumbnail: '📚'
-    },
-    {
-      id: '4',
-      title: 'Programming Fundamentals',
-      description: 'Learn programming from scratch with Python, JavaScript, and web development basics.',
-      category: 'programming',
-      difficulty: 'Beginner',
-      duration: '100 hours',
-      students: 15200,
-      rating: 4.7,
-      lessons: 35,
-      completedLessons: 0,
-      topics: ['Python', 'JavaScript', 'HTML/CSS', 'Web Development', 'Problem Solving'],
-      instructor: 'Alex Thompson',
-      thumbnail: '💻'
-    }
-  ];
-
-  const filteredModules = popularModules.filter(module => {
-    const matchesSearch = module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         module.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || module.category === selectedCategory;
+  const filteredModules = curricula.filter(curriculum => {
+    const matchesSearch = curriculum.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         curriculum.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || 
+                           curriculum.subjects.some(s => s.toLowerCase().includes(selectedCategory));
     return matchesSearch && matchesCategory;
   });
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Beginner': return 'bg-green-100 text-green-800';
-      case 'Intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'Advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getDifficultyColor = (gradeLevel: string) => {
+    if (gradeLevel.includes('K-') || gradeLevel.includes('F-') || gradeLevel.includes('Ages 5-11')) {
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
     }
+    if (gradeLevel.includes('6-') || gradeLevel.includes('Ages 14-16')) {
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+    }
+    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
   };
 
+  const startModule = (module: any) => {
+    setSelectedModule(module);
+    // Navigate to chat with the selected curriculum context
+    navigate('/chat', { state: { selectedCurriculum: module } });
+  };
+
+  if (selectedModule) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+        <Header />
+        <main className="flex-1 p-6">
+          <div className="max-w-4xl mx-auto">
+            <Button
+              onClick={() => setSelectedModule(null)}
+              variant="outline"
+              className="mb-6 border-white/20 bg-white/5 hover:bg-white/10 text-white"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('common.back')}
+            </Button>
+            
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-2xl text-white">{selectedModule.title}</CardTitle>
+                <p className="text-white/70">{selectedModule.description}</p>
+                <div className="flex gap-2 mt-4">
+                  <Badge className={getDifficultyColor(selectedModule.gradeLevel)}>
+                    {selectedModule.gradeLevel}
+                  </Badge>
+                  <Badge variant="outline" className="border-white/20 text-white">
+                    {selectedModule.country}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.subjects')}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedModule.subjects.map((subject: string) => (
+                        <Badge key={subject} variant="outline" className="border-white/20 text-white/70">
+                          {subject}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.standards')}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedModule.standards.map((standard: string) => (
+                        <Badge key={standard} variant="outline" className="border-blue-500/30 text-blue-300">
+                          {standard}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={() => startModule(selectedModule)}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-6"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    {t('modules.startLearning')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen bg-black text-white">
-      <AppSidebar />
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      <Header />
       
-      <div className="flex-1 overflow-hidden">
-        <header className="p-6 border-b border-white/20">
-          <h1 className="text-3xl font-bold mb-2">Learning Modules</h1>
-          <p className="text-gray-400">
-            Explore our curated collection of learning modules and curricula designed by education experts
-          </p>
-        </header>
-        
-        <main className="p-6">
+      <main className="flex-1 p-6 md:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">{t('modules.title')}</h1>
+            <p className="text-gray-400">{t('modules.description')}</p>
+          </div>
+
           {/* Search and Filters */}
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search modules..."
+                  placeholder={t('modules.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-white/5 border-white/20 text-white placeholder-gray-400"
@@ -145,31 +162,24 @@ const Modules = () => {
             </div>
           </div>
 
-          {/* Popular Modules Grid */}
+          {/* Modules Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModules.map((module) => (
               <Card key={module.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-3xl">{module.thumbnail}</div>
-                      <div>
-                        <CardTitle className="text-white text-lg">{module.title}</CardTitle>
-                        <p className="text-gray-400 text-sm">by {module.instructor}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1 text-yellow-400">
-                      <Star className="h-4 w-4 fill-current" />
-                      <span className="text-sm text-white">{module.rating}</span>
+                    <div>
+                      <CardTitle className="text-white text-lg mb-2">{module.title}</CardTitle>
+                      <p className="text-gray-400 text-sm">{module.system}</p>
                     </div>
                   </div>
                   
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge className={getDifficultyColor(module.difficulty)}>
-                      {module.difficulty}
+                    <Badge className={getDifficultyColor(module.gradeLevel)}>
+                      {module.gradeLevel}
                     </Badge>
                     <Badge variant="outline" className="border-white/20 text-white">
-                      {module.category}
+                      {module.country}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -177,40 +187,28 @@ const Modules = () => {
                 <CardContent>
                   <p className="text-white/70 mb-4 text-sm">{module.description}</p>
                   
-                  <div className="flex items-center justify-between text-sm text-white/60 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <BookOpen className="h-4 w-4" />
-                      <span>{module.lessons} lessons</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{module.duration}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Users className="h-4 w-4" />
-                      <span>{module.students.toLocaleString()}</span>
-                    </div>
-                  </div>
-
                   <div className="mb-4">
-                    <p className="text-white/80 text-sm mb-2">Topics covered:</p>
+                    <p className="text-white/80 text-sm mb-2">{t('modules.subjects')}:</p>
                     <div className="flex flex-wrap gap-1">
-                      {module.topics.slice(0, 3).map((topic) => (
-                        <Badge key={topic} variant="outline" className="text-xs border-white/20 text-white/70">
-                          {topic}
+                      {module.subjects.slice(0, 3).map((subject: string) => (
+                        <Badge key={subject} variant="outline" className="text-xs border-white/20 text-white/70">
+                          {subject}
                         </Badge>
                       ))}
-                      {module.topics.length > 3 && (
+                      {module.subjects.length > 3 && (
                         <Badge variant="outline" className="text-xs border-white/20 text-white/70">
-                          +{module.topics.length - 3} more
+                          +{module.subjects.length - 3} {t('common.more')}
                         </Badge>
                       )}
                     </div>
                   </div>
 
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button 
+                    onClick={() => startModule(module)}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
                     <Play className="h-4 w-4 mr-2" />
-                    Start Learning
+                    {t('modules.startLearning')}
                   </Button>
                 </CardContent>
               </Card>
@@ -220,12 +218,14 @@ const Modules = () => {
           {filteredModules.length === 0 && (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No modules found</h3>
-              <p className="text-gray-400">Try adjusting your search or filter criteria</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('modules.noModulesFound')}</h3>
+              <p className="text-gray-400">{t('modules.adjustFilters')}</p>
             </div>
           )}
-        </main>
-      </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

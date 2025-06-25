@@ -1,1634 +1,855 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'pt' | 'it' | 'ru' | 'ar';
-
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
+interface LanguageContextProps {
+  language: string;
+  setLanguage: (lang: string) => void;
   t: (key: string) => string;
 }
 
+const LanguageContext = createContext<LanguageContextProps>({
+  language: 'en',
+  setLanguage: () => {},
+  t: (key: string) => key,
+});
+
 const translations = {
   en: {
-    // Navigation
-    'nav.features': 'Features',
-    'nav.pricing': 'Pricing',
-    'nav.about': 'About',
-    'nav.contact': 'Contact',
-    'nav.chat': 'Chat',
-    'nav.monitoring': 'Monitoring',
-    'nav.modules': 'Modules',
-
-    // Hero Section
-    'hero.title': 'Revolutionize Learning with AI-Powered Education',
-    'hero.subtitle': 'Experience the future of personalized learning with our advanced AI tutors that adapt to every student\'s unique learning style and pace.',
-
-    // CTA Buttons
-    'cta.start': 'Start Your Learning Journey',
-    'cta.demo': 'Try Interactive Demo',
-    'cta.trial': 'Start Free Trial',
-
-    // Features Section
-    'features.section.title': 'Powerful Features for Modern Learning',
-    'features.section.subtitle': 'Discover our cutting-edge educational technology designed to make learning engaging, effective, and accessible for everyone.',
-    'features.adaptive.title': 'Adaptive Learning',
-    'features.adaptive.desc': 'Our AI adapts to each student\'s learning style, pace, and preferences, creating truly personalized educational experiences that evolve with the learner.',
-    'features.voice.title': 'Natural Voice Interaction',
-    'features.voice.desc': 'Engage in natural conversations with our AI tutor through voice or text, making learning as easy as having a conversation with a knowledgeable friend.',
-    'features.content.title': 'Smart Content Analysis',
-    'features.content.desc': 'Upload any document, image, or resource and our AI instantly creates interactive lessons, quizzes, and learning materials tailored to the content.',
-    'features.gamified.title': 'Gamified Learning Journey',
-    'features.gamified.desc': 'Transform education into an adventure with quests, achievements, leaderboards, and rewards that motivate students to reach their full potential.',
-    'features.analytics.title': 'Advanced Analytics',
-    'features.analytics.desc': 'Comprehensive insights into learning progress, strengths, weaknesses, and recommendations for improvement with detailed visual analytics.',
-    'features.collaborative.title': 'Collaborative Environment',
-    'features.collaborative.desc': 'Connect students, teachers, and parents in a unified platform that promotes collaboration, communication, and shared learning goals.',
-
-    // Subjects
-    'subjects.title': 'Comprehensive Subject Coverage',
-    'subjects.subtitle': 'From elementary concepts to advanced topics, our AI tutors cover every subject with depth and expertise.',
-    'subjects.mathematics.title': 'Mathematics',
-    'subjects.mathematics.desc': 'Algebra, Calculus, Statistics, Geometry',
-    'subjects.sciences.title': 'Sciences',
-    'subjects.sciences.desc': 'Physics, Chemistry, Biology, Environmental',
-    'subjects.literature.title': 'Literature',
-    'subjects.literature.desc': 'Reading, Writing, Critical Analysis',
-    'subjects.social.title': 'Social Studies',
-    'subjects.social.desc': 'History, Geography, Civics, Economics',
-    'subjects.technology.title': 'Technology',
-    'subjects.technology.desc': 'Programming, Digital Literacy, AI',
-    'subjects.arts.title': 'Arts',
-    'subjects.arts.desc': 'Visual Arts, Music, Creative Expression',
-    'subjects.languages.title': 'Languages',
-    'subjects.languages.desc': 'English, Spanish, French, Mandarin',
-    'subjects.health.title': 'Health & PE',
-    'subjects.health.desc': 'Physical Education, Health Sciences',
-
-    // Advanced Features
-    'advanced.title': 'Advanced Learning Features',
-    'advanced.adaptive.title': 'Intelligent Adaptation',
-    'advanced.adaptive.desc': 'Our AI continuously learns from student interactions to provide increasingly personalized and effective learning experiences.',
-    'advanced.feedback.title': 'Instant Feedback System',
-    'advanced.feedback.desc': 'Receive immediate, constructive feedback on assignments, quizzes, and activities to accelerate learning and understanding.',
-    'advanced.safe.title': 'Safe Learning Environment',
-    'advanced.safe.desc': 'COPPA-compliant platform with robust privacy protections and content filtering to ensure a safe educational experience.',
-    'advanced.availability.title': '24/7 Availability',
-    'advanced.availability.desc': 'Learn at your own pace, anytime, anywhere. Our AI tutors are available around the clock to support your educational journey.',
-
-    // Achievement System
-    'achievement.title': 'Achievement System',
-    'achievement.desc': 'Unlock badges, climb leaderboards, and celebrate milestones as you progress through your learning journey.',
-    'achievement.streak': 'Daily Learning Streak',
-    'achievement.progress': 'Progress',
-    'achievement.problems': 'Problems Solved',
-    'achievement.tracking': 'Tracking',
-    'achievement.level': 'Current Level',
-    'achievement.growing': 'Growing',
-
-    // Testimonials
-    'testimonials.title': 'What Educators Are Saying',
-    'testimonials.subtitle': 'Hear from teachers, parents, and students who have transformed their learning experience.',
-    'testimonials.teacher': 'High School Teacher',
-    'testimonials.teacher.content': 'TeachlyAI has completely transformed how my students engage with learning. The personalized approach has helped every student find their path to success.',
-    'testimonials.parent': 'Parent of Two Students',
-    'testimonials.parent.content': 'My children actually look forward to studying now. The gamification and instant feedback keep them motivated and excited about learning.',
-    'testimonials.principal': 'School Principal',
-    'testimonials.principal.content': 'We\'ve seen remarkable improvements in student performance and engagement since implementing TeachlyAI across our school.',
-
-    // Pricing
-    'pricing.title': 'Choose Your Learning Plan',
-    'pricing.subtitle': 'Flexible pricing options designed to fit every learning need and budget.',
-    'pricing.individual': 'Individual',
-    'pricing.individual.price': '$19',
-    'pricing.individual.feature1': 'Unlimited AI tutoring sessions',
-    'pricing.individual.feature2': 'All subject areas covered',
-    'pricing.individual.feature3': 'Progress tracking & analytics',
-    'pricing.individual.feature4': 'Mobile & web access',
-    'pricing.family': 'Family',
-    'pricing.family.price': '$39',
-    'pricing.family.feature1': 'Up to 4 student accounts',
-    'pricing.family.feature2': 'Parent monitoring dashboard',
-    'pricing.family.feature3': 'Shared progress reports',
-    'pricing.family.feature4': 'Priority customer support',
-    'pricing.school': 'School',
-    'pricing.school.price': 'Custom',
-    'pricing.school.feature1': 'Unlimited student accounts',
-    'pricing.school.feature2': 'Administrator dashboard',
-    'pricing.school.feature3': 'Custom curriculum integration',
-    'pricing.school.feature4': 'Advanced analytics & reporting',
-    'pricing.month': '/month',
-    'pricing.most.popular': 'Most Popular',
-    'pricing.get.started': 'Get Started',
-    'pricing.contact.sales': 'Contact Sales',
-
-    // FAQ
-    'faq.title': 'Frequently Asked Questions',
-    'faq.q1': 'How does the AI personalize learning for each student?',
-    'faq.a1': 'Our AI analyzes learning patterns, response times, and comprehension levels to adapt content difficulty, presentation style, and pacing to match each student\'s unique needs.',
-    'faq.q2': 'Is TeachlyAI suitable for all age groups?',
-    'faq.a2': 'Yes! Our platform adapts to learners from elementary school through high school and beyond, with age-appropriate content and interfaces.',
-    'faq.q3': 'How do I track my child\'s progress?',
-    'faq.a3': 'Parents have access to comprehensive dashboards showing learning progress, time spent, subjects covered, strengths, and areas for improvement.',
-    'faq.q4': 'What subjects are covered?',
-    'faq.a4': 'We cover all major subjects including Mathematics, Sciences, Literature, Social Studies, Languages, Arts, and Technology.',
-    'faq.q5': 'Is my data safe and private?',
-    'faq.a5': 'Absolutely. We\'re COPPA-compliant with robust privacy protections. Student data is encrypted and never shared with third parties.',
-    'faq.q6': 'Can I cancel my subscription anytime?',
-    'faq.a6': 'Yes, you can cancel your subscription at any time with no penalty. Your access continues until the end of your billing period.',
-
-    // About
-    'about.title': 'About TeachlyAI',
-    'about.subtitle': 'We\'re on a mission to democratize quality education through the power of artificial intelligence.',
-    'about.vision.title': 'Our Vision',
-    'about.vision.desc1': 'We believe every student deserves access to personalized, high-quality education that adapts to their unique learning style and pace.',
-    'about.vision.desc2': 'By combining cutting-edge AI technology with proven educational methodologies, we\'re creating a future where learning is engaging, effective, and accessible to all.',
-    'about.impact.title': 'Our Impact',
-    'about.impact.desc': 'Join thousands of students, teachers, and parents who are already experiencing the future of education.',
-    'about.impact.ai': 'AI-Powered',
-    'about.impact.learning': 'Learning',
-    'about.impact.global': 'Global',
-    'about.impact.accessibility': 'Accessibility',
-    'about.impact.adaptive': 'Adaptive',
-    'about.impact.curriculum': 'Curriculum',
-    'about.impact.realtime': 'Real-time',
-    'about.impact.analytics': 'Analytics',
-
-    // Contact
-    'contact.title': 'Get in Touch',
-    'contact.subtitle': 'Have questions? We\'d love to hear from you. Send us a message and we\'ll respond as soon as possible.',
-    'contact.form.name': 'Your Name',
-    'contact.form.name.placeholder': 'Enter your full name',
-    'contact.form.email': 'Email Address',
-    'contact.form.email.placeholder': 'Enter your email address',
-    'contact.form.message': 'Message',
-    'contact.form.message.placeholder': 'Tell us how we can help you...',
-    'contact.form.send': 'Send Message',
-
-    // Final CTA
-    'final.cta.title': 'Ready to Transform Your Learning Experience?',
-    'final.cta.subtitle': 'Join millions of students worldwide who are already experiencing the future of personalized education.',
-    'final.cta.trial': 'Start Free Trial',
-    'final.cta.demo': 'Try Demo'
+    common: {
+      loading: 'Loading...',
+      back: 'Back',
+      more: 'more',
+    },
+    modules: {
+      title: 'Learning Modules',
+      description: 'Explore our curated collection of learning modules and curricula designed by education experts',
+      searchPlaceholder: 'Search modules...',
+      categories: {
+        all: 'All Modules',
+        math: 'Mathematics',
+        science: 'Science',
+        english: 'English',
+        history: 'History',
+        programming: 'Programming'
+      },
+      subjects: 'Subjects',
+      standards: 'Standards',
+      startLearning: 'Start Learning',
+      noModulesFound: 'No modules found',
+      adjustFilters: 'Try adjusting your search or filter criteria'
+    },
+    progress: {
+      title: 'Learning Dashboard',
+      demoTitle: 'Parent Dashboard Demo',
+      description: 'Track your quests, monitor progress, and see your learning analytics.',
+      demoDescription: 'See how you can monitor your child\'s learning progress, quests, and achievements.',
+      demoNotice: 'This is a demo showing Emma Johnson\'s learning progress. Sign up to track your child\'s actual progress!',
+      notAvailable: 'Monitoring dashboard not available for students.',
+      tabs: {
+        monitoring: 'Overview',
+        childProgress: 'Child Progress',
+        quests: 'Quests',
+        achievements: 'Achievements',
+        subjects: 'Subjects',
+        analytics: 'Analytics'
+      }
+    },
+    testing: {
+      title: 'Testing',
+      createTest: 'Create a Test',
+      quizLibrary: 'Quiz Library'
+    },
+    chat: {
+      title: 'AI Tutor Chat',
+      newChat: 'New Chat',
+      previousChats: 'Previous Chats',
+      sendMessage: 'Send message',
+      voiceResponse: 'Voice Response',
+      uploadFile: 'Upload File',
+      navigation: {
+        chat: 'Chat',
+        progress: 'Progress',
+        modules: 'Modules'
+      }
+    },
+    auth: {
+      title: 'Welcome to TeachlyAI',
+      subtitle: 'Sign in to access your personalized learning experience',
+      signInTab: 'Sign In',
+      signUpTab: 'Sign Up',
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      signInButton: 'Sign In',
+      signUpButton: 'Create Account',
+      forgotPassword: 'Forgot your password?',
+      noAccount: 'Don\'t have an account?',
+      hasAccount: 'Already have an account?',
+      signUpLink: 'Sign up here',
+      signInLink: 'Sign in here',
+      errors: {
+        invalidCredentials: 'Invalid email or password',
+        emailInUse: 'Email already in use',
+        weakPassword: 'Password should be at least 6 characters',
+        passwordMismatch: 'Passwords do not match',
+        genericError: 'An error occurred. Please try again.'
+      }
+    }
   },
   es: {
-    // Navigation
-    'nav.features': 'Características',
-    'nav.pricing': 'Precios',
-    'nav.about': 'Acerca de',
-    'nav.contact': 'Contacto',
-    'nav.chat': 'Chat',
-    'nav.monitoring': 'Monitoreo',
-    'nav.modules': 'Módulos',
-
-    // Hero Section
-    'hero.title': 'Revoluciona el Aprendizaje con Educación Impulsada por IA',
-    'hero.subtitle': 'Experimenta el futuro del aprendizaje personalizado con nuestros tutores de IA avanzados que se adaptan al estilo y ritmo único de cada estudiante.',
-
-    // CTA Buttons
-    'cta.start': 'Inicia tu Viaje de Aprendizaje',
-    'cta.demo': 'Prueba la Demo Interactiva',
-    'cta.trial': 'Iniciar Prueba Gratuita',
-
-    // Features Section
-    'features.section.title': 'Características Poderosas para el Aprendizaje Moderno',
-    'features.section.subtitle': 'Descubre nuestra tecnología educativa de vanguardia diseñada para hacer el aprendizaje atractivo, efectivo y accesible para todos.',
-    'features.adaptive.title': 'Aprendizaje Adaptativo',
-    'features.adaptive.desc': 'Nuestra IA se adapta al estilo de aprendizaje, ritmo y preferencias de cada estudiante, creando experiencias educativas verdaderamente personalizadas.',
-    'features.voice.title': 'Interacción de Voz Natural',
-    'features.voice.desc': 'Participa en conversaciones naturales con nuestro tutor de IA a través de voz o texto, haciendo el aprendizaje tan fácil como conversar con un amigo conocedor.',
-    'features.content.title': 'Análisis Inteligente de Contenido',
-    'features.content.desc': 'Sube cualquier documento, imagen o recurso y nuestra IA crea instantáneamente lecciones interactivas, cuestionarios y materiales de aprendizaje.',
-    'features.gamified.title': 'Viaje de Aprendizaje Gamificado',
-    'features.gamified.desc': 'Transforma la educación en una aventura con misiones, logros, tablas de clasificación y recompensas que motivan a los estudiantes.',
-    'features.analytics.title': 'Análisis Avanzados',
-    'features.analytics.desc': 'Conocimientos integrales sobre el progreso del aprendizaje, fortalezas, debilidades y recomendaciones para la mejora.',
-    'features.collaborative.title': 'Entorno Colaborativo',
-    'features.collaborative.desc': 'Conecta estudiantes, profesores y padres en una plataforma unificada que promueve la colaboración y comunicación.',
-
-    // Subjects
-    'subjects.title': 'Cobertura Integral de Materias',
-    'subjects.subtitle': 'Desde conceptos elementales hasta temas avanzados, nuestros tutores de IA cubren cada materia con profundidad y experiencia.',
-    'subjects.mathematics.title': 'Matemáticas',
-    'subjects.mathematics.desc': 'Álgebra, Cálculo, Estadística, Geometría',
-    'subjects.sciences.title': 'Ciencias',
-    'subjects.sciences.desc': 'Física, Química, Biología, Ambiental',
-    'subjects.literature.title': 'Literatura',
-    'subjects.literature.desc': 'Lectura, Escritura, Análisis Crítico',
-    'subjects.social.title': 'Estudios Sociales',
-    'subjects.social.desc': 'Historia, Geografía, Cívica, Economía',
-    'subjects.technology.title': 'Tecnología',
-    'subjects.technology.desc': 'Programación, Alfabetización Digital, IA',
-    'subjects.arts.title': 'Artes',
-    'subjects.arts.desc': 'Artes Visuales, Música, Expresión Creativa',
-    'subjects.languages.title': 'Idiomas',
-    'subjects.languages.desc': 'Inglés, Español, Francés, Mandarín',
-    'subjects.health.title': 'Salud y EF',
-    'subjects.health.desc': 'Educación Física, Ciencias de la Salud',
-
-    // Advanced Features
-    'advanced.title': 'Características Avanzadas de Aprendizaje',
-    'advanced.adaptive.title': 'Adaptación Inteligente',
-    'advanced.adaptive.desc': 'Nuestra IA aprende continuamente de las interacciones para proporcionar experiencias de aprendizaje personalizadas.',
-    'advanced.feedback.title': 'Sistema de Retroalimentación Instantánea',
-    'advanced.feedback.desc': 'Recibe retroalimentación inmediata y constructiva sobre tareas, cuestionarios y actividades.',
-    'advanced.safe.title': 'Entorno de Aprendizaje Seguro',
-    'advanced.safe.desc': 'Plataforma compatible con COPPA con protecciones de privacidad robustas y filtrado de contenido.',
-    'advanced.availability.title': 'Disponibilidad 24/7',
-    'advanced.availability.desc': 'Aprende a tu propio ritmo, en cualquier momento, en cualquier lugar. Nuestros tutores de IA están disponibles las 24 horas.',
-
-    // Achievement System
-    'achievement.title': 'Sistema de Logros',
-    'achievement.desc': 'Desbloquea insignias, escala tablas de clasificación y celebra hitos mientras progresas en tu viaje de aprendizaje.',
-    'achievement.streak': 'Racha de Aprendizaje Diario',
-    'achievement.progress': 'Progreso',
-    'achievement.problems': 'Problemas Resueltos',
-    'achievement.tracking': 'Seguimiento',
-    'achievement.level': 'Nivel Actual',
-    'achievement.growing': 'Creciendo',
-
-    // Testimonials
-    'testimonials.title': 'Lo que Dicen los Educadores',
-    'testimonials.subtitle': 'Escucha a profesores, padres y estudiantes que han transformado su experiencia de aprendizaje.',
-    'testimonials.teacher': 'Profesora de Secundaria',
-    'testimonials.teacher.content': 'TeachlyAI ha transformado completamente cómo mis estudiantes se involucran con el aprendizaje.',
-    'testimonials.parent': 'Padre de Dos Estudiantes',
-    'testimonials.parent.content': 'Mis hijos ahora esperan con ansias estudiar. La gamificación los mantiene motivados.',
-    'testimonials.principal': 'Director de Escuela',
-    'testimonials.principal.content': 'Hemos visto mejoras notables en el rendimiento y compromiso de los estudiantes.',
-
-    // Pricing
-    'pricing.title': 'Elige tu Plan de Aprendizaje',
-    'pricing.subtitle': 'Opciones de precios flexibles diseñadas para cada necesidad de aprendizaje y presupuesto.',
-    'pricing.individual': 'Individual',
-    'pricing.individual.price': '$19',
-    'pricing.individual.feature1': 'Sesiones ilimitadas de tutoría con IA',
-    'pricing.individual.feature2': 'Todas las áreas temáticas cubiertas',
-    'pricing.individual.feature3': 'Seguimiento de progreso y análisis',
-    'pricing.individual.feature4': 'Acceso móvil y web',
-    'pricing.family': 'Familiar',
-    'pricing.family.price': '$39',
-    'pricing.family.feature1': 'Hasta 4 cuentas de estudiantes',
-    'pricing.family.feature2': 'Panel de monitoreo para padres',
-    'pricing.family.feature3': 'Reportes de progreso compartidos',
-    'pricing.family.feature4': 'Soporte al cliente prioritario',
-    'pricing.school': 'Escuela',
-    'pricing.school.price': 'Personalizado',
-    'pricing.school.feature1': 'Cuentas ilimitadas de estudiantes',
-    'pricing.school.feature2': 'Panel de administrador',
-    'pricing.school.feature3': 'Integración de currículo personalizado',
-    'pricing.school.feature4': 'Análisis e informes avanzados',
-    'pricing.month': '/mes',
-    'pricing.most.popular': 'Más Popular',
-    'pricing.get.started': 'Comenzar',
-    'pricing.contact.sales': 'Contactar Ventas',
-
-    // FAQ
-    'faq.title': 'Preguntas Frecuentes',
-    'faq.q1': '¿Cómo personaliza la IA el aprendizaje para cada estudiante?',
-    'faq.a1': 'Nuestra IA analiza patrones de aprendizaje, tiempos de respuesta y niveles de comprensión para adaptar el contenido.',
-    'faq.q2': '¿Es TeachlyAI adecuado para todas las edades?',
-    'faq.a2': '¡Sí! Nuestra plataforma se adapta a estudiantes desde primaria hasta secundaria y más allá.',
-    'faq.q3': '¿Cómo hago seguimiento del progreso de mi hijo?',
-    'faq.a3': 'Los padres tienen acceso a paneles integrales que muestran el progreso de aprendizaje y áreas de mejora.',
-    'faq.q4': '¿Qué materias se cubren?',
-    'faq.a4': 'Cubrimos todas las materias principales incluyendo Matemáticas, Ciencias, Literatura, Estudios Sociales y más.',
-    'faq.q5': '¿Mis datos están seguros y privados?',
-    'faq.a5': 'Absolutamente. Somos compatibles con COPPA con protecciones de privacidad robustas.',
-    'faq.q6': '¿Puedo cancelar mi suscripción en cualquier momento?',
-    'faq.a6': 'Sí, puedes cancelar tu suscripción en cualquier momento sin penalización.',
-
-    // About
-    'about.title': 'Acerca de TeachlyAI',
-    'about.subtitle': 'Estamos en una misión de democratizar la educación de calidad a través del poder de la inteligencia artificial.',
-    'about.vision.title': 'Nuestra Visión',
-    'about.vision.desc1': 'Creemos que cada estudiante merece acceso a educación personalizada y de alta calidad.',
-    'about.vision.desc2': 'Combinando tecnología de IA de vanguardia con metodologías educativas probadas.',
-    'about.impact.title': 'Nuestro Impacto',
-    'about.impact.desc': 'Únete a miles de estudiantes, profesores y padres que ya están experimentando el futuro de la educación.',
-    'about.impact.ai': 'Impulsado por IA',
-    'about.impact.learning': 'Aprendizaje',
-    'about.impact.global': 'Global',
-    'about.impact.accessibility': 'Accesibilidad',
-    'about.impact.adaptive': 'Adaptativo',
-    'about.impact.curriculum': 'Currículo',
-    'about.impact.realtime': 'Tiempo Real',
-    'about.impact.analytics': 'Análisis',
-
-    // Contact
-    'contact.title': 'Ponte en Contacto',
-    'contact.subtitle': '¿Tienes preguntas? Nos encantaría saber de ti. Envíanos un mensaje y responderemos lo antes posible.',
-    'contact.form.name': 'Tu Nombre',
-    'contact.form.name.placeholder': 'Ingresa tu nombre completo',
-    'contact.form.email': 'Dirección de Correo',
-    'contact.form.email.placeholder': 'Ingresa tu dirección de correo',
-    'contact.form.message': 'Mensaje',
-    'contact.form.message.placeholder': 'Cuéntanos cómo podemos ayudarte...',
-    'contact.form.send': 'Enviar Mensaje',
-
-    // Final CTA
-    'final.cta.title': '¿Listo para Transformar tu Experiencia de Aprendizaje?',
-    'final.cta.subtitle': 'Únete a millones de estudiantes en todo el mundo que ya están experimentando el futuro de la educación personalizada.',
-    'final.cta.trial': 'Iniciar Prueba Gratuita',
-    'final.cta.demo': 'Probar Demo'
+    common: {
+      loading: 'Cargando...',
+      back: 'Atrás',
+      more: 'más',
+    },
+    modules: {
+      title: 'Módulos de Aprendizaje',
+      description: 'Explora nuestra colección curada de módulos de aprendizaje y currículos diseñados por expertos en educación',
+      searchPlaceholder: 'Buscar módulos...',
+      categories: {
+        all: 'Todos los Módulos',
+        math: 'Matemáticas',
+        science: 'Ciencias',
+        english: 'Inglés',
+        history: 'Historia',
+        programming: 'Programación'
+      },
+      subjects: 'Materias',
+      standards: 'Estándares',
+      startLearning: 'Comenzar a Aprender',
+      noModulesFound: 'No se encontraron módulos',
+      adjustFilters: 'Intenta ajustar tu búsqueda o criterios de filtro'
+    },
+    progress: {
+      title: 'Panel de Aprendizaje',
+      demoTitle: 'Demo del Panel para Padres',
+      description: 'Rastrea tus misiones, monitorea el progreso y ve tus análisis de aprendizaje.',
+      demoDescription: 'Ve cómo puedes monitorear el progreso de aprendizaje, misiones y logros de tu hijo.',
+      demoNotice: 'Esta es una demo mostrando el progreso de aprendizaje de Emma Johnson. ¡Regístrate para rastrear el progreso real de tu hijo!',
+      notAvailable: 'El panel de monitoreo no está disponible para estudiantes.',
+      tabs: {
+        monitoring: 'Resumen',
+        childProgress: 'Progreso del Niño',
+        quests: 'Misiones',
+        achievements: 'Logros',
+        subjects: 'Materias',
+        analytics: 'Análisis'
+      }
+    },
+    testing: {
+      title: 'Pruebas',
+      createTest: 'Crear una Prueba',
+      quizLibrary: 'Biblioteca de Cuestionarios'
+    },
+    chat: {
+      title: 'Chat del Tutor IA',
+      newChat: 'Nuevo Chat',
+      previousChats: 'Chats Anteriores',
+      sendMessage: 'Enviar mensaje',
+      voiceResponse: 'Respuesta de Voz',
+      uploadFile: 'Subir Archivo',
+      navigation: {
+        chat: 'Chat',
+        progress: 'Progreso',
+        modules: 'Módulos'
+      }
+    },
+    auth: {
+      title: 'Bienvenido a TeachlyAI',
+      subtitle: 'Inicia sesión para acceder a tu experiencia de aprendizaje personalizada',
+      signInTab: 'Iniciar Sesión',
+      signUpTab: 'Registrarse',
+      email: 'Correo Electrónico',
+      password: 'Contraseña',
+      confirmPassword: 'Confirmar Contraseña',
+      signInButton: 'Iniciar Sesión',
+      signUpButton: 'Crear Cuenta',
+      forgotPassword: '¿Olvidaste tu contraseña?',
+      noAccount: '¿No tienes una cuenta?',
+      hasAccount: '¿Ya tienes una cuenta?',
+      signUpLink: 'Regístrate aquí',
+      signInLink: 'Inicia sesión aquí',
+      errors: {
+        invalidCredentials: 'Correo o contraseña inválidos',
+        emailInUse: 'Correo ya en uso',
+        weakPassword: 'La contraseña debe tener al menos 6 caracteres',
+        passwordMismatch: 'Las contraseñas no coinciden',
+        genericError: 'Ocurrió un error. Por favor intenta de nuevo.'
+      }
+    }
   },
   fr: {
-    // Navigation
-    'nav.features': 'Fonctionnalités',
-    'nav.pricing': 'Tarifs',
-    'nav.about': 'À propos',
-    'nav.contact': 'Contact',
-    'nav.chat': 'Chat',
-    'nav.monitoring': 'Surveillance',
-    'nav.modules': 'Modules',
-
-    // Hero Section
-    'hero.title': 'Révolutionnez l\'Apprentissage avec l\'Éducation Alimentée par l\'IA',
-    'hero.subtitle': 'Découvrez l\'avenir de l\'apprentissage personnalisé avec nos tuteurs IA avancés qui s\'adaptent au style et au rythme uniques de chaque étudiant.',
-
-    // CTA Buttons
-    'cta.start': 'Commencez Votre Parcours d\'Apprentissage',
-    'cta.demo': 'Essayez la Démo Interactive',
-    'cta.trial': 'Commencer l\'Essai Gratuit',
-
-    // Features Section
-    'features.section.title': 'Fonctionnalités Puissantes pour l\'Apprentissage Moderne',
-    'features.section.subtitle': 'Découvrez notre technologie éducative de pointe conçue pour rendre l\'apprentissage engageant, efficace et accessible à tous.',
-    'features.adaptive.title': 'Apprentissage Adaptatif',
-    'features.adaptive.desc': 'Notre IA s\'adapte au style d\'apprentissage, au rythme et aux préférences de chaque étudiant, créant des expériences éducatives véritablement personnalisées.',
-    'features.voice.title': 'Interaction Vocale Naturelle',
-    'features.voice.desc': 'Engagez-vous dans des conversations naturelles avec notre tuteur IA par voix ou texte, rendant l\'apprentissage aussi facile qu\'une conversation avec un ami savant.',
-    'features.content.title': 'Analyse Intelligente du Contenu',
-    'features.content.desc': 'Téléchargez n\'importe quel document, image ou ressource et notre IA crée instantanément des leçons interactives et des quiz.',
-    'features.gamified.title': 'Parcours d\'Apprentissage Gamifié',
-    'features.gamified.desc': 'Transformez l\'éducation en aventure avec des quêtes, des succès, des classements et des récompenses qui motivent les étudiants.',
-    'features.analytics.title': 'Analyses Avancées',
-    'features.analytics.desc': 'Aperçus complets sur les progrès d\'apprentissage, les forces, les faiblesses et les recommandations d\'amélioration.',
-    'features.collaborative.title': 'Environnement Collaboratif',
-    'features.collaborative.desc': 'Connectez étudiants, enseignants et parents dans une plateforme unifiée qui favorise la collaboration et la communication.',
-
-    // Subjects
-    'subjects.title': 'Couverture Complète des Matières',
-    'subjects.subtitle': 'Des concepts élémentaires aux sujets avancés, nos tuteurs IA couvrent chaque matière avec profondeur et expertise.',
-    'subjects.mathematics.title': 'Mathématiques',
-    'subjects.mathematics.desc': 'Algèbre, Calcul, Statistiques, Géométrie',
-    'subjects.sciences.title': 'Sciences',
-    'subjects.sciences.desc': 'Physique, Chimie, Biologie, Environnemental',
-    'subjects.literature.title': 'Littérature',
-    'subjects.literature.desc': 'Lecture, Écriture, Analyse Critique',
-    'subjects.social.title': 'Études Sociales',
-    'subjects.social.desc': 'Histoire, Géographie, Civisme, Économie',
-    'subjects.technology.title': 'Technologie',
-    'subjects.technology.desc': 'Programmation, Littératie Numérique, IA',
-    'subjects.arts.title': 'Arts',
-    'subjects.arts.desc': 'Arts Visuels, Musique, Expression Créative',
-    'subjects.languages.title': 'Langues',
-    'subjects.languages.desc': 'Anglais, Espagnol, Français, Mandarin',
-    'subjects.health.title': 'Santé et EPS',
-    'subjects.health.desc': 'Éducation Physique, Sciences de la Santé',
-
-    // Advanced Features
-    'advanced.title': 'Fonctionnalités d\'Apprentissage Avancées',
-    'advanced.adaptive.title': 'Adaptation Intelligente',
-    'advanced.adaptive.desc': 'Notre IA apprend continuellement des interactions pour fournir des expériences d\'apprentissage personnalisées.',
-    'advanced.feedback.title': 'Système de Rétroaction Instantanée',
-    'advanced.feedback.desc': 'Recevez des commentaires immédiats et constructifs sur les devoirs, quiz et activités.',
-    'advanced.safe.title': 'Environnement d\'Apprentissage Sûr',
-    'advanced.safe.desc': 'Plateforme conforme COPPA avec des protections de confidentialité robustes et filtrage de contenu.',
-    'advanced.availability.title': 'Disponibilité 24/7',
-    'advanced.availability.desc': 'Apprenez à votre rythme, n\'importe quand, n\'importe où. Nos tuteurs IA sont disponibles 24h/24.',
-
-    // Achievement System
-    'achievement.title': 'Système de Réussites',
-    'achievement.desc': 'Débloquez des badges, grimpez les classements et célébrez les étapes importantes de votre parcours d\'apprentissage.',
-    'achievement.streak': 'Série d\'Apprentissage Quotidien',
-    'achievement.progress': 'Progrès',
-    'achievement.problems': 'Problèmes Résolus',
-    'achievement.tracking': 'Suivi',
-    'achievement.level': 'Niveau Actuel',
-    'achievement.growing': 'Croissance',
-
-    // Testimonials
-    'testimonials.title': 'Ce que Disent les Éducateurs',
-    'testimonials.subtitle': 'Écoutez les enseignants, parents et étudiants qui ont transformé leur expérience d\'apprentissage.',
-    'testimonials.teacher': 'Professeur de Lycée',
-    'testimonials.teacher.content': 'TeachlyAI a complètement transformé la façon dont mes étudiants s\'engagent dans l\'apprentissage.',
-    'testimonials.parent': 'Parent de Deux Étudiants',
-    'testimonials.parent.content': 'Mes enfants ont maintenant hâte d\'étudier. La gamification les garde motivés.',
-    'testimonials.principal': 'Directeur d\'École',
-    'testimonials.principal.content': 'Nous avons vu des améliorations remarquables dans les performances et l\'engagement des étudiants.',
-
-    // Pricing
-    'pricing.title': 'Choisissez Votre Plan d\'Apprentissage',
-    'pricing.subtitle': 'Options de tarification flexibles conçues pour répondre à chaque besoin d\'apprentissage et budget.',
-    'pricing.individual': 'Individuel',
-    'pricing.individual.price': '19€',
-    'pricing.individual.feature1': 'Sessions de tutorat IA illimitées',
-    'pricing.individual.feature2': 'Toutes les matières couvertes',
-    'pricing.individual.feature3': 'Suivi des progrès et analyses',
-    'pricing.individual.feature4': 'Accès mobile et web',
-    'pricing.family': 'Famille',
-    'pricing.family.price': '39€',
-    'pricing.family.feature1': 'Jusqu\'à 4 comptes étudiants',
-    'pricing.family.feature2': 'Tableau de bord de surveillance parentale',
-    'pricing.family.feature3': 'Rapports de progrès partagés',
-    'pricing.family.feature4': 'Support client prioritaire',
-    'pricing.school': 'École',
-    'pricing.school.price': 'Personnalisé',
-    'pricing.school.feature1': 'Comptes étudiants illimités',
-    'pricing.school.feature2': 'Tableau de bord administrateur',
-    'pricing.school.feature3': 'Intégration de curriculum personnalisé',
-    'pricing.school.feature4': 'Analyses et rapports avancés',
-    'pricing.month': '/mois',
-    'pricing.most.popular': 'Le Plus Populaire',
-    'pricing.get.started': 'Commencer',
-    'pricing.contact.sales': 'Contacter les Ventes',
-
-    // FAQ
-    'faq.title': 'Questions Fréquemment Posées',
-    'faq.q1': 'Comment l\'IA personnalise-t-elle l\'apprentissage pour chaque étudiant?',
-    'faq.a1': 'Notre IA analyse les modèles d\'apprentissage, les temps de réponse et les niveaux de compréhension pour adapter le contenu.',
-    'faq.q2': 'TeachlyAI convient-il à tous les groupes d\'âge?',
-    'faq.a2': 'Oui! Notre plateforme s\'adapte aux apprenants de l\'école élémentaire au lycée et au-delà.',
-    'faq.q3': 'Comment puis-je suivre les progrès de mon enfant?',
-    'faq.a3': 'Les parents ont accès à des tableaux de bord complets montrant les progrès d\'apprentissage et les domaines d\'amélioration.',
-    'faq.q4': 'Quelles matières sont couvertes?',
-    'faq.a4': 'Nous couvrons toutes les matières principales y compris les Mathématiques, Sciences, Littérature, Études Sociales et plus.',
-    'faq.q5': 'Mes données sont-elles sûres et privées?',
-    'faq.a5': 'Absolument. Nous sommes conformes COPPA avec des protections de confidentialité robustes.',
-    'faq.q6': 'Puis-je annuler mon abonnement à tout moment?',
-    'faq.a6': 'Oui, vous pouvez annuler votre abonnement à tout moment sans pénalité.',
-
-    // About
-    'about.title': 'À Propos de TeachlyAI',
-    'about.subtitle': 'Nous sommes en mission pour démocratiser l\'éducation de qualité grâce au pouvoir de l\'intelligence artificielle.',
-    'about.vision.title': 'Notre Vision',
-    'about.vision.desc1': 'Nous croyons que chaque étudiant mérite l\'accès à une éducation personnalisée et de haute qualité.',
-    'about.vision.desc2': 'En combinant la technologie IA de pointe avec des méthodologies éducatives éprouvées.',
-    'about.impact.title': 'Notre Impact',
-    'about.impact.desc': 'Rejoignez des milliers d\'étudiants, enseignants et parents qui expérimentent déjà l\'avenir de l\'éducation.',
-    'about.impact.ai': 'Alimenté par l\'IA',
-    'about.impact.learning': 'Apprentissage',
-    'about.impact.global': 'Global',
-    'about.impact.accessibility': 'Accessibilité',
-    'about.impact.adaptive': 'Adaptatif',
-    'about.impact.curriculum': 'Curriculum',
-    'about.impact.realtime': 'Temps Réel',
-    'about.impact.analytics': 'Analyses',
-
-    // Contact
-    'contact.title': 'Contactez-Nous',
-    'contact.subtitle': 'Vous avez des questions? Nous aimerions avoir de vos nouvelles. Envoyez-nous un message et nous répondrons dès que possible.',
-    'contact.form.name': 'Votre Nom',
-    'contact.form.name.placeholder': 'Entrez votre nom complet',
-    'contact.form.email': 'Adresse Email',
-    'contact.form.email.placeholder': 'Entrez votre adresse email',
-    'contact.form.message': 'Message',
-    'contact.form.message.placeholder': 'Dites-nous comment nous pouvons vous aider...',
-    'contact.form.send': 'Envoyer le Message',
-
-    // Final CTA
-    'final.cta.title': 'Prêt à Transformer Votre Expérience d\'Apprentissage?',
-    'final.cta.subtitle': 'Rejoignez des millions d\'étudiants dans le monde qui expérimentent déjà l\'avenir de l\'éducation personnalisée.',
-    'final.cta.trial': 'Commencer l\'Essai Gratuit',
-    'final.cta.demo': 'Essayer la Démo'
+    common: {
+      loading: 'Chargement...',
+      back: 'Retour',
+      more: 'plus',
+    },
+    modules: {
+      title: 'Modules d\'Apprentissage',
+      description: 'Explorez notre collection sélectionnée de modules d\'apprentissage et de programmes conçus par des experts en éducation',
+      searchPlaceholder: 'Rechercher des modules...',
+      categories: {
+        all: 'Tous les Modules',
+        math: 'Mathématiques',
+        science: 'Sciences',
+        english: 'Anglais',
+        history: 'Histoire',
+        programming: 'Programmation'
+      },
+      subjects: 'Sujets',
+      standards: 'Standards',
+      startLearning: 'Commencer l\'Apprentissage',
+      noModulesFound: 'Aucun module trouvé',
+      adjustFilters: 'Essayez d\'ajuster votre recherche ou vos critères de filtre'
+    },
+    progress: {
+      title: 'Tableau de Bord d\'Apprentissage',
+      demoTitle: 'Démo du Tableau de Bord Parent',
+      description: 'Suivez vos quêtes, surveillez les progrès et consultez vos analyses d\'apprentissage.',
+      demoDescription: 'Voyez comment vous pouvez surveiller les progrès d\'apprentissage, les quêtes et les réalisations de votre enfant.',
+      demoNotice: 'Ceci est une démo montrant les progrès d\'apprentissage d\'Emma Johnson. Inscrivez-vous pour suivre les vrais progrès de votre enfant!',
+      notAvailable: 'Tableau de bord de surveillance non disponible pour les étudiants.',
+      tabs: {
+        monitoring: 'Aperçu',
+        childProgress: 'Progrès de l\'Enfant',
+        quests: 'Quêtes',
+        achievements: 'Réalisations',
+        subjects: 'Sujets',
+        analytics: 'Analyses'
+      }
+    },
+    testing: {
+      title: 'Tests',
+      createTest: 'Créer un Test',
+      quizLibrary: 'Bibliothèque de Quiz'
+    },
+    chat: {
+      title: 'Chat Tuteur IA',
+      newChat: 'Nouveau Chat',
+      previousChats: 'Chats Précédents',
+      sendMessage: 'Envoyer un message',
+      voiceResponse: 'Réponse Vocale',
+      uploadFile: 'Télécharger un Fichier',
+      navigation: {
+        chat: 'Chat',
+        progress: 'Progrès',
+        modules: 'Modules'
+      }
+    },
+    auth: {
+      title: 'Bienvenue sur TeachlyAI',
+      subtitle: 'Connectez-vous pour accéder à votre expérience d\'apprentissage personnalisée',
+      signInTab: 'Se Connecter',
+      signUpTab: 'S\'Inscrire',
+      email: 'Email',
+      password: 'Mot de Passe',
+      confirmPassword: 'Confirmer le Mot de Passe',
+      signInButton: 'Se Connecter',
+      signUpButton: 'Créer un Compte',
+      forgotPassword: 'Mot de passe oublié?',
+      noAccount: 'Vous n\'avez pas de compte?',
+      hasAccount: 'Vous avez déjà un compte?',
+      signUpLink: 'Inscrivez-vous ici',
+      signInLink: 'Connectez-vous ici',
+      errors: {
+        invalidCredentials: 'Email ou mot de passe invalide',
+        emailInUse: 'Email déjà utilisé',
+        weakPassword: 'Le mot de passe doit contenir au moins 6 caractères',
+        passwordMismatch: 'Les mots de passe ne correspondent pas',
+        genericError: 'Une erreur s\'est produite. Veuillez réessayer.'
+      }
+    }
   },
   de: {
-    // Navigation
-    'nav.features': 'Funktionen',
-    'nav.pricing': 'Preise',
-    'nav.about': 'Über uns',
-    'nav.contact': 'Kontakt',
-    'nav.chat': 'Chat',
-    'nav.monitoring': 'Überwachung',
-    'nav.modules': 'Module',
-
-    // Hero Section
-    'hero.title': 'Revolutionieren Sie das Lernen mit KI-gesteuerter Bildung',
-    'hero.subtitle': 'Erleben Sie die Zukunft des personalisierten Lernens mit unseren fortschrittlichen KI-Tutoren, die sich an den einzigartigen Lernstil und das Tempo jedes Schülers anpassen.',
-
-    // CTA Buttons
-    'cta.start': 'Beginnen Sie Ihre Lernreise',
-    'cta.demo': 'Interaktive Demo ausprobieren',
-    'cta.trial': 'Kostenlose Testversion starten',
-
-    // Features Section
-    'features.section.title': 'Leistungsstarke Funktionen für modernes Lernen',
-    'features.section.subtitle': 'Entdecken Sie unsere hochmoderne Bildungstechnologie, die darauf ausgelegt ist, das Lernen ansprechend, effektiv und für alle zugänglich zu machen.',
-    'features.adaptive.title': 'Adaptives Lernen',
-    'features.adaptive.desc': 'Unsere KI passt sich an den Lernstil, das Tempo und die Vorlieben jedes Schülers an und schafft wirklich personalisierte Bildungserfahrungen.',
-    'features.voice.title': 'Natürliche Sprachinteraktion',
-    'features.voice.desc': 'Führen Sie natürliche Gespräche mit unserem KI-Tutor über Sprache oder Text und machen Sie das Lernen so einfach wie ein Gespräch mit einem sachkundigen Freund.',
-    'features.content.title': 'Intelligente Inhaltsanalyse',
-    'features.content.desc': 'Laden Sie jedes Dokument, Bild oder jede Ressource hoch und unsere KI erstellt sofort interaktive Lektionen und Quiz.',
-    'features.gamified.title': 'Gamifizierte Lernreise',
-    'features.gamified.desc': 'Verwandeln Sie Bildung in ein Abenteuer mit Quests, Erfolgen, Bestenlisten und Belohnungen, die Schüler motivieren.',
-    'features.analytics.title': 'Erweiterte Analysen',
-    'features.analytics.desc': 'Umfassende Einblicke in Lernfortschritte, Stärken, Schwächen und Verbesserungsempfehlungen.',
-    'features.collaborative.title': 'Kollaborative Umgebung',
-    'features.collaborative.desc': 'Verbinden Sie Schüler, Lehrer und Eltern in einer einheitlichen Plattform, die Zusammenarbeit und Kommunikation fördert.',
-
-    // Subjects
-    'subjects.title': 'Umfassende Fächerabdeckung',
-    'subjects.subtitle': 'Von elementaren Konzepten bis zu fortgeschrittenen Themen decken unsere KI-Tutoren jedes Fach mit Tiefe und Expertise ab.',
-    'subjects.mathematics.title': 'Mathematik',
-    'subjects.mathematics.desc': 'Algebra, Analysis, Statistik, Geometrie',
-    'subjects.sciences.title': 'Naturwissenschaften',
-    'subjects.sciences.desc': 'Physik, Chemie, Biologie, Umwelt',
-    'subjects.literature.title': 'Literatur',
-    'subjects.literature.desc': 'Lesen, Schreiben, Kritische Analyse',
-    'subjects.social.title': 'Sozialwissenschaften',
-    'subjects.social.desc': 'Geschichte, Geografie, Bürgerkunde, Wirtschaft',
-    'subjects.technology.title': 'Technologie',
-    'subjects.technology.desc': 'Programmierung, Digitale Kompetenz, KI',
-    'subjects.arts.title': 'Kunst',
-    'subjects.arts.desc': 'Bildende Kunst, Musik, Kreativer Ausdruck',
-    'subjects.languages.title': 'Sprachen',
-    'subjects.languages.desc': 'Englisch, Spanisch, Französisch, Mandarin',
-    'subjects.health.title': 'Gesundheit & Sport',
-    'subjects.health.desc': 'Sportunterricht, Gesundheitswissenschaften',
-
-    // Advanced Features
-    'advanced.title': 'Erweiterte Lernfunktionen',
-    'advanced.adaptive.title': 'Intelligente Anpassung',
-    'advanced.adaptive.desc': 'Unsere KI lernt kontinuierlich aus Interaktionen, um zunehmend personalisierte Lernerfahrungen zu bieten.',
-    'advanced.feedback.title': 'Sofortiges Feedback-System',
-    'advanced.feedback.desc': 'Erhalten Sie sofortiges, konstruktives Feedback zu Aufgaben, Quiz und Aktivitäten.',
-    'advanced.safe.title': 'Sichere Lernumgebung',
-    'advanced.safe.desc': 'COPPA-konforme Plattform mit robusten Datenschutzschutz und Inhaltsfilterung.',
-    'advanced.availability.title': '24/7 Verfügbarkeit',
-    'advanced.availability.desc': 'Lernen Sie in Ihrem eigenen Tempo, jederzeit, überall. Unsere KI-Tutoren sind rund um die Uhr verfügbar.',
-
-    // Achievement System
-    'achievement.title': 'Erfolgssystem',
-    'achievement.desc': 'Schalten Sie Abzeichen frei, erklimmen Sie Bestenlisten und feiern Sie Meilensteine auf Ihrer Lernreise.',
-    'achievement.streak': 'Tägliche Lernserie',
-    'achievement.progress': 'Fortschritt',
-    'achievement.problems': 'Gelöste Probleme',
-    'achievement.tracking': 'Verfolgung',
-    'achievement.level': 'Aktuelles Level',
-    'achievement.growing': 'Wachsend',
-
-    // Testimonials
-    'testimonials.title': 'Was Pädagogen sagen',
-    'testimonials.subtitle': 'Hören Sie von Lehrern, Eltern und Schülern, die ihre Lernerfahrung transformiert haben.',
-    'testimonials.teacher': 'Gymnasiallehrerin',
-    'testimonials.teacher.content': 'TeachlyAI hat völlig verändert, wie meine Schüler sich mit dem Lernen beschäftigen.',
-    'testimonials.parent': 'Elternteil von zwei Schülern',
-    'testimonials.parent.content': 'Meine Kinder freuen sich jetzt tatsächlich aufs Lernen. Die Gamification hält sie motiviert.',
-    'testimonials.principal': 'Schulleiter',
-    'testimonials.principal.content': 'Wir haben bemerkenswerte Verbesserungen in der Leistung und dem Engagement der Schüler gesehen.',
-
-    // Pricing
-    'pricing.title': 'Wählen Sie Ihren Lernplan',
-    'pricing.subtitle': 'Flexible Preisoptionen für jeden Lernbedarf und jedes Budget.',
-    'pricing.individual': 'Individuell',
-    'pricing.individual.price': '19€',
-    'pricing.individual.feature1': 'Unbegrenzte KI-Nachhilfesitzungen',
-    'pricing.individual.feature2': 'Alle Fachbereiche abgedeckt',
-    'pricing.individual.feature3': 'Fortschrittsverfolgung & Analysen',
-    'pricing.individual.feature4': 'Mobiler & Web-Zugang',
-    'pricing.family': 'Familie',
-    'pricing.family.price': '39€',
-    'pricing.family.feature1': 'Bis zu 4 Schülerkonten',
-    'pricing.family.feature2': 'Eltern-Überwachungsdashboard',
-    'pricing.family.feature3': 'Geteilte Fortschrittsberichte',
-    'pricing.family.feature4': 'Prioritärer Kundensupport',
-    'pricing.school': 'Schule',
-    'pricing.school.price': 'Angepasst',
-    'pricing.school.feature1': 'Unbegrenzte Schülerkonten',
-    'pricing.school.feature2': 'Administrator-Dashboard',
-    'pricing.school.feature3': 'Angepasste Lehrplanintegration',
-    'pricing.school.feature4': 'Erweiterte Analysen & Berichte',
-    'pricing.month': '/Monat',
-    'pricing.most.popular': 'Am Beliebtesten',
-    'pricing.get.started': 'Loslegen',
-    'pricing.contact.sales': 'Vertrieb kontaktieren',
-
-    // FAQ
-    'faq.title': 'Häufig gestellte Fragen',
-    'faq.q1': 'Wie personalisiert die KI das Lernen für jeden Schüler?',
-    'faq.a1': 'Unsere KI analysiert Lernmuster, Reaktionszeiten und Verständnisebenen, um Inhalte anzupassen.',
-    'faq.q2': 'Ist TeachlyAI für alle Altersgruppen geeignet?',
-    'faq.a2': 'Ja! Unsere Plattform passt sich an Lernende von der Grundschule bis zur Oberstufe und darüber hinaus an.',
-    'faq.q3': 'Wie verfolge ich den Fortschritt meines Kindes?',
-    'faq.a3': 'Eltern haben Zugang zu umfassenden Dashboards mit Lernfortschritt und Verbesserungsbereichen.',
-    'faq.q4': 'Welche Fächer werden abgedeckt?',
-    'faq.a4': 'Wir decken alle Hauptfächer ab, einschließlich Mathematik, Naturwissenschaften, Literatur und mehr.',
-    'faq.q5': 'Sind meine Daten sicher und privat?',
-    'faq.a5': 'Absolut. Wir sind COPPA-konform mit robusten Datenschutzschutz.',
-    'faq.q6': 'Kann ich mein Abonnement jederzeit kündigen?',
-    'faq.a6': 'Ja, Sie können Ihr Abonnement jederzeit ohne Strafe kündigen.',
-
-    // About
-    'about.title': 'Über TeachlyAI',
-    'about.subtitle': 'Wir haben es uns zur Aufgabe gemacht, hochwertige Bildung durch die Kraft der künstlichen Intelligenz zu demokratisieren.',
-    'about.vision.title': 'Unsere Vision',
-    'about.vision.desc1': 'Wir glauben, dass jeder Schüler Zugang zu personalisierter, hochwertiger Bildung verdient.',
-    'about.vision.desc2': 'Durch die Kombination modernster KI-Technologie mit bewährten Bildungsmethoden.',
-    'about.impact.title': 'Unser Einfluss',
-    'about.impact.desc': 'Schließen Sie sich Tausenden von Schülern, Lehrern und Eltern an, die bereits die Zukunft der Bildung erleben.',
-    'about.impact.ai': 'KI-gesteuert',
-    'about.impact.learning': 'Lernen',
-    'about.impact.global': 'Global',
-    'about.impact.accessibility': 'Zugänglichkeit',
-    'about.impact.adaptive': 'Adaptiv',
-    'about.impact.curriculum': 'Lehrplan',
-    'about.impact.realtime': 'Echtzeit',
-    'about.impact.analytics': 'Analysen',
-
-    // Contact
-    'contact.title': 'Kontaktieren Sie uns',
-    'contact.subtitle': 'Haben Sie Fragen? Wir würden gerne von Ihnen hören. Senden Sie uns eine Nachricht und wir antworten so schnell wie möglich.',
-    'contact.form.name': 'Ihr Name',
-    'contact.form.name.placeholder': 'Geben Sie Ihren vollständigen Namen ein',
-    'contact.form.email': 'E-Mail-Adresse',
-    'contact.form.email.placeholder': 'Geben Sie Ihre E-Mail-Adresse ein',
-    'contact.form.message': 'Nachricht',
-    'contact.form.message.placeholder': 'Sagen Sie uns, wie wir Ihnen helfen können...',
-    'contact.form.send': 'Nachricht senden',
-
-    // Final CTA
-    'final.cta.title': 'Bereit, Ihre Lernerfahrung zu transformieren?',
-    'final.cta.subtitle': 'Schließen Sie sich Millionen von Schülern weltweit an, die bereits die Zukunft der personalisierten Bildung erleben.',
-    'final.cta.trial': 'Kostenlose Testversion starten',
-    'final.cta.demo': 'Demo ausprobieren'
+    common: {
+      loading: 'Laden...',
+      back: 'Zurück',
+      more: 'mehr',
+    },
+    modules: {
+      title: 'Lernmodule',
+      description: 'Entdecken Sie unsere kuratierte Sammlung von Lernmodulen und Lehrplänen, die von Bildungsexperten entwickelt wurden',
+      searchPlaceholder: 'Module suchen...',
+      categories: {
+        all: 'Alle Module',
+        math: 'Mathematik',
+        science: 'Wissenschaft',
+        english: 'Englisch',
+        history: 'Geschichte',
+        programming: 'Programmierung'
+      },
+      subjects: 'Fächer',
+      standards: 'Standards',
+      startLearning: 'Lernen Beginnen',
+      noModulesFound: 'Keine Module gefunden',
+      adjustFilters: 'Versuchen Sie, Ihre Such- oder Filterkriterien anzupassen'
+    },
+    progress: {
+      title: 'Lern-Dashboard',
+      demoTitle: 'Eltern-Dashboard Demo',
+      description: 'Verfolgen Sie Ihre Quests, überwachen Sie Fortschritte und sehen Sie Ihre Lernanalysen.',
+      demoDescription: 'Sehen Sie, wie Sie die Lernfortschritte, Quests und Errungenschaften Ihres Kindes überwachen können.',
+      demoNotice: 'Dies ist eine Demo, die Emma Johnsons Lernfortschritt zeigt. Melden Sie sich an, um die tatsächlichen Fortschritte Ihres Kindes zu verfolgen!',
+      notAvailable: 'Überwachungs-Dashboard für Schüler nicht verfügbar.',
+      tabs: {
+        monitoring: 'Übersicht',
+        childProgress: 'Kindfortschritt',
+        quests: 'Quests',
+        achievements: 'Errungenschaften',
+        subjects: 'Fächer',
+        analytics: 'Analysen'
+      }
+    },
+    testing: {
+      title: 'Tests',
+      createTest: 'Test Erstellen',
+      quizLibrary: 'Quiz-Bibliothek'
+    },
+    chat: {
+      title: 'KI-Tutor Chat',
+      newChat: 'Neuer Chat',
+      previousChats: 'Vorherige Chats',
+      sendMessage: 'Nachricht senden',
+      voiceResponse: 'Sprachantwort',
+      uploadFile: 'Datei hochladen',
+      navigation: {
+        chat: 'Chat',
+        progress: 'Fortschritt',
+        modules: 'Module'
+      }
+    },
+    auth: {
+      title: 'Willkommen bei TeachlyAI',
+      subtitle: 'Melden Sie sich an, um auf Ihre personalisierte Lernerfahrung zuzugreifen',
+      signInTab: 'Anmelden',
+      signUpTab: 'Registrieren',
+      email: 'E-Mail',
+      password: 'Passwort',
+      confirmPassword: 'Passwort Bestätigen',
+      signInButton: 'Anmelden',
+      signUpButton: 'Konto Erstellen',
+      forgotPassword: 'Passwort vergessen?',
+      noAccount: 'Haben Sie kein Konto?',
+      hasAccount: 'Haben Sie bereits ein Konto?',
+      signUpLink: 'Hier registrieren',
+      signInLink: 'Hier anmelden',
+      errors: {
+        invalidCredentials: 'Ungültige E-Mail oder Passwort',
+        emailInUse: 'E-Mail bereits in Verwendung',
+        weakPassword: 'Passwort sollte mindestens 6 Zeichen haben',
+        passwordMismatch: 'Passwörter stimmen nicht überein',
+        genericError: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'
+      }
+    }
   },
   zh: {
-    // Navigation
-    'nav.features': '功能',
-    'nav.pricing': '定价',
-    'nav.about': '关于',
-    'nav.contact': '联系',
-    'nav.chat': '聊天',
-    'nav.monitoring': '监控',
-    'nav.modules': '模块',
-
-    // Hero Section
-    'hero.title': '用AI驱动的教育革命性学习',
-    'hero.subtitle': '体验个性化学习的未来，我们先进的AI导师能够适应每个学生独特的学习风格和节奏。',
-
-    // CTA Buttons
-    'cta.start': '开始您的学习之旅',
-    'cta.demo': '试用互动演示',
-    'cta.trial': '开始免费试用',
-
-    // Features Section
-    'features.section.title': '现代学习的强大功能',
-    'features.section.subtitle': '发现我们的尖端教育技术，旨在让学习变得引人入胜、有效且人人可及。',
-    'features.adaptive.title': '自适应学习',
-    'features.adaptive.desc': '我们的AI适应每个学生的学习风格、节奏和偏好，创造真正个性化的教育体验。',
-    'features.voice.title': '自然语音交互',
-    'features.voice.desc': '通过语音或文本与我们的AI导师进行自然对话，让学习变得像与知识渊博的朋友交谈一样简单。',
-    'features.content.title': '智能内容分析',
-    'features.content.desc': '上传任何文档、图像或资源，我们的AI立即创建互动课程和测验。',
-    'features.gamified.title': '游戏化学习之旅',
-    'features.gamified.desc': '通过任务、成就、排行榜和奖励将教育转变为冒险，激励学生发挥全部潜力。',
-    'features.analytics.title': '高级分析',
-    'features.analytics.desc': '全面洞察学习进度、优势、劣势和改进建议。',
-    'features.collaborative.title': '协作环境',
-    'features.collaborative.desc': '在统一平台上连接学生、教师和家长，促进协作和沟通。',
-
-    // Subjects
-    'subjects.title': '全面的学科覆盖',
-    'subjects.subtitle': '从基础概念到高级主题，我们的AI导师深度且专业地涵盖每个学科。',
-    'subjects.mathematics.title': '数学',
-    'subjects.mathematics.desc': '代数、微积分、统计学、几何',
-    'subjects.sciences.title': '科学',
-    'subjects.sciences.desc': '物理、化学、生物、环境',
-    'subjects.literature.title': '文学',
-    'subjects.literature.desc': '阅读、写作、批判性分析',
-    'subjects.social.title': '社会研究',
-    'subjects.social.desc': '历史、地理、公民学、经济学',
-    'subjects.technology.title': '技术',
-    'subjects.technology.desc': '编程、数字素养、AI',
-    'subjects.arts.title': '艺术',
-    'subjects.arts.desc': '视觉艺术、音乐、创意表达',
-    'subjects.languages.title': '语言',
-    'subjects.languages.desc': '英语、西班牙语、法语、中文',
-    'subjects.health.title': '健康与体育',
-    'subjects.health.desc': '体育教育、健康科学',
-
-    // Advanced Features
-    'advanced.title': '高级学习功能',
-    'advanced.adaptive.title': '智能适应',
-    'advanced.adaptive.desc': '我们的AI从互动中持续学习，提供越来越个性化的学习体验。',
-    'advanced.feedback.title': '即时反馈系统',
-    'advanced.feedback.desc': '对作业、测验和活动获得即时、建设性的反馈。',
-    'advanced.safe.title': '安全学习环境',
-    'advanced.safe.desc': '符合COPPA的平台，具有强大的隐私保护和内容过滤。',
-    'advanced.availability.title': '24/7可用性',
-    'advanced.availability.desc': '按自己的节奏学习，随时随地。我们的AI导师全天候为您的教育之旅提供支持。',
-
-    // Achievement System
-    'achievement.title': '成就系统',
-    'achievement.desc': '在学习之旅中解锁徽章、攀登排行榜并庆祝里程碑。',
-    'achievement.streak': '每日学习连击',
-    'achievement.progress': '进展',
-    'achievement.problems': '解决的问题',
-    'achievement.tracking': '追踪',
-    'achievement.level': '当前等级',
-    'achievement.growing': '成长中',
-
-    // Testimonials
-    'testimonials.title': '教育工作者的评价',
-    'testimonials.subtitle': '听听已经转变学习体验的教师、家长和学生的声音。',
-    'testimonials.teacher': '高中教师',
-    'testimonials.teacher.content': 'TeachlyAI完全改变了我的学生参与学习的方式。',
-    'testimonials.parent': '两个学生的家长',
-    'testimonials.parent.content': '我的孩子们现在真的期待学习。游戏化让他们保持动力。',
-    'testimonials.principal': '学校校长',
-    'testimonials.principal.content': '自从在我们学校实施TeachlyAI以来，我们看到了学生表现和参与度的显著改善。',
-
-    // Pricing
-    'pricing.title': '选择您的学习计划',
-    'pricing.subtitle': '灵活的定价选项，适合每种学习需求和预算。',
-    'pricing.individual': '个人',
-    'pricing.individual.price': '¥129',
-    'pricing.individual.feature1': '无限AI辅导课程',
-    'pricing.individual.feature2': '覆盖所有学科领域',
-    'pricing.individual.feature3': '进度跟踪和分析',
-    'pricing.individual.feature4': '移动和网页访问',
-    'pricing.family': '家庭',
-    'pricing.family.price': '¥259',
-    'pricing.family.feature1': '最多4个学生账户',
-    'pricing.family.feature2': '家长监控仪表板',
-    'pricing.family.feature3': '共享进度报告',
-    'pricing.family.feature4': '优先客户支持',
-    'pricing.school': '学校',
-    'pricing.school.price': '定制',
-    'pricing.school.feature1': '无限学生账户',
-    'pricing.school.feature2': '管理员仪表板',
-    'pricing.school.feature3': '自定义课程集成',
-    'pricing.school.feature4': '高级分析和报告',
-    'pricing.month': '/月',
-    'pricing.most.popular': '最受欢迎',
-    'pricing.get.started': '开始使用',
-    'pricing.contact.sales': '联系销售',
-
-    // FAQ
-    'faq.title': '常见问题',
-    'faq.q1': 'AI如何为每个学生个性化学习？',
-    'faq.a1': '我们的AI分析学习模式、响应时间和理解水平来调整内容。',
-    'faq.q2': 'TeachlyAI适合所有年龄组吗？',
-    'faq.a2': '是的！我们的平台适应从小学到高中及以上的学习者。',
-    'faq.q3': '我如何跟踪孩子的进度？',
-    'faq.a3': '家长可以访问显示学习进度和改进领域的综合仪表板。',
-    'faq.q4': '涵盖哪些学科？',
-    'faq.a4': '我们涵盖所有主要学科，包括数学、科学、文学、社会研究等。',
-    'faq.q5': '我的数据安全和私密吗？',
-    'faq.a5': '绝对如此。我们符合COPPA标准，具有强大的隐私保护。',
-    'faq.q6': '我可以随时取消订阅吗？',
-    'faq.a6': '是的，您可以随时取消订阅，无需任何罚金。',
-
-    // About
-    'about.title': '关于TeachlyAI',
-    'about.subtitle': '我们的使命是通过人工智能的力量让优质教育民主化。',
-    'about.vision.title': '我们的愿景',
-    'about.vision.desc1': '我们相信每个学生都应该获得适应其独特学习风格的个性化、高质量教育。',
-    'about.vision.desc2': '通过结合尖端AI技术和经过验证的教育方法论。',
-    'about.impact.title': '我们的影响',
-    'about.impact.desc': '加入数千名已经体验教育未来的学生、教师和家长。',
-    'about.impact.ai': 'AI驱动',
-    'about.impact.learning': '学习',
-    'about.impact.global': '全球化',
-    'about.impact.accessibility': '可访问性',
-    'about.impact.adaptive': '自适应',
-    'about.impact.curriculum': '课程',
-    'about.impact.realtime': '实时',
-    'about.impact.analytics': '分析',
-
-    // Contact
-    'contact.title': '联系我们',
-    'contact.subtitle': '有问题吗？我们很乐意听到您的声音。给我们发消息，我们会尽快回复。',
-    'contact.form.name': '您的姓名',
-    'contact.form.name.placeholder': '输入您的全名',
-    'contact.form.email': '电子邮件地址',
-    'contact.form.email.placeholder': '输入您的电子邮件地址',
-    'contact.form.message': '消息',
-    'contact.form.message.placeholder': '告诉我们如何帮助您...',
-    'contact.form.send': '发送消息',
-
-    // Final CTA
-    'final.cta.title': '准备好转变您的学习体验了吗？',
-    'final.cta.subtitle': '加入全世界数百万已经体验个性化教育未来的学生。',
-    'final.cta.trial': '开始免费试用',
-    'final.cta.demo': '试用演示'
+    common: {
+      loading: '加载中...',
+      back: '返回',
+      more: '更多',
+    },
+    modules: {
+      title: '学习模块',
+      description: '探索我们由教育专家设计的精选学习模块和课程集合',
+      searchPlaceholder: '搜索模块...',
+      categories: {
+        all: '所有模块',
+        math: '数学',
+        science: '科学',
+        english: '英语',
+        history: '历史',
+        programming: '编程'
+      },
+      subjects: '科目',
+      standards: '标准',
+      startLearning: '开始学习',
+      noModulesFound: '未找到模块',
+      adjustFilters: '尝试调整您的搜索或筛选条件'
+    },
+    progress: {
+      title: '学习仪表板',
+      demoTitle: '家长仪表板演示',
+      description: '跟踪您的任务，监控进度，查看您的学习分析。',
+      demoDescription: '了解如何监控孩子的学习进度、任务和成就。',
+      demoNotice: '这是展示Emma Johnson学习进度的演示。注册以跟踪您孩子的实际进度！',
+      notAvailable: '学生无法使用监控仪表板。',
+      tabs: {
+        monitoring: '概览',
+        childProgress: '孩子进度',
+        quests: '任务',
+        achievements: '成就',
+        subjects: '科目',
+        analytics: '分析'
+      }
+    },
+    testing: {
+      title: '测试',
+      createTest: '创建测试',
+      quizLibrary: '测验库'
+    },
+    chat: {
+      title: 'AI导师聊天',
+      newChat: '新聊天',
+      previousChats: '之前的聊天',
+      sendMessage: '发送消息',
+      voiceResponse: '语音回复',
+      uploadFile: '上传文件',
+      navigation: {
+        chat: '聊天',
+        progress: '进度',
+        modules: '模块'
+      }
+    },
+    auth: {
+      title: '欢迎来到TeachlyAI',
+      subtitle: '登录以访问您的个性化学习体验',
+      signInTab: '登录',
+      signUpTab: '注册',
+      email: '邮箱',
+      password: '密码',
+      confirmPassword: '确认密码',
+      signInButton: '登录',
+      signUpButton: '创建账户',
+      forgotPassword: '忘记密码？',
+      noAccount: '没有账户？',
+      hasAccount: '已有账户？',
+      signUpLink: '在此注册',
+      signInLink: '在此登录',
+      errors: {
+        invalidCredentials: '邮箱或密码无效',
+        emailInUse: '邮箱已被使用',
+        weakPassword: '密码应至少6个字符',
+        passwordMismatch: '密码不匹配',
+        genericError: '发生错误。请重试。'
+      }
+    }
   },
   ja: {
-    // Navigation
-    'nav.features': '機能',
-    'nav.pricing': '料金',
-    'nav.about': 'について',
-    'nav.contact': 'お問い合わせ',
-    'nav.chat': 'チャット',
-    'nav.monitoring': 'モニタリング',
-    'nav.modules': 'モジュール',
-
-    // Hero Section
-    'hero.title': 'AIによる教育で学習を革命化',
-    'hero.subtitle': '各生徒の独特な学習スタイルとペースに適応する先進的なAIチューターで、パーソナライズされた学習の未来を体験してください。',
-
-    // CTA Buttons
-    'cta.start': '学習の旅を始める',
-    'cta.demo': 'インタラクティブデモを試す',
-    'cta.trial': '無料トライアルを開始',
-
-    // Features Section
-    'features.section.title': '現代学習のための強力な機能',
-    'features.section.subtitle': '学習を魅力的で効果的、そして誰にでもアクセス可能にするために設計された最先端の教育技術を発見してください。',
-    'features.adaptive.title': '適応学習',
-    'features.adaptive.desc': '私たちのAIは各生徒の学習スタイル、ペース、好みに適応し、真にパーソナライズされた教育体験を創造します。',
-    'features.voice.title': '自然な音声インタラクション',
-    'features.voice.desc': '音声またはテキストでAIチューターと自然な会話を行い、知識豊富な友人との会話のように簡単に学習できます。',
-    'features.content.title': 'スマートコンテンツ分析',
-    'features.content.desc': '任意の文書、画像、リソースをアップロードすると、AIが即座にインタラクティブなレッスンとクイズを作成します。',
-    'features.gamified.title': 'ゲーム化された学習の旅',
-    'features.gamified.desc': 'クエスト、実績、リーダーボード、報酬で教育を冒険に変え、生徒が全ての潜在能力を発揮するよう動機づけます。',
-    'features.analytics.title': '高度な分析',
-    'features.analytics.desc': '学習進度、強み、弱み、改善のための推奨事項についての包括的な洞察。',
-    'features.collaborative.title': '協力的環境',
-    'features.collaborative.desc': '生徒、教師、保護者を統一プラットフォームで繋ぎ、協力とコミュニケーションを促進します。',
-
-    // Subjects
-    'subjects.title': '包括的な科目カバレッジ',
-    'subjects.subtitle': '基礎概念から高度なトピックまで、私たちのAIチューターは深さと専門知識を持ってあらゆる科目をカバーします。',
-    'subjects.mathematics.title': '数学',
-    'subjects.mathematics.desc': '代数、微積分、統計、幾何',
-    'subjects.sciences.title': '科学',
-    'subjects.sciences.desc': '物理、化学、生物、環境',
-    'subjects.literature.title': '文学',
-    'subjects.literature.desc': '読解、作文、批判的分析',
-    'subjects.social.title': '社会科',
-    'subjects.social.desc': '歴史、地理、公民、経済',
-    'subjects.technology.title': 'テクノロジー',
-    'subjects.technology.desc': 'プログラミング、デジタルリテラシー、AI',
-    'subjects.arts.title': '芸術',
-    'subjects.arts.desc': '視覚芸術、音楽、創造的表現',
-    'subjects.languages.title': '言語',
-    'subjects.languages.desc': '英語、スペイン語、フランス語、中国語',
-    'subjects.health.title': '健康と体育',
-    'subjects.health.desc': '体育、健康科学',
-
-    // Advanced Features
-    'advanced.title': '高度な学習機能',
-    'advanced.adaptive.title': 'インテリジェント適応',
-    'advanced.adaptive.desc': '私たちのAIは生徒のインタラクションから継続的に学習し、ますますパーソナライズされた学習体験を提供します。',
-    'advanced.feedback.title': '即座のフィードバックシステム',
-    'advanced.feedback.desc': '課題、クイズ、活動に対する即座で建設的なフィードバックを受け取ります。',
-    'advanced.safe.title': '安全な学習環境',
-    'advanced.safe.desc': 'COPPA準拠のプラットフォームで、堅牢なプライバシー保護とコンテンツフィルタリングを備えています。',
-    'advanced.availability.title': '24/7利用可能',
-    'advanced.availability.desc': '自分のペースで、いつでもどこでも学習。私たちのAIチューターは24時間体制で教育の旅をサポートします。',
-
-    // Achievement System
-    'achievement.title': '実績システム',
-    'achievement.desc': '学習の旅を進む中で、バッジを解除し、リーダーボードを登り、マイルストーンを祝いましょう。',
-    'achievement.streak': '毎日の学習ストリーク',
-    'achievement.progress': '進歩',
-    'achievement.problems': '解決した問題',
-    'achievement.tracking': '追跡',
-    'achievement.level': '現在のレベル',
-    'achievement.growing': '成長中',
-
-    // Testimonials
-    'testimonials.title': '教育者からの声',
-    'testimonials.subtitle': '学習体験を変革した教師、保護者、生徒からの声をお聞きください。',
-    'testimonials.teacher': '高校教師',
-    'testimonials.teacher.content': 'TeachlyAIは私の生徒たちが学習に取り組む方法を完全に変革しました。',
-    'testimonials.parent': '二人の生徒の保護者',
-    'testimonials.parent.content': '私の子供たちは今では実際に勉強を楽しみにしています。ゲーミフィケーションが彼らを動機づけ続けています。',
-    'testimonials.principal': '学校校長',
-    'testimonials.principal.content': '学校全体でTeachlyAIを実装して以来、生徒の成績と参加度に著しい改善を見てきました。',
-
-    // Pricing
-    'pricing.title': '学習プランを選択',
-    'pricing.subtitle': 'あらゆる学習ニーズと予算に合わせて設計された柔軟な価格オプション。',
-    'pricing.individual': '個人',
-    'pricing.individual.price': '¥1,900',
-    'pricing.individual.feature1': '無制限のAIチュータリングセッション',
-    'pricing.individual.feature2': 'すべての教科分野をカバー',
-    'pricing.individual.feature3': '進捗追跡と分析',
-    'pricing.individual.feature4': 'モバイル＆ウェブアクセス',
-    'pricing.family': 'ファミリー',
-    'pricing.family.price': '¥3,900',
-    'pricing.family.feature1': '最大4つの生徒アカウント',
-    'pricing.family.feature2': '保護者監視ダッシュボード',
-    'pricing.family.feature3': '共有進捗レポート',
-    'pricing.family.feature4': '優先カスタマーサポート',
-    'pricing.school': '学校',
-    'pricing.school.price': 'カスタム',
-    'pricing.school.feature1': '無制限の生徒アカウント',
-    'pricing.school.feature2': '管理者ダッシュボード',
-    'pricing.school.feature3': 'カスタムカリキュラム統合',
-    'pricing.school.feature4': '高度な分析とレポート',
-    'pricing.month': '/月',
-    'pricing.most.popular': '最も人気',
-    'pricing.get.started': '始める',
-    'pricing.contact.sales': '営業に問い合わせ',
-
-    // FAQ
-    'faq.title': 'よくある質問',
-    'faq.q1': 'AIはどのように各生徒の学習をパーソナライズしますか？',
-    'faq.a1': '私たちのAIは学習パターン、反応時間、理解レベルを分析してコンテンツを適応させます。',
-    'faq.q2': 'TeachlyAIはすべての年齢層に適していますか？',
-    'faq.a2': 'はい！私たちのプラットフォームは小学校から高校、それ以降の学習者に適応します。',
-    'faq.q3': '子供の進捗をどのように追跡しますか？',
-    'faq.a3': '保護者は学習進捗と改善領域を示す包括的なダッシュボードにアクセスできます。',
-    'faq.q4': 'どの科目がカバーされていますか？',
-    'faq.a4': '数学、科学、文学、社会科などを含むすべての主要科目をカバーしています。',
-    'faq.q5': '私のデータは安全でプライベートですか？',
-    'faq.a5': '絶対に。私たちは堅牢なプライバシー保護を備えたCOPPA準拠です。',
-    'faq.q6': 'いつでもサブスクリプションをキャンセルできますか？',
-    'faq.a6': 'はい、いつでもペナルティなしでサブスクリプションをキャンセルできます。',
-
-    // About
-    'about.title': 'TeachlyAIについて',
-    'about.subtitle': '私たちは人工知能の力を通じて質の高い教育を民主化することを使命としています。',
-    'about.vision.title': '私たちのビジョン',
-    'about.vision.desc1': 'すべての生徒が独自の学習スタイルに適応するパーソナライズされた高品質教育にアクセスする権利があると信じています。',
-    'about.vision.desc2': '最先端のAI技術と実証済みの教育方法論を組み合わせることで。',
-    'about.impact.title': '私たちのインパクト',
-    'about.impact.desc': 'すでに教育の未来を体験している数千人の生徒、教師、保護者に参加してください。',
-    'about.impact.ai': 'AI駆動',
-    'about.impact.learning': '学習',
-    'about.impact.global': 'グローバル',
-    'about.impact.accessibility': 'アクセシビリティ',
-    'about.impact.adaptive': '適応的',
-    'about.impact.curriculum': 'カリキュラム',
-    'about.impact.realtime': 'リアルタイム',
-    'about.impact.analytics': '分析',
-
-    // Contact
-    'contact.title': 'お問い合わせ',
-    'contact.subtitle': 'ご質問がありますか？ぜひお聞かせください。メッセージをお送りいただければ、可能な限り迅速に回答いたします。',
-    'contact.form.name': 'お名前',
-    'contact.form.name.placeholder': 'フルネームを入力してください',
-    'contact.form.email': 'メールアドレス',
-    'contact.form.email.placeholder': 'メールアドレスを入力してください',
-    'contact.form.message': 'メッセージ',
-    'contact.form.message.placeholder': 'どのようにお手伝いできるかお聞かせください...',
-    'contact.form.send': 'メッセージを送信',
-
-    // Final CTA
-    'final.cta.title': '学習体験を変革する準備はできましたか？',
-    'final.cta.subtitle': 'すでにパーソナライズされた教育の未来を体験している世界中の数百万人の生徒に参加してください。',
-    'final.cta.trial': '無料トライアルを開始',
-    'final.cta.demo': 'デモを試す'
+    common: {
+      loading: '読み込み中...',
+      back: '戻る',
+      more: 'もっと',
+    },
+    modules: {
+      title: '学習モジュール',
+      description: '教育専門家によって設計された厳選された学習モジュールとカリキュラムのコレクションを探索してください',
+      searchPlaceholder: 'モジュールを検索...',
+      categories: {
+        all: 'すべてのモジュール',
+        math: '数学',
+        science: '科学',
+        english: '英語',
+        history: '歴史',
+        programming: 'プログラミング'
+      },
+      subjects: '科目',
+      standards: '標準',
+      startLearning: '学習を開始',
+      noModulesFound: 'モジュールが見つかりません',
+      adjustFilters: '検索やフィルター条件を調整してみてください'
+    },
+    progress: {
+      title: '学習ダッシュボード',
+      demoTitle: '保護者ダッシュボードデモ',
+      description: 'クエストを追跡し、進捗を監視し、学習分析を確認します。',
+      demoDescription: 'お子様の学習進捗、クエスト、実績を監視する方法をご覧ください。',
+      demoNotice: 'これはEmma Johnsonの学習進捗を示すデモです。お子様の実際の進捗を追跡するにはサインアップしてください！',
+      notAvailable: '学生は監視ダッシュボードを利用できません。',
+      tabs: {
+        monitoring: '概要',
+        childProgress: '子供の進捗',
+        quests: 'クエスト',
+        achievements: '実績',
+        subjects: '科目',
+        analytics: '分析'
+      }
+    },
+    testing: {
+      title: 'テスト',
+      createTest: 'テストを作成',
+      quizLibrary: 'クイズライブラリ'
+    },
+    chat: {
+      title: 'AIチューターチャット',
+      newChat: '新しいチャット',
+      previousChats: '以前のチャット',
+      sendMessage: 'メッセージを送信',
+      voiceResponse: '音声応答',
+      uploadFile: 'ファイルをアップロード',
+      navigation: {
+        chat: 'チャット',
+        progress: '進捗',
+        modules: 'モジュール'
+      }
+    },
+    auth: {
+      title: 'TeachlyAIへようこそ',
+      subtitle: 'パーソナライズされた学習体験にアクセスするためにサインインしてください',
+      signInTab: 'サインイン',
+      signUpTab: 'サインアップ',
+      email: 'メール',
+      password: 'パスワード',
+      confirmPassword: 'パスワード確認',
+      signInButton: 'サインイン',
+      signUpButton: 'アカウント作成',
+      forgotPassword: 'パスワードをお忘れですか？',
+      noAccount: 'アカウントをお持ちではありませんか？',
+      hasAccount: 'すでにアカウントをお持ちですか？',
+      signUpLink: 'こちらでサインアップ',
+      signInLink: 'こちらでサインイン',
+      errors: {
+        invalidCredentials: '無効なメールまたはパスワード',
+        emailInUse: 'メールは既に使用されています',
+        weakPassword: 'パスワードは少なくとも6文字である必要があります',
+        passwordMismatch: 'パスワードが一致しません',
+        genericError: 'エラーが発生しました。もう一度お試しください。'
+      }
+    }
   },
   pt: {
-    // Navigation
-    'nav.features': 'Recursos',
-    'nav.pricing': 'Preços',
-    'nav.about': 'Sobre',
-    'nav.contact': 'Contato',
-    'nav.chat': 'Chat',
-    'nav.monitoring': 'Monitoramento',
-    'nav.modules': 'Módulos',
-
-    // Hero Section
-    'hero.title': 'Revolucione o Aprendizado com Educação Impulsionada por IA',
-    'hero.subtitle': 'Experimente o futuro do aprendizado personalizado com nossos tutores de IA avançados que se adaptam ao estilo e ritmo únicos de cada estudante.',
-
-    // CTA Buttons
-    'cta.start': 'Inicie sua Jornada de Aprendizado',
-    'cta.demo': 'Experimente a Demo Interativa',
-    'cta.trial': 'Iniciar Teste Gratuito',
-
-    // Features Section
-    'features.section.title': 'Recursos Poderosos para Aprendizado Moderno',
-    'features.section.subtitle': 'Descubra nossa tecnologia educacional de ponta projetada para tornar o aprendizado envolvente, eficaz e acessível para todos.',
-    'features.adaptive.title': 'Aprendizado Adaptativo',
-    'features.adaptive.desc': 'Nossa IA se adapta ao estilo de aprendizado, ritmo e preferências de cada estudante, criando experiências educacionais verdadeiramente personalizadas.',
-    'features.voice.title': 'Interação de Voz Natural',
-    'features.voice.desc': 'Participe de conversas naturais com nosso tutor de IA através de voz ou texto, tornando o aprendizado tão fácil quanto conversar com um amigo conhecedor.',
-    'features.content.title': 'Análise Inteligente de Conteúdo',
-    'features.content.desc': 'Carregue qualquer documento, imagem ou recurso e nossa IA cria instantaneamente lições interativas e questionários.',
-    'features.gamified.title': 'Jornada de Aprendizado Gamificada',
-    'features.gamified.desc': 'Transforme a educação em uma aventura com missões, conquistas, classificações e recompensas que motivam os estudantes.',
-    'features.analytics.title': 'Análises Avançadas',
-    'features.analytics.desc': 'Insights abrangentes sobre progresso de aprendizado, pontos fortes, fracos e recomendações para melhoria.',
-    'features.collaborative.title': 'Ambiente Colaborativo',
-    'features.collaborative.desc': 'Conecte estudantes, professores e pais em uma plataforma unificada que promove colaboração e comunicação.',
-
-    // Subjects
-    'subjects.title': 'Cobertura Abrangente de Disciplinas',
-    'subjects.subtitle': 'Desde conceitos elementares até tópicos avançados, nossos tutores de IA cobrem cada disciplina com profundidade e expertise.',
-    'subjects.mathematics.title': 'Matemática',
-    'subjects.mathematics.desc': 'Álgebra, Cálculo, Estatística, Geometria',
-    'subjects.sciences.title': 'Ciências',
-    'subjects.sciences.desc': 'Física, Química, Biologia, Ambiental',
-    'subjects.literature.title': 'Literatura',
-    'subjects.literature.desc': 'Leitura, Escrita, Análise Crítica',
-    'subjects.social.title': 'Estudos Sociais',
-    'subjects.social.desc': 'História, Geografia, Civismo, Economia',
-    'subjects.technology.title': 'Tecnologia',
-    'subjects.technology.desc': 'Programação, Literacia Digital, IA',
-    'subjects.arts.title': 'Artes',
-    'subjects.arts.desc': 'Artes Visuais, Música, Expressão Criativa',
-    'subjects.languages.title': 'Idiomas',
-    'subjects.languages.desc': 'Inglês, Espanhol, Francês, Mandarim',
-    'subjects.health.title': 'Saúde e EF',
-    'subjects.health.desc': 'Educação Física, Ciências da Saúde',
-
-    // Advanced Features
-    'advanced.title': 'Recursos Avançados de Aprendizado',
-    'advanced.adaptive.title': 'Adaptação Inteligente',
-    'advanced.adaptive.desc': 'Nossa IA aprende continuamente com as interações para fornecer experiências de aprendizado cada vez mais personalizadas.',
-    'advanced.feedback.title': 'Sistema de Feedback Instantâneo',
-    'advanced.feedback.desc': 'Receba feedback imediato e construtivo sobre tarefas, questionários e atividades.',
-    'advanced.safe.title': 'Ambiente de Aprendizado Seguro',
-    'advanced.safe.desc': 'Plataforma compatível com COPPA com proteções robustas de privacidade e filtragem de conteúdo.',
-    'advanced.availability.title': 'Disponibilidade 24/7',
-    'advanced.availability.desc': 'Aprenda no seu próprio ritmo, a qualquer hora, em qualquer lugar. Nossos tutores de IA estão disponíveis 24 horas por dia.',
-
-    // Achievement System
-    'achievement.title': 'Sistema de Conquistas',
-    'achievement.desc': 'Desbloqueie emblemas, suba nas classificações e celebre marcos enquanto progride em sua jornada de aprendizado.',
-    'achievement.streak': 'Sequência de Aprendizado Diário',
-    'achievement.progress': 'Progresso',
-    'achievement.problems': 'Problemas Resolvidos',
-    'achievement.tracking': 'Acompanhamento',
-    'achievement.level': 'Nível Atual',
-    'achievement.growing': 'Crescendo',
-
-    // Testimonials
-    'testimonials.title': 'O que os Educadores Estão Dizendo',
-    'testimonials.subtitle': 'Ouça de professores, pais e estudantes que transformaram sua experiência de aprendizado.',
-    'testimonials.teacher': 'Professora do Ensino Médio',
-    'testimonials.teacher.content': 'O TeachlyAI transformou completamente como meus estudantes se envolvem com o aprendizado.',
-    'testimonials.parent': 'Pai de Dois Estudantes',
-    'testimonials.parent.content': 'Minhas crianças agora realmente aguardam estudar. A gamificação os mantém motivados.',
-    'testimonials.principal': 'Diretor de Escola',
-    'testimonials.principal.content': 'Vimos melhorias notáveis no desempenho e engajamento dos estudantes desde a implementação do TeachlyAI.',
-
-    // Pricing
-    'pricing.title': 'Escolha seu Plano de Aprendizado',
-    'pricing.subtitle': 'Opções de preços flexíveis projetadas para atender a cada necessidade de aprendizado e orçamento.',
-    'pricing.individual': 'Individual',
-    'pricing.individual.price': 'R$99',
-    'pricing.individual.feature1': 'Sessões ilimitadas de tutoria com IA',
-    'pricing.individual.feature2': 'Todas as áreas de disciplinas cobertas',
-    'pricing.individual.feature3': 'Acompanhamento de progresso e análises',
-    'pricing.individual.feature4': 'Acesso móvel e web',
-    'pricing.family': 'Família',
-    'pricing.family.price': 'R$199',
-    'pricing.family.feature1': 'Até 4 contas de estudantes',
-    'pricing.family.feature2': 'Painel de monitoramento para pais',
-    'pricing.family.feature3': 'Relatórios de progresso compartilhados',
-    'pricing.family.feature4': 'Suporte ao cliente prioritário',
-    'pricing.school': 'Escola',
-    'pricing.school.price': 'Personalizado',
-    'pricing.school.feature1': 'Contas ilimitadas de estudantes',
-    'pricing.school.feature2': 'Painel do administrador',
-    'pricing.school.feature3': 'Integração de currículo personalizado',
-    'pricing.school.feature4': 'Análises e relatórios avançados',
-    'pricing.month': '/mês',
-    'pricing.most.popular': 'Mais Popular',
-    'pricing.get.started': 'Começar',
-    'pricing.contact.sales': 'Contatar Vendas',
-
-    // FAQ
-    'faq.title': 'Perguntas Frequentes',
-    'faq.q1': 'Como a IA personaliza o aprendizado para cada estudante?',
-    'faq.a1': 'Nossa IA analisa padrões de aprendizado, tempos de resposta e níveis de compreensão para adaptar o conteúdo.',
-    'faq.q2': 'O TeachlyAI é adequado para todas as faixas etárias?',
-    'faq.a2': 'Sim! Nossa plataforma se adapta a aprendizes do ensino fundamental ao médio e além.',
-    'faq.q3': 'Como posso acompanhar o progresso do meu filho?',
-    'faq.a3': 'Os pais têm acesso a painéis abrangentes mostrando progresso de aprendizado e áreas para melhoria.',
-    'faq.q4': 'Que disciplinas são cobertas?',
-    'faq.a4': 'Cobrimos todas as disciplinas principais incluindo Matemática, Ciências, Literatura, Estudos Sociais e mais.',
-    'faq.q5': 'Meus dados estão seguros e privados?',
-    'faq.a5': 'Absolutamente. Somos compatíveis com COPPA com proteções robustas de privacidade.',
-    'faq.q6': 'Posso cancelar minha assinatura a qualquer momento?',
-    'faq.a6': 'Sim, você pode cancelar sua assinatura a qualquer momento sem penalidade.',
-
-    // About
-    'about.title': 'Sobre o TeachlyAI',
-    'about.subtitle': 'Estamos em uma missão para democratizar educação de qualidade através do poder da inteligência artificial.',
-    'about.vision.title': 'Nossa Visão',
-    'about.vision.desc1': 'Acreditamos que todo estudante merece acesso a educação personalizada de alta qualidade que se adapta ao seu estilo único de aprendizado.',
-    'about.vision.desc2': 'Combinando tecnologia de IA de ponta com metodologias educacionais comprovadas.',
-    'about.impact.title': 'Nosso Impacto',
-    'about.impact.desc': 'Junte-se a milhares de estudantes, professores e pais que já estão experimentando o futuro da educação.',
-    'about.impact.ai': 'Impulsionado por IA',
-    'about.impact.learning': 'Aprendizado',
-    'about.impact.global': 'Global',
-    'about.impact.accessibility': 'Acessibilidade',
-    'about.impact.adaptive': 'Adaptativo',
-    'about.impact.curriculum': 'Currículo',
-    'about.impact.realtime': 'Tempo Real',
-    'about.impact.analytics': 'Análises',
-
-    // Contact
-    'contact.title': 'Entre em Contato',
-    'contact.subtitle': 'Tem perguntas? Adoraríamos ouvir de você. Envie-nos uma mensagem e responderemos o mais rápido possível.',
-    'contact.form.name': 'Seu Nome',
-    'contact.form.name.placeholder': 'Digite seu nome completo',
-    'contact.form.email': 'Endereço de Email',
-    'contact.form.email.placeholder': 'Digite seu endereço de email',
-    'contact.form.message': 'Mensagem',
-    'contact.form.message.placeholder': 'Nos diga como podemos ajudá-lo...',
-    'contact.form.send': 'Enviar Mensagem',
-
-    // Final CTA
-    'final.cta.title': 'Pronto para Transformar sua Experiência de Aprendizado?',
-    'final.cta.subtitle': 'Junte-se a milhões de estudantes ao redor do mundo que já estão experimentando o futuro da educação personalizada.',
-    'final.cta.trial': 'Iniciar Teste Gratuito',
-    'final.cta.demo': 'Experimentar Demo'
+    common: {
+      loading: 'Carregando...',
+      back: 'Voltar',
+      more: 'mais',
+    },
+    modules: {
+      title: 'Módulos de Aprendizagem',
+      description: 'Explore nossa coleção selecionada de módulos de aprendizagem e currículos projetados por especialistas em educação',
+      searchPlaceholder: 'Pesquisar módulos...',
+      categories: {
+        all: 'Todos os Módulos',
+        math: 'Matemática',
+        science: 'Ciências',
+        english: 'Inglês',
+        history: 'História',
+        programming: 'Programação'
+      },
+      subjects: 'Matérias',
+      standards: 'Padrões',
+      startLearning: 'Começar a Aprender',
+      noModulesFound: 'Nenhum módulo encontrado',
+      adjustFilters: 'Tente ajustar sua pesquisa ou critérios de filtro'
+    },
+    progress: {
+      title: 'Painel de Aprendizagem',
+      demoTitle: 'Demo do Painel dos Pais',
+      description: 'Acompanhe suas missões, monitore o progresso e veja suas análises de aprendizagem.',
+      demoDescription: 'Veja como você pode monitorar o progresso de aprendizagem, missões e conquistas do seu filho.',
+      demoNotice: 'Esta é uma demo mostrando o progresso de aprendizagem de Emma Johnson. Cadastre-se para acompanhar o progresso real do seu filho!',
+      notAvailable: 'Painel de monitoramento não disponível para estudantes.',
+      tabs: {
+        monitoring: 'Visão Geral',
+        childProgress: 'Progresso da Criança',
+        quests: 'Missões',
+        achievements: 'Conquistas',
+        subjects: 'Matérias',
+        analytics: 'Análises'
+      }
+    },
+    testing: {
+      title: 'Testes',
+      createTest: 'Criar Teste',
+      quizLibrary: 'Biblioteca de Quiz'
+    },
+    chat: {
+      title: 'Chat do Tutor IA',
+      newChat: 'Novo Chat',
+      previousChats: 'Chats Anteriores',
+      sendMessage: 'Enviar mensagem',
+      voiceResponse: 'Resposta por Voz',
+      uploadFile: 'Enviar Arquivo',
+      navigation: {
+        chat: 'Chat',
+        progress: 'Progresso',
+        modules: 'Módulos'
+      }
+    },
+    auth: {
+      title: 'Bem-vindo ao TeachlyAI',
+      subtitle: 'Faça login para acessar sua experiência de aprendizagem personalizada',
+      signInTab: 'Entrar',
+      signUpTab: 'Cadastrar',
+      email: 'E-mail',
+      password: 'Senha',
+      confirmPassword: 'Confirmar Senha',
+      signInButton: 'Entrar',
+      signUpButton: 'Criar Conta',
+      forgotPassword: 'Esqueceu sua senha?',
+      noAccount: 'Não tem uma conta?',
+      hasAccount: 'Já tem uma conta?',
+      signUpLink: 'Cadastre-se aqui',
+      signInLink: 'Entre aqui',
+      errors: {
+        invalidCredentials: 'E-mail ou senha inválidos',
+        emailInUse: 'E-mail já em uso',
+        weakPassword: 'A senha deve ter pelo menos 6 caracteres',
+        passwordMismatch: 'As senhas não coincidem',
+        genericError: 'Ocorreu um erro. Tente novamente.'
+      }
+    }
   },
   it: {
-    // Navigation
-    'nav.features': 'Funzionalità',
-    'nav.pricing': 'Prezzi',
-    'nav.about': 'Chi siamo',
-    'nav.contact': 'Contatti',
-    'nav.chat': 'Chat',
-    'nav.monitoring': 'Monitoraggio',
-    'nav.modules': 'Moduli',
-
-    // Hero Section
-    'hero.title': 'Rivoluziona l\'Apprendimento con l\'Educazione Guidata dall\'IA',
-    'hero.subtitle': 'Sperimenta il futuro dell\'apprendimento personalizzato con i nostri tutor IA avanzati che si adattano allo stile e al ritmo unici di ogni studente.',
-
-    // CTA Buttons
-    'cta.start': 'Inizia il tuo Viaggio di Apprendimento',
-    'cta.demo': 'Prova la Demo Interattiva',
-    'cta.trial': 'Inizia Prova Gratuita',
-
-    // Features Section
-    'features.section.title': 'Funzionalità Potenti per l\'Apprendimento Moderno',
-    'features.section.subtitle': 'Scopri la nostra tecnologia educativa all\'avanguardia progettata per rendere l\'apprendimento coinvolgente, efficace e accessibile a tutti.',
-    'features.adaptive.title': 'Apprendimento Adattivo',
-    'features.adaptive.desc': 'La nostra IA si adatta allo stile di apprendimento, al ritmo e alle preferenze di ogni studente, creando esperienze educative veramente personalizzate.',
-    'features.voice.title': 'Interazione Vocale Naturale',
-    'features.voice.desc': 'Partecipa a conversazioni naturali con il nostro tutor IA attraverso voce o testo, rendendo l\'apprendimento facile come parlare con un amico esperto.',
-    'features.content.title': 'Analisi Intelligente dei Contenuti',
-    'features.content.desc': 'Carica qualsiasi documento, immagine o risorsa e la nostra IA crea istantaneamente lezioni interattive e quiz.',
-    'features.gamified.title': 'Viaggio di Apprendimento Gamificato',
-    'features.gamified.desc': 'Trasforma l\'educazione in un\'avventura con missioni, traguardi, classifiche e ricompense che motivano gli studenti.',
-    'features.analytics.title': 'Analisi Avanzate',
-    'features.analytics.desc': 'Approfondimenti completi sui progressi dell\'apprendimento, punti di forza, debolezze e raccomandazioni per il miglioramento.',
-    'features.collaborative.title': 'Ambiente Collaborativo',
-    'features.collaborative.desc': 'Connetti studenti, insegnanti e genitori in una piattaforma unificata che promuove collaborazione e comunicazione.',
-
-    // Subjects
-    'subjects.title': 'Copertura Completa delle Materie',
-    'subjects.subtitle': 'Dai concetti elementari agli argomenti avanzati, i nostri tutor IA coprono ogni materia con profondità ed esperienza.',
-    'subjects.mathematics.title': 'Matematica',
-    'subjects.mathematics.desc': 'Algebra, Calcolo, Statistica, Geometria',
-    'subjects.sciences.title': 'Scienze',
-    'subjects.sciences.desc': 'Fisica, Chimica, Biologia, Ambientale',
-    'subjects.literature.title': 'Letteratura',
-    'subjects.literature.desc': 'Lettura, Scrittura, Analisi Critica',
-    'subjects.social.title': 'Studi Sociali',
-    'subjects.social.desc': 'Storia, Geografia, Educazione Civica, Economia',
-    'subjects.technology.title': 'Tecnologia',
-    'subjects.technology.desc': 'Programmazione, Alfabetizzazione Digitale, IA',
-    'subjects.arts.title': 'Arte',
-    'subjects.arts.desc': 'Arti Visive, Musica, Espressione Creativa',
-    'subjects.languages.title': 'Lingue',
-    'subjects.languages.desc': 'Inglese, Spagnolo, Francese, Mandarino',
-    'subjects.health.title': 'Salute ed EF',
-    'subjects.health.desc': 'Educazione Fisica, Scienze della Salute',
-
-    // Advanced Features
-    'advanced.title': 'Funzionalità Avanzate di Apprendimento',
-    'advanced.adaptive.title': 'Adattamento Intelligente',
-    'advanced.adaptive.desc': 'La nostra IA impara continuamente dalle interazioni per fornire esperienze di apprendimento sempre più personalizzate.',
-    'advanced.feedback.title': 'Sistema di Feedback Istantaneo',
-    'advanced.feedback.desc': 'Ricevi feedback immediato e costruttivo su compiti, quiz e attività.',
-    'advanced.safe.title': 'Ambiente di Apprendimento Sicuro',
-    'advanced.safe.desc': 'Piattaforma conforme COPPA con robuste protezioni della privacy e filtraggio dei contenuti.',
-    'advanced.availability.title': 'Disponibilità 24/7',
-    'advanced.availability.desc': 'Impara al tuo ritmo, in qualsiasi momento, ovunque. I nostri tutor IA sono disponibili 24 ore su 24.',
-
-    // Achievement System
-    'achievement.title': 'Sistema di Traguardi',
-    'achievement.desc': 'Sblocca distintivi, scala le classifiche e celebra i traguardi mentre progredisci nel tuo viaggio di apprendimento.',
-    'achievement.streak': 'Serie di Apprendimento Giornaliero',
-    'achievement.progress': 'Progresso',
-    'achievement.problems': 'Problemi Risolti',
-    'achievement.tracking': 'Monitoraggio',
-    'achievement.level': 'Livello Attuale',
-    'achievement.growing': 'In Crescita',
-
-    // Testimonials
-    'testimonials.title': 'Cosa Dicono gli Educatori',
-    'testimonials.subtitle': 'Ascolta da insegnanti, genitori e studenti che hanno trasformato la loro esperienza di apprendimento.',
-    'testimonials.teacher': 'Insegnante di Scuola Superiore',
-    'testimonials.teacher.content': 'TeachlyAI ha completamente trasformato il modo in cui i miei studenti si impegnano nell\'apprendimento.',
-    'testimonials.parent': 'Genitore di Due Studenti',
-    'testimonials.parent.content': 'I miei figli ora non vedono l\'ora di studiare. La gamification li mantiene motivati.',
-    'testimonials.principal': 'Preside di Scuola',
-    'testimonials.principal.content': 'Abbiamo visto miglioramenti notevoli nelle prestazioni e nell\'impegno degli studenti.',
-
-    // Pricing
-    'pricing.title': 'Scegli il tuo Piano di Apprendimento',
-    'pricing.subtitle': 'Opzioni di prezzo flessibili progettate per soddisfare ogni esigenza di apprendimento e budget.',
-    'pricing.individual': 'Individuale',
-    'pricing.individual.price': '€18',
-    'pricing.individual.feature1': 'Sessioni di tutoraggio IA illimitate',
-    'pricing.individual.feature2': 'Tutte le aree tematiche coperte',
-    'pricing.individual.feature3': 'Monitoraggio progressi e analisi',
-    'pricing.individual.feature4': 'Accesso mobile e web',
-    'pricing.family': 'Famiglia',
-    'pricing.family.price': '€38',
-    'pricing.family.feature1': 'Fino a 4 account studenti',
-    'pricing.family.feature2': 'Dashboard di monitoraggio genitori',
-    'pricing.family.feature3': 'Report di progresso condivisi',
-    'pricing.family.feature4': 'Supporto clienti prioritario',
-    'pricing.school': 'Scuola',
-    'pricing.school.price': 'Personalizzato',
-    'pricing.school.feature1': 'Account studenti illimitati',
-    'pricing.school.feature2': 'Dashboard amministratore',
-    'pricing.school.feature3': 'Integrazione curriculum personalizzato',
-    'pricing.school.feature4': 'Analisi e report avanzati',
-    'pricing.month': '/mese',
-    'pricing.most.popular': 'Più Popolare',
-    'pricing.get.started': 'Inizia',
-    'pricing.contact.sales': 'Contatta Vendite',
-
-    // FAQ
-    'faq.title': 'Domande Frequenti',
-    'faq.q1': 'Come l\'IA personalizza l\'apprendimento per ogni studente?',
-    'faq.a1': 'La nostra IA analizza modelli di apprendimento, tempi di risposta e livelli di comprensione per adattare i contenuti.',
-    'faq.q2': 'TeachlyAI è adatto a tutte le fasce d\'età?',
-    'faq.a2': 'Sì! La nostra piattaforma si adatta a studenti dalla scuola elementare alle superiori e oltre.',
-    'faq.q3': 'Come posso monitorare i progressi di mio figlio?',
-    'faq.a3': 'I genitori hanno accesso a dashboard complete che mostrano progressi di apprendimento e aree di miglioramento.',
-    'faq.q4': 'Quali materie sono coperte?',
-    'faq.a4': 'Copriamo tutte le materie principali incluse Matematica, Scienze, Letteratura, Studi Sociali e altro.',
-    'faq.q5': 'I miei dati sono sicuri e privati?',
-    'faq.a5': 'Assolutamente. Siamo conformi COPPA con robuste protezioni della privacy.',
-    'faq.q6': 'Posso cancellare il mio abbonamento in qualsiasi momento?',
-    'faq.a6': 'Sì, puoi cancellare il tuo abbonamento in qualsiasi momento senza penali.',
-
-    // About
-    'about.title': 'Chi è TeachlyAI',
-    'about.subtitle': 'Siamo in missione per democratizzare l\'educazione di qualità attraverso il potere dell\'intelligenza artificiale.',
-    'about.vision.title': 'La Nostra Visione',
-    'about.vision.desc1': 'Crediamo che ogni studente meriti l\'accesso a un\'educazione personalizzata e di alta qualità che si adatti al suo stile di apprendimento unico.',
-    'about.vision.desc2': 'Combinando tecnologia IA all\'avanguardia con metodologie educative comprovate.',
-    'about.impact.title': 'Il Nostro Impatto',
-    'about.impact.desc': 'Unisciti a migliaia di studenti, insegnanti e genitori che stanno già sperimentando il futuro dell\'educazione.',
-    'about.impact.ai': 'Guidato da IA',
-    'about.impact.learning': 'Apprendimento',
-    'about.impact.global': 'Globale',
-    'about.impact.accessibility': 'Accessibilità',
-    'about.impact.adaptive': 'Adattivo',
-    'about.impact.curriculum': 'Curriculum',
-    'about.impact.realtime': 'Tempo Reale',
-    'about.impact.analytics': 'Analisi',
-
-    // Contact
-    'contact.title': 'Mettiti in Contatto',
-    'contact.subtitle': 'Hai domande? Ci piacerebbe sentirti. Inviaci un messaggio e ti risponderemo il prima possibile.',
-    'contact.form.name': 'Il Tuo Nome',
-    'contact.form.name.placeholder': 'Inserisci il tuo nome completo',
-    'contact.form.email': 'Indirizzo Email',
-    'contact.form.email.placeholder': 'Inserisci il tuo indirizzo email',
-    'contact.form.message': 'Messaggio',
-    'contact.form.message.placeholder': 'Dicci come possiamo aiutarti...',
-    'contact.form.send': 'Invia Messaggio',
-
-    // Final CTA
-    'final.cta.title': 'Pronto a Trasformare la Tua Esperienza di Apprendimento?',
-    'final.cta.subtitle': 'Unisciti a milioni di studenti in tutto il mondo che stanno già sperimentando il futuro dell\'educazione personalizzata.',
-    'final.cta.trial': 'Inizia Prova Gratuita',
-    'final.cta.demo': 'Prova Demo'
+    common: {
+      loading: 'Caricamento...',
+      back: 'Indietro',
+      more: 'altro',
+    },
+    modules: {
+      title: 'Moduli di Apprendimento',
+      description: 'Esplora la nostra collezione curata di moduli di apprendimento e curricoli progettati da esperti di educazione',
+      searchPlaceholder: 'Cerca moduli...',
+      categories: {
+        all: 'Tutti i Moduli',
+        math: 'Matematica',
+        science: 'Scienze',
+        english: 'Inglese',
+        history: 'Storia',
+        programming: 'Programmazione'
+      },
+      subjects: 'Materie',
+      standards: 'Standard',
+      startLearning: 'Inizia ad Imparare',
+      noModulesFound: 'Nessun modulo trovato',
+      adjustFilters: 'Prova ad aggiustare la tua ricerca o i criteri di filtro'
+    },
+    progress: {
+      title: 'Dashboard di Apprendimento',
+      demoTitle: 'Demo Dashboard Genitori',
+      description: 'Traccia le tue missioni, monitora i progressi e vedi le tue analisi di apprendimento.',
+      demoDescription: 'Vedi come puoi monitorare i progressi di apprendimento, le missioni e i risultati di tuo figlio.',
+      demoNotice: 'Questa è una demo che mostra i progressi di apprendimento di Emma Johnson. Registrati per tracciare i veri progressi di tuo figlio!',
+      notAvailable: 'Dashboard di monitoraggio non disponibile per gli studenti.',
+      tabs: {
+        monitoring: 'Panoramica',
+        childProgress: 'Progresso del Bambino',
+        quests: 'Missioni',
+        achievements: 'Risultati',
+        subjects: 'Materie',
+        analytics: 'Analisi'
+      }
+    },
+    testing: {
+      title: 'Test',
+      createTest: 'Crea un Test',
+      quizLibrary: 'Libreria Quiz'
+    },
+    chat: {
+      title: 'Chat Tutor IA',
+      newChat: 'Nuova Chat',
+      previousChats: 'Chat Precedenti',
+      sendMessage: 'Invia messaggio',
+      voiceResponse: 'Risposta Vocale',
+      uploadFile: 'Carica File',
+      navigation: {
+        chat: 'Chat',
+        progress: 'Progresso',
+        modules: 'Moduli'
+      }
+    },
+    auth: {
+      title: 'Benvenuto in TeachlyAI',
+      subtitle: 'Accedi per accedere alla tua esperienza di apprendimento personalizzata',
+      signInTab: 'Accedi',
+      signUpTab: 'Registrati',
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Conferma Password',
+      signInButton: 'Accedi',
+      signUpButton: 'Crea Account',
+      forgotPassword: 'Password dimenticata?',
+      noAccount: 'Non hai un account?',
+      hasAccount: 'Hai già un account?',
+      signUpLink: 'Registrati qui',
+      signInLink: 'Accedi qui',
+      errors: {
+        invalidCredentials: 'Email o password non validi',
+        emailInUse: 'Email già in uso',
+        weakPassword: 'La password dovrebbe essere di almeno 6 caratteri',
+        passwordMismatch: 'Le password non corrispondono',
+        genericError: 'Si è verificato un errore. Riprova.'
+      }
+    }
   },
   ru: {
-    // Navigation
-    'nav.features': 'Возможности',
-    'nav.pricing': 'Цены',
-    'nav.about': 'О нас',
-    'nav.contact': 'Контакты',
-    'nav.chat': 'Чат',
-    'nav.monitoring': 'Мониторинг',
-    'nav.modules': 'Модули',
-
-    // Hero Section
-    'hero.title': 'Революционизируйте обучение с образованием на основе ИИ',
-    'hero.subtitle': 'Испытайте будущее персонализированного обучения с нашими продвинутыми ИИ-репетиторами, которые адаптируются к уникальному стилю и темпу каждого студента.',
-
-    // CTA Buttons
-    'cta.start': 'Начните свой путь обучения',
-    'cta.demo': 'Попробуйте интерактивную демо-версию',
-    'cta.trial': 'Начать бесплатную пробную версию',
-
-    // Features Section
-    'features.section.title': 'Мощные возможности для современного обучения',
-    'features.section.subtitle': 'Откройте для себя нашу передовую образовательную технологию, разработанную для того, чтобы сделать обучение увлекательным, эффективным и доступным для всех.',
-    'features.adaptive.title': 'Адаптивное обучение',
-    'features.adaptive.desc': 'Наш ИИ адаптируется к стилю обучения, темпу и предпочтениям каждого студента, создавая по-настоящему персонализированные образовательные впечатления.',
-    'features.voice.title': 'Естественное голосовое взаимодействие',
-    'features.voice.desc': 'Ведите естественные разговоры с нашим ИИ-репетитором через голос или текст, делая обучение таким же легким, как разговор с знающим другом.',
-    'features.content.title': 'Умный анализ контента',
-    'features.content.desc': 'Загрузите любой документ, изображение или ресурс, и наш ИИ мгновенно создаст интерактивные уроки и тесты.',
-    'features.gamified.title': 'Геймифицированное обучение',
-    'features.gamified.desc': 'Превратите образование в приключение с квестами, достижениями, рейтингами и наградами, которые мотивируют студентов.',
-    'features.analytics.title': 'Продвинутая аналитика',
-    'features.analytics.desc': 'Всесторонние взгляды на прогресс обучения, сильные и слабые стороны, и рекомендации для улучшения.',
-    'features.collaborative.title': 'Совместная среда',
-    'features.collaborative.desc': 'Соедините студентов, учителей и родителей на единой платформе, которая способствует сотрудничеству и общению.',
-
-    // Subjects
-    'subjects.title': 'Всестороннее покрытие предметов',
-    'subjects.subtitle': 'От элементарных концепций до продвинутых тем, наши ИИ-репетиторы покрывают каждый предмет с глубиной и экспертизой.',
-    'subjects.mathematics.title': 'Математика',
-    'subjects.mathematics.desc': 'Алгебра, Математический анализ, Статистика, Геометрия',
-    'subjects.sciences.title': 'Науки',
-    'subjects.sciences.desc': 'Физика, Химия, Биология, Экология',
-    'subjects.literature.title': 'Литература',
-    'subjects.literature.desc': 'Чтение, Письмо, Критический анализ',
-    'subjects.social.title': 'Общественные науки',
-    'subjects.social.desc': 'История, География, Обществознание, Экономика',
-    'subjects.technology.title': 'Технологии',
-    'subjects.technology.desc': 'Программирование, Цифровая грамотность, ИИ',
-    'subjects.arts.title': 'Искусство',
-    'subjects.arts.desc': 'Изобразительное искусство, Музыка, Творческое выражение',
-    'subjects.languages.title': 'Языки',
-    'subjects.languages.desc': 'Английский, Испанский, Французский, Китайский',
-    'subjects.health.title': 'Здоровье и физкультура',
-    'subjects.health.desc': 'Физическое воспитание, Науки о здоровье',
-
-    // Advanced Features
-    'advanced.title': 'Продвинутые возможности обучения',
-    'advanced.adaptive.title': 'Интеллектуальная адаптация',
-    'advanced.adaptive.desc': 'Наш ИИ непрерывно учится на взаимодействиях для предоставления все более персонализированных образовательных впечатлений.',
-    'advanced.feedback.title': 'Система мгновенной обратной связи',
-    'advanced.feedback.desc': 'Получайте немедленную, конструктивную обратную связь по заданиям, тестам и активностям.',
-    'advanced.safe.title': 'Безопасная среда обучения',
-    'advanced.safe.desc': 'Платформа, соответствующая COPPA, с надежной защитой конфиденциальности и фильтрацией контента.',
-    'advanced.availability.title': 'Доступность 24/7',
-    'advanced.availability.desc': 'Учитесь в своем темпе, в любое время, в любом месте. Наши ИИ-репетиторы доступны круглосуточно.',
-
-    // Achievement System
-    'achievement.title': 'Система достижений',
-    'achievement.desc': 'Разблокируйте значки, поднимайтесь по рейтингам и отмечайте вехи, продвигаясь в своем учебном путешествии.',
-    'achievement.streak': 'Ежедневная серия обучения',
-    'achievement.progress': 'Прогресс',
-    'achievement.problems': 'Решенные задачи',
-    'achievement.tracking': 'Отслеживание',
-    'achievement.level': 'Текущий уровень',
-    'achievement.growing': 'Растет',
-
-    // Testimonials
-    'testimonials.title': 'Что говорят педагоги',
-    'testimonials.subtitle': 'Послушайте учителей, родителей и студентов, которые трансформировали свой учебный опыт.',
-    'testimonials.teacher': 'Учитель старших классов',
-    'testimonials.teacher.content': 'TeachlyAI полностью трансформировал то, как мои студенты взаимодействуют с обучением.',
-    'testimonials.parent': 'Родитель двух студентов',
-    'testimonials.parent.content': 'Мои дети теперь действительно с нетерпением ждут учебы. Геймификация поддерживает их мотивацию.',
-    'testimonials.principal': 'Директор школы',
-    'testimonials.principal.content': 'Мы видели замечательные улучшения в успеваемости и вовлеченности студентов.',
-
-    // Pricing
-    'pricing.title': 'Выберите свой план обучения',
-    'pricing.subtitle': 'Гибкие варианты ценообразования, разработанные для удовлетворения каждой потребности в обучении и бюджета.',
-    'pricing.individual': 'Индивидуальный',
-    'pricing.individual.price': '₽1,900',
-    'pricing.individual.feature1': 'Неограниченные сессии с ИИ-репетитором',
-    'pricing.individual.feature2': 'Все предметные области покрыты',
-    'pricing.individual.feature3': 'Отслеживание прогресса и аналитика',
-    'pricing.individual.feature4': 'Мобильный и веб-доступ',
-    'pricing.family': 'Семейный',
-    'pricing.family.price': '₽3,900',
-    'pricing.family.feature1': 'До 4 студенческих аккаунтов',
-    'pricing.family.feature2': 'Панель мониторинга для родителей',
-    'pricing.family.feature3': 'Общие отчеты о прогрессе',
-    'pricing.family.feature4': 'Приоритетная поддержка клиентов',
-    'pricing.school': 'Школьный',
-    'pricing.school.price': 'Индивидуально',
-    'pricing.school.feature1': 'Неограниченные студенческие аккаунты',
-    'pricing.school.feature2': 'Панель администратора',
-    'pricing.school.feature3': 'Интеграция пользовательской учебной программы',
-    'pricing.school.feature4': 'Продвинутая аналитика и отчеты',
-    'pricing.month': '/месяц',
-    'pricing.most.popular': 'Самый популярный',
-    'pricing.get.started': 'Начать',
-    'pricing.contact.sales': 'Связаться с продажами',
-
-    // FAQ
-    'faq.title': 'Часто задаваемые вопросы',
-    'faq.q1': 'Как ИИ персонализирует обучение для каждого студента?',
-    'faq.a1': 'Наш ИИ анализирует паттерны обучения, времена ответов и уровни понимания для адаптации контента.',
-    'faq.q2': 'Подходит ли TeachlyAI для всех возрастных групп?',
-    'faq.a2': 'Да! Наша платформа адаптируется к учащимся от начальной школы до старших классов и далее.',
-    'faq.q3': 'Как я могу отслеживать прогресс моего ребенка?',
-    'faq.a3': 'Родители имеют доступ к комплексным панелям, показывающим прогресс обучения и области для улучшения.',
-    'faq.q4': 'Какие предметы покрываются?',
-    'faq.a4': 'Мы покрываем все основные предметы, включая Математику, Науки, Литературу, Общественные науки и другие.',
-    'faq.q5': 'Безопасны и конфиденциальны ли мои данные?',
-    'faq.a5': 'Абсолютно. Мы соответствуем COPPA с надежной защитой конфиденциальности.',
-    'faq.q6': 'Могу ли я отменить подписку в любое время?',
-    'faq.a6': 'Да, вы можете отменить подписку в любое время без штрафа.',
-
-    // About
-    'about.title': 'О TeachlyAI',
-    'about.subtitle': 'Мы стремимся демократизировать качественное образование через силу искусственного интеллекта.',
-    'about.vision.title': 'Наше видение',
-    'about.vision.desc1': 'Мы верим, что каждый студент заслуживает доступа к персонализированному, высококачественному образованию, которое адаптируется к их уникальному стилю обучения.',
-    'about.vision.desc2': 'Объединяя передовые ИИ-технологии с проверенными образовательными методологиями.',
-    'about.impact.title': 'Наше влияние',
-    'about.impact.desc': 'Присоединяйтесь к тысячам студентов, учителей и родителей, которые уже испытывают будущее образования.',
-    'about.impact.ai': 'На основе ИИ',
-    'about.impact.learning': 'Обучение',
-    'about.impact.global': 'Глобальный',
-    'about.impact.accessibility': 'Доступность',
-    'about.impact.adaptive': 'Адаптивный',
-    'about.impact.curriculum': 'Учебная программа',
-    'about.impact.realtime': 'Реальное время',
-    'about.impact.analytics': 'Аналитика',
-
-    // Contact
-    'contact.title': 'Свяжитесь с нами',
-    'contact.subtitle': 'Есть вопросы? Мы хотели бы услышать от вас. Отправьте нам сообщение, и мы ответим как можно скорее.',
-    'contact.form.name': 'Ваше имя',
-    'contact.form.name.placeholder': 'Введите ваше полное имя',
-    'contact.form.email': 'Email адрес',
-    'contact.form.email.placeholder': 'Введите ваш email адрес',
-    'contact.form.message': 'Сообщение',
-    'contact.form.message.placeholder': 'Расскажите нам, как мы можем вам помочь...',
-    'contact.form.send': 'Отправить сообщение',
-
-    // Final CTA
-    'final.cta.title': 'Готовы трансформировать ваш учебный опыт?',
-    'final.cta.subtitle': 'Присоединяйтесь к миллионам студентов по всему миру, которые уже испытывают будущее персонализированного образования.',
-    'final.cta.trial': 'Начать бесплатную пробную версию',
-    'final.cta.demo': 'Попробовать демо'
+    common: {
+      loading: 'Загрузка...',
+      back: 'Назад',
+      more: 'больше',
+    },
+    modules: {
+      title: 'Учебные Модули',
+      description: 'Изучите нашу тщательно отобранную коллекцию учебных модулей и учебных программ, разработанных экспертами в области образования',
+      searchPlaceholder: 'Поиск модулей...',
+      categories: {
+        all: 'Все Модули',
+        math: 'Математика',
+        science: 'Науки',
+        english: 'Английский',
+        history: 'История',
+        programming: 'Программирование'
+      },
+      subjects: 'Предметы',
+      standards: 'Стандарты',
+      startLearning: 'Начать Обучение',
+      noModulesFound: 'Модули не найдены',
+      adjustFilters: 'Попробуйте настроить поиск или критерии фильтра'
+    },
+    progress: {
+      title: 'Панель Обучения',
+      demoTitle: 'Демо Панели Родителей',
+      description: 'Отслеживайте свои квесты, контролируйте прогресс и смотрите аналитику обучения.',
+      demoDescription: 'Посмотрите, как вы можете контролировать прогресс обучения, квесты и достижения вашего ребенка.',
+      demoNotice: 'Это демо, показывающее прогресс обучения Эммы Джонсон. Зарегистрируйтесь, чтобы отслеживать реальный прогресс вашего ребенка!',
+      notAvailable: 'Панель мониторинга недоступна для студентов.',
+      tabs: {
+        monitoring: 'Обзор',
+        childProgress: 'Прогресс Ребенка',
+        quests: 'Квесты',
+        achievements: 'Достижения',
+        subjects: 'Предметы',
+        analytics: 'Аналитика'
+      }
+    },
+    testing: {
+      title: 'Тестирование',
+      createTest: 'Создать Тест',
+      quizLibrary: 'Библиотека Викторин'
+    },
+    chat: {
+      title: 'Чат ИИ Репетитора',
+      newChat: 'Новый Чат',
+      previousChats: 'Предыдущие Чаты',
+      sendMessage: 'Отправить сообщение',
+      voiceResponse: 'Голосовой Ответ',
+      uploadFile: 'Загрузить Файл',
+      navigation: {
+        chat: 'Чат',
+        progress: 'Прогресс',
+        modules: 'Модули'
+      }
+    },
+    auth: {
+      title: 'Добро пожаловать в TeachlyAI',
+      subtitle: 'Войдите, чтобы получить доступ к вашему персонализированному опыту обучения',
+      signInTab: 'Войти',
+      signUpTab: 'Регистрация',
+      email: 'Электронная почта',
+      password: 'Пароль',
+      confirmPassword: 'Подтвердить Пароль',
+      signInButton: 'Войти',
+      signUpButton: 'Создать Аккаунт',
+      forgotPassword: 'Забыли пароль?',
+      noAccount: 'Нет аккаунта?',
+      hasAccount: 'Уже есть аккаунт?',
+      signUpLink: 'Зарегистрируйтесь здесь',
+      signInLink: 'Войдите здесь',
+      errors: {
+        invalidCredentials: 'Неверная электронная почта или пароль',
+        emailInUse: 'Электронная почта уже используется',
+        weakPassword: 'Пароль должен содержать не менее 6 символов',
+        passwordMismatch: 'Пароли не совпадают',
+        genericError: 'Произошла ошибка. Попробуйте еще раз.'
+      }
+    }
   },
   ar: {
-    // Navigation
-    'nav.features': 'الميزات',
-    'nav.pricing': 'التسعير',
-    'nav.about': 'حولنا',
-    'nav.contact': 'اتصل بنا',
-    'nav.chat': 'الدردشة',
-    'nav.monitoring': 'المراقبة',
-    'nav.modules': 'الوحدات',
-
-    // Hero Section
-    'hero.title': 'ثورة في التعلم مع التعليم المدعوم بالذكاء الاصطناعي',
-    'hero.subtitle': 'اختبر مستقبل التعليم الشخصي مع الذكاء الاصطناعي المتقدم من TeachlyAI',
-
-    // CTA Buttons
-    'cta.start': 'ابدأ رحلة التعلم',
-    'cta.demo': 'جرب العرض التوضيحي',
-    'cta.trial': 'ابدأ النسخة التجريبية المجانية',
-
-    // Features Section
-    'features.section.title': 'ميزات قوية للتعلم الحديث',
-    'features.section.subtitle': 'اكتشف التكنولوجيا التعليمية المتطورة المصممة لجعل التعلم جذاباً وفعالاً ومتاحاً للجميع.',
-    'features.adaptive.title': 'الذكاء التكيفي',
-    'features.adaptive.desc': 'Our AI adapts to each student\'s learning style, pace, and preferences, creating truly personalized educational experiences that evolve with the learner.',
-    'features.voice.title': 'التعلم الصوتي الطبيعي',
-    'features.voice.desc': 'Engage in natural conversations with our AI tutor through voice or text, making learning as easy as having a conversation with a knowledgeable friend.',
-    'features.content.title': 'تحليل المحتوى الذكي',
-    'features.content.desc': 'Upload any document, image, or resource and our AI instantly creates interactive lessons, quizzes, and learning materials tailored to the content.',
-    'features.gamified.title': 'رحلة التعلم التفاعلية',
-    'features.gamified.desc': 'Transform education into an adventure with quests, achievements, leaderboards, and rewards that motivate students to reach their full potential.',
-    'features.analytics.title': 'التحليلات المتقدمة',
-    'features.analytics.desc': 'Comprehensive insights into learning progress, strengths, weaknesses, and recommendations for improvement with detailed visual analytics.',
-    'features.collaborative.title': 'البيئة التعاونية',
-    'features.collaborative.desc': 'Connect students, teachers, and parents in a unified platform that promotes collaboration, communication, and shared learning goals.',
-
-    // Subjects
-    'subjects.title': 'تغطية شاملة للمواد الدراسية',
-    'subjects.subtitle': 'من المفاهيم الأساسية إلى المواضيع المتقدمة، يغطي معلمونا بالذكاء الاصطناعي كل مادة بعمق وخبرة.',
-    'subjects.mathematics.title': 'الرياضيات',
-    'subjects.mathematics.desc': 'الجبر، التفاضل والتكامل، الإحصاء، الهندسة',
-    'subjects.sciences.title': 'العلوم',
-    'subjects.sciences.desc': 'الفيزياء، الكيمياء، الأحياء، البيئة',
-    'subjects.literature.title': 'الأدب',
-    'subjects.literature.desc': 'القراءة، الكتابة، التحليل النقدي',
-    'subjects.social.title': 'الدراسات الاجتماعية',
-    'subjects.social.desc': 'التاريخ، الجغرافيا، التربية المدنية، الاقتصاد',
-    'subjects.technology.title': 'التكنولوجيا',
-    'subjects.technology.desc': 'البرمجة، محو الأمية الرقمية، الذكاء الاصطناعي',
-    'subjects.arts.title': 'الفنون',
-    'subjects.arts.desc': 'الفنون البصرية، الموسيقى، التعبير الإبداعي',
-    'subjects.languages.title': 'اللغات',
-    'subjects.languages.desc': 'الإنجليزية، الإسبانية، الفرنسية، الصينية',
-    'subjects.health.title': 'الصحة والرياضة',
-    'subjects.health.desc': 'التربية البدنية، علوم الصحة',
-
-    // Advanced Features
-    'advanced.title': 'ميزات التعلم المتقدمة',
-    'advanced.adaptive.title': 'التكيف الذكي',
-    'advanced.adaptive.desc': 'يتعلم الذكاء الاصطناعي باستمرار من التفاعلات لتوفير تجارب تعليمية شخصية بشكل متزايد.',
-    'advanced.feedback.title': 'نظام التغذية الراجعة الفورية',
-    'advanced.feedback.desc': 'احصل على تغذية راجعة فورية وبناءة حول الواجبات والاختبارات والأنشطة.',
-    'advanced.safe.title': 'بيئة تعلم آمنة',
-    'advanced.safe.desc': 'منصة متوافقة مع COPPA مع حماية قوية للخصوصية وتصفية المحتوى.',
-    'advanced.availability.title': 'متاح 24/7',
-    'advanced.availability.desc': 'تعلم وفقاً لوتيرتك الخاصة، في أي وقت، في أي مكان. معلمونا بالذكاء الاصطناعي متاحون على مدار الساعة.',
-
-    // Achievement System
-    'achievement.title': 'نظام الإنجازات',
-    'achievement.desc': 'افتح الشارات، اصعد على لوحات المتصدرين، واحتفل بالمعالم أثناء تقدمك في رحلة التعلم.',
-    'achievement.streak': 'سلسلة التعلم اليومية',
-    'achievement.progress': 'التقدم',
-    'achievement.problems': 'المشاكل المحلولة',
-    'achievement.tracking': 'التتبع',
-    'achievement.level': 'المستوى الحالي',
-    'achievement.growing': 'في نمو',
-
-    // Testimonials
-    'testimonials.title': 'ما يقوله المعلمون',
-    'testimonials.subtitle': 'استمع من المعلمين والأولياء والطلاب الذين حولوا تجربة التعلم الخاصة بهم.',
-    'testimonials.teacher': 'معلمة ثانوية',
-    'testimonials.teacher.content': 'لقد غير TeachlyAI تماماً كيف يتفاعل طلابي مع التعلم.',
-    'testimonials.parent': 'ولي أمر طالبين',
-    'testimonials.parent.content': 'أطفالي الآن يتطلعون فعلاً للدراسة. اللعب يبقيهم متحمسين.',
-    'testimonials.principal': 'مدير مدرسة',
-    'testimonials.principal.content': 'لقد رأينا تحسينات ملحوظة في أداء الطلاب ومشاركتهم.',
-
-    // Pricing
-    'pricing.title': 'اختر خطة التعلم الخاصة بك',
-    'pricing.subtitle': 'خيارات تسعير مرنة مصممة لتناسب كل احتياج تعليمي وميزانية.',
-    'pricing.individual': 'فردي',
-    'pricing.individual.price': '75 ريال',
-    'pricing.individual.feature1': 'جلسات التدريس بالذكاء الاصطناعي غير محدودة',
-    'pricing.individual.feature2': 'جميع المجالات الموضوعية مغطاة',
-    'pricing.individual.feature3': 'تتبع التقدم والتحليلات',
-    'pricing.individual.feature4': 'الوصول عبر الهاتف المحمول والويب',
-    'pricing.family': 'عائلي',
-    'pricing.family.price': '149 ريال',
-    'pricing.family.feature1': 'حتى 4 حسابات طلاب',
-    'pricing.family.feature2': 'لوحة مراقبة الأولياء',
-    'pricing.family.feature3': 'تقارير التقدم المشتركة',
-    'pricing.family.feature4': 'دعم العملاء ذو الأولوية',
-    'pricing.school': 'مدرسة',
-    'pricing.school.price': 'مخصص',
-    'pricing.school.feature1': 'حسابات طلاب غير محدودة',
-    'pricing.school.feature2': 'لوحة تحكم المسؤول',
-    'pricing.school.feature3': 'تكامل المنهج المخصص',
-    'pricing.school.feature4': 'تحليلات وتقارير متقدمة',
-    'pricing.month': '/شهر',
-    'pricing.most.popular': 'الأكثر شعبية',
-    'pricing.get.started': 'ابدأ',
-    'pricing.contact.sales': 'اتصل بالمبيعات',
-
-    // FAQ
-    'faq.title': 'الأسئلة الشائعة',
-    'faq.q1': 'كيف يخصص الذكاء الاصطناعي التعلم لكل طالب؟',
-    'faq.a1': 'يحلل الذكاء الاصطناعي أنماط التعلم وأوقات الاستجابة ومستويات الفهم لتكييف المحتوى.',
-    'faq.q2': 'هل TeachlyAI مناسب لجميع الفئات العمرية؟',
-    'faq.a2': 'نعم! تتكيف منصتنا مع المتعلمين من المدرسة الابتدائية إلى الثانوية وما بعدها.',
-    'faq.q3': 'كيف يمكنني تتبع تقدم طفلي؟',
-    'faq.a3': 'يحصل الأولياء على لوحات تحكم شاملة تظهر تقدم التعلم ومجالات التحسين.',
-    'faq.q4': 'ما المواد التي يتم تغطيتها؟',
-    'faq.a4': 'نغطي جميع المواد الأساسية بما في ذلك الرياضيات والعلوم والأدب والدراسات الاجتماعية.',
-    'faq.q5': 'هل بياناتي آمنة وخاصة؟',
-    'faq.a5': 'بالطبع. نحن متوافقون مع COPPA مع حماية قوية للخصوصية.',
-    'faq.q6': 'هل يمكنني إلغاء اشتراكي في أي وقت؟',
-    'faq.a6': 'نعم، يمكنك إلغاء اشتراكك في أي وقت بدون غرامة.',
-
-    // About
-    'about.title': 'حول TeachlyAI',
-    'about.subtitle': 'نحن في مهمة لإضفاء الطابع الديمقراطي على التعليم الجيد من خلال قوة الذكاء الاصطناعي.',
-    'about.vision.title': 'رؤيتنا',
-    'about.vision.desc1': 'نؤمن أن كل طالب يستحق الوصول إلى تعليم شخصي عالي الجودة يتكيف مع أسلوب التعلم الفريد.',
-    'about.vision.desc2': 'من خلال دمج تكنولوجيا الذكاء الاصطناعي المتطورة مع المنهجيات التعليمية المثبتة.',
-    'about.impact.title': 'تأثيرنا',
-    'about.impact.desc': 'انضم إلى آلاف الطلاب والمعلمين والأولياء الذين يختبرون بالفعل مستقبل التعليم.',
-    'about.impact.ai': 'مدعوم بالذكاء الاصطناعي',
-    'about.impact.learning': 'التعلم',
-    'about.impact.global': 'عالمي',
-    'about.impact.accessibility': 'إمكانية الوصول',
-    'about.impact.adaptive': 'تكيفي',
-    'about.impact.curriculum': 'المنهج',
-    'about.impact.realtime': 'الوقت الفعلي',
-    'about.impact.analytics': 'التحليلات',
-
-    // Contact
-    'contact.title': 'تواصل معنا',
-    'contact.subtitle': 'هل لديك أسئلة؟ نود أن نسمع منك. أرسل لنا رسالة وسنرد في أقرب وقت ممكن.',
-    'contact.form.name': 'اسمك',
-    'contact.form.name.placeholder': 'أدخل اسمك الكامل',
-    'contact.form.email': 'عنوان البريد الإلكتروني',
-    'contact.form.email.placeholder': 'أدخل عنوان بريدك الإلكتروني',
-    'contact.form.message': 'الرسالة',
-    'contact.form.message.placeholder': 'أخبرنا كيف يمكننا مساعدتك...',
-    'contact.form.send': 'إرسال الرسالة',
-
-    // Final CTA
-    'final.cta.title': 'مستعد لتحويل تجربة التعلم الخاصة بك؟',
-    'final.cta.subtitle': 'انضم إلى ملايين الطلاب حول العالم الذين يختبرون بالفعل مستقبل التعليم الشخصي.',
-    'final.cta.trial': 'ابدأ النسخة التجريبية المجانية',
-    'final.cta.demo': 'جرب العرض التوضيحي'
+    common: {
+      loading: 'جار التحميل...',
+      back: 'عودة',
+      more: 'المزيد',
+    },
+    modules: {
+      title: 'وحدات التعلم',
+      description: 'استكشف مجموعتنا المنتقاة من وحدات التعلم والمناهج المصممة من قبل خبراء التعليم',
+      searchPlaceholder: 'البحث في الوحدات...',
+      categories: {
+        all: 'جميع الوحدات',
+        math: 'الرياضيات',
+        science: 'العلوم',
+        english: 'الإنجليزية',
+        history: 'التاريخ',
+        programming: 'البرمجة'
+      },
+      subjects: 'المواد',
+      standards: 'المعايير',
+      startLearning: 'بدء التعلم',
+      noModulesFound: 'لم يتم العثور على وحدات',
+      adjustFilters: 'حاول تعديل معايير البحث أو التصفية'
+    },
+    progress: {
+      title: 'لوحة التعلم',
+      demoTitle: 'عرض توضيحي للوحة الوالدين',
+      description: 'تتبع مهامك، راقب التقدم، واطلع على تحليلات التعلم الخاصة بك.',
+      demoDescription: 'اطلع على كيفية مراقبة تقدم التعلم والمهام والإنجازات لطفلك.',
+      demoNotice: 'هذا عرض توضيحي يظهر تقدم التعلم لإيما جونسون. سجل لتتبع التقدم الحقيقي لطفلك!',
+      notAvailable: 'لوحة المراقبة غير متاحة للطلاب.',
+      tabs: {
+        monitoring: 'نظرة عامة',
+        childProgress: 'تقدم الطفل',
+        quests: 'المهام',
+        achievements: 'الإنجازات',
+        subjects: 'المواد',
+        analytics: 'التحليلات'
+      }
+    },
+    testing: {
+      title: 'الاختبارات',
+      createTest: 'إنشاء اختبار',
+      quizLibrary: 'مكتبة الاختبارات'
+    },
+    chat: {
+      title: 'محادثة المعلم الذكي',
+      newChat: 'محادثة جديدة',
+      previousChats: 'المحادثات السابقة',
+      sendMessage: 'إرسال رسالة',
+      voiceResponse: 'رد صوتي',
+      uploadFile: 'رفع ملف',
+      navigation: {
+        chat: 'المحادثة',
+        progress: 'التقدم',
+        modules: 'الوحدات'
+      }
+    },
+    auth: {
+      title: 'مرحباً بك في TeachlyAI',
+      subtitle: 'سجل الدخول للوصول إلى تجربة التعلم الشخصية الخاصة بك',
+      signInTab: 'تسجيل الدخول',
+      signUpTab: 'إنشاء حساب',
+      email: 'البريد الإلكتروني',
+      password: 'كلمة المرور',
+      confirmPassword: 'تأكيد كلمة المرور',
+      signInButton: 'تسجيل الدخول',
+      signUpButton: 'إنشاء حساب',
+      forgotPassword: 'نسيت كلمة المرور؟',
+      noAccount: 'ليس لديك حساب؟',
+      hasAccount: 'لديك حساب بالفعل؟',
+      signUpLink: 'سجل هنا',
+      signInLink: 'سجل الدخول هنا',
+      errors: {
+        invalidCredentials: 'بريد إلكتروني أو كلمة مرور غير صحيحة',
+        emailInUse: 'البريد الإلكتروني مستخدم بالفعل',
+        weakPassword: 'يجب أن تكون كلمة المرور على الأقل 6 أحرف',
+        passwordMismatch: 'كلمات المرور غير متطابقة',
+        genericError: 'حدث خطأ. يرجى المحاولة مرة أخرى.'
+      }
+    }
   }
 };
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState('en');
 
   const t = (key: string): string => {
-    return translations[language][key] || translations['en'][key] || key;
+    const keys = key.split('.');
+    let translation: any = translations[language];
+
+    for (const k of keys) {
+      if (translation && k in translation) {
+        translation = translation[k];
+      } else {
+        return key; // fallback to key if translation missing
+      }
+    }
+    return translation;
   };
 
   return (
@@ -1638,10 +859,4 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
-};
+export const useLanguage = () => useContext(LanguageContext);
