@@ -6,17 +6,26 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const [showDemoSelection, setShowDemoSelection] = useState(false);
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleStartLearning = () => {
+    setShowRoleSelection(true);
+  };
+
+  const handleTryDemo = () => {
+    navigate('/demo');
   };
 
   return (
@@ -32,7 +41,7 @@ const Index = () => {
 
       <main className="relative z-10 flex-1">
         {/* Hero Section */}
-        <section className="px-4 py-16 md:px-6 lg:px-8">
+        <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
               {t('hero.title')}
@@ -41,11 +50,11 @@ const Index = () => {
               {t('hero.subtitle')}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
-                onClick={() => setShowRoleSelection(true)}
+                onClick={handleStartLearning}
               >
                 {t('cta.start')}
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -54,7 +63,7 @@ const Index = () => {
                 size="lg" 
                 variant="outline" 
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                onClick={() => window.open('/demo', '_blank')}
+                onClick={handleTryDemo}
               >
                 {t('cta.demo')}
                 <BookOpen className="ml-2 h-5 w-5" />
@@ -64,7 +73,7 @@ const Index = () => {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="px-4 py-16 md:px-6 lg:px-8">
+        <section id="features" className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('features.section.title')}</h2>
@@ -329,7 +338,7 @@ const Index = () => {
 
               <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.school')}</h3>
-                <div className="text-4xl font-bold mb-6">{t('pricing.school.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
+                <div className="text-4xl font-bold mb-6">{t('pricing.school.price')}</div>
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature1')}</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature2')}</li>
@@ -494,7 +503,7 @@ const Index = () => {
                 <Button 
                   size="lg" 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
-                  onClick={() => setShowRoleSelection(true)}
+                  onClick={handleStartLearning}
                 >
                   {t('final.cta.trial')}
                 </Button>
@@ -502,7 +511,7 @@ const Index = () => {
                   size="lg" 
                   variant="outline" 
                   className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                  onClick={() => window.open('/demo', '_blank')}
+                  onClick={handleTryDemo}
                 >
                   {t('final.cta.demo')}
                 </Button>

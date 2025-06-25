@@ -1,489 +1,405 @@
+
 import { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useActivityTracking } from '@/hooks/useActivityTracking';
-import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
+import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
-import { ChatHeader } from './ChatHeader';
-import { MessageBubble } from './MessageBubble';
-import { ChatInput } from './ChatInput';
-import { getDemoSession, getDemoResponse } from '@/utils/demoChatData';
+import MessageList from '@/components/MessageList';
+import VoiceMessageInput from '@/components/VoiceMessageInput';
+import { useMessageHandler } from '@/hooks/useMessageHandler';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { curricula } from '@/utils/curriculaData';
+import { getDemoChatSessions, createDemoMessage, type DemoMessage } from '@/utils/demoChatData';
 
-interface DatabaseMessage {
-  id: string;
-  content: string;
-  is_from_user: boolean;
-  created_at: string;
-  audioUrl?: string;
-  fileName?: string;
-  fileUrl?: string;
+interface EnhancedChatAreaProps {
+  isDemoMode?: boolean;
+  demoTimeLeft?: number;
 }
 
-interface Curriculum {
-  id: string;
-  title: string;
-  content: any;
-  subjects: {
-    name: string;
-  };
-}
-
-export const EnhancedChatArea = () => {
-  const [messages, setMessages] = useState<DatabaseMessage[]>([]);
-  const [currentMessage, setCurrentMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeCurriculum, setActiveCurriculum] = useState<Curriculum | null>(null);
-  const [curricula, setCurricula] = useState<Curriculum[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isVoiceResponse, setIsVoiceResponse] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedChatAreaProps) => {
   const { user } = useAuth();
-  const { logActivity } = useActivityTracking();
-  const { trackInteraction, isAnalyzing } = useRealTimeAnalytics();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('chat');
+  const [activeCurriculum, setActiveCurriculum] = useState<any>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [textMessage, setTextMessage] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  
+  // Demo-specific state
+  const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
+  const {
+    messages,
+    setMessages,
+    messagesEndRef,
+    apiKeyError,
+    isQuizMode,
+    setIsQuizMode,
+    totalTokensUsed,
+    inputTokens,
+    outputTokens,
+    monthlyLimit,
+    isTokenLimitReached,
+    scrollToBottom,
+    getAIResponse,
+    handlePlayAudio,
+    handlePauseAudio,
+    trackResponseTime,
+    incrementTokenCount
+  } = useMessageHandler();
+
+  // Initialize demo messages
   useEffect(() => {
-    console.log('EnhancedChatArea: Initializing with user:', user ? 'authenticated' : 'demo mode');
-    
-    if (user) {
-      fetchCurricula();
-      startNewChat();
-    } else {
-      console.log('EnhancedChatArea: Setting up demo welcome message');
-      setMessages([{
-        id: 'welcome',
-        content: "Welcome to the AI Learning Assistant! I'm here to help you with your studies. Try our demo conversations in the sidebar, or ask me anything about any subject. I'll provide personalized guidance to help you learn and understand concepts clearly.",
-        is_from_user: false,
-        created_at: new Date().toISOString()
-      }]);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const fetchCurricula = async () => {
-    if (!user) return;
-
-    try {
-      const { data: schoolRelation } = await supabase
-        .from('school_student_relationships')
-        .select('school_id')
-        .eq('student_id', user.id)
-        .eq('is_active', true)
-        .single();
-
-      if (schoolRelation) {
-        const { data: schoolCurricula } = await supabase
-          .from('curricula')
-          .select(`
-            *,
-            subjects (name)
-          `)
-          .eq('school_id', schoolRelation.school_id)
-          .eq('is_active', true);
-
-        setCurricula(schoolCurricula || []);
-      }
-    } catch (error) {
-      console.error('Error fetching curricula:', error);
-    }
-  };
-
-  const fetchMessagesForSession = async (sessionId: string) => {
-    if (!user) {
-      // Load demo session
-      const demoSession = getDemoSession(sessionId);
-      if (demoSession) {
-        const demoMessages = demoSession.messages.map(msg => ({
-          ...msg,
-          created_at: msg.created_at
-        }));
-        setMessages(demoMessages);
-        setActiveSessionId(sessionId);
-      }
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('conversation_id', sessionId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    }
-  };
-
-  const startNewChat = () => {
-    setActiveSessionId(null);
-    if (user) {
-      setMessages([{
-        id: 'welcome',
-        content: "Hello! I'm your AI Learning Assistant. How can I help you with your studies today?",
-        is_from_user: false,
-        created_at: new Date().toISOString()
-      }]);
-    } else {
-      setMessages([{
-        id: 'welcome',
-        content: "Welcome to the AI Learning Assistant demo! I'm here to help you learn. Try asking me about math, science, writing, or any other subject. You can also explore the demo conversations in the sidebar!",
-        is_from_user: false,
-        created_at: new Date().toISOString()
-      }]);
-    }
-  };
-
-  const generateSessionId = () => {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  };
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await processVoiceInput(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error('Error starting recording:', error);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const processVoiceInput = async (audioBlob: Blob) => {
-    try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Audio = reader.result?.toString().split(',')[1];
-        if (base64Audio) {
-          const { data, error } = await supabase.functions.invoke('voice-to-text', {
-            body: { audio: base64Audio }
-          });
-
-          if (error) throw error;
-          if (data.text) {
-            setCurrentMessage(data.text);
+    if (isDemoMode) {
+      const demoSessions = getDemoChatSessions();
+      if (demoSessions.length > 0) {
+        setDemoMessages([
+          {
+            id: 'demo-welcome',
+            text: "Welcome to TeachlyAI! I'm your AI tutor ready to help you learn anything. You can ask me questions, upload files, or request voice responses. What would you like to learn about today?",
+            timestamp: new Date(),
+            isFromUser: false,
+            type: 'text',
+            tokenCount: 35
           }
-        }
-      };
-      reader.readAsDataURL(audioBlob);
-    } catch (error) {
-      console.error('Error processing voice input:', error);
-    }
-  };
-
-  const handleFileUpload = async () => {
-    if (!selectedFile) return;
-
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const fileMessage: DatabaseMessage = {
-        id: `file_${Date.now()}`,
-        content: `Uploaded file: ${selectedFile.name}`,
-        is_from_user: true,
-        created_at: new Date().toISOString(),
-        fileName: selectedFile.name
-      };
-
-      setMessages(prev => [...prev, fileMessage]);
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        ]);
       }
-    } catch (error) {
-      console.error('Error uploading file:', error);
     }
-  };
+  }, [isDemoMode]);
 
-  const sendMessage = async () => {
-    if (!currentMessage.trim()) return;
+  const handleSendText = async () => {
+    if (!textMessage.trim() || isProcessing) return;
 
-    const userMessage = currentMessage;
-    const startTime = Date.now();
-    const sessionId = activeSessionId || generateSessionId();
-    
-    if (!activeSessionId) {
-      setActiveSessionId(sessionId);
+    if (isDemoMode && demoTimeLeft && demoTimeLeft <= 0) {
+      return; // Don't allow new messages if demo time expired
     }
 
-    setCurrentMessage('');
-    setIsLoading(true);
+    const userMessage = textMessage.trim();
+    setTextMessage('');
 
-    try {
-      const userMsg: DatabaseMessage = {
-        id: `user_${Date.now()}`,
-        content: userMessage,
-        is_from_user: true,
-        created_at: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, userMsg]);
-
-      // Handle demo vs real responses
-      if (!user) {
-        // Demo response with realistic delay
-        setTimeout(() => {
-          const demoResponse = getDemoResponse(userMessage);
-          const aiMsg: DatabaseMessage = {
-            id: `ai_${Date.now()}`,
-            content: demoResponse,
-            is_from_user: false,
-            created_at: new Date().toISOString()
-          };
-          setMessages(prev => [...prev, aiMsg]);
-          setIsLoading(false);
-        }, 1000 + Math.random() * 2000); // 1-3 second delay
+    if (isDemoMode) {
+      // Demo mode - simulate AI responses
+      const newUserMessage = createDemoMessage(userMessage, true);
+      setDemoMessages(prev => [...prev, newUserMessage]);
+      
+      setIsProcessing(true);
+      
+      // Simulate AI thinking time
+      setTimeout(() => {
+        const aiResponses = [
+          "That's a great question! Let me help you understand this concept step by step...",
+          "I can definitely help you with that! Here's what you need to know...",
+          "Excellent topic to explore! Let me break this down for you...",
+          "I love that you're curious about this! Here's my explanation...",
+          "Perfect question for learning! Let me guide you through this...",
+        ];
+        
+        const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+        const aiMessage = createDemoMessage(randomResponse, false);
+        
+        setDemoMessages(prev => [...prev, aiMessage]);
+        setIsProcessing(false);
+      }, 1500);
+    } else {
+      // Real mode - use actual AI
+      if (isTokenLimitReached) {
+        alert('Monthly token limit reached. Please upgrade your plan.');
         return;
       }
 
-      // Real API call for authenticated users
-      if (user) {
-        await supabase
-          .from('messages')
-          .insert({
-            user_id: user.id,
-            content: userMessage,
-            is_from_user: true,
-            type: 'text',
-            curriculum_id: activeCurriculum?.id || null,
-            conversation_id: sessionId
-          });
-      }
-
-      let systemPrompt = "You are a helpful AI tutor. Help the student learn and understand concepts clearly and engagingly.";
-      
-      if (activeCurriculum) {
-        systemPrompt += ` You are currently teaching based on this curriculum: "${activeCurriculum.title}". `;
-        systemPrompt += `Follow these specific instructions: ${activeCurriculum.content.ai_instructions}. `;
-        if (activeCurriculum.content.learning_objectives) {
-          systemPrompt += `The learning objectives are: ${activeCurriculum.content.learning_objectives}. `;
-        }
-      }
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages.slice(-5).map(m => ({
-              role: m.is_from_user ? 'user' : 'assistant',
-              content: m.content
-            })),
-            { role: 'user', content: userMessage }
-          ]
-        }
-      });
-
-      if (error) throw error;
-
-      const responseTime = Date.now() - startTime;
-
-      const aiMsg: DatabaseMessage = {
-        id: `ai_${Date.now()}`,
-        content: data.content,
-        is_from_user: false,
-        created_at: new Date().toISOString()
+      const userMessageObj = {
+        id: `user-${Date.now()}`,
+        text: userMessage,
+        timestamp: new Date(),
+        isFromUser: true,
+        type: 'text' as const,
+        tokenCount: Math.ceil(userMessage.length / 4)
       };
 
-      if (isVoiceResponse) {
-        try {
-          const voiceData = await supabase.functions.invoke('text-to-voice', {
-            body: { 
-              text: data.content,
-              voice: 'alloy'
-            }
-          });
-
-          if (voiceData.data?.audioContent) {
-            const audioBlob = new Blob([
-              new Uint8Array(atob(voiceData.data.audioContent).split('').map(c => c.charCodeAt(0)))
-            ], { type: 'audio/mp3' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            aiMsg.audioUrl = audioUrl;
-          }
-        } catch (voiceError) {
-          console.error('Error generating voice response:', voiceError);
-        }
-      }
-
-      const updatedMessages = [...messages, userMsg, aiMsg];
-      setMessages(updatedMessages);
-
-      if (user) {
-        await supabase
-          .from('messages')
-          .insert({
-            user_id: user.id,
-            content: data.content,
-            is_from_user: false,
-            type: 'text',
-            curriculum_id: activeCurriculum?.id || null,
-            conversation_id: sessionId
-          });
-
-        await trackInteraction(
-          'chat',
-          data.content,
-          userMessage,
-          activeCurriculum?.subjects.name || 'General',
-          activeCurriculum?.id,
-          responseTime
-        );
-
-        const subjectId = activeCurriculum?.subjects ? 
-          await getSubjectId(activeCurriculum.subjects.name) : undefined;
-        
-        await logActivity('chat', subjectId, 5);
-      }
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        id: `error_${Date.now()}`,
-        content: "Sorry, I encountered an error. Please try again.",
-        is_from_user: false,
-        created_at: new Date().toISOString()
-      }]);
-    } finally {
-      setIsLoading(false);
+      setMessages(prev => [...prev, userMessageObj]);
+      incrementTokenCount(userMessageObj.tokenCount, 0);
+      
+      await getAIResponse(userMessage, 'alloy');
     }
   };
 
-  const getSubjectId = async (subjectName: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('subjects')
-        .select('id')
-        .eq('name', subjectName)
-        .single();
+  const handleFileUpload = () => {
+    if (!file) return;
+    // Handle file upload logic
+    console.log('Uploading file:', file.name);
+    setFile(null);
+  };
 
-      return data?.id;
-    } catch (error) {
-      return undefined;
+  const handleVoiceResponse = async () => {
+    if (!textMessage.trim()) return;
+    await handleSendText();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendText();
     }
+  };
+
+  const handleNewChat = () => {
+    if (isDemoMode) {
+      setDemoMessages([
+        {
+          id: 'demo-welcome-new',
+          text: "Starting a new conversation! What would you like to learn about?",
+          timestamp: new Date(),
+          isFromUser: false,
+          type: 'text',
+          tokenCount: 15
+        }
+      ]);
+    } else {
+      setMessages([{
+        id: 'welcome-message',
+        text: "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.",
+        timestamp: new Date(),
+        isFromUser: false,
+        type: 'text',
+        tokenCount: 18
+      }]);
+    }
+    setActiveSessionId(null);
   };
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
-    fetchMessagesForSession(sessionId);
+    if (isDemoMode) {
+      const demoSessions = getDemoChatSessions();
+      const session = demoSessions.find(s => s.id === sessionId);
+      if (session) {
+        setDemoMessages(session.messages);
+      }
+    }
   };
 
-  const playAudio = (audioUrl: string) => {
-    const audio = new Audio(audioUrl);
-    audio.play();
+  const renderNavigation = () => (
+    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
+      <Button
+        variant={currentPage === 'chat' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('chat')}
+        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <MessageSquare className="h-4 w-4 mr-1" />
+        Chat
+      </Button>
+      <Button
+        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('monitoring')}
+        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <BarChart3 className="h-4 w-4 mr-1" />
+        Progress
+      </Button>
+      <Button
+        variant={currentPage === 'modules' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('modules')}
+        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <BookOpen className="h-4 w-4 mr-1" />
+        Modules
+      </Button>
+    </div>
+  );
+
+  const renderChatInterface = () => {
+    const displayMessages = isDemoMode ? demoMessages : messages;
+    
+    return (
+      <div className="flex flex-col h-full">
+        {/* Chat Header */}
+        <div className="flex-shrink-0 p-4 border-b border-white/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="text-white hover:bg-white/10 md:hidden"
+              >
+                {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              <div>
+                <h2 className="text-xl font-semibold text-white">
+                  {activeCurriculum ? activeCurriculum.title : 'AI Tutor Chat'}
+                </h2>
+                {activeCurriculum && (
+                  <p className="text-sm text-white/60">{activeCurriculum.description}</p>
+                )}
+              </div>
+            </div>
+            
+            {!isDemoMode && (
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline" className="border-white/20 text-white">
+                  {totalTokensUsed.toLocaleString()} / {monthlyLimit.toLocaleString()} tokens
+                </Badge>
+                {isQuizMode && (
+                  <Badge className="bg-green-600 text-white">
+                    Quiz Mode
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 p-4 overflow-hidden">
+          <MessageList
+            messages={displayMessages}
+            onPlayAudio={handlePlayAudio}
+            onPauseAudio={handlePauseAudio}
+          />
+          {isProcessing && (
+            <div className="flex justify-center py-4">
+              <div className="flex items-center space-x-2 text-white/60">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>AI is thinking...</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="flex-shrink-0 p-4 border-t border-white/20">
+          <VoiceMessageInput
+            textMessage={textMessage}
+            setTextMessage={setTextMessage}
+            onSendText={handleSendText}
+            onVoiceResponse={handleVoiceResponse}
+            onFileUpload={handleFileUpload}
+            file={file}
+            setFile={setFile}
+            onKeyPress={handleKeyPress}
+            disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+          />
+        </div>
+      </div>
+    );
   };
 
-  const copyMessage = (content: string) => {
-    navigator.clipboard.writeText(content);
-  };
+  const renderModulesPage = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Learning Modules</h2>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {curricula.slice(0, 6).map((curriculum) => (
+          <Card key={curriculum.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-white mb-2">{curriculum.title}</h3>
+              <p className="text-white/70 text-sm mb-4">{curriculum.description}</p>
+              <div className="flex items-center justify-between">
+                <Badge variant="outline" className="border-white/20 text-white text-xs">
+                  {curriculum.gradeLevel}
+                </Badge>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  Start Learning
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderMonitoringPage = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Learning Progress</h2>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-2">Study Time</h3>
+            <div className="text-3xl font-bold text-blue-400 mb-1">24h 30m</div>
+            <p className="text-white/60 text-sm">This week</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-2">Problems Solved</h3>
+            <div className="text-3xl font-bold text-green-400 mb-1">347</div>
+            <p className="text-white/60 text-sm">Total completed</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-white mb-2">Current Streak</h3>
+            <div className="text-3xl font-bold text-yellow-400 mb-1">🔥 12</div>
+            <p className="text-white/60 text-sm">Days in a row</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex h-screen bg-gray-900">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0`}>
+      <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0`}>
         <ChatSidebar
           activeCurriculum={activeCurriculum}
           curricula={curricula}
           onSelectCurriculum={setActiveCurriculum}
-          onNewChat={startNewChat}
+          onNewChat={handleNewChat}
           activeSessionId={activeSessionId}
-          onSelectSession={fetchMessagesForSession}
+          onSelectSession={handleSelectSession}
         />
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <ChatHeader
-          activeCurriculum={activeCurriculum}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        />
-
-        {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto bg-gray-900">
-          <div className="max-w-4xl mx-auto p-6 space-y-6">
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                onPlayAudio={playAudio}
-                onCopyMessage={copyMessage}
-              />
-            ))}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Navigation */}
+        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="text-white hover:bg-white/10 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              {renderNavigation()}
+            </div>
             
-            {(isLoading || isAnalyzing) && (
-              <div className="flex gap-4 justify-start">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white">
-                  AI
-                </div>
-                <div className="bg-gray-800 text-gray-100 p-4 rounded-2xl border border-gray-700">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                  {isAnalyzing && (
-                    <p className="text-xs mt-1 opacity-70">Analyzing response...</p>
-                  )}
-                </div>
+            {isDemoMode && demoTimeLeft !== undefined && (
+              <div className="text-sm text-white/70">
+                Demo: {Math.floor(demoTimeLeft / 60)}:{(demoTimeLeft % 60).toString().padStart(2, '0')} remaining
               </div>
             )}
-            
-            <div ref={messagesEndRef} />
           </div>
         </div>
 
-        {/* Input Area */}
-        <ChatInput
-          currentMessage={currentMessage}
-          setCurrentMessage={setCurrentMessage}
-          onSendMessage={sendMessage}
-          isLoading={isLoading}
-          isAnalyzing={isAnalyzing}
-          selectedFile={selectedFile}
-          setSelectedFile={setSelectedFile}
-          isRecording={isRecording}
-          onStartRecording={() => {}} // Placeholder - implement voice recording
-          onStopRecording={() => {}} // Placeholder - implement voice recording
-          isVoiceResponse={isVoiceResponse}
-          onToggleVoiceResponse={() => setIsVoiceResponse(!isVoiceResponse)}
-          onFileUpload={handleFileUpload}
-        />
+        {/* Page Content */}
+        <div className="flex-1 overflow-hidden">
+          {currentPage === 'chat' && renderChatInterface()}
+          {currentPage === 'monitoring' && renderMonitoringPage()}
+          {currentPage === 'modules' && renderModulesPage()}
+        </div>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

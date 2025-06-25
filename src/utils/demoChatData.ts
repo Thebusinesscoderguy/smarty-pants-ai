@@ -1,127 +1,126 @@
 
-// Demo chat data for non-authenticated users
-export interface DemoChatSession {
+export interface DemoMessage {
+  id: string;
+  text: string;
+  timestamp: Date;
+  isFromUser: boolean;
+  type: 'text' | 'voice' | 'file';
+  audioUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
+  tokenCount: number;
+}
+
+export interface DemoSession {
   id: string;
   title: string;
   created_at: string;
-  updated_at: string;
   messages: DemoMessage[];
 }
 
-export interface DemoMessage {
-  id: string;
-  content: string;
-  is_from_user: boolean;
-  created_at: string;
-  audioUrl?: string;
-}
-
-export const demoChatSessions: DemoChatSession[] = [
+const demoSessions: DemoSession[] = [
   {
-    id: 'math-help-1',
-    title: 'Algebra Help',
-    created_at: '2024-01-20T10:00:00Z',
-    updated_at: '2024-01-20T10:15:00Z',
+    id: 'demo-math-session',
+    title: 'Advanced Algebra Help',
+    created_at: new Date(Date.now() - 86400000).toISOString(), // Yesterday
     messages: [
       {
-        id: 'msg-1',
-        content: "Can you help me solve quadratic equations?",
-        is_from_user: true,
-        created_at: '2024-01-20T10:00:00Z'
+        id: 'demo-msg-1',
+        text: "Hi! I need help with quadratic equations. Can you explain how to solve x² + 5x + 6 = 0?",
+        timestamp: new Date(Date.now() - 3600000),
+        isFromUser: true,
+        type: 'text',
+        tokenCount: 25
       },
       {
-        id: 'msg-2',
-        content: "I'd be happy to help you with quadratic equations! A quadratic equation is in the form ax² + bx + c = 0. There are several methods to solve them:\n\n1. **Factoring** - when the equation can be factored easily\n2. **Quadratic Formula** - x = (-b ± √(b² - 4ac)) / 2a\n3. **Completing the Square** - useful for understanding the vertex form\n\nWhich method would you like to start with, or do you have a specific equation you're working on?",
-        is_from_user: false,
-        created_at: '2024-01-20T10:00:30Z'
+        id: 'demo-msg-2',
+        text: "I'd be happy to help you solve that quadratic equation! Let's work through x² + 5x + 6 = 0 step by step.\n\nWe can solve this using factoring:\n1. Look for two numbers that multiply to 6 and add to 5\n2. Those numbers are 2 and 3 (2×3=6, 2+3=5)\n3. So we can write: (x + 2)(x + 3) = 0\n4. This gives us x = -2 or x = -3\n\nWould you like me to show you the quadratic formula method as well?",
+        timestamp: new Date(Date.now() - 3590000),
+        isFromUser: false,
+        type: 'text',
+        tokenCount: 120
       },
       {
-        id: 'msg-3',
-        content: "Let's try the quadratic formula with x² - 5x + 6 = 0",
-        is_from_user: true,
-        created_at: '2024-01-20T10:02:00Z'
+        id: 'demo-msg-3',
+        text: "Yes, please show me the quadratic formula method too!",
+        timestamp: new Date(Date.now() - 3580000),
+        isFromUser: true,
+        type: 'text',
+        tokenCount: 15
       },
       {
-        id: 'msg-4',
-        content: "Perfect! Let's solve x² - 5x + 6 = 0 using the quadratic formula.\n\nFirst, identify the coefficients:\n- a = 1\n- b = -5  \n- c = 6\n\nNow apply the formula: x = (-b ± √(b² - 4ac)) / 2a\n\nx = (-(-5) ± √((-5)² - 4(1)(6))) / 2(1)\nx = (5 ± √(25 - 24)) / 2\nx = (5 ± √1) / 2\nx = (5 ± 1) / 2\n\nSo: x = (5 + 1)/2 = 3 or x = (5 - 1)/2 = 2\n\nThe solutions are x = 2 and x = 3. You can verify by substituting back into the original equation!",
-        is_from_user: false,
-        created_at: '2024-01-20T10:02:45Z'
+        id: 'demo-msg-4',
+        text: "Perfect! The quadratic formula is: x = (-b ± √(b² - 4ac)) / 2a\n\nFor x² + 5x + 6 = 0:\n- a = 1, b = 5, c = 6\n- x = (-5 ± √(25 - 24)) / 2\n- x = (-5 ± √1) / 2\n- x = (-5 ± 1) / 2\n\nSo: x = (-5 + 1)/2 = -2 or x = (-5 - 1)/2 = -3\n\nSame answers! Both methods work great for different types of problems.",
+        timestamp: new Date(Date.now() - 3570000),
+        isFromUser: false,
+        type: 'text',
+        tokenCount: 140
       }
     ]
   },
   {
-    id: 'science-help-1',
-    title: 'Physics Concepts',
-    created_at: '2024-01-19T14:30:00Z',
-    updated_at: '2024-01-19T14:45:00Z',
+    id: 'demo-science-session',
+    title: 'Photosynthesis Explanation',
+    created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
     messages: [
       {
-        id: 'msg-5',
-        content: "What's the difference between velocity and speed?",
-        is_from_user: true,
-        created_at: '2024-01-19T14:30:00Z'
+        id: 'demo-sci-1',
+        text: "Can you explain photosynthesis in simple terms?",
+        timestamp: new Date(Date.now() - 172800000),
+        isFromUser: true,
+        type: 'text',
+        tokenCount: 12
       },
       {
-        id: 'msg-6',
-        content: "Great question! This is a common source of confusion in physics.\n\n**Speed** is a scalar quantity:\n- Only has magnitude (how fast)\n- Always positive\n- Example: \"The car is traveling at 60 mph\"\n\n**Velocity** is a vector quantity:\n- Has both magnitude AND direction\n- Can be positive or negative\n- Example: \"The car is traveling at 60 mph north\"\n\n**Key differences:**\n1. Speed tells you how fast, velocity tells you how fast AND which way\n2. If you're going in a circle at constant speed, your velocity is constantly changing (because direction changes)\n3. Average speed = total distance / time, but average velocity = displacement / time\n\nThink of it this way: if you run around a track and end up where you started, your average velocity is zero (no displacement), but your average speed is definitely not zero!",
-        is_from_user: false,
-        created_at: '2024-01-19T14:30:45Z'
+        id: 'demo-sci-2',
+        text: "Absolutely! Photosynthesis is how plants make their own food using sunlight. Here's the simple version:\n\n🌱 **What plants need:**\n- Sunlight (energy)\n- Carbon dioxide (from air)\n- Water (from roots)\n\n🔄 **What happens:**\nPlants capture sunlight with chlorophyll (the green stuff in leaves) and use it to combine CO₂ and water into glucose (sugar) and oxygen.\n\n📝 **The equation:**\n6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂\n\n🎯 **Why it matters:**\n- Plants get food (glucose)\n- We get oxygen to breathe\n- It's the foundation of almost all life on Earth!\n\nThink of it as nature's solar panels converting sunlight into food energy!",
+        timestamp: new Date(Date.now() - 172790000),
+        isFromUser: false,
+        type: 'text',
+        tokenCount: 180
       }
     ]
   },
   {
-    id: 'writing-help-1',
-    title: 'Essay Structure',
-    created_at: '2024-01-18T16:20:00Z',
-    updated_at: '2024-01-18T16:35:00Z',
+    id: 'demo-history-session',
+    title: 'World War II Overview',
+    created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
     messages: [
       {
-        id: 'msg-7',
-        content: "How do I structure a persuasive essay?",
-        is_from_user: true,
-        created_at: '2024-01-18T16:20:00Z'
+        id: 'demo-hist-1',
+        text: "I have a test on World War II tomorrow. Can you give me a quick overview of the main events?",
+        timestamp: new Date(Date.now() - 259200000),
+        isFromUser: true,
+        type: 'text',
+        tokenCount: 25
       },
       {
-        id: 'msg-8',
-        content: "A persuasive essay follows a clear structure designed to convince your reader. Here's the standard format:\n\n**1. Introduction (Hook + Thesis)**\n- Start with an attention-grabbing hook\n- Provide background context\n- End with a clear thesis statement\n\n**2. Body Paragraphs (3-4 paragraphs)**\n- Each paragraph = one main argument\n- Start with a topic sentence\n- Provide evidence and examples\n- Address counterarguments\n\n**3. Conclusion**\n- Restate thesis (in different words)\n- Summarize main points\n- End with a call to action or thought-provoking statement\n\n**Pro tips:**\n- Use transition words between paragraphs\n- Include credible sources and statistics\n- Appeal to logic, emotion, and credibility\n- Consider your audience's perspective\n\nWhat topic are you writing about? I can help you develop specific arguments!",
-        is_from_user: false,
-        created_at: '2024-01-18T16:21:00Z'
+        id: 'demo-hist-2',
+        text: "I'll help you prepare! Here's a timeline of WWII's key events:\n\n**🔥 Start (1939-1941):**\n- Sept 1939: Germany invades Poland, war begins\n- 1940: Germany conquers France, Battle of Britain\n- Dec 1941: Pearl Harbor attack, US enters war\n\n**⚔️ Turning Points (1942-1943):**\n- 1942: Battle of Midway (Pacific)\n- 1942-1943: Battle of Stalingrad (Europe)\n- These battles stopped Axis expansion\n\n**🏆 Allied Victory (1944-1945):**\n- June 1944: D-Day invasion of Normandy\n- 1945: Germany surrenders (May 8)\n- Aug 1945: Atomic bombs, Japan surrenders\n\n**Key Players:** Allies (US, UK, USSR, France) vs Axis (Germany, Japan, Italy)\n\n**Major Themes:** Holocaust, technology advances, civilian impact, global cooperation\n\nWhat specific aspect would you like me to elaborate on for your test?",
+        timestamp: new Date(Date.now() - 259190000),
+        isFromUser: false,
+        type: 'text',
+        tokenCount: 220
       }
     ]
   }
 ];
 
-export const getDemoChatSessions = () => demoChatSessions;
+export const getDemoChatSessions = (): DemoSession[] => {
+  return demoSessions;
+};
 
-export const getDemoSession = (sessionId: string) => 
-  demoChatSessions.find(session => session.id === sessionId);
+export const getDemoSessionById = (sessionId: string): DemoSession | undefined => {
+  return demoSessions.find(session => session.id === sessionId);
+};
 
-export const getDemoResponse = (userMessage: string): string => {
-  const message = userMessage.toLowerCase();
-  
-  if (message.includes('math') || message.includes('equation') || message.includes('algebra')) {
-    return "I'd be happy to help with math! Whether it's algebra, geometry, calculus, or any other math topic, I can break down problems step by step. What specific math concept or problem are you working on?";
-  }
-  
-  if (message.includes('science') || message.includes('physics') || message.includes('chemistry')) {
-    return "Science is fascinating! I can help explain concepts in physics, chemistry, biology, and more. I love breaking down complex scientific ideas into understandable explanations. What science topic interests you?";
-  }
-  
-  if (message.includes('write') || message.includes('essay') || message.includes('grammar')) {
-    return "Writing is a great skill to develop! I can help with essay structure, grammar, creative writing, research papers, and more. Whether you need help brainstorming ideas or polishing your final draft, I'm here to assist. What type of writing are you working on?";
-  }
-  
-  if (message.includes('history') || message.includes('literature')) {
-    return "History and literature are rich subjects full of fascinating stories and insights! I can help you understand historical events, analyze literary works, or explore connections between different time periods and cultures. What period or work interests you?";
-  }
-  
-  // Default responses
-  const defaultResponses = [
-    "That's an interesting question! I'm here to help you learn and understand any topic. Could you tell me more about what you'd like to explore?",
-    "I'd be happy to help you with that! Learning is all about curiosity and asking good questions. What specific aspect would you like to dive deeper into?",
-    "Great question! I love helping students discover new concepts and master challenging topics. What subject area are you most interested in right now?",
-    "I'm here to support your learning journey! Whether it's homework help, concept explanations, or just satisfying your curiosity, I'm ready to help. What can we explore together?"
-  ];
-  
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+export const createDemoMessage = (text: string, isFromUser: boolean): DemoMessage => {
+  return {
+    id: `demo-msg-${Date.now()}`,
+    text,
+    timestamp: new Date(),
+    isFromUser,
+    type: 'text',
+    tokenCount: Math.ceil(text.length / 4)
+  };
 };
