@@ -10,16 +10,20 @@ interface RoleSelectionProps {
   isOpen: boolean;
   onClose: () => void;
   mode?: 'signup' | 'demo';
+  onRoleSelect?: (selectedRole: string) => void;
 }
 
-export const RoleSelection = ({ isOpen, onClose, mode = 'signup' }: RoleSelectionProps) => {
+export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }: RoleSelectionProps) => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<'school' | 'parent' | null>(null);
 
   const handleRoleSelection = (role: 'school' | 'parent') => {
     setSelectedRole(role);
     
-    if (mode === 'demo') {
+    if (onRoleSelect) {
+      // If onRoleSelect callback is provided, use it (for demo mode)
+      onRoleSelect(role);
+    } else if (mode === 'demo') {
       // Navigate to demo with role parameter
       navigate(`/demo?role=${role}`);
     } else {
