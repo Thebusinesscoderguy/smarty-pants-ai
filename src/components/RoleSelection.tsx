@@ -19,10 +19,10 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
   const { user } = useAuth();
   const [selectedRole, setSelectedRole] = useState<'school' | 'parent' | null>(null);
 
-  // Only show role selection for demo users or during signup
-  const shouldShowRoleSelection = !user || mode === 'demo';
+  // Only show role selection for demo users or during signup (when no user is logged in)
+  const shouldShowRoleSelection = mode === 'demo' || (!user && mode === 'signup');
 
-  if (!shouldShowRoleSelection && mode !== 'demo') {
+  if (!shouldShowRoleSelection) {
     return null;
   }
 
