@@ -6,11 +6,10 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
 
 const Index = () => {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  const [showDemoSelection, setShowDemoSelection] = useState(false);
   const { t } = useLanguage();
 
   const scrollToSection = (sectionId: string) => {
@@ -33,7 +32,7 @@ const Index = () => {
 
       <main className="relative z-10 flex-1">
         {/* Hero Section */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
+        <section className="px-4 py-16 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
               {t('hero.title')}
@@ -42,7 +41,7 @@ const Index = () => {
               {t('hero.subtitle')}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
@@ -55,7 +54,7 @@ const Index = () => {
                 size="lg" 
                 variant="outline" 
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                onClick={() => setShowChat(true)}
+                onClick={() => window.open('/demo', '_blank')}
               >
                 {t('cta.demo')}
                 <BookOpen className="ml-2 h-5 w-5" />
@@ -65,7 +64,7 @@ const Index = () => {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="px-4 py-20 md:px-6 lg:px-8">
+        <section id="features" className="px-4 py-16 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('features.section.title')}</h2>
@@ -330,7 +329,7 @@ const Index = () => {
 
               <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.school')}</h3>
-                <div className="text-4xl font-bold mb-6">{t('pricing.school.price')}</div>
+                <div className="text-4xl font-bold mb-6">{t('pricing.school.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature1')}</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature2')}</li>
@@ -503,7 +502,7 @@ const Index = () => {
                   size="lg" 
                   variant="outline" 
                   className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                  onClick={() => setShowChat(true)}
+                  onClick={() => window.open('/demo', '_blank')}
                 >
                   {t('final.cta.demo')}
                 </Button>
@@ -519,28 +518,6 @@ const Index = () => {
         isOpen={showRoleSelection} 
         onClose={() => setShowRoleSelection(false)} 
       />
-
-      {/* Chat Demo Modal */}
-      {showChat && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-xl border border-gray-700 w-full max-w-6xl h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <h3 className="text-lg font-semibold text-white">AI Learning Assistant Demo</h3>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setShowChat(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="h-full">
-              <EnhancedChatArea />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
