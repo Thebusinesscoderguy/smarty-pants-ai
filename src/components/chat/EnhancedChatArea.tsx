@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X, Info, Send } from 'lucide-react';
+import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X, Info, Send, Plus } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import MessageList from '@/components/MessageList';
 import VoiceMessageInput from '@/components/VoiceMessageInput';
@@ -23,7 +22,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('chat');
   const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [textMessage, setTextMessage] = useState('');
@@ -215,220 +213,149 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     }
   };
 
-  const renderNavigation = () => (
-    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
-      <Button
-        variant={currentPage === 'chat' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setCurrentPage('chat')}
-        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
-      >
-        <MessageSquare className="h-4 w-4 mr-1" />
-        Chat
-      </Button>
-      <Button
-        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setCurrentPage('monitoring')}
-        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
-      >
-        <BarChart3 className="h-4 w-4 mr-1" />
-        Monitoring
-      </Button>
-      <Button
-        variant={currentPage === 'modules' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setCurrentPage('modules')}
-        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
-      >
-        <BookOpen className="h-4 w-4 mr-1" />
-        Modules
-      </Button>
-    </div>
-  );
+  const displayMessages = isDemoMode ? demoMessages : messages;
+  
+  return (
+    <div className="flex h-full bg-gray-50">
+      {/* Sidebar */}
+      <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0 w-64 bg-gray-900 border-r border-gray-700`}>
+        <div className="flex flex-col h-full">
+          {/* New Chat Button */}
+          <div className="p-3 border-b border-gray-700">
+            <Button
+              onClick={handleNewChat}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 flex items-center justify-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New Chat</span>
+            </Button>
+          </div>
 
-  const renderChatInterface = () => {
-    const displayMessages = isDemoMode ? demoMessages : messages;
-    
-    return (
-      <div className="flex h-full bg-white">
-        {/* Sidebar */}
-        <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0 w-64 bg-gray-50 border-r border-gray-200`}>
-          <ChatSidebar
-            activeCurriculum={activeCurriculum}
-            curricula={curricula}
-            onSelectCurriculum={setActiveCurriculum}
-            onNewChat={handleNewChat}
-            activeSessionId={activeSessionId}
-            onSelectSession={handleSelectSession}
-          />
-        </div>
-
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Chat Header */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          {/* Chat Sessions */}
+          <div className="flex-1 overflow-y-auto p-3">
+            <div className="space-y-2">
+              <div className="text-gray-400 text-sm font-medium mb-2">Recent Chats</div>
+              {/* Demo chat sessions */}
+              <div className="space-y-1">
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="md:hidden text-gray-600 hover:bg-gray-100"
+                  className="w-full justify-start text-left text-gray-300 hover:bg-gray-800 h-auto p-2"
+                  onClick={() => handleSelectSession('demo-1')}
                 >
-                  {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  <div className="truncate">Math Help Session</div>
                 </Button>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {activeCurriculum ? activeCurriculum.title : 'AI Tutor'}
-                  </h2>
-                  {activeCurriculum && (
-                    <p className="text-sm text-gray-500">{activeCurriculum.description}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {!isDemoMode && (
-                  <Badge variant="outline" className="border-gray-300 text-gray-600 bg-gray-50">
-                    {totalTokensUsed.toLocaleString()} / {monthlyLimit.toLocaleString()} tokens
-                  </Badge>
-                )}
-                {isQuizMode && (
-                  <Badge className="bg-green-600 text-white">
-                    Quiz Mode
-                  </Badge>
-                )}
-                {activeCurriculum && (
-                  <Badge className="bg-blue-600 text-white">
-                    <Info className="h-3 w-3 mr-1" />
-                    {activeCurriculum.gradeLevel}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto bg-gray-50">
-            <div className="max-w-4xl mx-auto">
-              <MessageList
-                messages={displayMessages}
-                onPlayAudio={handlePlayAudio}
-                onPauseAudio={handlePauseAudio}
-              />
-              {isProcessing && (
-                <div className="flex justify-center py-4">
-                  <div className="flex items-center space-x-2 text-gray-500">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-                    <span>AI is thinking...</span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-end space-x-3">
-                <div className="flex-1">
-                  <textarea
-                    value={textMessage}
-                    onChange={(e) => setTextMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message here..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={1}
-                    style={{ minHeight: '48px', maxHeight: '120px' }}
-                    disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-                  />
-                </div>
                 <Button
-                  onClick={handleSendText}
-                  disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
-                  className="h-12 w-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center"
+                  variant="ghost"
+                  className="w-full justify-start text-left text-gray-300 hover:bg-gray-800 h-auto p-2"
+                  onClick={() => handleSelectSession('demo-2')}
                 >
-                  <Send className="h-5 w-5" />
+                  <div className="truncate">Science Questions</div>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-left text-gray-300 hover:bg-gray-800 h-auto p-2"
+                  onClick={() => handleSelectSession('demo-3')}
+                >
+                  <div className="truncate">History Discussion</div>
                 </Button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Mobile Sidebar Overlay */}
-        {isSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/20 z-40 md:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
       </div>
-    );
-  };
 
-  const renderModulesPage = () => (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">Learning Modules</h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {curricula.slice(0, 6).map((curriculum) => (
-          <Card key={curriculum.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">{curriculum.title}</h3>
-              <p className="text-white/70 text-sm mb-4">{curriculum.description}</p>
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className="border-white/20 text-white text-xs">
-                  {curriculum.gradeLevel}
-                </Badge>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  Start Learning
-                </Button>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-white">
+        {/* Chat Header */}
+        <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="md:hidden text-gray-600 hover:bg-gray-100"
+              >
+                {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold">AI</span>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {activeCurriculum ? activeCurriculum.title : 'AI Tutor'}
+                </h2>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              {!isDemoMode && (
+                <Badge variant="outline" className="border-gray-300 text-gray-600 bg-gray-50 text-xs">
+                  {totalTokensUsed.toLocaleString()} tokens used
+                </Badge>
+              )}
+              {isQuizMode && (
+                <Badge className="bg-green-600 text-white text-xs">
+                  Quiz Mode
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
 
-  const renderMonitoringPage = () => (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">Learning Progress</h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-2">Study Time</h3>
-            <div className="text-3xl font-bold text-blue-400 mb-1">24h 30m</div>
-            <p className="text-white/60 text-sm">This week</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-2">Problems Solved</h3>
-            <div className="text-3xl font-bold text-green-400 mb-1">347</div>
-            <p className="text-white/60 text-sm">Total completed</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-2">Current Streak</h3>
-            <div className="text-3xl font-bold text-yellow-400 mb-1">🔥 12</div>
-            <p className="text-white/60 text-sm">Days in a row</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4">
+            <MessageList
+              messages={displayMessages}
+              onPlayAudio={handlePlayAudio}
+              onPauseAudio={handlePauseAudio}
+            />
+            {isProcessing && (
+              <div className="flex justify-center py-4">
+                <div className="flex items-center space-x-2 text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                  <span>AI is thinking...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
 
-  return (
-    <div className="flex h-screen">
-      {/* Page Content */}
-      <div className="flex-1 overflow-hidden">
-        {currentPage === 'chat' && renderChatInterface()}
-        {currentPage === 'monitoring' && renderMonitoringPage()}
-        {currentPage === 'modules' && renderModulesPage()}
+        {/* Input Area */}
+        <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative">
+              <textarea
+                value={textMessage}
+                onChange={(e) => setTextMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message here..."
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={1}
+                style={{ minHeight: '52px', maxHeight: '120px' }}
+                disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+              />
+              <Button
+                onClick={handleSendText}
+                disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
+                className="absolute right-2 bottom-2 h-8 w-8 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center p-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };
