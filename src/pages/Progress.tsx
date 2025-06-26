@@ -22,7 +22,7 @@ import { DemoSubjectProgress } from '@/components/demo/DemoSubjectProgress';
 import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { TestCreator } from '@/components/TestCreator';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
-import { MessageSquare, BarChart3, BookOpen, FileText, Play } from 'lucide-react';
+import { MessageSquare, BarChart3, BookOpen, FileText, Play, Users, TrendingUp, Award, Target, TestTube } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +33,7 @@ const Progress = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState<'chat' | 'progress' | 'modules'>('progress');
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('monitoring');
 
   useEffect(() => {
     if (!authLoading) {
@@ -69,7 +69,7 @@ const Progress = () => {
   };
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
+    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1 backdrop-blur-sm">
       <Button
         variant={currentPage === 'chat' ? 'default' : 'ghost'}
         size="sm"
@@ -80,16 +80,16 @@ const Progress = () => {
         className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <MessageSquare className="h-4 w-4 mr-1" />
-        {t('chat.navigation.chat')}
+        Chat
       </Button>
       <Button
-        variant={currentPage === 'progress' ? 'default' : 'ghost'}
+        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
         size="sm"
-        onClick={() => setCurrentPage('progress')}
-        className={currentPage === 'progress' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        onClick={() => setCurrentPage('monitoring')}
+        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <BarChart3 className="h-4 w-4 mr-1" />
-        {t('chat.navigation.progress')}
+        Monitoring
       </Button>
       <Button
         variant={currentPage === 'modules' ? 'default' : 'ghost'}
@@ -101,7 +101,7 @@ const Progress = () => {
         className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <BookOpen className="h-4 w-4 mr-1" />
-        {t('chat.navigation.modules')}
+        Modules
       </Button>
     </div>
   );
@@ -118,7 +118,7 @@ const Progress = () => {
     } else {
       return (
         <div className="text-center py-8">
-          <p className="text-gray-400">{t('progress.notAvailable')}</p>
+          <p className="text-gray-400">Monitoring features are not available for your role.</p>
         </div>
       );
     }
@@ -127,27 +127,55 @@ const Progress = () => {
   const renderTestingTab = () => {
     return (
       <div className="space-y-6">
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <FileText className="mr-2 h-5 w-5" />
-              {t('testing.createTest')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TestCreator />
-          </CardContent>
-        </Card>
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <FileText className="mr-2 h-5 w-5" />
+                Create Custom Test
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TestCreator />
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Play className="mr-2 h-5 w-5" />
+                Quiz Library
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QuizLibrary />
+            </CardContent>
+          </Card>
+        </div>
         
-        <Card className="bg-white/5 border-white/10">
+        {/* Test Analytics */}
+        <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
-              <Play className="mr-2 h-5 w-5" />
-              {t('testing.quizLibrary')}
+              <TestTube className="mr-2 h-5 w-5" />
+              Test Performance Analytics
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <QuizLibrary />
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-white/5 rounded-lg">
+                <div className="text-2xl font-bold text-green-400 mb-1">87%</div>
+                <p className="text-sm text-white/70">Average Score</p>
+              </div>
+              <div className="text-center p-4 bg-white/5 rounded-lg">
+                <div className="text-2xl font-bold text-blue-400 mb-1">23</div>
+                <p className="text-sm text-white/70">Tests Completed</p>
+              </div>
+              <div className="text-center p-4 bg-white/5 rounded-lg">
+                <div className="text-2xl font-bold text-purple-400 mb-1">12m</div>
+                <p className="text-sm text-white/70">Avg. Duration</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -156,18 +184,18 @@ const Progress = () => {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-pulse">{t('common.loading')}</div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex items-center justify-center">
+        <div className="animate-pulse">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
       <Header />
       
       {/* Navigation Bar */}
-      <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800">
+      <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {renderNavigation()}
@@ -178,40 +206,46 @@ const Progress = () => {
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">
-              {user ? t('progress.title') : t('progress.demoTitle')}
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {user ? 'Learning Monitoring Dashboard' : 'Demo Monitoring Dashboard'}
             </h1>
-            <p className="text-gray-400">
-              {user ? t('progress.description') : t('progress.demoDescription')}
+            <p className="text-gray-300 text-lg">
+              {user ? 'Track progress, view analytics, and manage learning activities' : 'Experience our comprehensive monitoring and analytics features'}
             </p>
             {!user && (
-              <div className="mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+              <div className="mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg backdrop-blur-sm">
                 <p className="text-blue-200 text-sm">
-                  📊 {t('progress.demoNotice')}
+                  📊 This is a demo of our monitoring features. Sign up to access your personal dashboard!
                 </p>
               </div>
             )}
           </div>
 
           <Tabs defaultValue="monitoring" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-white/10">
-              <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20">
-                {!user ? t('progress.tabs.monitoring') : (userRole === 'parent' ? t('progress.tabs.childProgress') : t('progress.tabs.monitoring'))}
+            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm">
+              <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20 flex items-center">
+                <BarChart3 className="h-4 w-4 mr-1" />
+                {!user ? 'Overview' : (userRole === 'parent' ? 'Child Progress' : 'Monitoring')}
               </TabsTrigger>
-              <TabsTrigger value="quests" className="data-[state=active]:bg-white/20">
-                {t('progress.tabs.quests')}
+              <TabsTrigger value="quests" className="data-[state=active]:bg-white/20 flex items-center">
+                <Target className="h-4 w-4 mr-1" />
+                Quests
               </TabsTrigger>
-              <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20">
-                {t('progress.tabs.achievements')}
+              <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20 flex items-center">
+                <Award className="h-4 w-4 mr-1" />
+                Achievements
               </TabsTrigger>
-              <TabsTrigger value="subjects" className="data-[state=active]:bg-white/20">
-                {t('progress.tabs.subjects')}
+              <TabsTrigger value="subjects" className="data-[state=active]:bg-white/20 flex items-center">
+                <BookOpen className="h-4 w-4 mr-1" />
+                Subjects
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
-                {t('progress.tabs.analytics')}
+              <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20 flex items-center">
+                <TrendingUp className="h-4 w-4 mr-1" />
+                Analytics
               </TabsTrigger>
-              <TabsTrigger value="testing" className="data-[state=active]:bg-white/20">
-                {t('testing.title')}
+              <TabsTrigger value="testing" className="data-[state=active]:bg-white/20 flex items-center">
+                <TestTube className="h-4 w-4 mr-1" />
+                Testing
               </TabsTrigger>
             </TabsList>
 

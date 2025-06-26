@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Clock, Users, Star, Play, Search, ArrowLeft } from 'lucide-react';
+import { BookOpen, Clock, Users, Star, Play, Search, ArrowLeft, MessageSquare, BarChart3 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -17,13 +17,14 @@ const Modules = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('modules');
 
   const categories = [
-    { id: 'all', name: t('modules.categories.all'), count: curricula.length },
-    { id: 'math', name: t('modules.categories.math'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('math'))).length },
-    { id: 'science', name: t('modules.categories.science'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('science'))).length },
-    { id: 'english', name: t('modules.categories.english'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('english'))).length },
-    { id: 'history', name: t('modules.categories.history'), count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('history'))).length },
+    { id: 'all', name: t('modules.categories.all') || 'All Subjects', count: curricula.length },
+    { id: 'math', name: t('modules.categories.math') || 'Mathematics', count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('math'))).length },
+    { id: 'science', name: t('modules.categories.science') || 'Science', count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('science'))).length },
+    { id: 'english', name: t('modules.categories.english') || 'English', count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('english'))).length },
+    { id: 'history', name: t('modules.categories.history') || 'History', count: curricula.filter(c => c.subjects.some(s => s.toLowerCase().includes('history'))).length },
   ];
 
   const filteredModules = curricula.filter(curriculum => {
@@ -45,15 +46,64 @@ const Modules = () => {
   };
 
   const startModule = (module: any) => {
-    setSelectedModule(module);
-    // Navigate to chat with the selected curriculum context
-    navigate('/chat', { state: { selectedCurriculum: module } });
+    // Store selected curriculum in localStorage so chat can access it
+    localStorage.setItem('selectedCurriculum', JSON.stringify(module));
+    // Navigate to chat page
+    navigate('/chat');
   };
+
+  const renderNavigation = () => (
+    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
+      <Button
+        variant={currentPage === 'chat' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => {
+          setCurrentPage('chat');
+          navigate('/chat');
+        }}
+        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <MessageSquare className="h-4 w-4 mr-1" />
+        Chat
+      </Button>
+      <Button
+        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => {
+          setCurrentPage('monitoring');
+          navigate('/progress');
+        }}
+        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <BarChart3 className="h-4 w-4 mr-1" />
+        Monitoring
+      </Button>
+      <Button
+        variant={currentPage === 'modules' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('modules')}
+        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <BookOpen className="h-4 w-4 mr-1" />
+        Modules
+      </Button>
+    </div>
+  );
 
   if (selectedModule) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
         <Header />
+        
+        {/* Navigation Bar */}
+        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {renderNavigation()}
+            </div>
+          </div>
+        </div>
+        
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto">
             <Button
@@ -62,10 +112,10 @@ const Modules = () => {
               className="mb-6 border-white/20 bg-white/5 hover:bg-white/10 text-white"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('common.back')}
+              {t('common.back') || 'Back'}
             </Button>
             
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-2xl text-white">{selectedModule.title}</CardTitle>
                 <p className="text-white/70">{selectedModule.description}</p>
@@ -81,7 +131,7 @@ const Modules = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.subjects')}</h3>
+                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.subjects') || 'Subjects'}</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedModule.subjects.map((subject: string) => (
                         <Badge key={subject} variant="outline" className="border-white/20 text-white/70">
@@ -92,7 +142,7 @@ const Modules = () => {
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.standards')}</h3>
+                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.standards') || 'Standards'}</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedModule.standards.map((standard: string) => (
                         <Badge key={standard} variant="outline" className="border-blue-500/30 text-blue-300">
@@ -107,7 +157,7 @@ const Modules = () => {
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-6"
                   >
                     <Play className="h-4 w-4 mr-2" />
-                    {t('modules.startLearning')}
+                    {t('modules.startLearning') || 'Start Learning'}
                   </Button>
                 </div>
               </CardContent>
@@ -120,14 +170,25 @@ const Modules = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
       <Header />
+      
+      {/* Navigation Bar */}
+      <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {renderNavigation()}
+          </div>
+        </div>
+      </div>
       
       <main className="flex-1 p-6 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">{t('modules.title')}</h1>
-            <p className="text-gray-400">{t('modules.description')}</p>
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {t('modules.title') || 'Learning Modules'}
+            </h1>
+            <p className="text-gray-300 text-lg">{t('modules.description') || 'Explore our comprehensive curriculum modules'}</p>
           </div>
 
           {/* Search and Filters */}
@@ -136,10 +197,10 @@ const Modules = () => {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder={t('modules.searchPlaceholder')}
+                  placeholder={t('modules.searchPlaceholder') || 'Search modules...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/20 text-white placeholder-gray-400"
+                  className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
             </div>
@@ -152,8 +213,8 @@ const Modules = () => {
                   variant={selectedCategory === category.id ? "default" : "outline"}
                   onClick={() => setSelectedCategory(category.id)}
                   className={selectedCategory === category.id 
-                    ? "bg-blue-600 hover:bg-blue-700" 
-                    : "border-white/20 bg-white/5 text-white hover:bg-white/10"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" 
+                    : "border-white/20 bg-white/5 text-white hover:bg-white/10 backdrop-blur-sm"
                   }
                 >
                   {category.name} ({category.count})
@@ -165,12 +226,12 @@ const Modules = () => {
           {/* Modules Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModules.map((module) => (
-              <Card key={module.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300">
+              <Card key={module.id} className="bg-white/10 border-white/20 hover:bg-white/15 transition-all duration-300 backdrop-blur-sm hover:scale-105">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-white text-lg mb-2">{module.title}</CardTitle>
-                      <p className="text-gray-400 text-sm">{module.system}</p>
+                      <p className="text-gray-300 text-sm">{module.system}</p>
                     </div>
                   </div>
                   
@@ -188,7 +249,7 @@ const Modules = () => {
                   <p className="text-white/70 mb-4 text-sm">{module.description}</p>
                   
                   <div className="mb-4">
-                    <p className="text-white/80 text-sm mb-2">{t('modules.subjects')}:</p>
+                    <p className="text-white/80 text-sm mb-2">{t('modules.subjects') || 'Subjects'}:</p>
                     <div className="flex flex-wrap gap-1">
                       {module.subjects.slice(0, 3).map((subject: string) => (
                         <Badge key={subject} variant="outline" className="text-xs border-white/20 text-white/70">
@@ -197,7 +258,7 @@ const Modules = () => {
                       ))}
                       {module.subjects.length > 3 && (
                         <Badge variant="outline" className="text-xs border-white/20 text-white/70">
-                          +{module.subjects.length - 3} {t('common.more')}
+                          +{module.subjects.length - 3} {t('common.more') || 'more'}
                         </Badge>
                       )}
                     </div>
@@ -205,10 +266,10 @@ const Modules = () => {
 
                   <Button 
                     onClick={() => startModule(module)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
                   >
                     <Play className="h-4 w-4 mr-2" />
-                    {t('modules.startLearning')}
+                    {t('modules.startLearning') || 'Start Learning'}
                   </Button>
                 </CardContent>
               </Card>
@@ -218,8 +279,8 @@ const Modules = () => {
           {filteredModules.length === 0 && (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">{t('modules.noModulesFound')}</h3>
-              <p className="text-gray-400">{t('modules.adjustFilters')}</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('modules.noModulesFound') || 'No modules found'}</h3>
+              <p className="text-gray-400">{t('modules.adjustFilters') || 'Try adjusting your search or filters'}</p>
             </div>
           )}
         </div>

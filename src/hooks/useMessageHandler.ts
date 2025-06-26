@@ -55,7 +55,6 @@ export const useMessageHandler = () => {
   
   const fetchMessages = async () => {
     // Placeholder for messages fetching logic
-    // This would typically fetch from your backend or database
   };
   
   const checkOpenAIKey = async () => {
@@ -111,10 +110,19 @@ export const useMessageHandler = () => {
           setIsQuizMode(true);
         }
         
-        // Create a natural, conversational system prompt
-        let systemPrompt = `You are Teachly, a friendly and knowledgeable AI tutor. You're here to help students learn in a warm, encouraging way. Be conversational and natural - like a helpful friend who happens to know a lot about various subjects.
+        // Improved system prompt for better AI behavior
+        let systemPrompt = `You are Teachly, a friendly and knowledgeable AI tutor. You're here to help students learn in a warm, encouraging way. 
 
-Keep your responses engaging and personalized. Don't be overly formal or robotic. If someone asks a question, dive right into helping them rather than announcing that you're processing their message.`;
+Key behaviors:
+- Be conversational and natural - like a helpful friend who happens to know a lot
+- Only treat messages as curriculum-specific when there's clear curriculum context provided
+- For general questions, respond normally without forcing curriculum connections
+- Be encouraging and supportive in your responses
+- Keep responses engaging and at an appropriate level for the student
+- Don't be overly formal or robotic
+- If someone asks a question, dive right into helping them
+
+You should act like a normal AI tutor unless specifically provided with curriculum context in the message.`;
 
         // Add quiz mode context if active
         if (isQuizMode) {

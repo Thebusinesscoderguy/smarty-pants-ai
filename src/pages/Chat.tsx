@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,23 @@ const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [currentPage, setCurrentPage] = useState<'chat' | 'progress' | 'modules'>('chat');
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('chat');
+  const [selectedCurriculum, setSelectedCurriculum] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if a curriculum was selected from modules page
+    const storedCurriculum = localStorage.getItem('selectedCurriculum');
+    if (storedCurriculum) {
+      try {
+        const curriculum = JSON.parse(storedCurriculum);
+        setSelectedCurriculum(curriculum);
+        // Clear it so it doesn't persist unnecessarily
+        localStorage.removeItem('selectedCurriculum');
+      } catch (error) {
+        console.error('Error parsing stored curriculum:', error);
+      }
+    }
+  }, []);
 
   const renderNavigation = () => (
     <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
@@ -24,19 +40,19 @@ const Chat = () => {
         className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <MessageSquare className="h-4 w-4 mr-1" />
-        {t('chat.navigation.chat')}
+        Chat
       </Button>
       <Button
-        variant={currentPage === 'progress' ? 'default' : 'ghost'}
+        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => {
-          setCurrentPage('progress');
+          setCurrentPage('monitoring');
           navigate('/progress');
         }}
-        className={currentPage === 'progress' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <BarChart3 className="h-4 w-4 mr-1" />
-        {t('chat.navigation.progress')}
+        Monitoring
       </Button>
       <Button
         variant={currentPage === 'modules' ? 'default' : 'ghost'}
@@ -48,27 +64,32 @@ const Chat = () => {
         className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <BookOpen className="h-4 w-4 mr-1" />
-        {t('chat.navigation.modules')}
+        Modules
       </Button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
       <Header />
       
       {/* Navigation Bar */}
-      <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800">
+      <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {renderNavigation()}
           </div>
+          {selectedCurriculum && (
+            <div className="text-sm text-white/70">
+              Learning: <span className="text-blue-300 font-medium">{selectedCurriculum.title}</span>
+            </div>
+          )}
         </div>
       </div>
       
       <main className="flex-1">
         <div className="h-full">
-          <EnhancedChatArea />
+          <EnhancedChatArea selectedCurriculum={selectedCurriculum} />
         </div>
       </main>
 

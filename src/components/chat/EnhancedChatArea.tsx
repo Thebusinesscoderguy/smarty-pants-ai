@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X } from 'lucide-react';
+import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X, Info } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import MessageList from '@/components/MessageList';
 import VoiceMessageInput from '@/components/VoiceMessageInput';
@@ -16,14 +15,15 @@ import { getDemoChatSessions, createDemoMessage, type DemoMessage } from '@/util
 interface EnhancedChatAreaProps {
   isDemoMode?: boolean;
   demoTimeLeft?: number;
+  selectedCurriculum?: any;
 }
 
-export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedChatAreaProps) => {
+export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCurriculum }: EnhancedChatAreaProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('chat');
-  const [activeCurriculum, setActiveCurriculum] = useState<any>(null);
+  const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [textMessage, setTextMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -53,9 +53,31 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
     incrementTokenCount
   } = useMessageHandler();
 
+  // Set curriculum from props
+  useEffect(() => {
+    if (selectedCurriculum) {
+      setActiveCurriculum(selectedCurriculum);
+      // Initialize with curriculum-specific welcome message
+      const curriculumWelcome = {
+        id: 'curriculum-welcome',
+        text: `Welcome! I'm ready to help you learn ${selectedCurriculum.title}. This curriculum covers ${selectedCurriculum.subjects.join(', ')} for ${selectedCurriculum.gradeLevel} students. What would you like to start with?`,
+        timestamp: new Date(),
+        isFromUser: false,
+        type: 'text' as const,
+        tokenCount: 35
+      };
+      
+      if (isDemoMode) {
+        setDemoMessages([curriculumWelcome]);
+      } else {
+        setMessages([curriculumWelcome]);
+      }
+    }
+  }, [selectedCurriculum, isDemoMode, setMessages]);
+
   // Initialize demo messages
   useEffect(() => {
-    if (isDemoMode) {
+    if (isDemoMode && !selectedCurriculum) {
       const demoSessions = getDemoChatSessions();
       if (demoSessions.length > 0) {
         setDemoMessages([
@@ -70,7 +92,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
         ]);
       }
     }
-  }, [isDemoMode]);
+  }, [isDemoMode, selectedCurriculum]);
 
   const handleSendText = async () => {
     if (!textMessage.trim() || isProcessing) return;
@@ -106,7 +128,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
         setIsProcessing(false);
       }, 1500);
     } else {
-      // Real mode - use actual AI
+      // Real mode - use actual AI with curriculum context
       if (isTokenLimitReached) {
         alert('Monthly token limit reached. Please upgrade your plan.');
         return;
@@ -124,13 +146,18 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
       setMessages(prev => [...prev, userMessageObj]);
       incrementTokenCount(userMessageObj.tokenCount, 0);
       
-      await getAIResponse(userMessage, 'alloy');
+      // Include curriculum context in the AI request
+      let contextualMessage = userMessage;
+      if (activeCurriculum) {
+        contextualMessage = `[Curriculum Context: ${activeCurriculum.title} - ${activeCurriculum.description}. Subjects: ${activeCurriculum.subjects.join(', ')}. Grade Level: ${activeCurriculum.gradeLevel}] User Question: ${userMessage}`;
+      }
+      
+      await getAIResponse(contextualMessage, 'alloy');
     }
   };
 
   const handleFileUpload = () => {
     if (!file) return;
-    // Handle file upload logic
     console.log('Uploading file:', file.name);
     setFile(null);
   };
@@ -160,13 +187,17 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
         }
       ]);
     } else {
+      const welcomeText = activeCurriculum 
+        ? `New chat started! I'm ready to help you with ${activeCurriculum.title}. What would you like to learn?`
+        : "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.";
+      
       setMessages([{
         id: 'welcome-message',
-        text: "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.",
+        text: welcomeText,
         timestamp: new Date(),
         isFromUser: false,
         type: 'text',
-        tokenCount: 18
+        tokenCount: Math.ceil(welcomeText.length / 4)
       }]);
     }
     setActiveSessionId(null);
@@ -201,7 +232,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
         className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <BarChart3 className="h-4 w-4 mr-1" />
-        Progress
+        Monitoring
       </Button>
       <Button
         variant={currentPage === 'modules' ? 'default' : 'ghost'}
@@ -221,7 +252,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
     return (
       <div className="flex flex-col h-full">
         {/* Chat Header */}
-        <div className="flex-shrink-0 p-4 border-b border-white/20">
+        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gradient-to-r from-gray-800/50 to-blue-800/50 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
@@ -242,23 +273,29 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
               </div>
             </div>
             
-            {!isDemoMode && (
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="border-white/20 text-white">
+            <div className="flex items-center space-x-2">
+              {!isDemoMode && (
+                <Badge variant="outline" className="border-white/20 text-white bg-white/10 backdrop-blur-sm">
                   {totalTokensUsed.toLocaleString()} / {monthlyLimit.toLocaleString()} tokens
                 </Badge>
-                {isQuizMode && (
-                  <Badge className="bg-green-600 text-white">
-                    Quiz Mode
-                  </Badge>
-                )}
-              </div>
-            )}
+              )}
+              {isQuizMode && (
+                <Badge className="bg-green-600 text-white">
+                  Quiz Mode
+                </Badge>
+              )}
+              {activeCurriculum && (
+                <Badge className="bg-blue-600 text-white">
+                  <Info className="h-3 w-3 mr-1" />
+                  {activeCurriculum.gradeLevel}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 p-4 overflow-hidden">
+        <div className="flex-1 p-4 overflow-hidden bg-gradient-to-br from-gray-900/50 to-blue-900/30">
           <MessageList
             messages={displayMessages}
             onPlayAudio={handlePlayAudio}
@@ -276,7 +313,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
         </div>
 
         {/* Input Area */}
-        <div className="flex-shrink-0 p-4 border-t border-white/20">
+        <div className="flex-shrink-0 p-4 border-t border-white/20 bg-gray-800/50 backdrop-blur-sm">
           <VoiceMessageInput
             textMessage={textMessage}
             setTextMessage={setTextMessage}
@@ -337,7 +374,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
         </Card>
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-2">Current Streak</h3>
+            <h3 className="text-lg font-semibull text-white mb-2">Current Streak</h3>
             <div className="text-3xl font-bold text-yellow-400 mb-1">🔥 12</div>
             <p className="text-white/60 text-sm">Days in a row</p>
           </CardContent>
@@ -347,7 +384,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
   );
 
   return (
-    <div className="flex h-screen bg-gray-900">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0`}>
         <ChatSidebar
@@ -363,7 +400,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft }: EnhancedC
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation */}
-        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800">
+        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
