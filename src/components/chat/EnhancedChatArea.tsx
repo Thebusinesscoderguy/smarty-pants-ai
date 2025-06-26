@@ -1,8 +1,9 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X, Info } from 'lucide-react';
+import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X, Info, Send } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import MessageList from '@/components/MessageList';
 import VoiceMessageInput from '@/components/VoiceMessageInput';
@@ -83,7 +84,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         setDemoMessages([
           {
             id: 'demo-welcome',
-            text: "Welcome to TeachlyAI! I'm your AI tutor ready to help you learn anything. You can ask me questions, upload files, or request voice responses. What would you like to learn about today?",
+            text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
             timestamp: new Date(),
             isFromUser: false,
             type: 'text',
@@ -146,7 +147,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       setMessages(prev => [...prev, userMessageObj]);
       incrementTokenCount(userMessageObj.tokenCount, 0);
       
-      // Include curriculum context in the AI request
+      // Include curriculum context in the AI request only if curriculum is selected
       let contextualMessage = userMessage;
       if (activeCurriculum) {
         contextualMessage = `[Curriculum Context: ${activeCurriculum.title} - ${activeCurriculum.description}. Subjects: ${activeCurriculum.subjects.join(', ')}. Grade Level: ${activeCurriculum.gradeLevel}] User Question: ${userMessage}`;
@@ -179,7 +180,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       setDemoMessages([
         {
           id: 'demo-welcome-new',
-          text: "Starting a new conversation! What would you like to learn about?",
+          text: "Hello! I'm your AI tutor. What would you like to learn about?",
           timestamp: new Date(),
           isFromUser: false,
           type: 'text',
@@ -189,7 +190,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     } else {
       const welcomeText = activeCurriculum 
         ? `New chat started! I'm ready to help you with ${activeCurriculum.title}. What would you like to learn?`
-        : "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.";
+        : "Hello! I'm your AI tutor. I can help you learn anything. What would you like to explore today?";
       
       setMessages([{
         id: 'welcome-message',
@@ -250,82 +251,119 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     const displayMessages = isDemoMode ? demoMessages : messages;
     
     return (
-      <div className="flex flex-col h-full">
-        {/* Chat Header */}
-        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gradient-to-r from-gray-800/50 to-blue-800/50 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="text-white hover:bg-white/10 md:hidden"
-              >
-                {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-              <div>
-                <h2 className="text-xl font-semibold text-white">
-                  {activeCurriculum ? activeCurriculum.title : 'AI Tutor Chat'}
-                </h2>
+      <div className="flex h-full bg-white">
+        {/* Sidebar */}
+        <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0 w-64 bg-gray-50 border-r border-gray-200`}>
+          <ChatSidebar
+            activeCurriculum={activeCurriculum}
+            curricula={curricula}
+            onSelectCurriculum={setActiveCurriculum}
+            onNewChat={handleNewChat}
+            activeSessionId={activeSessionId}
+            onSelectSession={handleSelectSession}
+          />
+        </div>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
+          <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="md:hidden text-gray-600 hover:bg-gray-100"
+                >
+                  {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {activeCurriculum ? activeCurriculum.title : 'AI Tutor'}
+                  </h2>
+                  {activeCurriculum && (
+                    <p className="text-sm text-gray-500">{activeCurriculum.description}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {!isDemoMode && (
+                  <Badge variant="outline" className="border-gray-300 text-gray-600 bg-gray-50">
+                    {totalTokensUsed.toLocaleString()} / {monthlyLimit.toLocaleString()} tokens
+                  </Badge>
+                )}
+                {isQuizMode && (
+                  <Badge className="bg-green-600 text-white">
+                    Quiz Mode
+                  </Badge>
+                )}
                 {activeCurriculum && (
-                  <p className="text-sm text-white/60">{activeCurriculum.description}</p>
+                  <Badge className="bg-blue-600 text-white">
+                    <Info className="h-3 w-3 mr-1" />
+                    {activeCurriculum.gradeLevel}
+                  </Badge>
                 )}
               </div>
             </div>
-            
-            <div className="flex items-center space-x-2">
-              {!isDemoMode && (
-                <Badge variant="outline" className="border-white/20 text-white bg-white/10 backdrop-blur-sm">
-                  {totalTokensUsed.toLocaleString()} / {monthlyLimit.toLocaleString()} tokens
-                </Badge>
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto bg-gray-50">
+            <div className="max-w-4xl mx-auto">
+              <MessageList
+                messages={displayMessages}
+                onPlayAudio={handlePlayAudio}
+                onPauseAudio={handlePauseAudio}
+              />
+              {isProcessing && (
+                <div className="flex justify-center py-4">
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                    <span>AI is thinking...</span>
+                  </div>
+                </div>
               )}
-              {isQuizMode && (
-                <Badge className="bg-green-600 text-white">
-                  Quiz Mode
-                </Badge>
-              )}
-              {activeCurriculum && (
-                <Badge className="bg-blue-600 text-white">
-                  <Info className="h-3 w-3 mr-1" />
-                  {activeCurriculum.gradeLevel}
-                </Badge>
-              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Input Area */}
+          <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-end space-x-3">
+                <div className="flex-1">
+                  <textarea
+                    value={textMessage}
+                    onChange={(e) => setTextMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message here..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={1}
+                    style={{ minHeight: '48px', maxHeight: '120px' }}
+                    disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+                  />
+                </div>
+                <Button
+                  onClick={handleSendText}
+                  disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
+                  className="h-12 w-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 p-4 overflow-hidden bg-gradient-to-br from-gray-900/50 to-blue-900/30">
-          <MessageList
-            messages={displayMessages}
-            onPlayAudio={handlePlayAudio}
-            onPauseAudio={handlePauseAudio}
+        {/* Mobile Sidebar Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
           />
-          {isProcessing && (
-            <div className="flex justify-center py-4">
-              <div className="flex items-center space-x-2 text-white/60">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>AI is thinking...</span>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="flex-shrink-0 p-4 border-t border-white/20 bg-gray-800/50 backdrop-blur-sm">
-          <VoiceMessageInput
-            textMessage={textMessage}
-            setTextMessage={setTextMessage}
-            onSendText={handleSendText}
-            onVoiceResponse={handleVoiceResponse}
-            onFileUpload={handleFileUpload}
-            file={file}
-            setFile={setFile}
-            onKeyPress={handleKeyPress}
-            disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-          />
-        </div>
+        )}
       </div>
     );
   };
@@ -374,7 +412,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         </Card>
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibull text-white mb-2">Current Streak</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">Current Streak</h3>
             <div className="text-3xl font-bold text-yellow-400 mb-1">🔥 12</div>
             <p className="text-white/60 text-sm">Days in a row</p>
           </CardContent>
@@ -384,59 +422,13 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   );
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-      {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0`}>
-        <ChatSidebar
-          activeCurriculum={activeCurriculum}
-          curricula={curricula}
-          onSelectCurriculum={setActiveCurriculum}
-          onNewChat={handleNewChat}
-          activeSessionId={activeSessionId}
-          onSelectSession={handleSelectSession}
-        />
+    <div className="flex h-screen">
+      {/* Page Content */}
+      <div className="flex-1 overflow-hidden">
+        {currentPage === 'chat' && renderChatInterface()}
+        {currentPage === 'monitoring' && renderMonitoringPage()}
+        {currentPage === 'modules' && renderModulesPage()}
       </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navigation */}
-        <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="text-white hover:bg-white/10 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              {renderNavigation()}
-            </div>
-            
-            {isDemoMode && demoTimeLeft !== undefined && (
-              <div className="text-sm text-white/70">
-                Demo: {Math.floor(demoTimeLeft / 60)}:{(demoTimeLeft % 60).toString().padStart(2, '0')} remaining
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Page Content */}
-        <div className="flex-1 overflow-hidden">
-          {currentPage === 'chat' && renderChatInterface()}
-          {currentPage === 'monitoring' && renderMonitoringPage()}
-          {currentPage === 'modules' && renderModulesPage()}
-        </div>
-      </div>
-
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 };

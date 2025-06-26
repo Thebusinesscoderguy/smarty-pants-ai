@@ -79,11 +79,6 @@ const Chat = () => {
           <div className="flex items-center space-x-4">
             {renderNavigation()}
           </div>
-          {selectedCurriculum && (
-            <div className="text-sm text-white/70">
-              Learning: <span className="text-blue-300 font-medium">{selectedCurriculum.title}</span>
-            </div>
-          )}
         </div>
       </div>
       

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Message } from '@/types/message';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
@@ -11,11 +10,11 @@ export const useMessageHandler = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome-message',
-      text: "Welcome to Teachly! How can I assist you today? You can send text, voice messages, or upload files.",
+      text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
       timestamp: new Date(),
       isFromUser: false,
       type: 'text',
-      tokenCount: 18
+      tokenCount: 25
     }
   ]);
   
@@ -111,18 +110,16 @@ export const useMessageHandler = () => {
         }
         
         // Improved system prompt for better AI behavior
-        let systemPrompt = `You are Teachly, a friendly and knowledgeable AI tutor. You're here to help students learn in a warm, encouraging way. 
+        let systemPrompt = `You are a friendly and knowledgeable AI tutor. You help students learn by:
 
-Key behaviors:
-- Be conversational and natural - like a helpful friend who happens to know a lot
-- Only treat messages as curriculum-specific when there's clear curriculum context provided
-- For general questions, respond normally without forcing curriculum connections
-- Be encouraging and supportive in your responses
-- Keep responses engaging and at an appropriate level for the student
-- Don't be overly formal or robotic
-- If someone asks a question, dive right into helping them
+- Being conversational and approachable
+- Explaining concepts clearly and at an appropriate level
+- Breaking down complex topics into understandable parts
+- Encouraging questions and curiosity
+- Providing examples and practical applications
+- Being patient and supportive
 
-You should act like a normal AI tutor unless specifically provided with curriculum context in the message.`;
+Act like a helpful teacher who genuinely cares about student learning. Only treat messages as curriculum-specific when there's clear curriculum context provided. Otherwise, respond as a general AI tutor ready to help with any subject or question.`;
 
         // Add quiz mode context if active
         if (isQuizMode) {

@@ -245,7 +245,7 @@ const Progress = () => {
               </TabsTrigger>
               <TabsTrigger value="testing" className="data-[state=active]:bg-white/20 flex items-center">
                 <TestTube className="h-4 w-4 mr-1" />
-                Testing
+                Tests
               </TabsTrigger>
             </TabsList>
 
