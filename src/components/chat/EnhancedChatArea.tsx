@@ -127,7 +127,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         setIsProcessing(false);
       }, 1500);
     } else {
-      // Real mode - use actual AI with curriculum context
+      // Real mode - use actual AI
       if (isTokenLimitReached) {
         alert('Monthly token limit reached. Please upgrade your plan.');
         return;
@@ -145,13 +145,8 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       setMessages(prev => [...prev, userMessageObj]);
       incrementTokenCount(userMessageObj.tokenCount, 0);
       
-      // Include curriculum context in the AI request only if curriculum is selected
-      let contextualMessage = userMessage;
-      if (activeCurriculum) {
-        contextualMessage = `[Curriculum Context: ${activeCurriculum.title} - ${activeCurriculum.description}. Subjects: ${activeCurriculum.subjects.join(', ')}. Grade Level: ${activeCurriculum.gradeLevel}] User Question: ${userMessage}`;
-      }
-      
-      await getAIResponse(contextualMessage, 'alloy');
+      // Pass curriculum context to AI only if it exists
+      await getAIResponse(userMessage, 'alloy', activeCurriculum);
     }
   };
 
@@ -216,7 +211,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   const displayMessages = isDemoMode ? demoMessages : messages;
   
   return (
-    <div className="flex h-full bg-gray-50">
+    <div className="flex h-full bg-gray-900">
       {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0 w-64 bg-gray-900 border-r border-gray-700`}>
         <div className="flex flex-col h-full">
@@ -235,7 +230,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
           <div className="flex-1 overflow-y-auto p-3">
             <div className="space-y-2">
               <div className="text-gray-400 text-sm font-medium mb-2">Recent Chats</div>
-              {/* Demo chat sessions */}
               <div className="space-y-1">
                 <Button
                   variant="ghost"
@@ -265,24 +259,24 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 flex flex-col bg-gray-800">
         {/* Chat Header */}
-        <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
+        <div className="flex-shrink-0 px-4 py-3 border-b border-gray-700 bg-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="md:hidden text-gray-600 hover:bg-gray-100"
+                className="md:hidden text-gray-400 hover:bg-gray-700"
               >
                 {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">AI</span>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-white">
                   {activeCurriculum ? activeCurriculum.title : 'AI Tutor'}
                 </h2>
               </div>
@@ -290,7 +284,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
             
             <div className="flex items-center space-x-2">
               {!isDemoMode && (
-                <Badge variant="outline" className="border-gray-300 text-gray-600 bg-gray-50 text-xs">
+                <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700 text-xs">
                   {totalTokensUsed.toLocaleString()} tokens used
                 </Badge>
               )}
@@ -304,7 +298,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-gray-800">
           <div className="max-w-3xl mx-auto px-4">
             <MessageList
               messages={displayMessages}
@@ -313,7 +307,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
             />
             {isProcessing && (
               <div className="flex justify-center py-4">
-                <div className="flex items-center space-x-2 text-gray-500">
+                <div className="flex items-center space-x-2 text-gray-400">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
                   <span>AI is thinking...</span>
                 </div>
@@ -324,7 +318,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         </div>
 
         {/* Input Area */}
-        <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+        <div className="flex-shrink-0 p-4 border-t border-gray-700 bg-gray-800">
           <div className="max-w-3xl mx-auto">
             <div className="relative">
               <textarea
@@ -332,7 +326,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message here..."
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                 rows={1}
                 style={{ minHeight: '52px', maxHeight: '120px' }}
                 disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}

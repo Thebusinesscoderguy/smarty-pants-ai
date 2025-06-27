@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Message } from '@/types/message';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
@@ -75,7 +76,7 @@ export const useMessageHandler = () => {
     }
   };
 
-  const getAIResponse = async (userMessage: string, selectedVoice: string) => {
+  const getAIResponse = async (userMessage: string, selectedVoice: string, curriculumContext?: any) => {
     try {
       const processingMessageId = `processing-${Date.now()}`;
       const processingMessage: Message = {
@@ -109,7 +110,7 @@ export const useMessageHandler = () => {
           setIsQuizMode(true);
         }
         
-        // Improved system prompt for better AI behavior
+        // Natural AI tutor system prompt
         let systemPrompt = `You are a friendly and knowledgeable AI tutor. You help students learn by:
 
 - Being conversational and approachable
@@ -119,7 +120,12 @@ export const useMessageHandler = () => {
 - Providing examples and practical applications
 - Being patient and supportive
 
-Act like a helpful teacher who genuinely cares about student learning. Only treat messages as curriculum-specific when there's clear curriculum context provided. Otherwise, respond as a general AI tutor ready to help with any subject or question.`;
+Respond naturally to whatever the student asks about. Don't assume everything is curriculum-related unless explicitly mentioned.`;
+
+        // Only add curriculum context if it's actually provided and relevant
+        if (curriculumContext && curriculumContext.title) {
+          systemPrompt += `\n\nNote: The student is currently working with the "${curriculumContext.title}" curriculum, but respond naturally to their questions regardless of whether they're curriculum-specific.`;
+        }
 
         // Add quiz mode context if active
         if (isQuizMode) {
