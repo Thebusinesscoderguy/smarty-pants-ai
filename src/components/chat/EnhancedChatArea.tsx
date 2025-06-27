@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,7 +22,7 @@ interface EnhancedChatAreaProps {
 export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCurriculum }: EnhancedChatAreaProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [textMessage, setTextMessage] = useState('');
@@ -213,65 +214,65 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   return (
     <div className="flex h-full bg-gray-900">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block flex-shrink-0 w-64 bg-gray-900 border-r border-gray-700`}>
-        <div className="flex flex-col h-full">
-          {/* New Chat Button */}
-          <div className="p-3 border-b border-gray-700">
-            <Button
-              onClick={handleNewChat}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 flex items-center justify-center space-x-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span>New Chat</span>
-            </Button>
-          </div>
-
-          {/* Chat Sessions */}
-          <div className="flex-1 overflow-y-auto p-3">
-            <div className="space-y-2">
-              <div className="text-gray-400 text-sm font-medium mb-2">Recent Chats</div>
-              <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-left text-gray-300 hover:bg-gray-800 h-auto p-2"
-                  onClick={() => handleSelectSession('demo-1')}
-                >
-                  <div className="truncate">Math Help Session</div>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-left text-gray-300 hover:bg-gray-800 h-auto p-2"
-                  onClick={() => handleSelectSession('demo-2')}
-                >
-                  <div className="truncate">Science Questions</div>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-left text-gray-300 hover:bg-gray-800 h-auto p-2"
-                  onClick={() => handleSelectSession('demo-3')}
-                >
-                  <div className="truncate">History Discussion</div>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
+        <ChatSidebar
+          activeCurriculum={activeCurriculum}
+          curricula={curricula}
+          onSelectCurriculum={setActiveCurriculum}
+          onNewChat={handleNewChat}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+        />
       </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-gray-800">
         {/* Chat Header */}
-        <div className="flex-shrink-0 px-4 py-3 border-b border-gray-700 bg-gray-800">
+        <div className="flex-shrink-0 px-4 py-4 border-b border-gray-700 bg-gray-800">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="md:hidden text-gray-400 hover:bg-gray-700"
+                className="text-gray-400 hover:bg-gray-700 hover:text-white"
               >
                 {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
+              
+              {/* Navigation Buttons */}
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/chat')}
+                  className="text-blue-400 hover:bg-gray-700 hover:text-blue-300 flex items-center"
+                >
+                  <MessageSquare className="h-4 w-4 mr-1" />
+                  Chat
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/progress')}
+                  className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
+                >
+                  <BarChart3 className="h-4 w-4 mr-1" />
+                  Monitoring
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/modules')}
+                  className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
+                >
+                  <BookOpen className="h-4 w-4 mr-1" />
+                  Modules
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">AI</span>
@@ -280,26 +281,26 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                   {activeCurriculum ? activeCurriculum.title : 'AI Tutor'}
                 </h2>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {!isDemoMode && (
-                <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700 text-xs">
-                  {totalTokensUsed.toLocaleString()} tokens used
-                </Badge>
-              )}
-              {isQuizMode && (
-                <Badge className="bg-green-600 text-white text-xs">
-                  Quiz Mode
-                </Badge>
-              )}
+              
+              <div className="flex items-center space-x-2">
+                {!isDemoMode && (
+                  <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700 text-xs">
+                    {totalTokensUsed.toLocaleString()} tokens used
+                  </Badge>
+                )}
+                {isQuizMode && (
+                  <Badge className="bg-green-600 text-white text-xs">
+                    Quiz Mode
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto bg-gray-800">
-          <div className="max-w-3xl mx-auto px-4">
+          <div className="max-w-4xl mx-auto px-6 py-4">
             <MessageList
               messages={displayMessages}
               onPlayAudio={handlePlayAudio}
@@ -318,15 +319,15 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         </div>
 
         {/* Input Area */}
-        <div className="flex-shrink-0 p-4 border-t border-gray-700 bg-gray-800">
-          <div className="max-w-3xl mx-auto">
+        <div className="flex-shrink-0 p-6 border-t border-gray-700 bg-gray-800">
+          <div className="max-w-4xl mx-auto">
             <div className="relative">
               <textarea
                 value={textMessage}
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message here..."
-                className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
+                className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                 rows={1}
                 style={{ minHeight: '52px', maxHeight: '120px' }}
                 disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
@@ -334,7 +335,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
               <Button
                 onClick={handleSendText}
                 disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
-                className="absolute right-2 bottom-2 h-8 w-8 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center p-0"
+                className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center p-0"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -342,14 +343,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
           </div>
         </div>
       </div>
-
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 };
