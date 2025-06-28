@@ -143,41 +143,6 @@ export const ChatSidebar = ({
 
       <Separator className="bg-gray-700 flex-shrink-0" />
 
-      {/* Curriculum Selection */}
-      {curricula.length > 0 && (
-        <Card className="bg-gray-700 border-gray-600 flex-shrink-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-white text-sm">
-              <BookOpen className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">Learning Context</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button
-              variant={!activeCurriculum ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onSelectCurriculum(null)}
-              className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500 h-8"
-            >
-              <span className="truncate">General Chat</span>
-            </Button>
-            {curricula.map((curriculum) => (
-              <Button
-                key={curriculum.id}
-                variant={activeCurriculum?.id === curriculum.id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onSelectCurriculum(curriculum)}
-                className="w-full justify-start text-xs bg-gray-600 text-white border-gray-500 hover:bg-gray-500 h-8"
-              >
-                <span className="truncate">{curriculum.title}</span>
-              </Button>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      <Separator className="bg-gray-700 flex-shrink-0" />
-
       {/* Previous Chats */}
       <div className="flex-1 min-h-0">
         <h3 className="text-sm font-medium text-gray-300 mb-3 px-1">Previous Chats</h3>

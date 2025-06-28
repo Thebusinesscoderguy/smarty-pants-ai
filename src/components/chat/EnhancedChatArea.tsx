@@ -217,7 +217,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
         <ChatSidebar
           activeCurriculum={activeCurriculum}
-          curricula={curricula}
+          curricula={[]}
           onSelectCurriculum={setActiveCurriculum}
           onNewChat={handleNewChat}
           activeSessionId={activeSessionId}
@@ -258,16 +258,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                   className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
                 >
                   <BarChart3 className="h-4 w-4 mr-1" />
-                  Monitoring
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/modules')}
-                  className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
-                >
-                  <BookOpen className="h-4 w-4 mr-1" />
-                  Modules
+                  Progress
                 </Button>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, BarChart3, BookOpen } from 'lucide-react';
+import { MessageSquare, BarChart3 } from 'lucide-react';
 import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('chat');
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring'>('chat');
   const [selectedCurriculum, setSelectedCurriculum] = useState<any>(null);
 
   useEffect(() => {
@@ -52,19 +52,7 @@ const Chat = () => {
         className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
         <BarChart3 className="h-4 w-4 mr-1" />
-        Monitoring
-      </Button>
-      <Button
-        variant={currentPage === 'modules' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => {
-          setCurrentPage('modules');
-          navigate('/modules');
-        }}
-        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
-      >
-        <BookOpen className="h-4 w-4 mr-1" />
-        Modules
+        Progress
       </Button>
     </div>
   );
