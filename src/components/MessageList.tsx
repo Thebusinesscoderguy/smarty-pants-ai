@@ -16,29 +16,29 @@ const MessageList = ({ messages, onPlayAudio, onPauseAudio }: MessageListProps) 
       {messages.map((message, index) => (
         <div 
           key={message.id || index}
-          className={`flex w-full ${message.isFromUser ? 'justify-start' : 'justify-end'}`}
+          className={`flex w-full ${message.isFromUser ? 'justify-end' : 'justify-start'}`}
         >
-          <div className={`flex items-start gap-3 max-w-[80%] ${message.isFromUser ? 'flex-row' : 'flex-row-reverse'}`}>
+          <div className={`flex items-start gap-3 max-w-[80%] ${message.isFromUser ? 'flex-row-reverse' : 'flex-row'}`}>
             {/* Avatar */}
             <div className="flex-shrink-0">
               {message.isFromUser ? (
-                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-gray-300" />
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
                 </div>
               ) : (
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
                   AI
                 </div>
               )}
             </div>
             
             {/* Message Content */}
-            <div className={`flex flex-col ${message.isFromUser ? 'items-start' : 'items-end'}`}>
+            <div className={`flex flex-col ${message.isFromUser ? 'items-end' : 'items-start'}`}>
               <div 
                 className={`p-4 rounded-2xl max-w-full ${
                   message.isFromUser 
-                    ? 'bg-gray-700 text-white rounded-tl-sm' 
-                    : 'bg-blue-600 text-white rounded-tr-sm'
+                    ? 'bg-blue-600 text-white rounded-br-sm' 
+                    : 'bg-gray-700 text-white rounded-bl-sm'
                 }`}
               >
                 <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
@@ -61,7 +61,7 @@ const MessageList = ({ messages, onPlayAudio, onPauseAudio }: MessageListProps) 
               </div>
               
               {/* Message Footer */}
-              <div className={`flex items-center gap-3 mt-2 px-1 ${message.isFromUser ? 'flex-row' : 'flex-row-reverse'}`}>
+              <div className={`flex items-center gap-3 mt-2 px-1 ${message.isFromUser ? 'flex-row-reverse' : 'flex-row'}`}>
                 {message.audioUrl && (
                   <Button 
                     variant="ghost" 

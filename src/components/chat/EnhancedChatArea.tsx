@@ -3,13 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, FileText, Users, BarChart3, BookOpen, Settings, Menu, X, Info, Send, Plus } from 'lucide-react';
+import { MessageSquare, BarChart3, Menu, X, Send } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import MessageList from '@/components/MessageList';
 import VoiceMessageInput from '@/components/VoiceMessageInput';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { curricula } from '@/utils/curriculaData';
 import { getDemoChatSessions, createDemoMessage, type DemoMessage } from '@/utils/demoChatData';
 
@@ -22,6 +23,7 @@ interface EnhancedChatAreaProps {
 export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCurriculum }: EnhancedChatAreaProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -57,7 +59,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   useEffect(() => {
     if (selectedCurriculum) {
       setActiveCurriculum(selectedCurriculum);
-      // Initialize with curriculum-specific welcome message
       const curriculumWelcome = {
         id: 'curriculum-welcome',
         text: `Welcome! I'm ready to help you learn ${selectedCurriculum.title}. This curriculum covers ${selectedCurriculum.subjects.join(', ')} for ${selectedCurriculum.gradeLevel} students. What would you like to start with?`,
@@ -98,20 +99,18 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     if (!textMessage.trim() || isProcessing) return;
 
     if (isDemoMode && demoTimeLeft && demoTimeLeft <= 0) {
-      return; // Don't allow new messages if demo time expired
+      return;
     }
 
     const userMessage = textMessage.trim();
     setTextMessage('');
 
     if (isDemoMode) {
-      // Demo mode - simulate AI responses
       const newUserMessage = createDemoMessage(userMessage, true);
       setDemoMessages(prev => [...prev, newUserMessage]);
       
       setIsProcessing(true);
       
-      // Simulate AI thinking time
       setTimeout(() => {
         const aiResponses = [
           "That's a great question! Let me help you understand this concept step by step...",
@@ -128,7 +127,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         setIsProcessing(false);
       }, 1500);
     } else {
-      // Real mode - use actual AI
       if (isTokenLimitReached) {
         alert('Monthly token limit reached. Please upgrade your plan.');
         return;
@@ -146,20 +144,8 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       setMessages(prev => [...prev, userMessageObj]);
       incrementTokenCount(userMessageObj.tokenCount, 0);
       
-      // Pass curriculum context to AI only if it exists
       await getAIResponse(userMessage, 'alloy', activeCurriculum);
     }
-  };
-
-  const handleFileUpload = () => {
-    if (!file) return;
-    console.log('Uploading file:', file.name);
-    setFile(null);
-  };
-
-  const handleVoiceResponse = async () => {
-    if (!textMessage.trim()) return;
-    await handleSendText();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -258,25 +244,25 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                   className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
                 >
                   <BarChart3 className="h-4 w-4 mr-1" />
-                  Progress
+                  {t('chat.progress')}
                 </Button>
               </div>
             </div>
             
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">AI</span>
                 </div>
                 <h2 className="text-lg font-semibold text-white">
-                  {activeCurriculum ? activeCurriculum.title : 'AI Tutor'}
+                  {activeCurriculum ? activeCurriculum.title : t('chat.title')}
                 </h2>
               </div>
               
               <div className="flex items-center space-x-2">
                 {!isDemoMode && (
                   <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700 text-xs">
-                    {totalTokensUsed.toLocaleString()} tokens used
+                    {totalTokensUsed.toLocaleString()} {t('chat.tokensUsed')}
                   </Badge>
                 )}
                 {isQuizMode && (
@@ -301,7 +287,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
               <div className="flex justify-center py-4">
                 <div className="flex items-center space-x-2 text-gray-400">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-                  <span>AI is thinking...</span>
+                  <span>{t('chat.thinking')}</span>
                 </div>
               </div>
             )}
@@ -317,7 +303,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                 value={textMessage}
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message here..."
+                placeholder={t('chat.placeholder')}
                 className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                 rows={1}
                 style={{ minHeight: '52px', maxHeight: '120px' }}

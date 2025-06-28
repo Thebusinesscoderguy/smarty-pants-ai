@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { MessageSquarePlus, MessageSquare, Trash2, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getDemoChatSessions } from '@/utils/demoChatData';
 
 interface ChatSession {
@@ -33,13 +34,13 @@ export const ChatSidebar = ({
   onSelectSession
 }: ChatSidebarProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchChatSessions();
     } else {
-      // Load demo sessions for non-authenticated users
       const demoSessions = getDemoChatSessions().map(session => ({
         id: session.id,
         title: session.title,
@@ -54,7 +55,6 @@ export const ChatSidebar = ({
     if (!user) return;
 
     try {
-      // Get messages data grouped by conversation_id
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('conversation_id, created_at, content')
@@ -64,7 +64,6 @@ export const ChatSidebar = ({
 
       if (messagesError) throw messagesError;
 
-      // Group messages by conversation_id and create sessions
       const sessionMap = new Map();
       messagesData?.forEach(msg => {
         if (!sessionMap.has(msg.conversation_id)) {
@@ -86,20 +85,16 @@ export const ChatSidebar = ({
   };
 
   const generateTitleFromContent = (content: string): string => {
-    // Improved title generation
     const cleanContent = content.replace(/[^\w\s]/g, '').trim();
     const words = cleanContent.split(' ').filter(word => word.length > 2);
     
     if (words.length === 0) return 'New Chat';
     
-    // Take first 3-4 meaningful words
     const titleWords = words.slice(0, 4);
     let title = titleWords.join(' ');
     
-    // Capitalize first letter
     title = title.charAt(0).toUpperCase() + title.slice(1).toLowerCase();
     
-    // Add ellipsis if original content was longer
     if (words.length > 4) {
       title += '...';
     }
@@ -112,7 +107,6 @@ export const ChatSidebar = ({
     if (!user) return;
 
     try {
-      // Delete messages
       await supabase
         .from('messages')
         .delete()
@@ -137,7 +131,7 @@ export const ChatSidebar = ({
           className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 text-sm font-medium"
         >
           <MessageSquarePlus className="h-4 w-4 mr-2 flex-shrink-0" />
-          <span className="truncate">New Chat</span>
+          <span className="truncate">{t('chat.newChat')}</span>
         </Button>
       </div>
 
@@ -145,7 +139,7 @@ export const ChatSidebar = ({
 
       {/* Previous Chats */}
       <div className="flex-1 min-h-0">
-        <h3 className="text-sm font-medium text-gray-300 mb-3 px-1">Previous Chats</h3>
+        <h3 className="text-sm font-medium text-gray-300 mb-3 px-1">{t('chat.previousChats')}</h3>
         <div className="space-y-2 h-full overflow-y-auto custom-scrollbar">
           {chatSessions.map((session) => (
             <div
