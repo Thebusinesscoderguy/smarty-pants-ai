@@ -162,11 +162,11 @@ export const FeaturesDemo = () => {
   ];
 
   const categories = [
-    { id: 'all', name: 'All Features', color: 'bg-gray-500' },
-    { id: 'learning', name: 'Learning', color: 'bg-blue-500' },
-    { id: 'gamification', name: 'Gamification', color: 'bg-purple-500' },
-    { id: 'tools', name: 'Tools', color: 'bg-green-500' },
-    { id: 'monitoring', name: 'Monitoring', color: 'bg-orange-500' }
+    { id: 'all', name: t('features.demo.allFeatures'), color: 'bg-gray-500' },
+    { id: 'learning', name: t('features.demo.learning'), color: 'bg-blue-500' },
+    { id: 'gamification', name: t('features.demo.gamification'), color: 'bg-purple-500' },
+    { id: 'tools', name: t('features.demo.tools'), color: 'bg-green-500' },
+    { id: 'monitoring', name: t('features.demo.monitoring'), color: 'bg-orange-500' }
   ];
 
   const filteredFeatures = selectedCategory === 'all' 
@@ -204,10 +204,10 @@ export const FeaturesDemo = () => {
     <div className="w-full max-w-6xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Discover Our <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">Features</span>
+          {t('features.demo.title')} <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">Features</span>
         </h2>
         <p className="text-lg text-white/80 max-w-2xl mx-auto mb-6">
-          Explore all the powerful features designed to enhance your learning experience with gamification and AI.
+          {t('features.demo.subtitle')}
         </p>
         
         {/* Category Filter */}
