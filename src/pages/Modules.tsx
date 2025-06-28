@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Clock, Users, Star, Play, Search, ArrowLeft, MessageSquare, BarChart3 } from 'lucide-react';
+import { BookOpen, Play, Search, ArrowLeft, MessageSquare, BarChart3 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,7 @@ const Modules = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedModule, setSelectedModule] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('modules');
+  const [currentPage, setCurrentPage] = useState<'chat' | 'progress' | 'modules'>('modules');
 
   const categories = [
     { id: 'all', name: t('modules.categories.all') || 'All Subjects', count: curricula.length },
@@ -46,14 +46,12 @@ const Modules = () => {
   };
 
   const startModule = (module: any) => {
-    // Store selected curriculum in localStorage so chat can access it
     localStorage.setItem('selectedCurriculum', JSON.stringify(module));
-    // Navigate to chat page
     navigate('/chat');
   };
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
+    <div className="flex items-center space-x-1 bg-white/10 rounded-lg p-1 backdrop-blur-sm">
       <Button
         variant={currentPage === 'chat' ? 'default' : 'ghost'}
         size="sm"
@@ -61,31 +59,31 @@ const Modules = () => {
           setCurrentPage('chat');
           navigate('/chat');
         }}
-        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-white hover:bg-white/20'}
       >
-        <MessageSquare className="h-4 w-4 mr-1" />
-        Chat
+        <MessageSquare className="h-4 w-4 mr-2" />
+        {t('nav.chat') || 'Chat'}
       </Button>
       <Button
-        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+        variant={currentPage === 'progress' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => {
-          setCurrentPage('monitoring');
+          setCurrentPage('progress');
           navigate('/progress');
         }}
-        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'progress' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-white hover:bg-white/20'}
       >
-        <BarChart3 className="h-4 w-4 mr-1" />
-        Monitoring
+        <BarChart3 className="h-4 w-4 mr-2" />
+        {t('nav.progress') || 'Progress'}
       </Button>
       <Button
         variant={currentPage === 'modules' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setCurrentPage('modules')}
-        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-white hover:bg-white/20'}
       >
-        <BookOpen className="h-4 w-4 mr-1" />
-        Modules
+        <BookOpen className="h-4 w-4 mr-2" />
+        {t('nav.modules') || 'Modules'}
       </Button>
     </div>
   );
@@ -95,7 +93,6 @@ const Modules = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
         <Header />
         
-        {/* Navigation Bar */}
         <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -109,32 +106,32 @@ const Modules = () => {
             <Button
               onClick={() => setSelectedModule(null)}
               variant="outline"
-              className="mb-6 border-white/20 bg-white/5 hover:bg-white/10 text-white"
+              className="mb-6 border-white/30 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               {t('common.back') || 'Back'}
             </Button>
             
-            <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
+            <Card className="bg-white/10 border-white/30 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-2xl text-white">{selectedModule.title}</CardTitle>
-                <p className="text-white/70">{selectedModule.description}</p>
+                <p className="text-white/80">{selectedModule.description}</p>
                 <div className="flex gap-2 mt-4">
                   <Badge className={getDifficultyColor(selectedModule.gradeLevel)}>
                     {selectedModule.gradeLevel}
                   </Badge>
-                  <Badge variant="outline" className="border-white/20 text-white">
+                  <Badge variant="outline" className="border-white/30 text-white bg-white/10">
                     {selectedModule.country}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.subjects') || 'Subjects'}</h3>
+                    <h3 className="text-lg font-semibold text-white mb-3">{t('modules.subjects') || 'Subjects'}</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedModule.subjects.map((subject: string) => (
-                        <Badge key={subject} variant="outline" className="border-white/20 text-white/70">
+                        <Badge key={subject} variant="outline" className="border-white/30 text-white/90 bg-white/5">
                           {subject}
                         </Badge>
                       ))}
@@ -142,10 +139,10 @@ const Modules = () => {
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{t('modules.standards') || 'Standards'}</h3>
+                    <h3 className="text-lg font-semibold text-white mb-3">{t('modules.standards') || 'Standards'}</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedModule.standards.map((standard: string) => (
-                        <Badge key={standard} variant="outline" className="border-blue-500/30 text-blue-300">
+                        <Badge key={standard} variant="outline" className="border-blue-500/40 text-blue-300 bg-blue-500/10">
                           {standard}
                         </Badge>
                       ))}
@@ -154,9 +151,9 @@ const Modules = () => {
 
                   <Button 
                     onClick={() => startModule(selectedModule)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-6"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-6 h-12 text-lg font-medium"
                   >
-                    <Play className="h-4 w-4 mr-2" />
+                    <Play className="h-5 w-5 mr-2" />
                     {t('modules.startLearning') || 'Start Learning'}
                   </Button>
                 </div>
@@ -173,7 +170,6 @@ const Modules = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
       <Header />
       
-      {/* Navigation Bar */}
       <div className="flex-shrink-0 p-4 border-b border-white/20 bg-gray-800/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -191,7 +187,6 @@ const Modules = () => {
             <p className="text-gray-300 text-lg">{t('modules.description') || 'Explore our comprehensive curriculum modules'}</p>
           </div>
 
-          {/* Search and Filters */}
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
@@ -200,12 +195,11 @@ const Modules = () => {
                   placeholder={t('modules.searchPlaceholder') || 'Search modules...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 backdrop-blur-sm"
+                  className="pl-10 bg-white/10 border-white/30 text-white placeholder-gray-400 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
             </div>
 
-            {/* Category Filters */}
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
                 <Button
@@ -213,8 +207,8 @@ const Modules = () => {
                   variant={selectedCategory === category.id ? "default" : "outline"}
                   onClick={() => setSelectedCategory(category.id)}
                   className={selectedCategory === category.id 
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" 
-                    : "border-white/20 bg-white/5 text-white hover:bg-white/10 backdrop-blur-sm"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white" 
+                    : "border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
                   }
                 >
                   {category.name} ({category.count})
@@ -223,10 +217,9 @@ const Modules = () => {
             </div>
           </div>
 
-          {/* Modules Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModules.map((module) => (
-              <Card key={module.id} className="bg-white/10 border-white/20 hover:bg-white/15 transition-all duration-300 backdrop-blur-sm hover:scale-105">
+              <Card key={module.id} className="bg-white/10 border-white/30 hover:bg-white/15 transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:shadow-xl">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -239,25 +232,25 @@ const Modules = () => {
                     <Badge className={getDifficultyColor(module.gradeLevel)}>
                       {module.gradeLevel}
                     </Badge>
-                    <Badge variant="outline" className="border-white/20 text-white">
+                    <Badge variant="outline" className="border-white/30 text-white bg-white/10">
                       {module.country}
                     </Badge>
                   </div>
                 </CardHeader>
                 
                 <CardContent>
-                  <p className="text-white/70 mb-4 text-sm">{module.description}</p>
+                  <p className="text-white/80 mb-4 text-sm">{module.description}</p>
                   
                   <div className="mb-4">
-                    <p className="text-white/80 text-sm mb-2">{t('modules.subjects') || 'Subjects'}:</p>
+                    <p className="text-white/90 text-sm mb-2 font-medium">{t('modules.subjects') || 'Subjects'}:</p>
                     <div className="flex flex-wrap gap-1">
                       {module.subjects.slice(0, 3).map((subject: string) => (
-                        <Badge key={subject} variant="outline" className="text-xs border-white/20 text-white/70">
+                        <Badge key={subject} variant="outline" className="text-xs border-white/30 text-white/80 bg-white/5">
                           {subject}
                         </Badge>
                       ))}
                       {module.subjects.length > 3 && (
-                        <Badge variant="outline" className="text-xs border-white/20 text-white/70">
+                        <Badge variant="outline" className="text-xs border-white/30 text-white/80 bg-white/5">
                           +{module.subjects.length - 3} {t('common.more') || 'more'}
                         </Badge>
                       )}
@@ -266,7 +259,7 @@ const Modules = () => {
 
                   <Button 
                     onClick={() => startModule(module)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium"
                   >
                     <Play className="h-4 w-4 mr-2" />
                     {t('modules.startLearning') || 'Start Learning'}

@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, BarChart3, Menu, X, Send } from 'lucide-react';
+import { MessageSquare, BarChart3, Menu, X, Send, BookOpen } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import MessageList from '@/components/MessageList';
 import VoiceMessageInput from '@/components/VoiceMessageInput';
@@ -94,6 +93,38 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       }
     }
   }, [isDemoMode, selectedCurriculum]);
+
+  const renderNavigation = () => (
+    <div className="flex items-center space-x-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/chat')}
+        className="text-blue-400 hover:bg-gray-700 hover:text-blue-300 flex items-center"
+      >
+        <MessageSquare className="h-4 w-4 mr-1" />
+        {t('nav.chat') || 'Chat'}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/progress')}
+        className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
+      >
+        <BarChart3 className="h-4 w-4 mr-1" />
+        {t('nav.progress') || 'Progress'}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/modules')}
+        className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
+      >
+        <BookOpen className="h-4 w-4 mr-1" />
+        {t('nav.modules') || 'Modules'}
+      </Button>
+    </div>
+  );
 
   const handleSendText = async () => {
     if (!textMessage.trim() || isProcessing) return;
@@ -226,32 +257,12 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                 {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
               
-              {/* Navigation Buttons */}
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/chat')}
-                  className="text-blue-400 hover:bg-gray-700 hover:text-blue-300 flex items-center"
-                >
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  Chat
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/progress')}
-                  className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
-                >
-                  <BarChart3 className="h-4 w-4 mr-1" />
-                  {t('chat.progress')}
-                </Button>
-              </div>
+              {renderNavigation()}
             </div>
             
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">AI</span>
                 </div>
                 <h2 className="text-lg font-semibold text-white">
@@ -261,7 +272,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
               
               <div className="flex items-center space-x-2">
                 {!isDemoMode && (
-                  <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700 text-xs">
+                  <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700/50 text-xs">
                     {totalTokensUsed.toLocaleString()} {t('chat.tokensUsed')}
                   </Badge>
                 )}

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, BarChart3 } from 'lucide-react';
+import { MessageSquare, BarChart3, BookOpen } from 'lucide-react';
 import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring'>('chat');
+  const [currentPage, setCurrentPage] = useState<'chat' | 'progress' | 'modules'>('chat');
   const [selectedCurriculum, setSelectedCurriculum] = useState<any>(null);
 
   useEffect(() => {
@@ -32,27 +32,39 @@ const Chat = () => {
   }, []);
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1">
+    <div className="flex items-center space-x-1 bg-white/10 rounded-lg p-1 backdrop-blur-sm">
       <Button
         variant={currentPage === 'chat' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setCurrentPage('chat')}
-        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'chat' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-white hover:bg-white/20'}
       >
-        <MessageSquare className="h-4 w-4 mr-1" />
-        Chat
+        <MessageSquare className="h-4 w-4 mr-2" />
+        {t('nav.chat') || 'Chat'}
       </Button>
       <Button
-        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+        variant={currentPage === 'progress' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => {
-          setCurrentPage('monitoring');
+          setCurrentPage('progress');
           navigate('/progress');
         }}
-        className={currentPage === 'monitoring' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'progress' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-white hover:bg-white/20'}
       >
-        <BarChart3 className="h-4 w-4 mr-1" />
-        Progress
+        <BarChart3 className="h-4 w-4 mr-2" />
+        {t('nav.progress') || 'Progress'}
+      </Button>
+      <Button
+        variant={currentPage === 'modules' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => {
+          setCurrentPage('modules');
+          navigate('/modules');
+        }}
+        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-white hover:bg-white/20'}
+      >
+        <BookOpen className="h-4 w-4 mr-2" />
+        {t('nav.modules') || 'Modules'}
       </Button>
     </div>
   );
