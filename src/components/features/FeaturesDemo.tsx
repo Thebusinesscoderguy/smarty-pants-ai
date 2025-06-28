@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Feature {
   id: string;
@@ -31,133 +32,134 @@ interface Feature {
   level: number;
 }
 
-const features: Feature[] = [
-  {
-    id: 'voice-chat',
-    title: 'Voice Learning',
-    description: 'Interactive voice conversations with AI tutor',
-    icon: <Mic className="h-6 w-6" />,
-    route: '/voice',
-    category: 'learning',
-    status: 'available',
-    level: 1
-  },
-  {
-    id: 'text-chat',
-    title: 'Text Chat',
-    description: 'Real-time text conversations with adaptive AI',
-    icon: <MessageSquare className="h-6 w-6" />,
-    route: '/chat',
-    category: 'learning',
-    status: 'available',
-    level: 1
-  },
-  {
-    id: 'math-solver',
-    title: 'Math Solver',
-    description: 'Advanced mathematical problem solving with step-by-step solutions',
-    icon: <Calculator className="h-6 w-6" />,
-    route: '/math',
-    category: 'tools',
-    status: 'available',
-    level: 2
-  },
-  {
-    id: 'achievements',
-    title: 'Achievements',
-    description: 'Unlock badges and trophies as you learn',
-    icon: <Trophy className="h-6 w-6" />,
-    route: '/progress',
-    category: 'gamification',
-    status: 'available',
-    level: 1
-  },
-  {
-    id: 'daily-challenges',
-    title: 'Daily Challenges',
-    description: 'Complete daily learning goals for rewards',
-    icon: <Target className="h-6 w-6" />,
-    route: '/progress',
-    category: 'gamification',
-    status: 'available',
-    level: 1
-  },
-  {
-    id: 'progress-tracking',
-    title: 'Progress Tracking',
-    description: 'Monitor your learning journey and improvements',
-    icon: <BarChart3 className="h-6 w-6" />,
-    route: '/progress',
-    category: 'monitoring',
-    status: 'available',
-    level: 1
-  },
-  {
-    id: 'avatar-system',
-    title: '3D Avatar',
-    description: 'Immersive 3D avatar for interactive learning',
-    icon: <Users className="h-6 w-6" />,
-    route: '/avatar',
-    category: 'learning',
-    status: 'available',
-    level: 3
-  },
-  {
-    id: 'study-materials',
-    title: 'Study Materials',
-    description: 'Upload and analyze your documents with AI',
-    icon: <BookOpen className="h-6 w-6" />,
-    route: '/chat',
-    category: 'tools',
-    status: 'premium',
-    level: 2
-  },
-  {
-    id: 'adaptive-learning',
-    title: 'Adaptive Learning',
-    description: 'AI adjusts difficulty based on your performance',
-    icon: <Brain className="h-6 w-6" />,
-    route: '/progress',
-    category: 'learning',
-    status: 'available',
-    level: 2
-  },
-  {
-    id: 'level-system',
-    title: 'Level System',
-    description: 'Progress through levels as you master topics',
-    icon: <Star className="h-6 w-6" />,
-    route: '/progress',
-    category: 'gamification',
-    status: 'available',
-    level: 1
-  },
-  {
-    id: 'quick-boost',
-    title: 'Quick Learning Boost',
-    description: 'Rapid-fire learning sessions for quick knowledge gains',
-    icon: <Zap className="h-6 w-6" />,
-    route: '/chat',
-    category: 'learning',
-    status: 'premium',
-    level: 3
-  },
-  {
-    id: 'settings',
-    title: 'Gamification Settings',
-    description: 'Customize your learning experience preferences',
-    icon: <Settings className="h-6 w-6" />,
-    route: '/progress',
-    category: 'tools',
-    status: 'available',
-    level: 1
-  }
-];
-
 export const FeaturesDemo = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
+
+  const features: Feature[] = [
+    {
+      id: 'voice-chat',
+      title: t('features.voice.title'),
+      description: t('features.voice.desc'),
+      icon: <Mic className="h-6 w-6" />,
+      route: '/voice',
+      category: 'learning',
+      status: 'available',
+      level: 1
+    },
+    {
+      id: 'text-chat',
+      title: 'Text Chat',
+      description: 'Real-time text conversations with adaptive AI',
+      icon: <MessageSquare className="h-6 w-6" />,
+      route: '/chat',
+      category: 'learning',
+      status: 'available',
+      level: 1
+    },
+    {
+      id: 'math-solver',
+      title: 'Math Solver',
+      description: 'Advanced mathematical problem solving with step-by-step solutions',
+      icon: <Calculator className="h-6 w-6" />,
+      route: '/math',
+      category: 'tools',
+      status: 'available',
+      level: 2
+    },
+    {
+      id: 'achievements',
+      title: 'Achievements',
+      description: 'Unlock badges and trophies as you learn',
+      icon: <Trophy className="h-6 w-6" />,
+      route: '/progress',
+      category: 'gamification',
+      status: 'available',
+      level: 1
+    },
+    {
+      id: 'daily-challenges',
+      title: 'Daily Challenges',
+      description: 'Complete daily learning goals for rewards',
+      icon: <Target className="h-6 w-6" />,
+      route: '/progress',
+      category: 'gamification',
+      status: 'available',
+      level: 1
+    },
+    {
+      id: 'progress-tracking',
+      title: 'Progress Tracking',
+      description: 'Monitor your learning journey and improvements',
+      icon: <BarChart3 className="h-6 w-6" />,
+      route: '/progress',
+      category: 'monitoring',
+      status: 'available',
+      level: 1
+    },
+    {
+      id: 'avatar-system',
+      title: '3D Avatar',
+      description: 'Immersive 3D avatar for interactive learning',
+      icon: <Users className="h-6 w-6" />,
+      route: '/avatar',
+      category: 'learning',
+      status: 'available',
+      level: 3
+    },
+    {
+      id: 'study-materials',
+      title: 'Study Materials',
+      description: 'Upload and analyze your documents with AI',
+      icon: <BookOpen className="h-6 w-6" />,
+      route: '/chat',
+      category: 'tools',
+      status: 'premium',
+      level: 2
+    },
+    {
+      id: 'adaptive-learning',
+      title: t('features.adaptive.title'),
+      description: t('features.adaptive.desc'),
+      icon: <Brain className="h-6 w-6" />,
+      route: '/progress',
+      category: 'learning',
+      status: 'available',
+      level: 2
+    },
+    {
+      id: 'level-system',
+      title: 'Level System',
+      description: 'Progress through levels as you master topics',
+      icon: <Star className="h-6 w-6" />,
+      route: '/progress',
+      category: 'gamification',
+      status: 'available',
+      level: 1
+    },
+    {
+      id: 'quick-boost',
+      title: 'Quick Learning Boost',
+      description: 'Rapid-fire learning sessions for quick knowledge gains',
+      icon: <Zap className="h-6 w-6" />,
+      route: '/chat',
+      category: 'learning',
+      status: 'premium',
+      level: 3
+    },
+    {
+      id: 'settings',
+      title: 'Gamification Settings',
+      description: 'Customize your learning experience preferences',
+      icon: <Settings className="h-6 w-6" />,
+      route: '/progress',
+      category: 'tools',
+      status: 'available',
+      level: 1
+    }
+  ];
 
   const categories = [
     { id: 'all', name: 'All Features', color: 'bg-gray-500' },
