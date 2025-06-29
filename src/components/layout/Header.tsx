@@ -11,6 +11,9 @@ export const Header = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
+  console.log('Header: t function:', typeof t);
+  console.log('Header: nav.features translation:', t('nav.features'));
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {

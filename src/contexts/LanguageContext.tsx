@@ -654,17 +654,23 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const changeLanguage = (lang: Language) => {
+    console.log('LanguageContext: Changing language to:', lang);
     setLanguage(lang);
     localStorage.setItem('language', lang);
   };
 
   const t = (key: string): string => {
+    console.log('LanguageContext: Translating key:', key, 'for language:', language);
     const currentTranslations = translations[language];
     const englishTranslations = translations['en'];
     
     // Return the translation if it exists, otherwise fallback to English, otherwise return the key
-    return currentTranslations?.[key] || englishTranslations?.[key] || key;
+    const result = currentTranslations?.[key] || englishTranslations?.[key] || key;
+    console.log('LanguageContext: Translation result:', result);
+    return result;
   };
+
+  console.log('LanguageProvider: Rendering with language:', language);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: changeLanguage, t }}>
@@ -678,5 +684,6 @@ export const useLanguage = () => {
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
+  console.log('useLanguage: Returning context with language:', context.language);
   return context;
 };
