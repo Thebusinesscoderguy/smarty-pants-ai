@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'pt' | 'it' | 'ru' | 'ar';
@@ -37,7 +36,6 @@ const translations = {
     'chat.thinking': 'AI is thinking...',
     'chat.tokensUsed': 'tokens used',
     
-    // Features Section
     'features.section.title': 'Powerful Features for Modern Learning',
     'features.section.subtitle': 'Discover how our AI-powered platform revolutionizes education',
     'features.adaptive.title': 'Adaptive Learning',
@@ -207,7 +205,6 @@ const translations = {
     'common.more': 'more',
   },
   es: {
-    // Navigation
     'nav.features': 'Características',
     'nav.pricing': 'Precios',
     'nav.about': 'Acerca de',
@@ -215,23 +212,15 @@ const translations = {
     'nav.chat': 'Chat',
     'nav.progress': 'Progreso',
     'nav.modules': 'Módulos',
-    
-    // Hero Section
     'hero.title': 'Transforma el Aprendizaje con Educación Impulsada por IA',
     'hero.subtitle': 'Experimenta educación personalizada e interactiva que se adapta al estilo y ritmo de aprendizaje único de cada estudiante.',
-    
-    // CTA Buttons
     'cta.start': 'Comenzar a Aprender',
     'cta.demo': 'Probar Demo',
     'cta.trial': 'Comenzar Prueba Gratuita',
-    
-    // Chat
     'chat.title': 'Tutor IA',
     'chat.placeholder': 'Escribe tu mensaje aquí...',
     'chat.thinking': 'La IA está pensando...',
     'chat.tokensUsed': 'tokens utilizados',
-    
-    // Features Section
     'features.section.title': 'Características Poderosas para el Aprendizaje Moderno',
     'features.section.subtitle': 'Descubre cómo nuestra plataforma impulsada por IA revoluciona la educación',
     'features.adaptive.title': 'Aprendizaje Adaptativo',
@@ -246,8 +235,6 @@ const translations = {
     'features.analytics.desc': 'Información detallada sobre el progreso de aprendizaje, fortalezas y áreas de mejora con paneles visuales.',
     'features.collaborative.title': 'Aprendizaje Colaborativo',
     'features.collaborative.desc': 'Conéctate con compañeros, comparte conocimiento y aprende juntos en grupos de estudio virtuales y discusiones.',
-    
-    // Features Demo
     'features.demo.title': 'Explora Nuestras',
     'features.demo.subtitle': 'Descubre todas las herramientas y características poderosas disponibles en nuestra plataforma',
     'features.demo.allFeatures': 'Todas las Características',
@@ -255,8 +242,6 @@ const translations = {
     'features.demo.gamification': 'Gamificación',
     'features.demo.tools': 'Herramientas',
     'features.demo.monitoring': 'Monitoreo',
-    
-    // More Spanish translations...
     'subjects.title': 'Cobertura Integral de Materias',
     'subjects.subtitle': 'Domina cualquier materia con nuestra amplia biblioteca de currículos',
     'testimonials.title': 'Lo que Dicen Nuestros Usuarios',
@@ -274,7 +259,6 @@ const translations = {
     'common.more': 'más',
   },
   fr: {
-    // Navigation
     'nav.features': 'Fonctionnalités',
     'nav.pricing': 'Tarifs',
     'nav.about': 'À propos',
@@ -282,23 +266,15 @@ const translations = {
     'nav.chat': 'Chat',
     'nav.progress': 'Progrès',
     'nav.modules': 'Modules',
-    
-    // Hero Section
     'hero.title': 'Transformez l\'Apprentissage avec l\'Éducation Alimentée par l\'IA',
     'hero.subtitle': 'Découvrez une éducation personnalisée et interactive qui s\'adapte au style et au rythme d\'apprentissage unique de chaque étudiant.',
-    
-    // CTA Buttons
     'cta.start': 'Commencer à Apprendre',
     'cta.demo': 'Essayer la Démo',
     'cta.trial': 'Commencer l\'Essai Gratuit',
-    
-    // Chat
     'chat.title': 'Tuteur IA',
     'chat.placeholder': 'Tapez votre message ici...',
     'chat.thinking': 'L\'IA réfléchit...',
     'chat.tokensUsed': 'jetons utilisés',
-    
-    // Features Demo
     'features.demo.title': 'Explorez Nos',
     'features.demo.subtitle': 'Découvrez tous les outils et fonctionnalités puissants disponibles dans notre plateforme',
     'features.demo.allFeatures': 'Toutes les Fonctionnalités',
@@ -306,8 +282,6 @@ const translations = {
     'features.demo.gamification': 'Ludification',
     'features.demo.tools': 'Outils',
     'features.demo.monitoring': 'Surveillance',
-    
-    // Add more French translations...
     'features.section.title': 'Fonctionnalités Puissantes pour l\'Apprentissage Moderne',
     'subjects.title': 'Couverture Complète des Matières',
     'testimonials.title': 'Ce que Disent Nos Utilisateurs',
@@ -320,7 +294,6 @@ const translations = {
     'common.more': 'plus',
   },
   de: {
-    // Navigation
     'nav.features': 'Funktionen',
     'nav.pricing': 'Preise',
     'nav.about': 'Über uns',
@@ -328,23 +301,15 @@ const translations = {
     'nav.chat': 'Chat',
     'nav.progress': 'Fortschritt',
     'nav.modules': 'Module',
-    
-    // Hero Section
     'hero.title': 'Transformieren Sie das Lernen mit KI-gestützter Bildung',
     'hero.subtitle': 'Erleben Sie personalisierte, interaktive Bildung, die sich an jeden individuellen Lernstil und jedes Tempo anpasst.',
-    
-    // CTA Buttons
     'cta.start': 'Lernen Beginnen',
     'cta.demo': 'Demo Ausprobieren',
     'cta.trial': 'Kostenlose Testversion Starten',
-    
-    // Chat
     'chat.title': 'KI-Tutor',
     'chat.placeholder': 'Geben Sie Ihre Nachricht hier ein...',
     'chat.thinking': 'KI denkt nach...',
     'chat.tokensUsed': 'verwendete Token',
-    
-    // Features Demo
     'features.demo.title': 'Entdecken Sie Unsere',
     'features.demo.subtitle': 'Entdecken Sie alle leistungsstarken Tools und Funktionen in unserer Plattform',
     'features.demo.allFeatures': 'Alle Funktionen',
@@ -352,8 +317,6 @@ const translations = {
     'features.demo.gamification': 'Gamification',
     'features.demo.tools': 'Werkzeuge',
     'features.demo.monitoring': 'Überwachung',
-    
-    // Add more German translations...
     'features.section.title': 'Leistungsstarke Funktionen für Modernes Lernen',
     'subjects.title': 'Umfassende Fächerabdeckung',
     'testimonials.title': 'Was Unsere Benutzer Sagen',
@@ -366,7 +329,6 @@ const translations = {
     'common.more': 'mehr',
   },
   zh: {
-    // Navigation
     'nav.features': '功能',
     'nav.pricing': '价格',
     'nav.about': '关于',
@@ -374,23 +336,15 @@ const translations = {
     'nav.chat': '聊天',
     'nav.progress': '进度',
     'nav.modules': '模块',
-    
-    // Hero Section
     'hero.title': '用AI驱动的教育改变学习',
     'hero.subtitle': '体验个性化的互动教育，适应每个学生独特的学习风格和节奏。',
-    
-    // CTA Buttons
     'cta.start': '开始学习',
     'cta.demo': '试用演示',
     'cta.trial': '开始免费试用',
-    
-    // Chat
     'chat.title': 'AI导师',
     'chat.placeholder': '在这里输入您的信息...',
     'chat.thinking': 'AI正在思考...',
     'chat.tokensUsed': '已使用的令牌',
-    
-    // Features Demo
     'features.demo.title': '探索我们的',
     'features.demo.subtitle': '发现我们平台中所有强大的工具和功能',
     'features.demo.allFeatures': '所有功能',
@@ -398,8 +352,6 @@ const translations = {
     'features.demo.gamification': '游戏化',
     'features.demo.tools': '工具',
     'features.demo.monitoring': '监控',
-    
-    // Add more Chinese translations...
     'features.section.title': '现代学习的强大功能',
     'subjects.title': '全面的学科覆盖',
     'testimonials.title': '用户评价',
@@ -412,7 +364,6 @@ const translations = {
     'common.more': '更多',
   },
   ja: {
-    // Navigation
     'nav.features': '機能',
     'nav.pricing': '価格',
     'nav.about': '概要',
@@ -420,23 +371,15 @@ const translations = {
     'nav.chat': 'チャット',
     'nav.progress': '進捗',
     'nav.modules': 'モジュール',
-    
-    // Hero Section
     'hero.title': 'AI駆動教育で学習を変革',
     'hero.subtitle': '各学生のユニークな学習スタイルとペースに適応する、パーソナライズされたインタラクティブな教育を体験してください。',
-    
-    // CTA Buttons
     'cta.start': '学習を始める',
     'cta.demo': 'デモを試す',
     'cta.trial': '無料トライアルを開始',
-    
-    // Chat
     'chat.title': 'AIチューター',
     'chat.placeholder': 'ここにメッセージを入力してください...',
     'chat.thinking': 'AIが考えています...',
     'chat.tokensUsed': '使用されたトークン',
-    
-    // Features Demo
     'features.demo.title': '私たちの機能を',
     'features.demo.subtitle': 'プラットフォームで利用可能なすべての強力なツールと機能を発見してください',
     'features.demo.allFeatures': 'すべての機能',
@@ -444,8 +387,6 @@ const translations = {
     'features.demo.gamification': 'ゲーミフィケーション',
     'features.demo.tools': 'ツール',
     'features.demo.monitoring': 'モニタリング',
-    
-    // Add more Japanese translations...
     'features.section.title': '現代学習のための強力な機能',
     'subjects.title': '包括的な科目カバレッジ',
     'testimonials.title': 'ユーザーの声',
@@ -458,7 +399,6 @@ const translations = {
     'common.more': 'もっと',
   },
   pt: {
-    // Navigation
     'nav.features': 'Recursos',
     'nav.pricing': 'Preços',
     'nav.about': 'Sobre',
@@ -466,23 +406,15 @@ const translations = {
     'nav.chat': 'Chat',
     'nav.progress': 'Progresso',
     'nav.modules': 'Módulos',
-    
-    // Hero Section
     'hero.title': 'Transforme o Aprendizado com Educação Impulsionada por IA',
     'hero.subtitle': 'Experimente educação personalizada e interativa que se adapta ao estilo e ritmo de aprendizado único de cada estudante.',
-    
-    // CTA Buttons
     'cta.start': 'Começar a Aprender',
     'cta.demo': 'Experimentar Demo',
     'cta.trial': 'Iniciar Teste Gratuito',
-    
-    // Chat
     'chat.title': 'Tutor IA',
     'chat.placeholder': 'Digite sua mensagem aqui...',
     'chat.thinking': 'IA está pensando...',
     'chat.tokensUsed': 'tokens usados',
-    
-    // Features Demo
     'features.demo.title': 'Explore Nossos',
     'features.demo.subtitle': 'Descubra todas as ferramentas e recursos poderosos disponíveis em nossa plataforma',
     'features.demo.allFeatures': 'Todos os Recursos',
@@ -490,8 +422,6 @@ const translations = {
     'features.demo.gamification': 'Gamificação',
     'features.demo.tools': 'Ferramentas',
     'features.demo.monitoring': 'Monitoramento',
-    
-    // Add more Portuguese translations...
     'features.section.title': 'Recursos Poderosos para Aprendizado Moderno',
     'subjects.title': 'Cobertura Abrangente de Matérias',
     'testimonials.title': 'O que Nossos Usuários Dizem',
@@ -504,7 +434,6 @@ const translations = {
     'common.more': 'mais',
   },
   it: {
-    // Navigation
     'nav.features': 'Funzionalità',
     'nav.pricing': 'Prezzi',
     'nav.about': 'Chi siamo',
@@ -512,23 +441,15 @@ const translations = {
     'nav.chat': 'Chat',
     'nav.progress': 'Progresso',
     'nav.modules': 'Moduli',
-    
-    // Hero Section
     'hero.title': 'Trasforma l\'Apprendimento con l\'Educazione Potenziata dall\'IA',
     'hero.subtitle': 'Sperimenta un\'educazione personalizzata e interattiva che si adatta allo stile e al ritmo di apprendimento unico di ogni studente.',
-    
-    // CTA Buttons
     'cta.start': 'Inizia ad Imparare',
     'cta.demo': 'Prova la Demo',
     'cta.trial': 'Inizia la Prova Gratuita',
-    
-    // Chat
     'chat.title': 'Tutor IA',
     'chat.placeholder': 'Scrivi il tuo messaggio qui...',
     'chat.thinking': 'L\'IA sta pensando...',
     'chat.tokensUsed': 'token utilizzati',
-    
-    // Features Demo
     'features.demo.title': 'Esplora le Nostre',
     'features.demo.subtitle': 'Scopri tutti gli strumenti e le funzionalità potenti disponibili nella nostra piattaforma',
     'features.demo.allFeatures': 'Tutte le Funzionalità',
@@ -536,8 +457,6 @@ const translations = {
     'features.demo.gamification': 'Gamification',
     'features.demo.tools': 'Strumenti',
     'features.demo.monitoring': 'Monitoraggio',
-    
-    // Add more Italian translations...
     'features.section.title': 'Funzionalità Potenti per l\'Apprendimento Moderno',
     'subjects.title': 'Copertura Completa delle Materie',
     'testimonials.title': 'Cosa Dicono i Nostri Utenti',
@@ -550,7 +469,6 @@ const translations = {
     'common.more': 'di più',
   },
   ru: {
-    // Navigation
     'nav.features': 'Возможности',
     'nav.pricing': 'Цены',
     'nav.about': 'О нас',
@@ -558,23 +476,15 @@ const translations = {
     'nav.chat': 'Чат',
     'nav.progress': 'Прогресс',
     'nav.modules': 'Модули',
-    
-    // Hero Section
     'hero.title': 'Преобразуйте Обучение с Образованием на Основе ИИ',
     'hero.subtitle': 'Испытайте персонализированное, интерактивное образование, которое адаптируется к уникальному стилю и темпу обучения каждого студента.',
-    
-    // CTA Buttons
     'cta.start': 'Начать Обучение',
     'cta.demo': 'Попробовать Демо',
     'cta.trial': 'Начать Бесплатную Пробную Версию',
-    
-    // Chat
     'chat.title': 'ИИ Репетитор',
     'chat.placeholder': 'Введите ваше сообщение здесь...',
     'chat.thinking': 'ИИ думает...',
     'chat.tokensUsed': 'использованные токены',
-    
-    // Features Demo
     'features.demo.title': 'Исследуйте Наши',
     'features.demo.subtitle': 'Откройте для себя все мощные инструменты и функции, доступные на нашей платформе',
     'features.demo.allFeatures': 'Все Функции',
@@ -582,8 +492,6 @@ const translations = {
     'features.demo.gamification': 'Геймификация',
     'features.demo.tools': 'Инструменты',
     'features.demo.monitoring': 'Мониторинг',
-    
-    // Add more Russian translations...
     'features.section.title': 'Мощные Функции для Современного Обучения',
     'subjects.title': 'Всестороннее Покрытие Предметов',
     'testimonials.title': 'Что Говорят Наши Пользователи',
@@ -596,7 +504,6 @@ const translations = {
     'common.more': 'больше',
   },
   ar: {
-    // Navigation
     'nav.features': 'الميزات',
     'nav.pricing': 'الأسعار',
     'nav.about': 'حولنا',
@@ -604,23 +511,15 @@ const translations = {
     'nav.chat': 'الدردشة',
     'nav.progress': 'التقدم',
     'nav.modules': 'الوحدات',
-    
-    // Hero Section
     'hero.title': 'حوّل التعلم بالتعليم المدعوم بالذكاء الاصطناعي',
     'hero.subtitle': 'اختبر تعليماً شخصياً وتفاعلياً يتكيف مع أسلوب ووتيرة التعلم الفريدة لكل طالب.',
-    
-    // CTA Buttons
     'cta.start': 'ابدأ التعلم',
     'cta.demo': 'جرب العرض التوضيحي',
     'cta.trial': 'ابدأ التجربة المجانية',
-    
-    // Chat
     'chat.title': 'مدرس الذكاء الاصطناعي',
     'chat.placeholder': 'اكتب رسالتك هنا...',
     'chat.thinking': 'الذكاء الاصطناعي يفكر...',
     'chat.tokensUsed': 'الرموز المستخدمة',
-    
-    // Features Demo
     'features.demo.title': 'استكشف',
     'features.demo.subtitle': 'اكتشف جميع الأدوات والميزات القوية المتاحة في منصتنا',
     'features.demo.allFeatures': 'جميع الميزات',
@@ -628,8 +527,6 @@ const translations = {
     'features.demo.gamification': 'اللعب',
     'features.demo.tools': 'الأدوات',
     'features.demo.monitoring': 'المراقبة',
-    
-    // Add more Arabic translations...
     'features.section.title': 'ميزات قوية للتعلم الحديث',
     'subjects.title': 'تغطية شاملة للمواد',
     'testimonials.title': 'ما يقوله مستخدمونا',
@@ -654,23 +551,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const changeLanguage = (lang: Language) => {
-    console.log('LanguageContext: Changing language to:', lang);
     setLanguage(lang);
     localStorage.setItem('language', lang);
   };
 
   const t = (key: string): string => {
-    console.log('LanguageContext: Translating key:', key, 'for language:', language);
     const currentTranslations = translations[language];
     const englishTranslations = translations['en'];
     
     // Return the translation if it exists, otherwise fallback to English, otherwise return the key
-    const result = currentTranslations?.[key] || englishTranslations?.[key] || key;
-    console.log('LanguageContext: Translation result:', result);
-    return result;
+    return currentTranslations?.[key] || englishTranslations?.[key] || key;
   };
-
-  console.log('LanguageProvider: Rendering with language:', language);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: changeLanguage, t }}>
@@ -684,6 +575,5 @@ export const useLanguage = () => {
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
-  console.log('useLanguage: Returning context with language:', context.language);
   return context;
 };
