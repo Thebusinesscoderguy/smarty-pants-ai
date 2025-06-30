@@ -533,7 +533,7 @@ const translations = {
     'nav.contact': 'Kontakt',
     'nav.chat': 'Chat',
     'nav.progress': 'Fortschritt',
-    'nav.modules': 'Module',
+    'nav.modules': 'Modul',
     'hero.title': 'Transformieren Sie das Lernen mit KI-gestützter Bildung',
     'hero.subtitle': 'Erleben Sie personalisierte, interaktive Bildung, die sich an jeden individuellen Lernstil und jedes Tempo anpasst.',
     'features.section.title': 'Leistungsstarke Funktionen für Modernes Lernen',
@@ -718,7 +718,7 @@ const translations = {
     'contact.title': 'تواصل معنا',
     'contact.subtitle': 'مستعد لتحويل تجربة التعلم الخاصة بك؟',
     'modules.title': 'وحدات التعلم',
-    'modules.description': 'استكشف وحدات المنهج الشاملة لدينا',
+    'modules.description': 'استكشف وحدات المناهج الشاملة لدينا',
     'common.back': 'العودة',
     'common.more': 'المزيد',
   },
@@ -744,40 +744,37 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: string): string => {
+    console.log(`Translation requested for key: "${key}" in language: ${language}`);
+    
     if (!isInitialized) {
-      console.log('LanguageProvider not initialized yet, returning key:', key);
-      return key;
+      console.log('LanguageProvider not initialized yet, returning English fallback');
+      return translations['en'][key] || key;
     }
 
     const currentTranslations = translations[language];
     const englishTranslations = translations['en'];
     
-    // Improved fallback logic
+    // Get translation from current language
     let translation = currentTranslations?.[key];
     
-    if (!translation || translation === key) {
-      // Fallback to English if translation is missing or equals the key
+    if (!translation) {
+      // Fallback to English if translation is missing
       translation = englishTranslations?.[key];
-      
-      if (!translation || translation === key) {
-        // If even English translation is missing, return the key
-        console.warn(`Missing translation for key "${key}" in language ${language}`);
-        return key;
-      }
-      
-      // Log when falling back to English
-      if (language !== 'en') {
-        console.log(`Falling back to English for key "${key}" in language ${language}`);
-      }
+      console.log(`Missing translation for key "${key}" in ${language}, using English: "${translation}"`);
     }
     
-    console.log(`Translation for "${key}" in ${language}:`, translation);
+    // If still no translation found, return the key itself
+    if (!translation) {
+      console.warn(`No translation found for key "${key}" in any language`);
+      return key;
+    }
     
+    console.log(`Translation result for "${key}":`, translation);
     return translation;
   };
 
   if (!isInitialized) {
-    return <div>Loading...</div>;
+    return <div>Loading translations...</div>;
   }
 
   return (
