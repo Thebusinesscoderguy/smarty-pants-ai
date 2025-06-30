@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'pt' | 'it' | 'ru' | 'ar';
@@ -542,26 +543,42 @@ const translations = {
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('en');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as Language;
     if (savedLanguage && translations[savedLanguage]) {
       setLanguage(savedLanguage);
     }
+    setIsInitialized(true);
+    console.log('LanguageProvider initialized with language:', savedLanguage || 'en');
   }, []);
 
   const changeLanguage = (lang: Language) => {
+    console.log('Changing language to:', lang);
     setLanguage(lang);
     localStorage.setItem('language', lang);
   };
 
   const t = (key: string): string => {
+    if (!isInitialized) {
+      console.log('LanguageProvider not initialized yet, returning key:', key);
+      return key;
+    }
+
     const currentTranslations = translations[language];
     const englishTranslations = translations['en'];
     
-    // Return the translation if it exists, otherwise fallback to English, otherwise return the key
-    return currentTranslations?.[key] || englishTranslations?.[key] || key;
+    const translation = currentTranslations?.[key] || englishTranslations?.[key] || key;
+    
+    console.log(`Translation for "${key}" in ${language}:`, translation);
+    
+    return translation;
   };
+
+  if (!isInitialized) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: changeLanguage, t }}>

@@ -8,11 +8,11 @@ import { useNavigate } from 'react-router-dom';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
 
-  console.log('Header: t function:', typeof t);
-  console.log('Header: nav.features translation:', t('nav.features'));
+  console.log('Header rendering with language:', language);
+  console.log('Header: t function type:', typeof t);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -21,6 +21,19 @@ export const Header = () => {
       setIsMenuOpen(false);
     }
   };
+
+  // Pre-compute translations to debug
+  const featuresText = t('nav.features');
+  const pricingText = t('nav.pricing');
+  const aboutText = t('nav.about');
+  const contactText = t('nav.contact');
+
+  console.log('Header translations:', {
+    features: featuresText,
+    pricing: pricingText,
+    about: aboutText,
+    contact: contactText
+  });
 
   return (
     <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8">
@@ -40,25 +53,25 @@ export const Header = () => {
               onClick={() => scrollToSection('features')}
               className="text-white/80 hover:text-white transition-colors"
             >
-              {t('nav.features')}
+              {featuresText}
             </button>
             <button 
               onClick={() => scrollToSection('pricing')}
               className="text-white/80 hover:text-white transition-colors"
             >
-              {t('nav.pricing')}
+              {pricingText}
             </button>
             <button 
               onClick={() => scrollToSection('about')}
               className="text-white/80 hover:text-white transition-colors"
             >
-              {t('nav.about')}
+              {aboutText}
             </button>
             <button 
               onClick={() => scrollToSection('contact')}
               className="text-white/80 hover:text-white transition-colors"
             >
-              {t('nav.contact')}
+              {contactText}
             </button>
             <LanguageSelector />
             <Button 
@@ -98,25 +111,25 @@ export const Header = () => {
                 onClick={() => scrollToSection('features')}
                 className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                {t('nav.features')}
+                {featuresText}
               </button>
               <button 
                 onClick={() => scrollToSection('pricing')}
                 className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                {t('nav.pricing')}
+                {pricingText}
               </button>
               <button 
                 onClick={() => scrollToSection('about')}
                 className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                {t('nav.about')}
+                {aboutText}
               </button>
               <button 
                 onClick={() => scrollToSection('contact')}
                 className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                {t('nav.contact')}
+                {contactText}
               </button>
               <div className="flex flex-col space-y-2 pt-2">
                 <Button 
