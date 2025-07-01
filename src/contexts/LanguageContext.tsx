@@ -1,4 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translationService } from '@/services/translationService';
 
 type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'pt' | 'it' | 'ru' | 'ar';
 
@@ -727,6 +729,7 @@ const translations = {
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('en');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [autoTranslationCache, setAutoTranslationCache] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as Language;
@@ -758,9 +761,38 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     let translation = currentTranslations?.[key];
     
     if (!translation) {
+      // Check if we have an auto-translated version cached
+      const cacheKey = `${language}:${key}`;
+      if (autoTranslationCache[cacheKey]) {
+        console.log(`Using auto-translated cache for "${key}":`, autoTranslationCache[cacheKey]);
+        return autoTranslationCache[cacheKey];
+      }
+
       // Fallback to English if translation is missing
       translation = englishTranslations?.[key];
-      console.log(`Missing translation for key "${key}" in ${language}, using English: "${translation}"`);
+      
+      if (translation && language !== 'en') {
+        // Auto-translate the English text to target language
+        console.log(`Auto-translating "${translation}" to ${language}`);
+        translationService.translateText(translation, language, 'en')
+          .then(autoTranslated => {
+            if (autoTranslated && autoTranslated !== translation) {
+              setAutoTranslationCache(prev => ({
+                ...prev,
+                [cacheKey]: autoTranslated
+              }));
+              console.log(`Auto-translation completed: "${translation}" -> "${autoTranslated}"`);
+            }
+          })
+          .catch(error => {
+            console.warn('Auto-translation failed:', error);
+          });
+      }
+      
+      if (translation) {
+        console.log(`Missing translation for key "${key}" in ${language}, using English: "${translation}"`);
+        return translation;
+      }
     }
     
     // If still no translation found, return the key itself
