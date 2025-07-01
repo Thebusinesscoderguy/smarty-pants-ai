@@ -9,8 +9,10 @@ interface TranslationCache {
 
 class TranslationService {
   private cache: TranslationCache = {};
+  private pendingTranslations: Map<string, Promise<string>> = new Map();
   private readonly CACHE_KEY = 'translation_cache';
-  private readonly MAX_RETRIES = 2;
+  private readonly MAX_RETRIES = 1; // Reduced retries
+  private readonly BATCH_DELAY = 100; // ms delay to batch requests
 
   constructor() {
     this.loadCache();
@@ -21,6 +23,7 @@ class TranslationService {
       const cached = localStorage.getItem(this.CACHE_KEY);
       if (cached) {
         this.cache = JSON.parse(cached);
+        console.log('Translation cache loaded:', Object.keys(this.cache).length, 'entries');
       }
     } catch (error) {
       console.warn('Failed to load translation cache:', error);
@@ -36,27 +39,59 @@ class TranslationService {
   }
 
   private getCacheKey(text: string, sourceLang: string): string {
-    return `${sourceLang}:${text}`;
+    return `${sourceLang}:${text.toLowerCase().trim()}`;
+  }
+
+  private getRequestKey(text: string, targetLang: string, sourceLang: string): string {
+    return `${sourceLang}-${targetLang}:${text.toLowerCase().trim()}`;
   }
 
   async translateText(text: string, targetLang: string, sourceLang: string = 'en', retryCount: number = 0): Promise<string> {
-    // Skip translation if same language
-    if (sourceLang === targetLang) {
+    // Skip translation if same language or empty text
+    if (sourceLang === targetLang || !text || text.trim() === '') {
       return text;
     }
 
+    const cleanText = text.trim();
+    const cacheKey = this.getCacheKey(cleanText, sourceLang);
+    const requestKey = this.getRequestKey(cleanText, targetLang, sourceLang);
+
     // Check cache first
-    const cacheKey = this.getCacheKey(text, sourceLang);
     if (this.cache[cacheKey]?.[targetLang]) {
-      console.log(`Cache hit for "${text}" -> ${targetLang}`);
       return this.cache[cacheKey][targetLang];
     }
 
+    // Check if translation is already in progress
+    if (this.pendingTranslations.has(requestKey)) {
+      try {
+        return await this.pendingTranslations.get(requestKey)!;
+      } catch (error) {
+        // If pending translation failed, continue with new attempt
+        this.pendingTranslations.delete(requestKey);
+      }
+    }
+
+    // Create new translation promise
+    const translationPromise = this.performTranslation(cleanText, targetLang, sourceLang, retryCount);
+    this.pendingTranslations.set(requestKey, translationPromise);
+
     try {
-      // Call the edge function
+      const result = await translationPromise;
+      this.pendingTranslations.delete(requestKey);
+      return result;
+    } catch (error) {
+      this.pendingTranslations.delete(requestKey);
+      throw error;
+    }
+  }
+
+  private async performTranslation(text: string, targetLang: string, sourceLang: string, retryCount: number): Promise<string> {
+    try {
+      console.log(`Translating: "${text}" from ${sourceLang} to ${targetLang} (attempt ${retryCount + 1})`);
+
       const { data, error } = await supabase.functions.invoke('translate-text', {
         body: {
-          text: text.trim(),
+          text: text,
           targetLang: this.getLibreTranslateCode(targetLang),
           sourceLang: this.getLibreTranslateCode(sourceLang)
         }
@@ -68,30 +103,40 @@ class TranslationService {
       }
 
       const translatedText = data?.translatedText;
-      if (translatedText && translatedText !== text && translatedText.trim() !== '') {
-        // Cache the translation
+      const isSuccess = translatedText && 
+                       translatedText !== text && 
+                       translatedText.trim() !== '' &&
+                       !data?.fallback;
+
+      if (isSuccess) {
+        // Cache successful translation
+        const cacheKey = this.getCacheKey(text, sourceLang);
         if (!this.cache[cacheKey]) {
           this.cache[cacheKey] = {};
         }
         this.cache[cacheKey][targetLang] = translatedText;
         this.saveCache();
         
-        console.log(`Translated and cached: "${text}" -> "${translatedText}"`);
+        console.log(`Translation cached: "${text}" -> "${translatedText}"`);
         return translatedText;
+      } else if (data?.fallback) {
+        console.log(`Translation fallback used for: "${text}"`);
       }
 
-      return text;
+      return text; // Return original text if translation failed or was fallback
+
     } catch (error) {
       console.error('Translation error:', error);
       
-      // Retry logic
+      // Retry logic with exponential backoff
       if (retryCount < this.MAX_RETRIES) {
-        console.log(`Retrying translation (attempt ${retryCount + 1}/${this.MAX_RETRIES})`);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-        return this.translateText(text, targetLang, sourceLang, retryCount + 1);
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s...
+        console.log(`Retrying translation in ${delay}ms (attempt ${retryCount + 1}/${this.MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.performTranslation(text, targetLang, sourceLang, retryCount + 1);
       }
       
-      return text; // Return original text on error
+      return text; // Return original text on final failure
     }
   }
 
@@ -112,19 +157,20 @@ class TranslationService {
     return mapping[langCode] || langCode;
   }
 
-  async translateKey(key: string, targetLang: string): Promise<string> {
-    // Convert the key to a more readable format for translation
-    const readableText = key.split('.').pop()?.replace(/([A-Z])/g, ' $1').toLowerCase() || key;
-    const libreTranslateCode = this.getLibreTranslateCode(targetLang);
-    
-    return this.translateText(readableText, libreTranslateCode);
-  }
-
   // Clear cache method for debugging
   clearCache() {
     this.cache = {};
+    this.pendingTranslations.clear();
     localStorage.removeItem(this.CACHE_KEY);
     console.log('Translation cache cleared');
+  }
+
+  // Get cache stats for debugging
+  getCacheStats() {
+    return {
+      cacheSize: Object.keys(this.cache).length,
+      pendingTranslations: this.pendingTranslations.size
+    };
   }
 }
 

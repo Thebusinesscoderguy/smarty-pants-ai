@@ -737,6 +737,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (savedLanguage && translations[savedLanguage]) {
       setLanguage(savedLanguage);
     }
+    
+    // Load auto-translation cache
+    try {
+      const autoCache = localStorage.getItem('auto_translation_cache');
+      if (autoCache) {
+        setAutoTranslationCache(JSON.parse(autoCache));
+      }
+    } catch (error) {
+      console.warn('Failed to load auto-translation cache:', error);
+    }
+    
     setIsInitialized(true);
     console.log('LanguageProvider initialized with language:', savedLanguage || 'en');
   }, []);
@@ -745,6 +756,14 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('Changing language to:', lang);
     setLanguage(lang);
     localStorage.setItem('language', lang);
+  };
+
+  const saveAutoTranslationCache = (newCache: { [key: string]: string }) => {
+    try {
+      localStorage.setItem('auto_translation_cache', JSON.stringify(newCache));
+    } catch (error) {
+      console.warn('Failed to save auto-translation cache:', error);
+    }
   };
 
   const t = (key: string): string => {
@@ -768,30 +787,41 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Fallback to English if translation is missing
       translation = englishTranslations?.[key];
       
+      // Only auto-translate for non-English languages and if we have English text
       if (translation && language !== 'en' && !translatingKeys.has(cacheKey)) {
-        // Auto-translate the English text to target language
-        setTranslatingKeys(prev => new Set(prev).add(cacheKey));
+        // Only translate certain types of keys to avoid overwhelming the API
+        const shouldTranslate = key.includes('title') || 
+                              key.includes('subtitle') || 
+                              key.includes('desc') || 
+                              key.includes('content') ||
+                              key.length > 5; // Translate longer keys
         
-        translationService.translateText(translation, language, 'en')
-          .then(autoTranslated => {
-            if (autoTranslated && autoTranslated !== translation) {
-              setAutoTranslationCache(prev => ({
-                ...prev,
-                [cacheKey]: autoTranslated
-              }));
-              console.log(`Auto-translation completed: "${translation}" -> "${autoTranslated}"`);
-            }
-          })
-          .catch(error => {
-            console.warn('Auto-translation failed:', error);
-          })
-          .finally(() => {
-            setTranslatingKeys(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(cacheKey);
-              return newSet;
+        if (shouldTranslate) {
+          setTranslatingKeys(prev => new Set(prev).add(cacheKey));
+          
+          translationService.translateText(translation, language, 'en')
+            .then(autoTranslated => {
+              if (autoTranslated && autoTranslated !== translation) {
+                const newCache = {
+                  ...autoTranslationCache,
+                  [cacheKey]: autoTranslated
+                };
+                setAutoTranslationCache(newCache);
+                saveAutoTranslationCache(newCache);
+                console.log(`Auto-translation completed: "${key}" -> "${autoTranslated}"`);
+              }
+            })
+            .catch(error => {
+              console.warn('Auto-translation failed for key:', key, error);
+            })
+            .finally(() => {
+              setTranslatingKeys(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(cacheKey);
+                return newSet;
+              });
             });
-          });
+        }
       }
       
       if (translation) {
