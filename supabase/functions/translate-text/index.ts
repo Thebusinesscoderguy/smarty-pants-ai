@@ -37,7 +37,8 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const translatedText = data.translatedText;
+    // LibreTranslate returns the translation in 'translatedText' field
+    const translatedText = data.translatedText || data.text || text;
 
     console.log(`Translation result: "${translatedText}"`);
 

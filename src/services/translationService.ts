@@ -10,6 +10,7 @@ interface TranslationCache {
 class TranslationService {
   private cache: TranslationCache = {};
   private readonly CACHE_KEY = 'translation_cache';
+  private readonly MAX_RETRIES = 2;
 
   constructor() {
     this.loadCache();
@@ -38,7 +39,12 @@ class TranslationService {
     return `${sourceLang}:${text}`;
   }
 
-  async translateText(text: string, targetLang: string, sourceLang: string = 'en'): Promise<string> {
+  async translateText(text: string, targetLang: string, sourceLang: string = 'en', retryCount: number = 0): Promise<string> {
+    // Skip translation if same language
+    if (sourceLang === targetLang) {
+      return text;
+    }
+
     // Check cache first
     const cacheKey = this.getCacheKey(text, sourceLang);
     if (this.cache[cacheKey]?.[targetLang]) {
@@ -50,9 +56,9 @@ class TranslationService {
       // Call the edge function
       const { data, error } = await supabase.functions.invoke('translate-text', {
         body: {
-          text,
-          targetLang,
-          sourceLang
+          text: text.trim(),
+          targetLang: this.getLibreTranslateCode(targetLang),
+          sourceLang: this.getLibreTranslateCode(sourceLang)
         }
       });
 
@@ -62,7 +68,7 @@ class TranslationService {
       }
 
       const translatedText = data?.translatedText;
-      if (translatedText && translatedText !== text) {
+      if (translatedText && translatedText !== text && translatedText.trim() !== '') {
         // Cache the translation
         if (!this.cache[cacheKey]) {
           this.cache[cacheKey] = {};
@@ -77,6 +83,14 @@ class TranslationService {
       return text;
     } catch (error) {
       console.error('Translation error:', error);
+      
+      // Retry logic
+      if (retryCount < this.MAX_RETRIES) {
+        console.log(`Retrying translation (attempt ${retryCount + 1}/${this.MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return this.translateText(text, targetLang, sourceLang, retryCount + 1);
+      }
+      
       return text; // Return original text on error
     }
   }
@@ -104,6 +118,13 @@ class TranslationService {
     const libreTranslateCode = this.getLibreTranslateCode(targetLang);
     
     return this.translateText(readableText, libreTranslateCode);
+  }
+
+  // Clear cache method for debugging
+  clearCache() {
+    this.cache = {};
+    localStorage.removeItem(this.CACHE_KEY);
+    console.log('Translation cache cleared');
   }
 }
 

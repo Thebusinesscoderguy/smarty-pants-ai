@@ -730,6 +730,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguage] = useState<Language>('en');
   const [isInitialized, setIsInitialized] = useState(false);
   const [autoTranslationCache, setAutoTranslationCache] = useState<{ [key: string]: string }>({});
+  const [translatingKeys, setTranslatingKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as Language;
@@ -747,10 +748,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: string): string => {
-    console.log(`Translation requested for key: "${key}" in language: ${language}`);
-    
     if (!isInitialized) {
-      console.log('LanguageProvider not initialized yet, returning English fallback');
       return translations['en'][key] || key;
     }
 
@@ -764,16 +762,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Check if we have an auto-translated version cached
       const cacheKey = `${language}:${key}`;
       if (autoTranslationCache[cacheKey]) {
-        console.log(`Using auto-translated cache for "${key}":`, autoTranslationCache[cacheKey]);
         return autoTranslationCache[cacheKey];
       }
 
       // Fallback to English if translation is missing
       translation = englishTranslations?.[key];
       
-      if (translation && language !== 'en') {
+      if (translation && language !== 'en' && !translatingKeys.has(cacheKey)) {
         // Auto-translate the English text to target language
-        console.log(`Auto-translating "${translation}" to ${language}`);
+        setTranslatingKeys(prev => new Set(prev).add(cacheKey));
+        
         translationService.translateText(translation, language, 'en')
           .then(autoTranslated => {
             if (autoTranslated && autoTranslated !== translation) {
@@ -786,11 +784,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           })
           .catch(error => {
             console.warn('Auto-translation failed:', error);
+          })
+          .finally(() => {
+            setTranslatingKeys(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(cacheKey);
+              return newSet;
+            });
           });
       }
       
       if (translation) {
-        console.log(`Missing translation for key "${key}" in ${language}, using English: "${translation}"`);
         return translation;
       }
     }
@@ -801,7 +805,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return key;
     }
     
-    console.log(`Translation result for "${key}":`, translation);
     return translation;
   };
 
