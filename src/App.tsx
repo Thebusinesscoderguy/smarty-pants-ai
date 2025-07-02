@@ -22,7 +22,7 @@ import AcceptInvitation from './pages/AcceptInvitation';
 import SystemTest from './pages/SystemTest';
 import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
-import Modules from './pages/Modules';
+import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -53,7 +53,7 @@ function App() {
                 <Route path="/system-test" element={<SystemTest />} />
                 <Route path="/math-solver" element={<MathSolver />} />
                 <Route path="/quiz" element={<QuizGenerator />} />
-                <Route path="/modules" element={<Modules />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

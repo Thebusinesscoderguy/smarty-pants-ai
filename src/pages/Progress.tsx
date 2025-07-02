@@ -22,7 +22,8 @@ import { DemoSubjectProgress } from '@/components/demo/DemoSubjectProgress';
 import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { TestCreator } from '@/components/TestCreator';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
-import { MessageSquare, BarChart3, BookOpen, FileText, Play, Users, TrendingUp, Award, Target, TestTube } from 'lucide-react';
+import { CurriculumSelector } from '@/components/CurriculumSelector';
+import { MessageSquare, BarChart3, BookOpen, FileText, Play, Users, TrendingUp, Award, Target, TestTube, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +34,8 @@ const Progress = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('monitoring');
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('monitoring');
+  const [isCurriculumSelectorOpen, setIsCurriculumSelectorOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -92,16 +94,16 @@ const Progress = () => {
         Monitoring
       </Button>
       <Button
-        variant={currentPage === 'modules' ? 'default' : 'ghost'}
+        variant={currentPage === 'settings' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => {
-          setCurrentPage('modules');
-          navigate('/modules');
+          setCurrentPage('settings');
+          navigate('/settings');
         }}
-        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+        className={currentPage === 'settings' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
       >
-        <BookOpen className="h-4 w-4 mr-1" />
-        Modules
+        <Settings className="h-4 w-4 mr-1" />
+        Settings
       </Button>
     </div>
   );
@@ -122,6 +124,48 @@ const Progress = () => {
         </div>
       );
     }
+  };
+
+  const renderCurriculumsTab = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-2">Curriculums</h3>
+            <p className="text-white/70">Manage and track curriculum progress</p>
+          </div>
+          <Button 
+            onClick={() => setIsCurriculumSelectorOpen(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            <BookOpen className="h-4 w-4 mr-2" />
+            Browse Curriculums
+          </Button>
+        </div>
+        
+        <div className="grid gap-6">
+          <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white">Active Curriculums</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-white/70">
+                No active curriculums found. Click "Browse Curriculums" to get started.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <CurriculumSelector
+          isOpen={isCurriculumSelectorOpen}
+          onClose={() => setIsCurriculumSelectorOpen(false)}
+          onSelect={(curriculum) => {
+            console.log('Selected curriculum:', curriculum);
+            setIsCurriculumSelectorOpen(false);
+          }}
+        />
+      </div>
+    );
   };
 
   const renderTestingTab = () => {
@@ -227,6 +271,10 @@ const Progress = () => {
                 <BarChart3 className="h-4 w-4 mr-1" />
                 {!user ? 'Overview' : (userRole === 'parent' ? 'Child Progress' : 'Monitoring')}
               </TabsTrigger>
+              <TabsTrigger value="curriculums" className="data-[state=active]:bg-white/20 flex items-center">
+                <BookOpen className="h-4 w-4 mr-1" />
+                Curriculums
+              </TabsTrigger>
               <TabsTrigger value="quests" className="data-[state=active]:bg-white/20 flex items-center">
                 <Target className="h-4 w-4 mr-1" />
                 Quests
@@ -234,10 +282,6 @@ const Progress = () => {
               <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20 flex items-center">
                 <Award className="h-4 w-4 mr-1" />
                 Achievements
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="data-[state=active]:bg-white/20 flex items-center">
-                <BookOpen className="h-4 w-4 mr-1" />
-                Subjects
               </TabsTrigger>
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20 flex items-center">
                 <TrendingUp className="h-4 w-4 mr-1" />
@@ -254,16 +298,16 @@ const Progress = () => {
                 {renderMonitoringTab()}
               </TabsContent>
 
+              <TabsContent value="curriculums" className="space-y-6">
+                {renderCurriculumsTab()}
+              </TabsContent>
+
               <TabsContent value="quests" className="space-y-6">
                 {user ? <StudentQuestDisplay /> : <DemoQuestDisplay />}
               </TabsContent>
 
               <TabsContent value="achievements" className="space-y-6">
                 {user ? <StudentAchievements /> : <DemoAchievements />}
-              </TabsContent>
-
-              <TabsContent value="subjects" className="space-y-6">
-                {user ? <SubjectProgress /> : <DemoSubjectProgress />}
               </TabsContent>
 
               <TabsContent value="analytics" className="space-y-6">
