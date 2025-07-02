@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Plus, Star, Users, Clock, Globe } from 'lucide-react';
+import { BookOpen, Plus, Star, Users, Clock, Globe, Bot } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Curriculum {
@@ -104,31 +104,32 @@ export const CurriculumSelector = ({ isOpen, onClose, onSelect }: CurriculumSele
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
         <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-white mb-4">{t('curriculum.title')}</h2>
+          <h2 className="text-4xl font-bold text-white mb-4">Choose Your Learning Path</h2>
           <p className="text-white/70 text-lg">
-            Choose from our curated curricula or create your own personalized learning path
+            Select from our curated curricula or let AI create a personalized learning experience
           </p>
         </div>
 
         <div className="grid gap-6 mb-8">
-          {/* Create Custom Option */}
+          {/* Create AI Curriculum Option */}
           <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-blue-500/30 hover:from-blue-600/30 hover:to-purple-600/30 transition-all duration-300 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <Plus className="h-8 w-8 text-blue-400" />
+                    <Bot className="h-8 w-8 text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white">{t('curriculum.create')}</h3>
-                    <p className="text-white/70">Upload your own materials and let AI create a personalized curriculum</p>
+                    <h3 className="text-xl font-semibold text-white">Create AI Curriculum</h3>
+                    <p className="text-white/70">Tell our AI what you want to learn and it will create a personalized curriculum for you</p>
                   </div>
                 </div>
                 <Button 
                   onClick={() => onSelect(null)}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  Create Custom
+                  <Bot className="h-4 w-4 mr-2" />
+                  Create with AI
                 </Button>
               </div>
             </CardContent>

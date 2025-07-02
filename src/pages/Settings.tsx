@@ -2,23 +2,24 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Settings as SettingsIcon, User, Bell, Shield, Palette, Globe } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users } from 'lucide-react';
 
 const Settings = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState('en');
+  const [selectedVoice, setSelectedVoice] = useState('alloy');
+
+  const VOICE_OPTIONS = [
+    { value: 'alloy', label: 'Alloy (Default)' },
+    { value: 'echo', label: 'Echo' },
+    { value: 'fable', label: 'Fable' },
+    { value: 'onyx', label: 'Onyx' },
+    { value: 'nova', label: 'Nova' },
+    { value: 'shimmer', label: 'Shimmer' },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
@@ -32,141 +33,75 @@ const Settings = () => {
               Settings
             </h1>
             <p className="text-gray-300 text-lg">
-              Manage your account preferences and application settings
+              Manage your AI chatbot voice and account settings
             </p>
           </div>
 
           <div className="grid gap-6">
-            {/* Profile Settings */}
+            {/* Voice Settings */}
             <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  Profile Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName" className="text-white">Display Name</Label>
-                    <Input 
-                      id="displayName" 
-                      placeholder="Enter your display name"
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="bg-white/5 border-white/10 text-white/70"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-white">Bio</Label>
-                  <Textarea 
-                    id="bio" 
-                    placeholder="Tell us about yourself"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notification Settings */}
-            <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Bell className="mr-2 h-5 w-5" />
-                  Notifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="notifications" className="text-white">Enable Notifications</Label>
-                    <p className="text-sm text-white/70">Receive notifications about your progress and achievements</p>
-                  </div>
-                  <Switch 
-                    id="notifications"
-                    checked={notifications} 
-                    onCheckedChange={setNotifications}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Appearance Settings */}
-            <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Palette className="mr-2 h-5 w-5" />
-                  Appearance
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="darkMode" className="text-white">Dark Mode</Label>
-                    <p className="text-sm text-white/70">Use dark theme across the application</p>
-                  </div>
-                  <Switch 
-                    id="darkMode"
-                    checked={darkMode} 
-                    onCheckedChange={setDarkMode}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Language Settings */}
-            <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Globe className="mr-2 h-5 w-5" />
-                  Language & Region
+                  <Volume2 className="mr-2 h-5 w-5" />
+                  AI Chatbot Voice
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="language" className="text-white">Language</Label>
-                  <Select value={language} onValueChange={setLanguage}>
+                  <label htmlFor="voice" className="text-white">Select Voice</label>
+                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                      <SelectItem value="fr">Français</SelectItem>
-                      <SelectItem value="de">Deutsch</SelectItem>
+                      {VOICE_OPTIONS.map((voice) => (
+                        <SelectItem key={voice.value} value={voice.value}>
+                          {voice.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-sm text-white/70">
+                    Choose the voice for your AI learning assistant
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Privacy Settings */}
+            {/* Account Actions */}
             <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
-                  <Shield className="mr-2 h-5 w-5" />
-                  Privacy & Security
+                  <UserX className="mr-2 h-5 w-5" />
+                  Account Actions
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  Change Password
-                </Button>
-                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  Download My Data
-                </Button>
-                <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
-                  Delete Account
-                </Button>
+                <div className="flex flex-col space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center justify-start"
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Cancel Subscription
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center justify-start"
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    Remove Student
+                  </Button>
+                  
+                  <Button 
+                    variant="destructive" 
+                    className="bg-red-600 hover:bg-red-700 flex items-center justify-start"
+                  >
+                    <UserX className="mr-2 h-4 w-4" />
+                    Delete Account
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

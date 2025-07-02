@@ -23,7 +23,7 @@ import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { TestCreator } from '@/components/TestCreator';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
 import { CurriculumSelector } from '@/components/CurriculumSelector';
-import { MessageSquare, BarChart3, BookOpen, FileText, Play, Users, TrendingUp, Award, Target, TestTube, Settings } from 'lucide-react';
+import { MessageSquare, BarChart3, BookOpen, FileText, Play, Users, TrendingUp, Award, Target, TestTube, Settings, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -126,6 +126,12 @@ const Progress = () => {
     }
   };
 
+  const handleCreateCustomCurriculum = () => {
+    // Navigate to chat with a message to create curriculum
+    navigate('/chat', { state: { message: 'I want to create a custom AI curriculum. Please help me get started.' } });
+    setIsCurriculumSelectorOpen(false);
+  };
+
   const renderCurriculumsTab = () => {
     return (
       <div className="space-y-6">
@@ -144,13 +150,36 @@ const Progress = () => {
         </div>
         
         <div className="grid gap-6">
+          {/* Create AI Curriculum Card */}
+          <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-blue-500/30 hover:from-blue-600/30 hover:to-purple-600/30 transition-all duration-300 cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-blue-500/20 rounded-xl">
+                    <Plus className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">Create AI Curriculum</h3>
+                    <p className="text-white/70">Let AI create a personalized curriculum based on your needs</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleCreateCustomCurriculum}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Create with AI
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white">Active Curriculums</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-white/70">
-                No active curriculums found. Click "Browse Curriculums" to get started.
+                No active curriculums found. Click "Browse Curriculums" or "Create with AI" to get started.
               </div>
             </CardContent>
           </Card>
@@ -160,7 +189,11 @@ const Progress = () => {
           isOpen={isCurriculumSelectorOpen}
           onClose={() => setIsCurriculumSelectorOpen(false)}
           onSelect={(curriculum) => {
-            console.log('Selected curriculum:', curriculum);
+            if (curriculum) {
+              console.log('Selected curriculum:', curriculum);
+            } else {
+              handleCreateCustomCurriculum();
+            }
             setIsCurriculumSelectorOpen(false);
           }}
         />
@@ -266,7 +299,7 @@ const Progress = () => {
           </div>
 
           <Tabs defaultValue="monitoring" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm">
               <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20 flex items-center">
                 <BarChart3 className="h-4 w-4 mr-1" />
                 {!user ? 'Overview' : (userRole === 'parent' ? 'Child Progress' : 'Monitoring')}
@@ -286,10 +319,6 @@ const Progress = () => {
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20 flex items-center">
                 <TrendingUp className="h-4 w-4 mr-1" />
                 Analytics
-              </TabsTrigger>
-              <TabsTrigger value="testing" className="data-[state=active]:bg-white/20 flex items-center">
-                <TestTube className="h-4 w-4 mr-1" />
-                Tests
               </TabsTrigger>
             </TabsList>
 
@@ -312,10 +341,6 @@ const Progress = () => {
 
               <TabsContent value="analytics" className="space-y-6">
                 {user ? <StrengthsWeaknesses /> : <DemoAnalytics />}
-              </TabsContent>
-
-              <TabsContent value="testing" className="space-y-6">
-                {renderTestingTab()}
               </TabsContent>
             </div>
           </Tabs>
