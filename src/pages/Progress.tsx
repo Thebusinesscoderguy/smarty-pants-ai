@@ -22,8 +22,7 @@ import { DemoSubjectProgress } from '@/components/demo/DemoSubjectProgress';
 import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { TestCreator } from '@/components/TestCreator';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
-import { CurriculumSelector } from '@/components/CurriculumSelector';
-import { MessageSquare, BarChart3, FileText, Play, TrendingUp, Award, Target, TestTube } from 'lucide-react';
+import { MessageSquare, BarChart3, BookOpen, FileText, Play, Users, TrendingUp, Award, Target, TestTube } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -34,8 +33,7 @@ const Progress = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring'>('monitoring');
-  const [showCurriculumSelector, setShowCurriculumSelector] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'modules'>('monitoring');
 
   useEffect(() => {
     if (!authLoading) {
@@ -70,14 +68,6 @@ const Progress = () => {
     }
   };
 
-  const handleCurriculumSelect = (curriculum: any) => {
-    if (curriculum) {
-      localStorage.setItem('selectedCurriculum', JSON.stringify(curriculum));
-    }
-    setShowCurriculumSelector(false);
-    navigate('/chat');
-  };
-
   const renderNavigation = () => (
     <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1 backdrop-blur-sm">
       <Button
@@ -100,6 +90,18 @@ const Progress = () => {
       >
         <BarChart3 className="h-4 w-4 mr-1" />
         Monitoring
+      </Button>
+      <Button
+        variant={currentPage === 'modules' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => {
+          setCurrentPage('modules');
+          navigate('/modules');
+        }}
+        className={currentPage === 'modules' ? 'bg-blue-600 hover:bg-blue-700' : 'text-white hover:bg-white/10'}
+      >
+        <BookOpen className="h-4 w-4 mr-1" />
+        Modules
       </Button>
     </div>
   );
@@ -198,12 +200,6 @@ const Progress = () => {
           <div className="flex items-center space-x-4">
             {renderNavigation()}
           </div>
-          <Button
-            onClick={() => setShowCurriculumSelector(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            Select Curriculum
-          </Button>
         </div>
       </div>
       
@@ -226,7 +222,7 @@ const Progress = () => {
           </div>
 
           <Tabs defaultValue="monitoring" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm">
               <TabsTrigger value="monitoring" className="data-[state=active]:bg-white/20 flex items-center">
                 <BarChart3 className="h-4 w-4 mr-1" />
                 {!user ? 'Overview' : (userRole === 'parent' ? 'Child Progress' : 'Monitoring')}
@@ -238,6 +234,10 @@ const Progress = () => {
               <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20 flex items-center">
                 <Award className="h-4 w-4 mr-1" />
                 Achievements
+              </TabsTrigger>
+              <TabsTrigger value="subjects" className="data-[state=active]:bg-white/20 flex items-center">
+                <BookOpen className="h-4 w-4 mr-1" />
+                Subjects
               </TabsTrigger>
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20 flex items-center">
                 <TrendingUp className="h-4 w-4 mr-1" />
@@ -262,6 +262,10 @@ const Progress = () => {
                 {user ? <StudentAchievements /> : <DemoAchievements />}
               </TabsContent>
 
+              <TabsContent value="subjects" className="space-y-6">
+                {user ? <SubjectProgress /> : <DemoSubjectProgress />}
+              </TabsContent>
+
               <TabsContent value="analytics" className="space-y-6">
                 {user ? <StrengthsWeaknesses /> : <DemoAnalytics />}
               </TabsContent>
@@ -275,13 +279,6 @@ const Progress = () => {
       </main>
 
       <Footer />
-
-      {/* Curriculum Selector Modal */}
-      <CurriculumSelector
-        isOpen={showCurriculumSelector}
-        onClose={() => setShowCurriculumSelector(false)}
-        onSelect={handleCurriculumSelect}
-      />
     </div>
   );
 };
