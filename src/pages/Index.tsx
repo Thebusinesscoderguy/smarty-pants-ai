@@ -21,11 +21,11 @@ const Index = () => {
   };
 
   const handleStartLearning = () => {
-    setShowRoleSelection(true);
+    navigate('/auth');
   };
 
   const handleTryDemo = () => {
-    navigate('/demo');
+    navigate('/auth');
   };
 
   return (

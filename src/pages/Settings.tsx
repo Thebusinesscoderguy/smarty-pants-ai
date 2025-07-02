@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,10 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Settings as SettingsIcon, Bell, Shield, Palette } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Shield, Palette, Moon, Sun } from 'lucide-react';
 
 const Settings = () => {
   const { user } = useAuth();
+  const [darkMode, setDarkMode] = useState(true);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    // Apply dark mode toggle logic here
+    if (darkMode) {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
@@ -82,10 +94,15 @@ const Settings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="dark-mode" className="text-white">
+                  <Label htmlFor="dark-mode" className="text-white flex items-center">
+                    {darkMode ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
                     Dark Mode
                   </Label>
-                  <Switch id="dark-mode" defaultChecked />
+                  <Switch 
+                    id="dark-mode" 
+                    checked={darkMode}
+                    onCheckedChange={toggleDarkMode}
+                  />
                 </div>
                 <Button className="w-full bg-blue-600 hover:bg-blue-700">
                   Save Settings

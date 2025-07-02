@@ -15,6 +15,7 @@ import { Brain, MessageSquare, BarChart3, User, Settings, LogOut, Menu, X, Send,
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 export const Header = () => {
   const { user, signOut, isSchoolAdmin } = useAuth();
@@ -58,10 +59,7 @@ export const Header = () => {
     }
   };
 
-  const navigationItems = [
-    { href: '/chat', icon: MessageSquare, label: t('nav.chat') || 'Chat' },
-    { href: '/progress', icon: BarChart3, label: t('nav.progress') || 'Progress' },
-  ];
+  const navigationItems = [];
 
   if (isSchoolAdmin) {
     navigationItems.push({
@@ -78,7 +76,7 @@ export const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <Brain className="h-8 w-8 text-blue-400" />
-            <span className="text-xl font-bold text-white">StudyBot</span>
+            <span className="text-xl font-bold text-white">Teachly</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -99,23 +97,7 @@ export const Header = () => {
           {/* Right side */}
           <div className="flex items-center space-x-4">
             {/* Language Selector */}
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-20 bg-transparent border-white/20 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">EN</SelectItem>
-                <SelectItem value="es">ES</SelectItem>
-                <SelectItem value="fr">FR</SelectItem>
-                <SelectItem value="de">DE</SelectItem>
-                <SelectItem value="zh">中文</SelectItem>
-                <SelectItem value="ja">日本語</SelectItem>
-                <SelectItem value="pt">PT</SelectItem>
-                <SelectItem value="it">IT</SelectItem>
-                <SelectItem value="ru">RU</SelectItem>
-                <SelectItem value="ar">العربية</SelectItem>
-              </SelectContent>
-            </Select>
+            <LanguageSelector />
 
             {user ? (
               <DropdownMenu>
@@ -139,13 +121,13 @@ export const Header = () => {
                   <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-gray-700" asChild>
                     <Link to="/profile" className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
-                      <span>{t('nav.profile') || 'Profile'}</span>
+                      <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-gray-700" asChild>
                     <Link to="/settings" className="flex items-center">
                       <Settings className="mr-2 h-4 w-4" />
-                      <span>{t('nav.settings') || 'Settings'}</span>
+                      <span>Settings</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-700" />
@@ -218,7 +200,7 @@ export const Header = () => {
                     onClick={handleSignOut}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t('nav.signOut') || 'Sign out'}</span>
+                    <span>Sign out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -226,12 +208,12 @@ export const Header = () => {
               <div className="flex items-center space-x-2">
                 <Link to="/auth">
                   <Button variant="ghost" className="text-gray-300 hover:text-white">
-                    {t('nav.signIn') || 'Sign In'}
+                    Log In
                   </Button>
                 </Link>
                 <Link to="/auth">
                   <Button className="bg-blue-600 hover:bg-blue-700">
-                    {t('nav.getStarted') || 'Get Started'}
+                    Sign Up
                   </Button>
                 </Link>
               </div>
