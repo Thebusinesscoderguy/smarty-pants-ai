@@ -168,7 +168,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the actual chat interface with modern UI
+  // Demo is running - show the actual chat interface with unified modern UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
@@ -220,8 +220,8 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface with modern design */}
-      <main className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Main Chat Interface with unified modern design */}
+      <main className="flex-1">
         <div className="h-full">
           <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
         </div>

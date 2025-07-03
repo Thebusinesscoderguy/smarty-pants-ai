@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles, Play } from 'lucide-react';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -26,11 +26,66 @@ const Settings = () => {
     { value: 'shimmer', label: 'Shimmer', description: 'Gentle and soothing' },
   ];
 
-  const testVoice = () => {
-    toast({
-      title: "Voice Test",
-      description: `Testing ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice...`,
-    });
+  const testVoice = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://twfzlbockonxopuindaw.functions.supabase.co/functions/v1/text-to-voice`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MDE5NTAsImV4cCI6MjA1ODk3Nzk1MH0.MKUGpLxfF5bhtqOAo0aBs0daOMpMfkIqgwZ2ntIvQi4`
+        },
+        body: JSON.stringify({
+          text: `Hello! This is a test of the ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice. How do I sound?`,
+          voice: selectedVoice
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate test audio');
+      }
+
+      const data = await response.json();
+      
+      if (data.audioContent) {
+        // Convert base64 to audio and play
+        const audioData = atob(data.audioContent);
+        const arrayBuffer = new ArrayBuffer(audioData.length);
+        const view = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < audioData.length; i++) {
+          view[i] = audioData.charCodeAt(i);
+        }
+        
+        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        
+        audio.play().then(() => {
+          toast({
+            title: "Voice Test Playing",
+            description: `Testing ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice...`,
+          });
+        }).catch((error) => {
+          console.error('Error playing audio:', error);
+          toast({
+            title: "Audio Error",
+            description: "Could not play the test audio. Check your browser settings.",
+            variant: "destructive"
+          });
+        });
+      } else {
+        throw new Error('No audio data received');
+      }
+    } catch (error: any) {
+      console.error('Voice test error:', error);
+      toast({
+        title: "Voice Test Failed",
+        description: error.message || "Could not test voice. Please check your connection.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancelSubscription = async () => {
@@ -102,14 +157,16 @@ const Settings = () => {
   };
 
   const saveChanges = () => {
+    // Save voice settings to localStorage for now
+    localStorage.setItem('selectedVoice', selectedVoice);
     toast({
       title: "Settings Saved",
-      description: "Your settings have been saved successfully.",
+      description: "Your voice settings have been saved successfully.",
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <Header />
       
       <main className="px-6 py-12 max-w-6xl mx-auto">
@@ -163,12 +220,23 @@ const Settings = () => {
                 </div>
               </div>
               
-              <Button 
-                onClick={testVoice}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 py-4 rounded-2xl font-semibold text-lg"
-              >
-                Test Voice
-              </Button>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={testVoice}
+                  disabled={isLoading}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 py-4 rounded-2xl font-semibold text-lg flex items-center"
+                >
+                  <Play className="mr-3 h-5 w-5" />
+                  {isLoading ? 'Testing...' : 'Test Voice'}
+                </Button>
+                
+                <Button 
+                  onClick={saveChanges}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-10 py-4 rounded-2xl font-semibold text-lg"
+                >
+                  Save Voice Settings
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -258,16 +326,6 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Save Changes */}
-          <div className="flex justify-center pt-8">
-            <Button 
-              onClick={saveChanges}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-16 py-6 rounded-2xl font-semibold text-xl shadow-2xl"
-            >
-              Save All Changes
-            </Button>
-          </div>
         </div>
       </main>
 
