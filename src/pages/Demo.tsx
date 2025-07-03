@@ -168,9 +168,9 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the actual chat interface
+  // Demo is running - show the actual chat interface with modern UI
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
       <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-6 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -220,8 +220,8 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface */}
-      <main className="flex-1">
+      {/* Main Chat Interface with modern design */}
+      <main className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="h-full">
           <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
         </div>
@@ -230,7 +230,7 @@ const Demo = () => {
       {/* Time Warning Modal */}
       {(showTimeWarning || timeLeft <= 0) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="bg-slate-800 border-white/20 max-w-lg w-full shadow-2xl">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-white/20 max-w-lg w-full shadow-2xl rounded-3xl">
             <CardHeader>
               <CardTitle className="text-white text-center text-2xl">
                 {timeLeft <= 0 ? "Demo Time Complete!" : "Demo Ending Soon!"}

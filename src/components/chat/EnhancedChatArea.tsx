@@ -1,11 +1,11 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, BarChart3, Menu, X, Send, BookOpen } from 'lucide-react';
+import { MessageSquare, BarChart3, Menu, X, Send, BookOpen, Upload, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { ChatSidebar } from './ChatSidebar';
 import MessageList from '@/components/MessageList';
-import VoiceMessageInput from '@/components/VoiceMessageInput';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -27,8 +27,10 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [textMessage, setTextMessage] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Demo-specific state
   const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([]);
@@ -114,15 +116,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         <BarChart3 className="h-4 w-4 mr-1" />
         {t('nav.progress') || 'Progress'}
       </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate('/modules')}
-        className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
-      >
-        <BookOpen className="h-4 w-4 mr-1" />
-        {t('nav.modules') || 'Modules'}
-      </Button>
     </div>
   );
 
@@ -186,6 +179,27 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     }
   };
 
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleVoiceToggle = () => {
+    if (isRecording) {
+      setIsRecording(false);
+      // Stop recording logic here
+    } else {
+      setIsRecording(true);
+      // Start recording logic here
+    }
+  };
+
   const handleNewChat = () => {
     if (isDemoMode) {
       setDemoMessages([
@@ -229,7 +243,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   const displayMessages = isDemoMode ? demoMessages : messages;
   
   return (
-    <div className="flex h-full bg-gray-900">
+    <div className="flex h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
         <ChatSidebar
@@ -243,16 +257,16 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-gray-800">
+      <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-800/50 to-purple-800/50 backdrop-blur-sm">
         {/* Chat Header */}
-        <div className="flex-shrink-0 px-4 py-4 border-b border-gray-700 bg-gray-800">
+        <div className="flex-shrink-0 px-6 py-4 border-b border-white/10 bg-black/20 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="text-gray-400 hover:bg-gray-700 hover:text-white"
+                className="text-gray-400 hover:bg-white/10 hover:text-white rounded-xl"
               >
                 {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
@@ -262,22 +276,22 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
             
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">AI</span>
                 </div>
-                <h2 className="text-lg font-semibold text-white">
-                  {activeCurriculum ? activeCurriculum.title : t('chat.title')}
+                <h2 className="text-xl font-semibold text-white">
+                  {activeCurriculum ? activeCurriculum.title : 'AI Learning Assistant'}
                 </h2>
               </div>
               
               <div className="flex items-center space-x-2">
                 {!isDemoMode && (
-                  <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700/50 text-xs">
-                    {totalTokensUsed.toLocaleString()} {t('chat.tokensUsed')}
+                  <Badge variant="outline" className="border-white/30 text-white/80 bg-white/10 text-sm px-3 py-1">
+                    {totalTokensUsed.toLocaleString()} tokens used
                   </Badge>
                 )}
                 {isQuizMode && (
-                  <Badge className="bg-green-600 text-white text-xs">
+                  <Badge className="bg-green-600 text-white text-sm px-3 py-1">
                     Quiz Mode
                   </Badge>
                 )}
@@ -287,18 +301,18 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-800">
-          <div className="max-w-4xl mx-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900/80 via-purple-900/80 to-slate-900/80 backdrop-blur-sm">
+          <div className="max-w-5xl mx-auto px-6 py-6">
             <MessageList
               messages={displayMessages}
               onPlayAudio={handlePlayAudio}
               onPauseAudio={handlePauseAudio}
             />
             {isProcessing && (
-              <div className="flex justify-center py-4">
-                <div className="flex items-center space-x-2 text-gray-400">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-                  <span>{t('chat.thinking')}</span>
+              <div className="flex justify-center py-8">
+                <div className="flex items-center space-x-3 text-white/70 bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white/70"></div>
+                  <span className="text-lg">AI is thinking...</span>
                 </div>
               </div>
             )}
@@ -306,27 +320,97 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="flex-shrink-0 p-6 border-t border-gray-700 bg-gray-800">
-          <div className="max-w-4xl mx-auto">
+        {/* Enhanced Input Area */}
+        <div className="flex-shrink-0 p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl">
+          <div className="max-w-5xl mx-auto">
+            {selectedFile && (
+              <div className="mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm">
+                <div className="flex items-center space-x-3">
+                  <Upload className="h-5 w-5 text-blue-400" />
+                  <span className="text-white font-medium">{selectedFile.name}</span>
+                  <Badge className="bg-blue-600 text-white">
+                    {(selectedFile.size / 1024).toFixed(1)} KB
+                  </Badge>
+                </div>
+                <Button
+                  onClick={() => setSelectedFile(null)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            
             <div className="relative">
               <textarea
                 value={textMessage}
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={t('chat.placeholder')}
-                className="w-full px-4 py-3 pr-12 bg-gray-700 border border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
+                placeholder="Ask me anything about learning..."
+                className="w-full px-6 py-4 pr-32 bg-white/10 border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
                 rows={1}
-                style={{ minHeight: '52px', maxHeight: '120px' }}
+                style={{ minHeight: '60px', maxHeight: '120px' }}
                 disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
               />
-              <Button
-                onClick={handleSendText}
-                disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
-                className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center p-0"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              
+              <div className="absolute right-3 bottom-3 flex items-center space-x-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                />
+                
+                <Button
+                  onClick={handleFileUpload}
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+                >
+                  <Upload className="h-5 w-5" />
+                </Button>
+                
+                <Button
+                  onClick={handleVoiceToggle}
+                  variant="ghost"
+                  size="sm"
+                  className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
+                    isRecording 
+                      ? 'text-red-400 hover:text-red-300 bg-red-500/20 hover:bg-red-500/30' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                  disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+                >
+                  {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
+                
+                <Button
+                  onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
+                  variant="ghost"
+                  size="sm"
+                  className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
+                    isVoiceEnabled 
+                      ? 'text-purple-400 hover:text-purple-300 bg-purple-500/20 hover:bg-purple-500/30' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                  disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+                  title={isVoiceEnabled ? 'Voice responses enabled' : 'Voice responses disabled'}
+                >
+                  {isVoiceEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                </Button>
+                
+                <Button
+                  onClick={handleSendText}
+                  disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
+                  className="h-10 w-10 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white flex items-center justify-center p-0 disabled:opacity-50 transition-all duration-200 shadow-lg"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
