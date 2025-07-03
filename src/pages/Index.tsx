@@ -21,7 +21,7 @@ const Index = () => {
   };
 
   const handleStartLearning = () => {
-    setShowRoleSelection(true);
+    navigate('/auth');
   };
 
   const handleTryDemo = () => {
@@ -314,7 +314,10 @@ const Index = () => {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature3')}</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature4')}</li>
                 </ul>
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                <Button 
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  onClick={handleStartLearning}
+                >
                   {t('pricing.get.started')}
                 </Button>
               </div>
@@ -331,14 +334,18 @@ const Index = () => {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature3')}</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature4')}</li>
                 </ul>
-                <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  onClick={handleStartLearning}
+                >
                   {t('pricing.get.started')}
                 </Button>
               </div>
 
               <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.school')}</h3>
-                <div className="text-4xl font-bold mb-6">{t('pricing.school.price')}</div>
+                <div className="text-4xl font-bold mb-6">$32<span className="text-lg text-white/60">/month</span></div>
+                <div className="text-sm text-white/70 mb-4">+ $3 for each additional student</div>
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature1')}</li>
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature2')}</li>
@@ -505,7 +512,7 @@ const Index = () => {
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
                   onClick={handleStartLearning}
                 >
-                  {t('final.cta.trial')}
+                  Start Learning
                 </Button>
                 <Button 
                   size="lg" 
