@@ -73,21 +73,21 @@ const Demo = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <Header />
         <main className="flex items-center justify-center min-h-[80vh] px-6">
-          <div className="text-center max-w-3xl">
-            <div className="mb-8">
-              <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+          <div className="text-center max-w-4xl">
+            <div className="mb-12">
+              <h1 className="text-7xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
                 Experience TeachlyAI Demo
               </h1>
-              <p className="text-xl text-slate-300 leading-relaxed">
+              <p className="text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
                 Choose your perspective to get a personalized demo experience. You'll have 15 minutes to explore our full platform.
               </p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-12 border border-white/10 shadow-2xl">
               <Button 
                 onClick={() => setShowRoleSelection(true)} 
                 size="lg" 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-2xl text-lg font-semibold shadow-xl"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-12 py-6 rounded-2xl text-xl font-semibold shadow-xl"
               >
                 Choose Your Role
               </Button>
@@ -112,42 +112,42 @@ const Demo = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <Header />
         
-        <main className="px-6 py-12 max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+        <main className="px-6 py-12 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-12">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
-              className="border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm rounded-xl px-6 py-3"
+              className="border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm rounded-xl px-8 py-4 text-lg"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-3 h-5 w-5" />
               Back to Home
             </Button>
           </div>
 
           <div className="text-center">
-            <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+            <div className="mb-12">
+              <h1 className="text-6xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
                 {roleTitle} Demo
               </h1>
-              <p className="text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
+              <p className="text-2xl text-slate-300 max-w-5xl mx-auto leading-relaxed">
                 You're about to experience TeachlyAI exactly as a real user would. You'll have full access to our platform for 15 minutes - enough time to explore all features including AI chat, voice interactions, file uploads, progress monitoring, and more.
               </p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 mb-8 border border-white/10 shadow-2xl">
-              <h3 className="text-2xl font-semibold mb-6 text-white">What you can do in this demo:</h3>
-              <div className="grid md:grid-cols-2 gap-6 text-left">
-                <div className="space-y-3">
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Chat with AI tutors</p>
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Use voice interactions</p>
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Upload and analyze files</p>
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Create custom tests</p>
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-12 mb-12 border border-white/10 shadow-2xl">
+              <h3 className="text-3xl font-semibold mb-8 text-white">What you can do in this demo:</h3>
+              <div className="grid md:grid-cols-2 gap-8 text-left">
+                <div className="space-y-4">
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Chat with AI tutors</p>
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Use voice interactions</p>
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Upload and analyze files</p>
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Create custom tests</p>
                 </div>
-                <div className="space-y-3">
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Explore learning modules</p>
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Track progress analytics</p>
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Access all subjects</p>
-                  <p className="flex items-center text-slate-200"><span className="text-green-400 mr-3 text-lg">✓</span> Try gamification features</p>
+                <div className="space-y-4">
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Explore learning curriculums</p>
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Track progress analytics</p>
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Access all subjects</p>
+                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Try gamification features</p>
                 </div>
               </div>
             </div>
@@ -155,9 +155,9 @@ const Demo = () => {
             <Button
               onClick={startDemo}
               size="lg"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-12 py-4 rounded-2xl text-xl font-semibold shadow-xl"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-16 py-6 rounded-2xl text-2xl font-semibold shadow-xl"
             >
-              <Play className="mr-3 h-6 w-6" />
+              <Play className="mr-4 h-7 w-7" />
               Start 15-Minute Demo
             </Button>
           </div>
@@ -170,29 +170,29 @@ const Demo = () => {
 
   // Demo is running - show the actual chat interface
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
-      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-4 backdrop-blur-sm">
+      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-6 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
               size="sm"
-              className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
+              className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-6 py-3 text-lg"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-3 h-5 w-5" />
               Exit Demo
             </Button>
-            <span className="text-sm text-slate-300 bg-white/10 px-3 py-1 rounded-lg">Demo Mode Active</span>
+            <span className="text-lg text-slate-300 bg-white/10 px-6 py-3 rounded-xl">Demo Mode Active</span>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             {timeLeft > 0 ? (
               <>
-                <div className="flex items-center space-x-2 px-4 py-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
-                  <Clock className="h-4 w-4" />
-                  <span className={`font-mono text-sm ${timeLeft <= 120 ? 'text-yellow-400' : 'text-white'}`}>
+                <div className="flex items-center space-x-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
+                  <Clock className="h-5 w-5" />
+                  <span className={`font-mono text-lg ${timeLeft <= 120 ? 'text-yellow-400' : 'text-white'}`}>
                     {formatTime(timeLeft)} remaining
                   </span>
                 </div>
@@ -200,21 +200,21 @@ const Demo = () => {
                   onClick={() => setIsPaused(!isPaused)}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
+                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-3"
                 >
-                  {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                  {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
                 </Button>
                 <Button
                   onClick={resetDemo}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
+                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-3"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="h-5 w-5" />
                 </Button>
               </>
             ) : (
-              <div className="text-red-400 font-semibold">Demo Time Expired</div>
+              <div className="text-red-400 font-semibold text-lg">Demo Time Expired</div>
             )}
           </div>
         </div>
