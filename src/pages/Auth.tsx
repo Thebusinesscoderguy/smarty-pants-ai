@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
@@ -15,7 +14,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,7 +42,7 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          setError(t('auth.errors.invalidCredentials'));
+          setError('Invalid email or password. Please try again.');
         } else {
           setError(error.message);
         }
@@ -53,7 +51,7 @@ const Auth = () => {
 
       navigate('/chat');
     } catch (error: any) {
-      setError(t('auth.errors.genericError'));
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -65,13 +63,13 @@ const Auth = () => {
     setError('');
 
     if (password !== confirmPassword) {
-      setError(t('auth.errors.passwordMismatch'));
+      setError('Passwords do not match. Please try again.');
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError(t('auth.errors.weakPassword'));
+      setError('Password must be at least 6 characters long.');
       setLoading(false);
       return;
     }
@@ -87,7 +85,7 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes('already registered')) {
-          setError(t('auth.errors.emailInUse'));
+          setError('This email is already registered. Please sign in instead.');
         } else {
           setError(error.message);
         }
@@ -96,7 +94,7 @@ const Auth = () => {
 
       navigate('/chat');
     } catch (error: any) {
-      setError(t('auth.errors.genericError'));
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -116,70 +114,70 @@ const Auth = () => {
         setError(error.message);
       }
     } catch (error: any) {
-      setError(t('auth.errors.genericError'));
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <Header />
       
       <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
-        <Card className="w-full max-w-md bg-white/10 border-white/20 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-white">
-              {t('auth.title')}
+        <Card className="w-full max-w-lg bg-white/10 border-white/20 backdrop-blur-xl shadow-2xl rounded-3xl">
+          <CardHeader className="text-center pb-8">
+            <CardTitle className="text-3xl font-bold text-white mb-2">
+              Welcome to TeachlyAI
             </CardTitle>
-            <p className="text-white/70">
-              {t('auth.subtitle')}
+            <p className="text-slate-300 text-lg">
+              Join thousands of learners already transforming their education
             </p>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="px-8 pb-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/20">
+              <TabsList className="grid w-full grid-cols-2 bg-white/20 rounded-2xl p-1 mb-8">
                 <TabsTrigger 
                   value="signin" 
-                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3"
                 >
-                  {t('auth.signInTab')}
+                  Sign In
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
-                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3"
                 >
-                  {t('auth.signUpTab')}
+                  Sign Up
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="signin" className="space-y-4 mt-6">
-                <form onSubmit={handleSignIn} className="space-y-4">
+              <TabsContent value="signin" className="space-y-6">
+                <form onSubmit={handleSignIn} className="space-y-6">
                   <div>
                     <Input
                       type="email"
-                      placeholder={t('auth.email')}
+                      placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder-white/60"
+                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
                     />
                   </div>
                   
                   <div>
                     <Input
                       type="password"
-                      placeholder={t('auth.password')}
+                      placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder-white/60"
+                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
                     />
                   </div>
                   
                   {error && (
-                    <div className="text-red-400 text-sm text-center">
+                    <div className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-xl border border-red-500/30">
                       {error}
                     </div>
                   )}
@@ -187,9 +185,9 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl h-12 text-lg font-semibold"
                   >
-                    {loading ? t('common.loading') : t('auth.signInButton')}
+                    {loading ? 'Signing In...' : 'Sign In'}
                   </Button>
                 </form>
                 
@@ -198,7 +196,7 @@ const Auth = () => {
                     <span className="w-full border-t border-white/20" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-transparent px-2 text-white/60">or</span>
+                    <span className="bg-transparent px-4 text-white/60 font-medium">or</span>
                   </div>
                 </div>
                 
@@ -206,9 +204,9 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl h-12 text-lg"
                 >
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -226,59 +224,59 @@ const Auth = () => {
                       fill="#EA4335"
                     />
                   </svg>
-                  {t('auth.googleSignIn')}
+                  Continue with Google
                 </Button>
                 
                 <div className="text-center text-sm">
-                  <p className="text-white/70">
-                    {t('auth.noAccount')}{' '}
+                  <p className="text-slate-400">
+                    Don't have an account?{' '}
                     <button
                       onClick={() => setActiveTab('signup')}
-                      className="text-blue-400 hover:text-blue-300 underline"
+                      className="text-purple-400 hover:text-purple-300 underline font-medium"
                     >
-                      {t('auth.signUpLink')}
+                      Sign up here
                     </button>
                   </p>
                 </div>
               </TabsContent>
               
-              <TabsContent value="signup" className="space-y-4 mt-6">
-                <form onSubmit={handleSignUp} className="space-y-4">
+              <TabsContent value="signup" className="space-y-6">
+                <form onSubmit={handleSignUp} className="space-y-6">
                   <div>
                     <Input
                       type="email"
-                      placeholder={t('auth.email')}
+                      placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder-white/60"
+                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
                     />
                   </div>
                   
                   <div>
                     <Input
                       type="password"
-                      placeholder={t('auth.password')}
+                      placeholder="Create a password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder-white/60"
+                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
                     />
                   </div>
                   
                   <div>
                     <Input
                       type="password"
-                      placeholder={t('auth.confirmPassword')}
+                      placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder-white/60"
+                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
                     />
                   </div>
                   
                   {error && (
-                    <div className="text-red-400 text-sm text-center">
+                    <div className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-xl border border-red-500/30">
                       {error}
                     </div>
                   )}
@@ -286,9 +284,9 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl h-12 text-lg font-semibold"
                   >
-                    {loading ? t('common.loading') : t('auth.signUpButton')}
+                    {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </form>
                 
@@ -297,7 +295,7 @@ const Auth = () => {
                     <span className="w-full border-t border-white/20" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-transparent px-2 text-white/60">or</span>
+                    <span className="bg-transparent px-4 text-white/60 font-medium">or</span>
                   </div>
                 </div>
                 
@@ -305,9 +303,9 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl h-12 text-lg"
                 >
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -325,17 +323,17 @@ const Auth = () => {
                       fill="#EA4335"
                     />
                   </svg>
-                  {t('auth.googleSignIn')}
+                  Continue with Google
                 </Button>
                 
                 <div className="text-center text-sm">
-                  <p className="text-white/70">
-                    {t('auth.hasAccount')}{' '}
+                  <p className="text-slate-400">
+                    Already have an account?{' '}
                     <button
                       onClick={() => setActiveTab('signin')}
-                      className="text-blue-400 hover:text-blue-300 underline"
+                      className="text-purple-400 hover:text-purple-300 underline font-medium"
                     >
-                      {t('auth.signInLink')}
+                      Sign in here
                     </button>
                   </p>
                 </div>
