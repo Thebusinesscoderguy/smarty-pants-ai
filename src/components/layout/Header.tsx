@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { UserAvatar } from '@/components/UserAvatar';
+import UserAvatar from '@/components/UserAvatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Brain, Menu, X } from 'lucide-react';
@@ -116,7 +116,10 @@ export const Header = () => {
                   <span className="text-white/80 text-lg">
                     Welcome, {getDisplayName()}
                   </span>
-                  <UserAvatar />
+                  <UserAvatar 
+                    avatarUrl={user.user_metadata?.avatar_url || null}
+                    size="sm"
+                  />
                   <Button
                     onClick={handleSignOut}
                     variant="outline"
