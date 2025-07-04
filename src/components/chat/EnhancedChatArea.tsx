@@ -1,419 +1,314 @@
-
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MessageSquare, BarChart3, Menu, X, Send, BookOpen, Upload, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
-import { ChatSidebar } from './ChatSidebar';
-import MessageList from '@/components/MessageList';
-import { useMessageHandler } from '@/hooks/useMessageHandler';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { curricula } from '@/utils/curriculaData';
-import { getDemoChatSessions, createDemoMessage, type DemoMessage } from '@/utils/demoChatData';
+import { Send, Paperclip, Mic, X } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { useMessageHandler } from '@/hooks/useMessageHandler';
+import { Message, MessageBubble } from '@/components/chat/MessageBubble';
+import { InteractiveQuiz } from '@/components/learning/InteractiveQuiz';
+import { LearningPathVisualization } from '@/components/learning/LearningPathVisualization';
+import { HomeworkHelper } from '@/components/learning/HomeworkHelper';
+import { TrendingUp, Brain } from 'lucide-react';
 
 interface EnhancedChatAreaProps {
   isDemoMode?: boolean;
   demoTimeLeft?: number;
-  selectedCurriculum?: any;
 }
 
-export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCurriculum }: EnhancedChatAreaProps) => {
+export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaProps) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { t } = useLanguage();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [textMessage, setTextMessage] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Demo-specific state
-  const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [audioURL, setAudioURL] = useState('');
+  const { messages, setMessages, sendMessage, uploadFile } = useMessageHandler();
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [showLearningPath, setShowLearningPath] = useState(false);
+  const [showHomeworkHelper, setShowHomeworkHelper] = useState(false);
+  const [currentFeatureData, setCurrentFeatureData] = useState<any>(null);
 
-  const {
-    messages,
-    setMessages,
-    messagesEndRef,
-    apiKeyError,
-    isQuizMode,
-    setIsQuizMode,
-    totalTokensUsed,
-    inputTokens,
-    outputTokens,
-    monthlyLimit,
-    isTokenLimitReached,
-    scrollToBottom,
-    getAIResponse,
-    handlePlayAudio,
-    handlePauseAudio,
-    trackResponseTime,
-    incrementTokenCount
-  } = useMessageHandler();
-
-  // Set curriculum from props
   useEffect(() => {
-    if (selectedCurriculum) {
-      setActiveCurriculum(selectedCurriculum);
-      const curriculumWelcome = {
-        id: 'curriculum-welcome',
-        text: `Welcome! I'm ready to help you learn ${selectedCurriculum.title}. This curriculum covers ${selectedCurriculum.subjects.join(', ')} for ${selectedCurriculum.gradeLevel} students. What would you like to start with?`,
-        timestamp: new Date(),
-        isFromUser: false,
-        type: 'text' as const,
-        tokenCount: 35
-      };
-      
-      if (isDemoMode) {
-        setDemoMessages([curriculumWelcome]);
+    // Scroll to bottom when messages change
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    if (isDemoMode && demoTimeLeft <= 0) {
+      toast({
+        title: "Demo Time Expired",
+        description: "Your demo time has expired. Please sign up to continue.",
+      });
+    }
+  }, [isDemoMode, demoTimeLeft, toast]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSend = async () => {
+    if (input.trim()) {
+      await sendMessage(input);
+      setInput('');
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      const fileUrl = await uploadFile(file);
+      if (fileUrl) {
+        await sendMessage('Uploaded a file', 'file', fileUrl);
       } else {
-        setMessages([curriculumWelcome]);
+        toast({
+          title: "Upload Failed",
+          description: "There was an error uploading your file.",
+          variant: "destructive",
+        });
       }
+    } catch (error: any) {
+      toast({
+        title: "Upload Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
-  }, [selectedCurriculum, isDemoMode, setMessages]);
+  };
 
-  // Initialize demo messages
-  useEffect(() => {
-    if (isDemoMode && !selectedCurriculum) {
-      const demoSessions = getDemoChatSessions();
-      if (demoSessions.length > 0) {
-        setDemoMessages([
-          {
-            id: 'demo-welcome',
-            text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
-            timestamp: new Date(),
-            isFromUser: false,
-            type: 'text',
-            tokenCount: 35
-          }
-        ]);
-      }
-    }
-  }, [isDemoMode, selectedCurriculum]);
+  const startRecording = () => {
+    setIsRecording(true);
+    // Implement audio recording logic here
+    toast({
+      title: "Recording Started",
+      description: "Tap the mic again to stop recording.",
+    });
+  };
 
-  const renderNavigation = () => (
-    <div className="flex items-center space-x-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate('/chat')}
-        className="text-blue-400 hover:bg-white/10 hover:text-blue-300 flex items-center rounded-xl px-4 py-2"
-      >
-        <MessageSquare className="h-4 w-4 mr-1" />
-        {t('nav.chat') || 'Chat'}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate('/progress')}
-        className="text-gray-400 hover:bg-white/10 hover:text-white flex items-center rounded-xl px-4 py-2"
-      >
-        <BarChart3 className="h-4 w-4 mr-1" />
-        {t('nav.progress') || 'Dashboard'}
-      </Button>
-    </div>
-  );
+  const stopRecording = () => {
+    setIsRecording(false);
+    // Implement stop recording and audio processing logic here
+    setAudioURL('mocked_audio_url'); // Replace with actual audio URL
+    toast({
+      title: "Recording Stopped",
+      description: "Audio processed and ready to send.",
+    });
+  };
 
-  const handleSendText = async () => {
-    if (!textMessage.trim() || isProcessing) return;
-
-    if (isDemoMode && demoTimeLeft && demoTimeLeft <= 0) {
-      return;
-    }
-
-    const userMessage = textMessage.trim();
-    setTextMessage('');
-
-    if (isDemoMode) {
-      const newUserMessage = createDemoMessage(userMessage, true);
-      setDemoMessages(prev => [...prev, newUserMessage]);
+  const handleSpecialFeature = (message: any) => {
+    if (message.specialFeature) {
+      const { type, topic, problem } = message.specialFeature;
       
-      setIsProcessing(true);
-      
-      setTimeout(() => {
-        const aiResponses = [
-          "That's a great question! Let me help you understand this concept step by step...",
-          "I can definitely help you with that! Here's what you need to know...",
-          "Excellent topic to explore! Let me break this down for you...",
-          "I love that you're curious about this! Here's my explanation...",
-          "Perfect question for learning! Let me guide you through this...",
-        ];
-        
-        const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-        const aiMessage = createDemoMessage(randomResponse, false);
-        
-        setDemoMessages(prev => [...prev, aiMessage]);
-        setIsProcessing(false);
-      }, 1500);
-    } else {
-      if (isTokenLimitReached) {
-        alert('Monthly token limit reached. Please upgrade your plan.');
-        return;
-      }
-
-      const userMessageObj = {
-        id: `user-${Date.now()}`,
-        text: userMessage,
-        timestamp: new Date(),
-        isFromUser: true,
-        type: 'text' as const,
-        tokenCount: Math.ceil(userMessage.length / 4)
-      };
-
-      setMessages(prev => [...prev, userMessageObj]);
-      incrementTokenCount(userMessageObj.tokenCount, 0);
-      
-      await getAIResponse(userMessage, 'alloy', activeCurriculum);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendText();
-    }
-  };
-
-  const handleFileUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  const handleVoiceToggle = () => {
-    if (isRecording) {
-      setIsRecording(false);
-      // Stop recording logic here
-    } else {
-      setIsRecording(true);
-      // Start recording logic here
-    }
-  };
-
-  const handleNewChat = () => {
-    if (isDemoMode) {
-      setDemoMessages([
-        {
-          id: 'demo-welcome-new',
-          text: "Hello! I'm your AI tutor. What would you like to learn about?",
-          timestamp: new Date(),
-          isFromUser: false,
-          type: 'text',
-          tokenCount: 15
-        }
-      ]);
-    } else {
-      const welcomeText = activeCurriculum 
-        ? `New chat started! I'm ready to help you with ${activeCurriculum.title}. What would you like to learn?`
-        : "Hello! I'm your AI tutor. I can help you learn anything. What would you like to explore today?";
-      
-      setMessages([{
-        id: 'welcome-message',
-        text: welcomeText,
-        timestamp: new Date(),
-        isFromUser: false,
-        type: 'text',
-        tokenCount: Math.ceil(welcomeText.length / 4)
-      }]);
-    }
-    setActiveSessionId(null);
-  };
-
-  const handleSelectSession = (sessionId: string) => {
-    setActiveSessionId(sessionId);
-    if (isDemoMode) {
-      const demoSessions = getDemoChatSessions();
-      const session = demoSessions.find(s => s.id === sessionId);
-      if (session) {
-        setDemoMessages(session.messages);
+      switch (type) {
+        case 'quiz':
+          setCurrentFeatureData({ topic });
+          setShowQuiz(true);
+          break;
+        case 'learning_path':
+          setShowLearningPath(true);
+          break;
+        case 'homework':
+          setCurrentFeatureData({ problem });
+          setShowHomeworkHelper(true);
+          break;
       }
     }
   };
 
-  const displayMessages = isDemoMode ? demoMessages : messages;
-  
+  const handleQuizComplete = (score: number, totalQuestions: number) => {
+    const completionMessage: Message = {
+      id: Date.now().toString(),
+      content: `Great job! You scored ${score}/${totalQuestions} (${Math.round((score/totalQuestions)*100)}%) on the quiz. Keep up the excellent work! 🎉`,
+      isFromUser: false,
+      timestamp: new Date(),
+      type: 'text'
+    };
+    
+    setMessages(prev => [...prev, completionMessage]);
+    setShowQuiz(false);
+    setCurrentFeatureData(null);
+  };
+
+  const handleTopicSelect = (topic: string) => {
+    setCurrentFeatureData({ topic });
+    setShowQuiz(true);
+    setShowLearningPath(false);
+  };
+
   return (
     <div className="flex h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
-        <ChatSidebar
-          activeCurriculum={activeCurriculum}
-          curricula={[]}
-          onSelectCurriculum={setActiveCurriculum}
-          onNewChat={handleNewChat}
-          activeSessionId={activeSessionId}
-          onSelectSession={handleSelectSession}
-        />
+      <div className="w-80 bg-black/20 backdrop-blur-xl border-r border-white/10 flex flex-col">
+        {/* User Info */}
+        <div className="p-4 flex items-center space-x-4 border-b border-white/10">
+          <Avatar>
+            {user?.user_metadata?.avatar_url ? (
+              <AvatarImage src={user.user_metadata.avatar_url} alt={user?.user_metadata?.name as string} />
+            ) : (
+              <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+            )}
+          </Avatar>
+          <div>
+            <div className="text-lg font-semibold text-white">{user?.user_metadata?.name || user?.email}</div>
+            <div className="text-sm text-gray-400">
+              {isDemoMode ? 'Demo Mode' : 'Active'}
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick Action Buttons */}
+        <div className="p-4 border-t border-white/10">
+          <div className="space-y-2">
+            <Button
+              onClick={() => setShowLearningPath(!showLearningPath)}
+              variant="outline"
+              className="w-full justify-start border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
+            >
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Learning Path
+            </Button>
+            <Button
+              onClick={() => setShowHomeworkHelper(!showHomeworkHelper)}
+              variant="outline"
+              className="w-full justify-start border-blue-500/30 text-blue-300 hover:bg-blue-500/10"
+            >
+              <Brain className="mr-2 h-4 w-4" />
+              Homework Help
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-800/50 to-purple-800/50 backdrop-blur-sm">
-        {/* Chat Header */}
-        <div className="flex-shrink-0 px-6 py-4 border-b border-white/10 bg-black/20 backdrop-blur-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="text-gray-400 hover:bg-white/10 hover:text-white rounded-xl"
-              >
-                {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-              
-              {renderNavigation()}
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">AI</span>
-                </div>
-                <h2 className="text-xl font-semibold text-white">
-                  {activeCurriculum ? activeCurriculum.title : 'AI Learning Assistant'}
-                </h2>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {!isDemoMode && (
-                  <Badge variant="outline" className="border-white/30 text-white/80 bg-white/10 text-sm px-3 py-1">
-                    {totalTokensUsed.toLocaleString()} tokens used
-                  </Badge>
-                )}
-                {isQuizMode && (
-                  <Badge className="bg-green-600 text-white text-sm px-3 py-1">
-                    Quiz Mode
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-900/80 via-purple-900/80 to-slate-900/80 backdrop-blur-sm">
-          <div className="max-w-5xl mx-auto px-6 py-6">
-            <MessageList
-              messages={displayMessages}
-              onPlayAudio={handlePlayAudio}
-              onPauseAudio={handlePauseAudio}
-            />
-            {isProcessing && (
-              <div className="flex justify-center py-8">
-                <div className="flex items-center space-x-3 text-white/70 bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white/70"></div>
-                  <span className="text-lg">AI is thinking...</span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        {/* Enhanced Input Area - Modern UI with all features */}
-        <div className="flex-shrink-0 p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl">
-          <div className="max-w-5xl mx-auto">
-            {selectedFile && (
-              <div className="mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm">
-                <div className="flex items-center space-x-3">
-                  <Upload className="h-5 w-5 text-blue-400" />
-                  <span className="text-white font-medium">{selectedFile.name}</span>
-                  <Badge className="bg-blue-600 text-white">
-                    {(selectedFile.size / 1024).toFixed(1)} KB
-                  </Badge>
-                </div>
-                <Button
-                  onClick={() => setSelectedFile(null)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-            
-            <div className="relative">
-              <textarea
-                value={textMessage}
-                onChange={(e) => setTextMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about learning..."
-                className="w-full px-6 py-4 pr-48 bg-white/10 border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
-                rows={1}
-                style={{ minHeight: '60px', maxHeight: '120px' }}
-                disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {messages.map((message, index) => (
+            <div key={message.id || index}>
+              <MessageBubble 
+                message={message} 
+                onSpecialFeature={handleSpecialFeature}
               />
               
-              <div className="absolute right-3 bottom-3 flex items-center space-x-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-                />
-                
-                <Button
-                  onClick={handleFileUpload}
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
-                  disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-                  title="Upload file"
-                >
-                  <Upload className="h-5 w-5" />
-                </Button>
-                
-                <Button
-                  onClick={handleVoiceToggle}
-                  variant="ghost"
-                  size="sm"
-                  className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
-                    isRecording 
-                      ? 'text-red-400 hover:text-red-300 bg-red-500/20 hover:bg-red-500/30' 
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                  disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-                  title={isRecording ? 'Stop recording' : 'Start voice recording'}
-                >
-                  {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                </Button>
-                
-                <Button
-                  onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
-                  variant="ghost"
-                  size="sm"
-                  className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
-                    isVoiceEnabled 
-                      ? 'text-purple-400 hover:text-purple-300 bg-purple-500/20 hover:bg-purple-500/30' 
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                  disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-                  title={isVoiceEnabled ? 'Voice responses enabled' : 'Voice responses disabled'}
-                >
-                  {isVoiceEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                </Button>
-                
-                <Button
-                  onClick={handleSendText}
-                  disabled={!textMessage.trim() || isProcessing || (isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0)}
-                  className="h-10 w-10 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white flex items-center justify-center p-0 disabled:opacity-50 transition-all duration-200 shadow-lg"
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
-              </div>
+              {/* Show special features inline */}
+              {message.specialFeature && (
+                <div className="mt-4">
+                  {message.specialFeature.type === 'quiz' && showQuiz && (
+                    <InteractiveQuiz
+                      topic={currentFeatureData?.topic || message.specialFeature.topic}
+                      onComplete={handleQuizComplete}
+                      chatHistory={messages}
+                    />
+                  )}
+                  
+                  {message.specialFeature.type === 'learning_path' && showLearningPath && (
+                    <LearningPathVisualization
+                      onTopicSelect={handleTopicSelect}
+                    />
+                  )}
+                  
+                  {message.specialFeature.type === 'homework' && showHomeworkHelper && (
+                    <HomeworkHelper
+                      onComplete={(sessionId) => {
+                        setShowHomeworkHelper(false);
+                        const completionMessage: Message = {
+                          id: Date.now().toString(),
+                          content: "Excellent work on completing your homework! You've learned valuable problem-solving skills. 🎓",
+                          isFromUser: false,
+                          timestamp: new Date(),
+                          type: 'text'
+                        };
+                        setMessages(prev => [...prev, completionMessage]);
+                      }}
+                    />
+                  )}
+                </div>
+              )}
             </div>
+          ))}
+          
+          {/* Standalone Learning Features */}
+          {showLearningPath && !messages.some(m => m.specialFeature?.type === 'learning_path') && (
+            <LearningPathVisualization onTopicSelect={handleTopicSelect} />
+          )}
+          
+          {showHomeworkHelper && !messages.some(m => m.specialFeature?.type === 'homework') && (
+            <HomeworkHelper
+              onComplete={(sessionId) => {
+                setShowHomeworkHelper(false);
+                const completionMessage: Message = {
+                  id: Date.now().toString(),
+                  content: "Great job completing your homework with step-by-step guidance! 🎓",
+                  isFromUser: false,
+                  timestamp: new Date(),
+                  type: 'text'
+                };
+                setMessages(prev => [...prev, completionMessage]);
+              }}
+            />
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Chat Input */}
+        <div className="p-4 border-t border-white/10">
+          <div className="flex items-center space-x-3">
+            {/* Attachment Button */}
+            <label htmlFor="upload-file">
+              <Paperclip className="h-6 w-6 text-gray-400 cursor-pointer" />
+              <input
+                type="file"
+                id="upload-file"
+                className="hidden"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileUpload(e.target.files[0]);
+                  }
+                }}
+              />
+            </label>
+
+            {/* Mic Button */}
+            <Button
+              variant="ghost"
+              className="p-2 rounded-full hover:bg-gray-700/50"
+              onClick={() => {
+                if (isRecording) {
+                  stopRecording();
+                } else {
+                  startRecording();
+                }
+              }}
+            >
+              {isRecording ? (
+                <X className="h-6 w-6 text-red-500" />
+              ) : (
+                <Mic className="h-6 w-6 text-gray-400" />
+              )}
+            </Button>
+
+            {/* Input Field */}
+            <Input
+              type="text"
+              placeholder="Type your message..."
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSend();
+                }
+              }}
+              className="bg-black/20 border-white/20 text-white placeholder-gray-400 rounded-full flex-1 focus:ring-0 focus:border-white/30"
+            />
+
+            {/* Send Button */}
+            <Button
+              onClick={handleSend}
+              className="rounded-full"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
