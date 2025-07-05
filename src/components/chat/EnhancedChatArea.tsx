@@ -1,16 +1,53 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Send, Paperclip, Mic, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
-import { Message, MessageBubble } from '@/components/chat/MessageBubble';
 import { InteractiveQuiz } from '@/components/learning/InteractiveQuiz';
 import { LearningPathVisualization } from '@/components/learning/LearningPathVisualization';
 import { HomeworkHelper } from '@/components/learning/HomeworkHelper';
-import { TrendingUp, Brain } from 'lucide-react';
+import { TrendingUp, Brain, User, Bot } from 'lucide-react';
+
+interface Message {
+  id: string;
+  content: string;
+  isFromUser: boolean;
+  timestamp: Date;
+  type: string;
+  specialFeature?: any;
+}
+
+interface MessageBubbleProps {
+  message: Message;
+  onSpecialFeature?: (message: Message) => void;
+}
+
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onSpecialFeature }) => {
+  useEffect(() => {
+    if (message.specialFeature && onSpecialFeature) {
+      onSpecialFeature(message);
+    }
+  }, [message, onSpecialFeature]);
+
+  return (
+    <div className={`flex ${message.isFromUser ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div className={`flex items-start space-x-3 max-w-4xl ${message.isFromUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+        <div className={`p-3 rounded-2xl ${message.isFromUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
+          {message.isFromUser ? <User className="h-5 w-5 text-white" /> : <Bot className="h-5 w-5 text-purple-400" />}
+        </div>
+        <div className={`p-6 rounded-3xl ${message.isFromUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20`}>
+          <p className="text-lg leading-relaxed">{message.content}</p>
+          <p className="text-sm mt-3 opacity-70">
+            {message.timestamp.toLocaleTimeString()}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface EnhancedChatAreaProps {
   isDemoMode?: boolean;
@@ -78,7 +115,6 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
 
   const startRecording = () => {
     setIsRecording(true);
-    // Implement audio recording logic here
     toast({
       title: "Recording Started",
       description: "Tap the mic again to stop recording.",
@@ -87,15 +123,14 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
 
   const stopRecording = () => {
     setIsRecording(false);
-    // Implement stop recording and audio processing logic here
-    setAudioURL('mocked_audio_url'); // Replace with actual audio URL
+    setAudioURL('mocked_audio_url');
     toast({
       title: "Recording Stopped",
       description: "Audio processed and ready to send.",
     });
   };
 
-  const handleSpecialFeature = (message: any) => {
+  const handleSpecialFeature = (message: Message) => {
     if (message.specialFeature) {
       const { type, topic, problem } = message.specialFeature;
       
@@ -141,15 +176,11 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
       <div className="w-80 bg-black/20 backdrop-blur-xl border-r border-white/10 flex flex-col">
         {/* User Info */}
         <div className="p-4 flex items-center space-x-4 border-b border-white/10">
-          <Avatar>
-            {user?.user_metadata?.avatar_url ? (
-              <AvatarImage src={user.user_metadata.avatar_url} alt={user?.user_metadata?.name as string} />
-            ) : (
-              <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-            )}
-          </Avatar>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+            <User className="h-5 w-5 text-white" />
+          </div>
           <div>
-            <div className="text-lg font-semibold text-white">{user?.user_metadata?.name || user?.email}</div>
+            <div className="text-lg font-semibold text-white">{user?.email?.split('@')[0] || 'User'}</div>
             <div className="text-sm text-gray-400">
               {isDemoMode ? 'Demo Mode' : 'Active'}
             </div>
