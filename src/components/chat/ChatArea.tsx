@@ -14,7 +14,14 @@ import { Send, Mic, MicOff } from 'lucide-react';
 export const ChatArea = () => {
   const { user } = useAuth();
   const [input, setInput] = useState('');
-  const { messages, getAIResponse, handlePlayAudio, handlePauseAudio } = useMessageHandler();
+  const { 
+    getLegacyMessages, 
+    getAIResponse, 
+    handlePlayAudio, 
+    handlePauseAudio,
+    messages,
+    setMessages 
+  } = useMessageHandler();
   const { isRecording, handleStartRecording, handleStopRecording } = useVoiceRecorder();
   const { selectedVoice } = useVoiceSettings();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -55,9 +62,9 @@ export const ChatArea = () => {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <MessageList 
-          messages={messages} 
-          onPlayAudio={handlePlayAudio}
-          onPauseAudio={handlePauseAudio}
+          messages={getLegacyMessages()} 
+          onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+          onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
         />
         <div ref={messagesEndRef} />
       </div>

@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { Message as LegacyMessage } from '@/types/message';
 
 interface Message {
   id: string;
@@ -190,17 +191,56 @@ export const useMessageHandler = () => {
     }
   };
 
+  // Convert new Message to LegacyMessage format
+  const convertToLegacyMessage = (msg: Message): LegacyMessage => ({
+    id: msg.id,
+    text: msg.content,
+    timestamp: msg.timestamp,
+    isFromUser: msg.isFromUser,
+    type: msg.type as 'text' | 'voice' | 'file',
+    audioUrl: msg.audioUrl,
+    isPlaying: msg.isPlaying,
+    fileUrl: msg.fileUrl,
+    fileName: msg.fileName,
+    tokenCount: msg.tokenCount || 0
+  });
+
+  // Convert messages to legacy format when needed
+  const getLegacyMessages = (): LegacyMessage[] => {
+    return messages.map(convertToLegacyMessage);
+  };
+
   // Backward compatibility functions
   const getAIResponse = async (message: string, voice?: string) => {
     await sendMessage(message);
   };
 
-  const handlePlayAudio = (messageId: string) => {
-    // Audio handling logic here
+  const handlePlayAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
+    if (setMessageList && messageList) {
+      const updatedMessages = messageList.map(msg => 
+        msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
+      );
+      setMessageList(updatedMessages);
+    } else {
+      // Update local state
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
+      ));
+    }
   };
 
-  const handlePauseAudio = (messageId: string) => {
-    // Audio handling logic here
+  const handlePauseAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
+    if (setMessageList && messageList) {
+      const updatedMessages = messageList.map(msg => 
+        msg.id === messageId ? { ...msg, isPlaying: false } : msg
+      );
+      setMessageList(updatedMessages);
+    } else {
+      // Update local state
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, isPlaying: false } : msg
+      ));
+    }
   };
 
   const uploadFile = async (file: File) => {
@@ -216,7 +256,7 @@ export const useMessageHandler = () => {
     // Check OpenAI key
   };
 
-  const trackResponseTime = (message: string, messages: Message[]) => {
+  const trackResponseTime = (message: string, messageList: Message[]) => {
     // Track response time
   };
 
@@ -225,11 +265,11 @@ export const useMessageHandler = () => {
     setInputTokens(prev => prev + count);
   };
 
-  const getFastResponseTopics = () => {
+  const getFastResponseTopics = (): string[] => {
     return userStrengths;
   };
 
-  const getSlowResponseTopics = () => {
+  const getSlowResponseTopics = (): string[] => {
     return userWeaknesses;
   };
 
@@ -240,6 +280,7 @@ export const useMessageHandler = () => {
     isLoading,
     messagesEndRef,
     detectSpecialRequests,
+    getLegacyMessages,
     // Backward compatibility
     getAIResponse,
     handlePlayAudio,

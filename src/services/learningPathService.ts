@@ -114,13 +114,25 @@ Focus on:
   }
 
   static async saveLearningPath(studentId: string, pathName: string, suggestions: LearningPathSuggestion[]) {
+    const pathData = {
+      suggestions: suggestions.map(s => ({
+        topic: s.topic,
+        subject: s.subject,
+        difficulty: s.difficulty,
+        reason: s.reason,
+        prerequisites: s.prerequisites,
+        estimatedTime: s.estimatedTime,
+        priority: s.priority
+      }))
+    };
+
     const { data, error } = await supabase
       .from('student_learning_paths')
       .upsert({
         student_id: studentId,
         path_name: pathName,
         total_steps: suggestions.length,
-        path_data: { suggestions },
+        path_data: JSON.stringify(pathData),
         next_recommended_topics: suggestions.map(s => s.topic)
       })
       .select()

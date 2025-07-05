@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -14,7 +15,6 @@ import TokenLimitAlert from '@/components/voice/TokenLimitAlert';
 import VoiceSettings from '@/components/voice/VoiceSettings';
 import QuizModeAnalysis from '@/components/voice/QuizModeAnalysis';
 import { supabase } from '@/integrations/supabase/client';
-import { Message } from '@/types/message';
 
 const Voice = () => {
   const { user } = useAuth();
@@ -52,7 +52,8 @@ const Voice = () => {
     handlePlayAudio,
     handlePauseAudio,
     trackResponseTime,
-    incrementTokenCount
+    incrementTokenCount,
+    getLegacyMessages
   } = useMessageHandler();
 
   const {
@@ -79,12 +80,13 @@ const Voice = () => {
     try {
       // Add a temporary message to show processing
       const processingMessageId = `processing-${Date.now()}`;
-      const processingMessage: Message = {
+      const processingMessage = {
         id: processingMessageId,
-        text: "Processing your voice message...",
+        content: "Processing your voice message...",
         timestamp: new Date(),
         isFromUser: false,
         type: 'text',
+        text: "Processing your voice message...",
         tokenCount: 0
       };
       
@@ -109,12 +111,13 @@ const Voice = () => {
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
         
         // Create a user message with the transcribed text
-        const userMessage: Message = {
+        const userMessage = {
           id: `voice-${Date.now()}`,
-          text: transcribedText,
+          content: transcribedText,
           timestamp: new Date(),
           isFromUser: true,
           type: 'voice',
+          text: transcribedText,
           tokenCount: Math.ceil(transcribedText.length / 4)
         };
         
@@ -163,12 +166,13 @@ const Voice = () => {
       // Create a temporary ID for this message
       const tempId = `text-${Date.now()}`;
       
-      const newUserMessage: Message = {
+      const newUserMessage = {
         id: tempId,
-        text: textMessage,
+        content: textMessage,
         timestamp: new Date(),
         isFromUser: true,
         type: 'text',
+        text: textMessage,
         tokenCount: tokenCount
       };
       
@@ -200,14 +204,15 @@ const Voice = () => {
       // Create file URL directly
       const fileUrl = URL.createObjectURL(file);
       
-      const newUserMessage: Message = {
+      const newUserMessage = {
         id: `file-${Date.now()}`,
-        text: messageText,
+        content: messageText,
         timestamp: new Date(),
         fileUrl: fileUrl,
         fileName: file.name,
         isFromUser: true,
         type: 'file',
+        text: messageText,
         tokenCount: tokenCount
       };
       
@@ -262,6 +267,8 @@ const Voice = () => {
     }
   };
 
+  const legacyMessages = getLegacyMessages();
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
       <div className="w-64 flex-shrink-0 border-r border-white/10">
@@ -312,9 +319,9 @@ const Voice = () => {
           <div className="flex-1 flex flex-col space-y-4">
             <ScrollArea className="flex-1 pr-4">
               <MessageList 
-                messages={messages}
-                onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
-                onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+                messages={legacyMessages}
+                onPlayAudio={(messageId) => handlePlayAudio(messageId)}
+                onPauseAudio={(messageId) => handlePauseAudio(messageId)}
               />
               <div ref={messagesEndRef} />
             </ScrollArea>
