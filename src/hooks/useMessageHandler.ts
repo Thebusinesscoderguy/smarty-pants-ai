@@ -13,8 +13,8 @@ interface Message {
   type: string;
   fileUrl?: string;
   specialFeature?: any;
-  text?: string; // For backward compatibility
-  tokenCount?: number; // For backward compatibility
+  text?: string;
+  tokenCount?: number;
   audioUrl?: string;
   isPlaying?: boolean;
   fileName?: string;
@@ -26,7 +26,7 @@ export const useMessageHandler = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Additional state for backward compatibility
+  // Simple state for backward compatibility
   const [apiKeyError, setApiKeyError] = useState(false);
   const [isQuizMode, setIsQuizMode] = useState(false);
   const [responseTimes, setResponseTimes] = useState<any[]>([]);
@@ -49,32 +49,20 @@ export const useMessageHandler = () => {
   const detectSpecialRequests = (message: string) => {
     const lowerMessage = message.toLowerCase();
     
-    // Quiz detection patterns
     const quizPatterns = [
       /quiz me on (.+)/i,
       /test me on (.+)/i,
-      /test my knowledge (.+)/i,
       /create a quiz about (.+)/i,
-      /quiz about (.+)/i,
-      /can you quiz me/i
     ];
 
-    // Learning path detection patterns
     const pathPatterns = [
       /what should i learn next/i,
-      /recommend (.+) topics/i,
       /learning path/i,
-      /what to study next/i,
-      /suggest topics/i
     ];
 
-    // Homework help detection patterns
     const homeworkPatterns = [
       /help with (.+) problem/i,
       /homework help/i,
-      /solve this problem/i,
-      /help me understand/i,
-      /step by step/i
     ];
 
     for (const pattern of quizPatterns) {
@@ -112,46 +100,52 @@ export const useMessageHandler = () => {
   };
 
   const sendMessage = async (content: string, type: string = 'text', fileUrl?: string) => {
-    if (!user) return;
+    if (!content.trim()) return;
 
-    // Check for special requests first
     const specialRequest = detectSpecialRequests(content);
     
-    if (specialRequest) {
-      // Handle special learning features
-      const responseMessage: Message = {
-        id: Date.now().toString(),
-        content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : specialRequest.type === 'learning_path' ? 'learning path' : 'homework guidance'} for you.`,
-        isFromUser: false,
-        timestamp: new Date(),
-        type: 'text',
-        specialFeature: specialRequest,
-        text: content, // Backward compatibility
-        tokenCount: 0 // Backward compatibility
-      };
-
-      setMessages(prev => [...prev, responseMessage]);
-      return;
-    }
-
-    setIsLoading(true);
-    const newMessage: Message = {
+    // Add user message
+    const userMessage: Message = {
       id: Date.now().toString(),
       content: content,
       isFromUser: true,
       timestamp: new Date(),
       type: type,
       fileUrl: fileUrl,
-      text: content, // Backward compatibility
-      tokenCount: Math.ceil(content.length / 4) // Backward compatibility
+      text: content,
+      tokenCount: Math.ceil(content.length / 4)
     };
-    setMessages(prev => [...prev, newMessage]);
+    
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
 
     try {
+      // Handle special requests
+      if (specialRequest) {
+        const responseMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : specialRequest.type === 'learning_path' ? 'learning path' : 'homework guidance'} for you.`,
+          isFromUser: false,
+          timestamp: new Date(),
+          type: 'text',
+          specialFeature: specialRequest,
+          text: content,
+          tokenCount: 0
+        };
+
+        setMessages(prev => [...prev, responseMessage]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Regular AI response
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
-            ...messages.slice(-5).map(m => ({ role: m.isFromUser ? 'user' : 'assistant', content: m.content })),
+            ...messages.slice(-5).map(m => ({ 
+              role: m.isFromUser ? 'user' : 'assistant', 
+              content: m.content 
+            })),
             { role: 'user', content: content }
           ]
         }
@@ -160,24 +154,27 @@ export const useMessageHandler = () => {
       if (error) throw error;
 
       const aiResponse: Message = {
-        id: Date.now().toString(),
+        id: (Date.now() + 2).toString(),
         content: data.choices[0].message.content,
         isFromUser: false,
         timestamp: new Date(),
         type: 'text',
-        text: data.choices[0].message.content, // Backward compatibility
-        tokenCount: Math.ceil(data.choices[0].message.content.length / 4) // Backward compatibility
+        text: data.choices[0].message.content,
+        tokenCount: Math.ceil(data.choices[0].message.content.length / 4)
       };
+      
       setMessages(prev => [...prev, aiResponse]);
 
     } catch (error: any) {
+      console.error('Error sending message:', error);
       toast({
         title: "Error sending message",
-        description: error.message,
+        description: error.message || "Failed to send message",
         variant: "destructive",
       });
+      
       const errorResponse: Message = {
-        id: Date.now().toString(),
+        id: (Date.now() + 3).toString(),
         content: "Sorry, I'm having trouble processing your request. Please try again later.",
         isFromUser: false,
         timestamp: new Date(),
@@ -185,13 +182,14 @@ export const useMessageHandler = () => {
         text: "Sorry, I'm having trouble processing your request. Please try again later.",
         tokenCount: 0
       };
+      
       setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Convert new Message to LegacyMessage format
+  // Convert to legacy format
   const convertToLegacyMessage = (msg: Message): LegacyMessage => ({
     id: msg.id,
     text: msg.content,
@@ -205,59 +203,40 @@ export const useMessageHandler = () => {
     tokenCount: msg.tokenCount || 0
   });
 
-  // Convert messages to legacy format when needed
   const getLegacyMessages = (): LegacyMessage[] => {
     return messages.map(convertToLegacyMessage);
   };
 
-  // Backward compatibility functions
   const getAIResponse = async (message: string, voice?: string) => {
     await sendMessage(message);
   };
 
   const handlePlayAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
-    if (setMessageList && messageList) {
-      const updatedMessages = messageList.map(msg => 
-        msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
-      );
-      setMessageList(updatedMessages);
-    } else {
-      // Update local state
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
-      ));
-    }
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
+    ));
   };
 
   const handlePauseAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
-    if (setMessageList && messageList) {
-      const updatedMessages = messageList.map(msg => 
-        msg.id === messageId ? { ...msg, isPlaying: false } : msg
-      );
-      setMessageList(updatedMessages);
-    } else {
-      // Update local state
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, isPlaying: false } : msg
-      ));
-    }
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { ...msg, isPlaying: false } : msg
+    ));
   };
 
   const uploadFile = async (file: File) => {
-    // File upload logic here
     return URL.createObjectURL(file);
   };
 
   const fetchMessages = async () => {
-    // Fetch messages from database if needed
+    // Implementation for fetching messages if needed
   };
 
   const checkOpenAIKey = () => {
-    // Check OpenAI key
+    // Implementation for checking OpenAI key
   };
 
   const trackResponseTime = (message: string, messageList: Message[]) => {
-    // Track response time
+    // Implementation for tracking response time
   };
 
   const incrementTokenCount = (count: number) => {
@@ -281,7 +260,6 @@ export const useMessageHandler = () => {
     messagesEndRef,
     detectSpecialRequests,
     getLegacyMessages,
-    // Backward compatibility
     getAIResponse,
     handlePlayAudio,
     handlePauseAudio,

@@ -60,15 +60,13 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [audioURL, setAudioURL] = useState('');
-  const { messages, setMessages, sendMessage, uploadFile } = useMessageHandler();
+  const { messages, sendMessage, isLoading } = useMessageHandler();
   const [showQuiz, setShowQuiz] = useState(false);
   const [showLearningPath, setShowLearningPath] = useState(false);
   const [showHomeworkHelper, setShowHomeworkHelper] = useState(false);
   const [currentFeatureData, setCurrentFeatureData] = useState<any>(null);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -86,24 +84,23 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
   };
 
   const handleSend = async () => {
-    if (input.trim()) {
+    if (input.trim() && !isLoading) {
       await sendMessage(input);
       setInput('');
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const handleFileUpload = async (file: File) => {
     try {
-      const fileUrl = await uploadFile(file);
-      if (fileUrl) {
-        await sendMessage('Uploaded a file', 'file', fileUrl);
-      } else {
-        toast({
-          title: "Upload Failed",
-          description: "There was an error uploading your file.",
-          variant: "destructive",
-        });
-      }
+      const fileUrl = URL.createObjectURL(file);
+      await sendMessage(`📎 Uploaded file: ${file.name}`, 'file', fileUrl);
     } catch (error: any) {
       toast({
         title: "Upload Error",
@@ -123,7 +120,6 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
 
   const stopRecording = () => {
     setIsRecording(false);
-    setAudioURL('mocked_audio_url');
     toast({
       title: "Recording Stopped",
       description: "Audio processed and ready to send.",
@@ -159,7 +155,8 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
       type: 'text'
     };
     
-    setMessages(prev => [...prev, completionMessage]);
+    // Add completion message to chat
+    sendMessage(completionMessage.content, 'text');
     setShowQuiz(false);
     setCurrentFeatureData(null);
   };
@@ -214,49 +211,54 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
       <div className="flex-1 flex flex-col">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.map((message, index) => (
-            <div key={message.id || index}>
-              <MessageBubble 
-                message={message} 
-                onSpecialFeature={handleSpecialFeature}
-              />
-              
-              {/* Show special features inline */}
-              {message.specialFeature && (
-                <div className="mt-4">
-                  {message.specialFeature.type === 'quiz' && showQuiz && (
-                    <InteractiveQuiz
-                      topic={currentFeatureData?.topic || message.specialFeature.topic}
-                      onComplete={handleQuizComplete}
-                      chatHistory={messages}
-                    />
-                  )}
-                  
-                  {message.specialFeature.type === 'learning_path' && showLearningPath && (
-                    <LearningPathVisualization
-                      onTopicSelect={handleTopicSelect}
-                    />
-                  )}
-                  
-                  {message.specialFeature.type === 'homework' && showHomeworkHelper && (
-                    <HomeworkHelper
-                      onComplete={(sessionId) => {
-                        setShowHomeworkHelper(false);
-                        const completionMessage: Message = {
-                          id: Date.now().toString(),
-                          content: "Excellent work on completing your homework! You've learned valuable problem-solving skills. 🎓",
-                          isFromUser: false,
-                          timestamp: new Date(),
-                          type: 'text'
-                        };
-                        setMessages(prev => [...prev, completionMessage]);
-                      }}
-                    />
-                  )}
-                </div>
-              )}
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mb-6 animate-pulse">
+                <Bot className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-4">Welcome to AI Learning Assistant</h3>
+              <p className="text-white/60 max-w-md">
+                Start a conversation by typing a message below. I'm here to help with your learning journey!
+              </p>
             </div>
-          ))}
+          ) : (
+            messages.map((message, index) => (
+              <div key={message.id || index}>
+                <MessageBubble 
+                  message={message} 
+                  onSpecialFeature={handleSpecialFeature}
+                />
+                
+                {/* Show special features inline */}
+                {message.specialFeature && (
+                  <div className="mt-4">
+                    {message.specialFeature.type === 'quiz' && showQuiz && (
+                      <InteractiveQuiz
+                        topic={currentFeatureData?.topic || message.specialFeature.topic}
+                        onComplete={handleQuizComplete}
+                        chatHistory={messages}
+                      />
+                    )}
+                    
+                    {message.specialFeature.type === 'learning_path' && showLearningPath && (
+                      <LearningPathVisualization
+                        onTopicSelect={handleTopicSelect}
+                      />
+                    )}
+                    
+                    {message.specialFeature.type === 'homework' && showHomeworkHelper && (
+                      <HomeworkHelper
+                        onComplete={(sessionId) => {
+                          setShowHomeworkHelper(false);
+                          sendMessage("Excellent work on completing your homework! You've learned valuable problem-solving skills. 🎓");
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
           
           {/* Standalone Learning Features */}
           {showLearningPath && !messages.some(m => m.specialFeature?.type === 'learning_path') && (
@@ -267,16 +269,26 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
             <HomeworkHelper
               onComplete={(sessionId) => {
                 setShowHomeworkHelper(false);
-                const completionMessage: Message = {
-                  id: Date.now().toString(),
-                  content: "Great job completing your homework with step-by-step guidance! 🎓",
-                  isFromUser: false,
-                  timestamp: new Date(),
-                  type: 'text'
-                };
-                setMessages(prev => [...prev, completionMessage]);
+                sendMessage("Great job completing your homework with step-by-step guidance! 🎓");
               }}
             />
+          )}
+          
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="flex items-start space-x-3 max-w-4xl">
+                <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
+                  <Bot className="h-5 w-5 text-purple-400" />
+                </div>
+                <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           
           <div ref={messagesEndRef} />
@@ -287,7 +299,7 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
           <div className="flex items-center space-x-3">
             {/* Attachment Button */}
             <label htmlFor="upload-file">
-              <Paperclip className="h-6 w-6 text-gray-400 cursor-pointer" />
+              <Paperclip className="h-6 w-6 text-gray-400 cursor-pointer hover:text-gray-300" />
               <input
                 type="file"
                 id="upload-file"
@@ -325,18 +337,16 @@ export const EnhancedChatArea = ({ isDemoMode, demoTimeLeft }: EnhancedChatAreaP
               placeholder="Type your message..."
               value={input}
               onChange={handleInputChange}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSend();
-                }
-              }}
+              onKeyDown={handleKeyPress}
+              disabled={isLoading}
               className="bg-black/20 border-white/20 text-white placeholder-gray-400 rounded-full flex-1 focus:ring-0 focus:border-white/30"
             />
 
             {/* Send Button */}
             <Button
               onClick={handleSend}
-              className="rounded-full"
+              disabled={!input.trim() || isLoading}
+              className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               <Send className="h-4 w-4" />
             </Button>
