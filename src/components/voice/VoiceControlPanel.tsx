@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { VoiceRecordingButton } from '@/components/voice/VoiceRecordingButton';
-import { VoiceSettings } from '@/components/voice/VoiceSettings';
-import { ApiKeyErrorAlert } from '@/components/voice/ApiKeyErrorAlert';
-import { TokenLimitAlert } from '@/components/voice/TokenLimitAlert';
-import { QuizModeAnalysis } from '@/components/voice/QuizModeAnalysis';
+import VoiceSettings from '@/components/voice/VoiceSettings';
+import ApiKeyErrorAlert from '@/components/voice/ApiKeyErrorAlert';
+import TokenLimitAlert from '@/components/voice/TokenLimitAlert';
+import QuizModeAnalysis from '@/components/voice/QuizModeAnalysis';
 
 interface VoiceControlPanelProps {
   isRecording: boolean;
