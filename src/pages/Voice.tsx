@@ -118,14 +118,9 @@ const Voice = () => {
           isFromUser: true,
           type: 'voice',
           text: transcribedText,
-          tokenCount: Math.ceil(transcribedText.length / 4)
+          tokenCount: Math.ceil(transcribedText.length / 4),
+          audioUrl: audioData ? URL.createObjectURL(audioData) : undefined
         };
-        
-        if (audioData) {
-          // Convert audioData to a URL
-          const audioUrl = URL.createObjectURL(audioData);
-          userMessage.audioUrl = audioUrl;
-        }
         
         setMessages(prev => [...prev, userMessage]);
         
@@ -312,8 +307,8 @@ const Voice = () => {
             hasResponseData={responseTimes.length > 0}
             userStrengths={userStrengths}
             userWeaknesses={userWeaknesses}
-            getFastResponseTopics={getFastResponseTopics}
-            getSlowResponseTopics={getSlowResponseTopics}
+            getFastResponseTopics={() => getFastResponseTopics().join(', ')}
+            getSlowResponseTopics={() => getSlowResponseTopics().join(', ')}
           />
 
           <div className="flex-1 flex flex-col space-y-4">
