@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -260,7 +261,7 @@ const Voice = () => {
             });
           } : handleStartRecording}
           onStopRecording={handleRecordStop}
-          apiKeyError={apiKeyError}
+          apiKeyError={Boolean(apiKeyError)}
           isTokenLimitReached={isTokenLimitReached}
           monthlyLimit={monthlyLimit}
           selectedVoice={selectedVoice}
