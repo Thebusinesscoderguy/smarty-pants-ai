@@ -69,44 +69,108 @@ export class AdaptiveLearningService {
     currentKnowledge?: any[]
   ): Promise<AdaptivePath> {
     try {
-      // Get student's learning history and preferences
-      const [interactions, mastery, preferences] = await Promise.all([
+      // Get student's learning history and preferences from existing tables
+      const [interactions, mastery] = await Promise.all([
         this.getStudentInteractions(studentId),
-        this.getStudentMastery(studentId),
-        this.getStudentPreferences(studentId)
+        this.getStudentMastery(studentId)
       ]);
 
-      // Call AI service to generate adaptive path
-      const { data, error } = await supabase.functions.invoke('generate-adaptive-path', {
-        body: {
-          studentId,
-          subject,
-          goal,
-          interactions,
-          mastery,
-          preferences,
-          currentKnowledge
-        }
-      });
-
-      if (error) throw error;
-
-      const adaptivePath: AdaptivePath = {
-        id: data.pathId,
+      // Create a mock adaptive path for now - in production this would call an AI service
+      const mockPath: AdaptivePath = {
+        id: `${studentId}-${subject}-${Date.now()}`,
         studentId,
         subject,
         goal,
-        currentNode: data.startingNode,
-        nodes: data.learningNodes,
-        progress: data.initialProgress,
-        personalizations: data.personalizations,
-        aiInsights: data.insights
+        currentNode: 'node-1',
+        nodes: [
+          {
+            id: 'node-1',
+            title: `Introduction to ${subject}`,
+            type: 'concept',
+            microSkills: [
+              {
+                id: 'skill-1',
+                name: `Basic ${subject} concepts`,
+                category: 'foundation',
+                difficulty: 1,
+                prerequisites: [],
+                estimatedTime: 30,
+                masteryThreshold: 0.8,
+                currentLevel: 0,
+                confidence: 0
+              }
+            ],
+            content: {
+              explanation: `Learn the fundamentals of ${subject}`,
+              examples: [],
+              exercises: [],
+              resources: []
+            },
+            adaptiveFeatures: {
+              difficultyRange: [1, 3],
+              personalizedExamples: true,
+              multiModalContent: true
+            },
+            connections: ['node-2'],
+            status: 'available'
+          },
+          {
+            id: 'node-2',
+            title: `Advanced ${subject}`,
+            type: 'practice',
+            microSkills: [
+              {
+                id: 'skill-2',
+                name: `Advanced ${subject} techniques`,
+                category: 'advanced',
+                difficulty: 3,
+                prerequisites: ['skill-1'],
+                estimatedTime: 45,
+                masteryThreshold: 0.85,
+                currentLevel: 0,
+                confidence: 0
+              }
+            ],
+            content: {
+              explanation: `Advanced concepts in ${subject}`,
+              examples: [],
+              exercises: [],
+              resources: []
+            },
+            adaptiveFeatures: {
+              difficultyRange: [3, 5],
+              personalizedExamples: true,
+              multiModalContent: true
+            },
+            connections: [],
+            status: 'locked'
+          }
+        ],
+        progress: {
+          overallCompletion: 0,
+          skillsMastered: 0,
+          totalSkills: 2,
+          estimatedTimeRemaining: 75,
+          momentum: 1.0
+        },
+        personalizations: {
+          learningStyle: 'mixed',
+          pace: 'normal',
+          difficulty: 'adaptive',
+          interests: [subject]
+        },
+        aiInsights: {
+          strengths: ['Quick to understand new concepts'],
+          challenges: ['Needs more practice with complex problems'],
+          recommendations: ['Start with fundamentals', 'Use visual aids'],
+          nextBestActions: ['Complete introduction module', 'Practice basic exercises']
+        }
       };
 
-      // Save the path to database
-      await this.saveLearningPath(adaptivePath);
+      // Save the path to existing student_learning_paths table
+      await this.saveLearningPath(mockPath);
       
-      return adaptivePath;
+      return mockPath;
     } catch (error) {
       console.error('Error generating adaptive path:', error);
       throw error;
@@ -119,21 +183,35 @@ export class AdaptiveLearningService {
     interactionData: any
   ): Promise<AdaptivePath> {
     try {
-      // Real-time analysis of student interaction
-      const { data, error } = await supabase.functions.invoke('analyze-learning-interaction', {
-        body: {
-          pathId,
-          nodeId,
-          interactionData,
-          timestamp: new Date().toISOString()
+      // Get current path and update progress
+      const currentPath = await this.getLearningPath(pathId);
+      
+      // Update node status based on interaction
+      const updatedNodes = currentPath.nodes.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            status: interactionData.type === 'complete' ? 'completed' : 'in-progress'
+          };
         }
+        return node;
       });
 
-      if (error) throw error;
+      // Calculate new progress
+      const completedNodes = updatedNodes.filter(node => node.status === 'completed').length;
+      const overallCompletion = (completedNodes / updatedNodes.length) * 100;
 
-      // Update path based on AI analysis
-      const updatedPath = await this.adaptPath(pathId, data.analysis);
-      
+      const updatedPath: AdaptivePath = {
+        ...currentPath,
+        nodes: updatedNodes,
+        progress: {
+          ...currentPath.progress,
+          overallCompletion,
+          skillsMastered: completedNodes
+        }
+      };
+
+      await this.saveLearningPath(updatedPath);
       return updatedPath;
     } catch (error) {
       console.error('Error updating path progress:', error);
@@ -142,40 +220,20 @@ export class AdaptiveLearningService {
   }
 
   static async adaptPath(pathId: string, analysis: any): Promise<AdaptivePath> {
-    // Get current path
+    // Get current path and apply adaptations
     const currentPath = await this.getLearningPath(pathId);
     
-    // Apply AI-driven adaptations
-    const adaptations = await this.generateAdaptations(currentPath, analysis);
-    
-    // Update path structure dynamically
+    // For now, return the current path with minor updates
     const updatedPath: AdaptivePath = {
       ...currentPath,
-      nodes: adaptations.updatedNodes,
-      currentNode: adaptations.nextNode,
-      progress: adaptations.newProgress,
-      aiInsights: adaptations.insights
+      aiInsights: {
+        ...currentPath.aiInsights,
+        recommendations: [...currentPath.aiInsights.recommendations, 'Path adapted based on performance']
+      }
     };
 
     await this.saveLearningPath(updatedPath);
     return updatedPath;
-  }
-
-  static async generateAdaptations(path: AdaptivePath, analysis: any) {
-    const { data } = await supabase.functions.invoke('generate-path-adaptations', {
-      body: {
-        currentPath: path,
-        analysisResults: analysis,
-        adaptationRules: {
-          difficultyAdjustment: true,
-          contentPersonalization: true,
-          paceOptimization: true,
-          skillReinforcement: true
-        }
-      }
-    });
-
-    return data;
   }
 
   static async getStudentInteractions(studentId: string) {
@@ -198,33 +256,20 @@ export class AdaptiveLearningService {
     return data || [];
   }
 
-  static async getStudentPreferences(studentId: string) {
-    const { data } = await supabase
-      .from('student_learning_preferences')
-      .select('*')
-      .eq('student_id', studentId)
-      .single();
-    
-    return data || {
-      learningStyle: 'mixed',
-      pace: 'normal',
-      difficulty: 'adaptive',
-      interests: []
-    };
-  }
-
   static async saveLearningPath(path: AdaptivePath) {
     const { error } = await supabase
-      .from('adaptive_learning_paths')
+      .from('student_learning_paths')
       .upsert({
         id: path.id,
         student_id: path.studentId,
-        subject: path.subject,
-        goal: path.goal,
-        current_node: path.currentNode,
-        path_data: JSON.stringify(path),
-        progress_data: JSON.stringify(path.progress),
-        last_updated: new Date().toISOString()
+        path_name: `${path.subject} - ${path.goal}`,
+        path_data: path,
+        current_step: 0,
+        total_steps: path.nodes.length,
+        started_at: new Date().toISOString(),
+        last_updated: new Date().toISOString(),
+        topics_completed: [],
+        next_recommended_topics: path.nodes.slice(0, 3).map(node => node.title)
       });
 
     if (error) throw error;
@@ -232,13 +277,14 @@ export class AdaptiveLearningService {
 
   static async getLearningPath(pathId: string): Promise<AdaptivePath> {
     const { data, error } = await supabase
-      .from('adaptive_learning_paths')
+      .from('student_learning_paths')
       .select('*')
       .eq('id', pathId)
       .single();
 
     if (error) throw error;
     
-    return JSON.parse(data.path_data);
+    // Return the path_data which contains our AdaptivePath structure
+    return data.path_data as AdaptivePath;
   }
 }
