@@ -6,7 +6,7 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { UserAvatar } from '@/components/UserAvatar';
+import UserAvatar from '@/components/UserAvatar';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -105,7 +105,10 @@ export const Header = () => {
                 <span className="text-white/80 text-sm">
                   Welcome {getUserDisplayName()}
                 </span>
-                <UserAvatar />
+                <UserAvatar 
+                  avatarUrl={user.user_metadata?.avatar_url || null}
+                  size="sm"
+                />
               </div>
             ) : (
               <>
@@ -129,7 +132,12 @@ export const Header = () => {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-4">
             <LanguageSelector />
-            {user && <UserAvatar />}
+            {user && (
+              <UserAvatar 
+                avatarUrl={user.user_metadata?.avatar_url || null}
+                size="sm"
+              />
+            )}
             <Button
               variant="ghost"
               size="icon"
