@@ -25,6 +25,7 @@ import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ImprovedChatInterface = () => {
   const { user } = useAuth();
@@ -62,6 +63,30 @@ export const ImprovedChatInterface = () => {
     }
   }, [messages]);
 
+  // Process voice to text
+  const processVoiceToText = async (audioBase64: string) => {
+    try {
+      const response = await supabase.functions.invoke('voice-to-text', {
+        body: { audio: audioBase64 }
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to process voice');
+      }
+      
+      const transcribedText = response.data.text;
+      return transcribedText;
+    } catch (error: any) {
+      console.error("Error in voice-to-text:", error);
+      toast({
+        title: "Voice processing error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (audioData && !isRecording) {
       handleVoiceMessage();
@@ -72,10 +97,22 @@ export const ImprovedChatInterface = () => {
     if (!audioData) return;
 
     try {
-      // Convert audio blob to text (placeholder - would need voice-to-text service)
-      const audioText = "Voice message received"; // This would be the transcribed text
-      await sendMessage(audioText, 'voice');
-      setAudioData(null);
+      const reader = new FileReader();
+      reader.readAsDataURL(audioData);
+      reader.onloadend = async function() {
+        const base64data = (reader.result as string).split(',')[1];
+        const transcribedText = await processVoiceToText(base64data);
+        
+        if (transcribedText) {
+          await sendMessage(transcribedText, 'voice');
+          
+          // Get voice response if enabled
+          if (isVoiceEnabled) {
+            await getVoiceResponse(transcribedText);
+          }
+        }
+        setAudioData(null);
+      };
     } catch (error) {
       console.error('Error processing voice message:', error);
       toast({
@@ -83,6 +120,24 @@ export const ImprovedChatInterface = () => {
         description: "Could not process voice message",
         variant: "destructive",
       });
+    }
+  };
+
+  const getVoiceResponse = async (text: string) => {
+    try {
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: { 
+          text: text,
+          voice: selectedVoice 
+        }
+      });
+      
+      if (response.data && response.data.audioUrl) {
+        const audio = new Audio(response.data.audioUrl);
+        audio.play();
+      }
+    } catch (error) {
+      console.error('Error getting voice response:', error);
     }
   };
 
@@ -98,6 +153,11 @@ export const ImprovedChatInterface = () => {
     
     try {
       await sendMessage(messageText || `Uploaded file: ${file?.name}`, messageType, fileUrl);
+      
+      // Get voice response if enabled
+      if (isVoiceEnabled && messageText) {
+        await getVoiceResponse(messageText);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({

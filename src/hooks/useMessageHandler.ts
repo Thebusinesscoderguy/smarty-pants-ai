@@ -179,7 +179,7 @@ export const useMessageHandler = () => {
     }
   };
 
-  // Convert to legacy format
+  // Convert to legacy format with proper error handling
   const convertToLegacyMessage = (msg: Message): LegacyMessage => ({
     id: msg.id,
     text: msg.content,
@@ -194,6 +194,9 @@ export const useMessageHandler = () => {
   });
 
   const getLegacyMessages = (): LegacyMessage[] => {
+    if (!Array.isArray(messages)) {
+      return [];
+    }
     return messages.map(convertToLegacyMessage);
   };
 
@@ -223,6 +226,7 @@ export const useMessageHandler = () => {
 
   const checkOpenAIKey = () => {
     // Implementation for checking OpenAI key
+    setApiKeyError(false);
   };
 
   const trackResponseTime = (message: string, messageList: Message[]) => {

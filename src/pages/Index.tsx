@@ -57,7 +57,7 @@ const Index = () => {
                 <MessageSquare className="h-12 w-12 text-blue-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">Interactive Chat</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Get instant help with homework, explanations, and problem-solving through our intelligent chat interface.
+                  Get instant help with homework, explanations, and problem-solving through our intelligent chat interface. Upload files, use voice input, and get voice responses.
                 </p>
               </div>
 
