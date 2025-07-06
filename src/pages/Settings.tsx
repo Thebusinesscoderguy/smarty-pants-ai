@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
