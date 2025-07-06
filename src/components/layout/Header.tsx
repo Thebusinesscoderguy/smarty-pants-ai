@@ -6,6 +6,7 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { UserAvatar } from '@/components/UserAvatar';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -98,24 +99,37 @@ export const Header = () => {
             </button>
             <LanguageSelector />
             
-            <Button 
-              onClick={() => navigate('/auth')}
-              variant="outline" 
-              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-            >
-              Login
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth?signup=true')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-            >
-              Sign Up
-            </Button>
+            {/* Conditional Authentication Buttons */}
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-white/80 text-sm">
+                  Welcome {getUserDisplayName()}
+                </span>
+                <UserAvatar />
+              </div>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  Login
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth?signup=true')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-4">
             <LanguageSelector />
+            {user && <UserAvatar />}
             <Button
               variant="ghost"
               size="icon"
@@ -156,21 +170,23 @@ export const Header = () => {
                 {contactText}
               </button>
               
-              <div className="flex flex-col space-y-2 pt-2">
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  variant="outline" 
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                >
-                  Login
-                </Button>
-                <Button 
-                  onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-                >
-                  Sign Up
-                </Button>
-              </div>
+              {!user && (
+                <div className="flex flex-col space-y-2 pt-2">
+                  <Button 
+                    onClick={() => navigate('/auth')}
+                    variant="outline" 
+                    className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                  >
+                    Login
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/auth?signup=true')}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
