@@ -1,9 +1,9 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
-import { ImprovedChatInterface } from '@/components/chat/ImprovedChatInterface';
+import { DemoMonitoringPanel } from '@/components/demo/DemoMonitoringPanel';
 
-const Chat = () => {
+const Monitoring = () => {
   const { user } = useAuth();
 
   return (
@@ -18,12 +18,12 @@ const Chat = () => {
         <AppSidebar />
       </div>
 
-      {/* Main Chat Interface */}
+      {/* Main Content */}
       <div className="flex-1 relative z-10 backdrop-blur-sm">
-        <ImprovedChatInterface />
+        <DemoMonitoringPanel role={user ? 'student' : 'demo'} />
       </div>
     </div>
   );
 };
 
-export default Chat;
+export default Monitoring;
