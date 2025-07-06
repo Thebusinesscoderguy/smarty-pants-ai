@@ -63,8 +63,8 @@ export const ChatArea = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <MessageList 
           messages={getLegacyMessages()} 
-          onPlayAudio={(messageId) => handlePlayAudio(messageId)}
-          onPauseAudio={(messageId) => handlePauseAudio(messageId)}
+          onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+          onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
         />
         <div ref={messagesEndRef} />
       </div>

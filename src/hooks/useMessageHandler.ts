@@ -27,7 +27,7 @@ export const useMessageHandler = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Simple state for backward compatibility
-  const [apiKeyError, setApiKeyError] = useState<string | boolean>(false);
+  const [apiKeyError, setApiKeyError] = useState(false);
   const [isQuizMode, setIsQuizMode] = useState(false);
   const [responseTimes, setResponseTimes] = useState<any[]>([]);
   const [userStrengths, setUserStrengths] = useState<string[]>([]);
@@ -43,9 +43,7 @@ export const useMessageHandler = () => {
   }, [messages]);
 
   const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const detectSpecialRequests = (message: string) => {
@@ -57,12 +55,42 @@ export const useMessageHandler = () => {
       /create a quiz about (.+)/i,
     ];
 
+    const pathPatterns = [
+      /what should i learn next/i,
+      /learning path/i,
+    ];
+
+    const homeworkPatterns = [
+      /help with (.+) problem/i,
+      /homework help/i,
+    ];
+
     for (const pattern of quizPatterns) {
       const match = message.match(pattern);
       if (match) {
         return {
           type: 'quiz',
           topic: match[1] || 'general',
+          originalMessage: message
+        };
+      }
+    }
+
+    for (const pattern of pathPatterns) {
+      if (pattern.test(message)) {
+        return {
+          type: 'learning_path',
+          originalMessage: message
+        };
+      }
+    }
+
+    for (const pattern of homeworkPatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        return {
+          type: 'homework',
+          problem: match[1] || message,
           originalMessage: message
         };
       }
@@ -96,7 +124,7 @@ export const useMessageHandler = () => {
       if (specialRequest) {
         const responseMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : 'homework guidance'} for you.`,
+          content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : specialRequest.type === 'learning_path' ? 'learning path' : 'homework guidance'} for you.`,
           isFromUser: false,
           timestamp: new Date(),
           type: 'text',
@@ -125,16 +153,14 @@ export const useMessageHandler = () => {
 
       if (error) throw error;
 
-      const responseContent = data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request right now. Please try again.";
-      
       const aiResponse: Message = {
         id: (Date.now() + 2).toString(),
-        content: responseContent,
+        content: data.choices[0].message.content,
         isFromUser: false,
         timestamp: new Date(),
         type: 'text',
-        text: responseContent,
-        tokenCount: Math.ceil(responseContent.length / 4)
+        text: data.choices[0].message.content,
+        tokenCount: Math.ceil(data.choices[0].message.content.length / 4)
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -163,7 +189,7 @@ export const useMessageHandler = () => {
     }
   };
 
-  // Convert to legacy format with proper error handling
+  // Convert to legacy format
   const convertToLegacyMessage = (msg: Message): LegacyMessage => ({
     id: msg.id,
     text: msg.content,
@@ -171,16 +197,13 @@ export const useMessageHandler = () => {
     isFromUser: msg.isFromUser,
     type: msg.type as 'text' | 'voice' | 'file',
     audioUrl: msg.audioUrl,
-    isPlaying: msg.isPlaying || false,
+    isPlaying: msg.isPlaying,
     fileUrl: msg.fileUrl,
     fileName: msg.fileName,
     tokenCount: msg.tokenCount || 0
   });
 
   const getLegacyMessages = (): LegacyMessage[] => {
-    if (!Array.isArray(messages)) {
-      return [];
-    }
     return messages.map(convertToLegacyMessage);
   };
 
@@ -188,13 +211,13 @@ export const useMessageHandler = () => {
     await sendMessage(message);
   };
 
-  const handlePlayAudio = (messageId: string) => {
+  const handlePlayAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
     ));
   };
 
-  const handlePauseAudio = (messageId: string) => {
+  const handlePauseAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { ...msg, isPlaying: false } : msg
     ));
@@ -210,7 +233,6 @@ export const useMessageHandler = () => {
 
   const checkOpenAIKey = () => {
     // Implementation for checking OpenAI key
-    setApiKeyError(false);
   };
 
   const trackResponseTime = (message: string, messageList: Message[]) => {
