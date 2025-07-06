@@ -1,539 +1,328 @@
-
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, BookOpen, Brain, Users, Trophy, Target, MessageSquare, BarChart3, Sparkles } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { RoleSelection } from '@/components/RoleSelection';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { ContactForm } from '@/components/contact/ContactForm';
+import { FeaturesDemo } from '@/components/features/FeaturesDemo';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Index = () => {
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const { t } = useLanguage();
   const navigate = useNavigate();
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleStartLearning = () => {
-    navigate('/auth');
-  };
-
-  const handleTryDemo = () => {
-    navigate('/demo');
-  };
+  const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
       <Header />
-
-      <main className="relative z-10 flex-1">
-        {/* Hero Section */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
-              {t('hero.title')}
-            </h1>
-            <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
-              {t('hero.subtitle')}
-            </p>
+      
+      {/* Hero Section */}
+      <section className="relative px-6 py-20 md:py-32 text-center">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
+            AI-Powered Education for Every Student
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Experience personalized learning with our advanced AI tutor that adapts to your unique learning style and pace.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <Button 
+              onClick={() => navigate('/auth?signup=true')}
+              size="lg" 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-2xl transform hover:scale-105 transition-all duration-200"
+            >
+              Start Learning
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <Button 
+              onClick={() => navigate('/system-test')}
+              variant="outline" 
+              size="lg"
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-4 rounded-xl font-semibold text-lg"
+            >
+              Try Demo
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Powerful Features Section - Fixed spacing */}
+      <section id="features" className="py-20 px-6 bg-black/20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Powerful Features for Modern Learning
+            </h2>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              Our AI-powered platform combines cutting-edge technology with proven educational methods
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-blue-500/30 hover:from-blue-600/30 hover:to-purple-600/30 transition-all duration-300 cursor-pointer group">
+              <CardHeader>
+                <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Brain className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-white text-xl">Adaptive AI Learning</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Our AI adapts to your learning style, identifying strengths and areas for improvement to create a personalized educational experience.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-600/20 to-blue-600/20 border-green-500/30 hover:from-green-600/30 hover:to-blue-600/30 transition-all duration-300 cursor-pointer group">
+              <CardHeader>
+                <div className="p-3 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-white text-xl">Interactive Voice Chat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Engage in natural conversations with your AI tutor through voice interactions, making learning more dynamic and engaging.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500/30 hover:from-purple-600/30 hover:to-pink-600/30 transition-all duration-300 cursor-pointer group">
+              <CardHeader>
+                <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Target className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-white text-xl">Goal-Oriented Quests</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Complete engaging quests and challenges that align with your learning objectives, making education fun and rewarding.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-600/20 to-red-600/20 border-orange-500/30 hover:from-orange-600/30 hover:to-red-600/30 transition-all duration-300 cursor-pointer group">
+              <CardHeader>
+                <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-white text-xl">Real-time Analytics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Track your progress with detailed analytics and insights that help you understand your learning patterns and achievements.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-cyan-500/30 hover:from-cyan-600/30 hover:to-blue-600/30 transition-all duration-300 cursor-pointer group">
+              <CardHeader>
+                <div className="p-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-white text-xl">Collaborative Learning</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Connect with peers and teachers in a collaborative environment that enhances the learning experience through interaction.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-yellow-600/20 to-orange-600/20 border-yellow-500/30 hover:from-yellow-600/30 hover:to-orange-600/30 transition-all duration-300 cursor-pointer group">
+              <CardHeader>
+                <div className="p-3 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Trophy className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-white text-xl">Achievement System</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Earn badges and achievements as you progress, maintaining motivation and celebrating your educational milestones.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Demo */}
+      <FeaturesDemo />
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 px-6 bg-black/40">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-xl text-white/70 mb-12 max-w-3xl mx-auto">
+            Choose the perfect plan for your learning journey. All plans include our core AI features.
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <Card className="bg-white/5 border-white/20 hover:bg-white/10 transition-all duration-300">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold text-white mb-2">Individual</CardTitle>
+                <div className="text-4xl font-bold text-blue-400 mb-4">$16<span className="text-lg text-white/60">/month</span></div>
+                <p className="text-white/70">Perfect for personal learning</p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>AI-powered tutoring</span>
+                </div>
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Voice interactions</span>
+                </div>
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Progress tracking</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-blue-500/50 hover:bg-white/10 transition-all duration-300 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm">
+                Popular
+              </div>
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold text-white mb-2">Business</CardTitle>
+                <div className="text-4xl font-bold text-blue-400 mb-4">$25<span className="text-lg text-white/60">/month</span></div>
+                <p className="text-white/70">For small teams and businesses</p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Everything in Individual</span>
+                </div>
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Team management</span>
+                </div>
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Advanced analytics</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-green-500/50 hover:bg-white/10 transition-all duration-300">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold text-white mb-2">School</CardTitle>
+                <div className="text-4xl font-bold text-green-400 mb-4">$199<span className="text-lg text-white/60">/month</span></div>
+                <p className="text-white/70">For educational institutions</p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Everything in Business</span>
+                </div>
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Up to 500 students</span>
+                </div>
+                <div className="flex items-center text-white/80">
+                  <Sparkles className="h-4 w-4 mr-2 text-green-400" />
+                  <span>School-wide management</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-12">
+            <Button 
+              onClick={() => navigate('/pricing')}
+              size="lg" 
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg"
+            >
+              View Detailed Pricing
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                About TeachlyAI
+              </h2>
+              <p className="text-xl text-white/80 mb-6 leading-relaxed">
+                We're revolutionizing education through artificial intelligence, making personalized learning accessible to everyone, everywhere.
+              </p>
+              <p className="text-white/70 mb-8 leading-relaxed">
+                Our platform combines advanced AI algorithms with proven pedagogical methods to create an adaptive learning environment that grows with each student. From voice interactions to real-time progress tracking, we're building the future of education.
+              </p>
               <Button 
+                onClick={() => navigate('/how-it-works')}
                 size="lg" 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
-                onClick={handleStartLearning}
+                variant="outline"
+                className="border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20"
               >
-                {t('cta.start')}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                onClick={handleTryDemo}
-              >
-                {t('cta.demo')}
+                Learn How It Works
                 <BookOpen className="ml-2 h-5 w-5" />
               </Button>
             </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('features.section.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                {t('features.section.subtitle')}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Brain className="h-12 w-12 text-blue-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">{t('features.adaptive.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
-                  {t('features.adaptive.desc')}
-                </p>
-              </div>
-
-              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 backdrop-blur-sm">
-                <MessageSquare className="h-12 w-12 text-purple-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">{t('features.voice.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
-                  {t('features.voice.desc')}
-                </p>
-              </div>
-
-              <div className="p-8 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Lightbulb className="h-12 w-12 text-green-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">{t('features.content.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
-                  {t('features.content.desc')}
-                </p>
-              </div>
-
-              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Gamepad2 className="h-12 w-12 text-orange-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">{t('features.gamified.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
-                  {t('features.gamified.desc')}
-                </p>
-              </div>
-
-              <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                <BarChart className="h-12 w-12 text-teal-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">{t('features.analytics.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
-                  {t('features.analytics.desc')}
-                </p>
-              </div>
-
-              <div className="p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 hover:from-indigo-500/20 hover:to-purple-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Users className="h-12 w-12 text-indigo-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4">{t('features.collaborative.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
-                  {t('features.collaborative.desc')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Subject Coverage */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('subjects.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                {t('subjects.subtitle')}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { icon: "📚", title: t('subjects.mathematics.title'), desc: t('subjects.mathematics.desc') },
-                { icon: "🔬", title: t('subjects.sciences.title'), desc: t('subjects.sciences.desc') },
-                { icon: "📖", title: t('subjects.literature.title'), desc: t('subjects.literature.desc') },
-                { icon: "🌍", title: t('subjects.social.title'), desc: t('subjects.social.desc') },
-                { icon: "💻", title: t('subjects.technology.title'), desc: t('subjects.technology.desc') },
-                { icon: "🎨", title: t('subjects.arts.title'), desc: t('subjects.arts.desc') },
-                { icon: "🗣️", title: t('subjects.languages.title'), desc: t('subjects.languages.desc') },
-                { icon: "🏃", title: t('subjects.health.title'), desc: t('subjects.health.desc') }
-              ].map((subject, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-center backdrop-blur-sm">
-                  <div className="text-4xl mb-4">{subject.icon}</div>
-                  <h3 className="text-lg font-semibold mb-2 text-white">{subject.title}</h3>
-                  <p className="text-white/60 text-sm">{subject.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Advanced Features */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('advanced.title')}</h2>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <Target className="h-6 w-6 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{t('advanced.adaptive.title')}</h3>
-                    <p className="text-white/70">
-                      {t('advanced.adaptive.desc')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-green-500/20 rounded-lg">
-                    <Zap className="h-6 w-6 text-green-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{t('advanced.feedback.title')}</h3>
-                    <p className="text-white/70">
-                      {t('advanced.feedback.desc')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <Shield className="h-6 w-6 text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{t('advanced.safe.title')}</h3>
-                    <p className="text-white/70">
-                      {t('advanced.safe.desc')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-orange-500/20 rounded-lg">
-                    <Clock className="h-6 w-6 text-orange-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{t('advanced.availability.title')}</h3>
-                    <p className="text-white/70">
-                      {t('advanced.availability.desc')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-8 border border-white/10 backdrop-blur-sm">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold mb-2">{t('achievement.title')}</h3>
-                  <p className="text-white/70">
-                    {t('achievement.desc')}
-                  </p>
-                </div>
-                
+            <div className="relative">
+              <div className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-2xl p-8 border border-purple-500/30">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/80">{t('achievement.streak')}</span>
-                    <span className="text-yellow-400 font-semibold">🔥 {t('achievement.progress')}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/80">{t('achievement.problems')}</span>
-                    <span className="text-green-400 font-semibold">⚡ {t('achievement.tracking')}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/80">{t('achievement.level')}</span>
-                    <span className="text-blue-400 font-semibold">🏆 {t('achievement.growing')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('testimonials.title')}</h2>
-              <p className="text-xl text-white/70">{t('testimonials.subtitle')}</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Sarah Chen",
-                  role: t('testimonials.teacher'),
-                  content: t('testimonials.teacher.content'),
-                  rating: 5
-                },
-                {
-                  name: "Michael Rodriguez",
-                  role: t('testimonials.parent'),
-                  content: t('testimonials.parent.content'),
-                  rating: 5
-                },
-                {
-                  name: "Dr. Emily Johnson",
-                  role: t('testimonials.principal'),
-                  content: t('testimonials.principal.content'),
-                  rating: 5
-                }
-              ].map((testimonial, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-white/80 mb-4 italic">"{testimonial.content}"</p>
-                  <div>
-                    <p className="text-white font-semibold">{testimonial.name}</p>
-                    <p className="text-white/60 text-sm">{testimonial.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('pricing.title')}</h2>
-              <p className="text-xl text-white/70">{t('pricing.subtitle')}</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-4">{t('pricing.individual')}</h3>
-                <div className="text-4xl font-bold mb-6">{t('pricing.individual.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature1')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature2')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature3')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature4')}</li>
-                </ul>
-                <Button 
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                  onClick={handleStartLearning}
-                >
-                  {t('pricing.get.started')}
-                </Button>
-              </div>
-
-              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/50 backdrop-blur-sm relative">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                  {t('pricing.most.popular')}
-                </div>
-                <h3 className="text-2xl font-bold mb-4">{t('pricing.family')}</h3>
-                <div className="text-4xl font-bold mb-6">{t('pricing.family.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature1')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature2')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature3')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature4')}</li>
-                </ul>
-                <Button 
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  onClick={handleStartLearning}
-                >
-                  {t('pricing.get.started')}
-                </Button>
-              </div>
-
-              <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-4">{t('pricing.school')}</h3>
-                <div className="text-4xl font-bold mb-6">$32<span className="text-lg text-white/60">/month</span></div>
-                <div className="text-sm text-white/70 mb-4">+ $3 for each additional student</div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature1')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature2')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature3')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature4')}</li>
-                </ul>
-                <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
-                  {t('pricing.contact.sales')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('faq.title')}</h2>
-            </div>
-
-            <div className="space-y-6">
-              {[
-                {
-                  question: t('faq.q1'),
-                  answer: t('faq.a1')
-                },
-                {
-                  question: t('faq.q2'),
-                  answer: t('faq.a2')
-                },
-                {
-                  question: t('faq.q3'),
-                  answer: t('faq.a3')
-                },
-                {
-                  question: t('faq.q4'),
-                  answer: t('faq.a4')
-                },
-                {
-                  question: t('faq.q5'),
-                  answer: t('faq.a5')
-                },
-                {
-                  question: t('faq.q6'),
-                  answer: t('faq.a6')
-                }
-              ].map((faq, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                  <h3 className="text-lg font-semibold mb-3 text-white">{faq.question}</h3>
-                  <p className="text-white/70 leading-relaxed">{faq.answer}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section id="about" className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('about.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                {t('about.subtitle')}
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-6">{t('about.vision.title')}</h3>
-                <p className="text-white/80 leading-relaxed mb-6">
-                  {t('about.vision.desc1')}
-                </p>
-                <p className="text-white/80 leading-relaxed">
-                  {t('about.vision.desc2')}
-                </p>
-              </div>
-              
-              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-8 border border-white/10 backdrop-blur-sm">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold mb-6">{t('about.impact.title')}</h3>
-                  <p className="text-white/70 mb-6">
-                    {t('about.impact.desc')}
-                  </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-white/5 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-blue-400 mb-1">{t('about.impact.ai')}</div>
-                      <div className="text-white/70 text-sm">{t('about.impact.learning')}</div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                      <Brain className="h-6 w-6 text-white" />
                     </div>
-                    <div className="p-4 bg-white/5 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-green-400 mb-1">{t('about.impact.global')}</div>
-                      <div className="text-white/70 text-sm">{t('about.impact.accessibility')}</div>
+                    <div>
+                      <h3 className="text-white font-semibold">AI-Powered</h3>
+                      <p className="text-white/70 text-sm">Advanced machine learning algorithms</p>
                     </div>
-                    <div className="p-4 bg-white/5 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-purple-400 mb-1">{t('about.impact.adaptive')}</div>
-                      <div className="text-white/70 text-sm">{t('about.impact.curriculum')}</div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                      <Users className="h-6 w-6 text-white" />
                     </div>
-                    <div className="p-4 bg-white/5 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-orange-400 mb-1">{t('about.impact.realtime')}</div>
-                      <div className="text-white/70 text-sm">{t('about.impact.analytics')}</div>
+                    <div>
+                      <h3 className="text-white font-semibold">Collaborative</h3>
+                      <p className="text-white/70 text-sm">Connect with peers and educators</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold">Goal-Oriented</h3>
+                      <p className="text-white/70 text-sm">Achieve your learning objectives</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Contact Section */}
-        <section id="contact" className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('contact.title')}</h2>
-              <p className="text-xl text-white/70">
-                {t('contact.subtitle')}
-              </p>
-            </div>
-
-            <div className="bg-white/5 rounded-xl p-8 border border-white/10 backdrop-blur-sm">
-              <form className="space-y-6">
-                <div>
-                  <label className="block text-white/80 mb-2">{t('contact.form.name')}</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400"
-                    placeholder={t('contact.form.name.placeholder')}
-                  />
-                </div>
-                <div>
-                  <label className="block text-white/80 mb-2">{t('contact.form.email')}</label>
-                  <input 
-                    type="email" 
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400"
-                    placeholder={t('contact.form.email.placeholder')}
-                  />
-                </div>
-                <div>
-                  <label className="block text-white/80 mb-2">{t('contact.form.message')}</label>
-                  <textarea 
-                    rows={4}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 resize-none"
-                    placeholder={t('contact.form.message.placeholder')}
-                  />
-                </div>
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                  {t('contact.form.send')}
-                </Button>
-              </form>
-            </div>
+      {/* Contact Section */}
+      <section id="contact" className="py-20 px-6 bg-black/20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              Get in Touch
+            </h2>
+            <p className="text-xl text-white/70">
+              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            </p>
           </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-12 border border-white/10 backdrop-blur-sm">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('final.cta.title')}</h2>
-              <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                {t('final.cta.subtitle')}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
-                  onClick={handleStartLearning}
-                >
-                  Start Learning
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                  onClick={handleTryDemo}
-                >
-                  {t('final.cta.demo')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+          <ContactForm />
+        </div>
+      </section>
 
       <Footer />
-
-      <RoleSelection 
-        isOpen={showRoleSelection} 
-        onClose={() => setShowRoleSelection(false)} 
-      />
     </div>
   );
 };

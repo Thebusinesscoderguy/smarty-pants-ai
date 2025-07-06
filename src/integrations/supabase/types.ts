@@ -147,6 +147,99 @@ export type Database = {
         }
         Relationships: []
       }
+      homework_sessions: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          difficulty_level: string | null
+          file_url: string | null
+          hints_used: number | null
+          id: string
+          problem_description: string | null
+          problem_type: string
+          session_data: Json | null
+          steps_completed: number | null
+          student_id: string
+          success_rate: number | null
+          time_spent_minutes: number | null
+          total_steps: number | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          file_url?: string | null
+          hints_used?: number | null
+          id?: string
+          problem_description?: string | null
+          problem_type: string
+          session_data?: Json | null
+          steps_completed?: number | null
+          student_id: string
+          success_rate?: number | null
+          time_spent_minutes?: number | null
+          total_steps?: number | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          file_url?: string | null
+          hints_used?: number | null
+          id?: string
+          problem_description?: string | null
+          problem_type?: string
+          session_data?: Json | null
+          steps_completed?: number | null
+          student_id?: string
+          success_rate?: number | null
+          time_spent_minutes?: number | null
+          total_steps?: number | null
+        }
+        Relationships: []
+      }
+      instant_quizzes: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          difficulty_level: string | null
+          id: string
+          questions: Json
+          score: number | null
+          student_id: string
+          topic: string
+          total_questions: number | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string
+          questions?: Json
+          score?: number | null
+          student_id: string
+          topic: string
+          total_questions?: number | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string
+          questions?: Json
+          score?: number | null
+          student_id?: string
+          topic?: string
+          total_questions?: number | null
+        }
+        Relationships: []
+      }
       learning_analytics: {
         Row: {
           baseline_score: number | null
@@ -879,6 +972,84 @@ export type Database = {
           },
         ]
       }
+      student_learning_paths: {
+        Row: {
+          current_step: number | null
+          id: string
+          last_updated: string | null
+          next_recommended_topics: string[] | null
+          path_data: Json | null
+          path_name: string
+          started_at: string | null
+          student_id: string
+          topics_completed: string[] | null
+          total_steps: number | null
+        }
+        Insert: {
+          current_step?: number | null
+          id?: string
+          last_updated?: string | null
+          next_recommended_topics?: string[] | null
+          path_data?: Json | null
+          path_name: string
+          started_at?: string | null
+          student_id: string
+          topics_completed?: string[] | null
+          total_steps?: number | null
+        }
+        Update: {
+          current_step?: number | null
+          id?: string
+          last_updated?: string | null
+          next_recommended_topics?: string[] | null
+          path_data?: Json | null
+          path_name?: string
+          started_at?: string | null
+          student_id?: string
+          topics_completed?: string[] | null
+          total_steps?: number | null
+        }
+        Relationships: []
+      }
+      student_topic_mastery: {
+        Row: {
+          confidence_score: number | null
+          correct_interactions: number | null
+          created_at: string | null
+          id: string
+          last_practiced: string | null
+          mastery_level: number | null
+          student_id: string
+          subject_area: string | null
+          topic_name: string
+          total_interactions: number | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          correct_interactions?: number | null
+          created_at?: string | null
+          id?: string
+          last_practiced?: string | null
+          mastery_level?: number | null
+          student_id: string
+          subject_area?: string | null
+          topic_name: string
+          total_interactions?: number | null
+        }
+        Update: {
+          confidence_score?: number | null
+          correct_interactions?: number | null
+          created_at?: string | null
+          id?: string
+          last_practiced?: string | null
+          mastery_level?: number | null
+          student_id?: string
+          subject_area?: string | null
+          topic_name?: string
+          total_interactions?: number | null
+        }
+        Relationships: []
+      }
       subject_assignments: {
         Row: {
           assigned_by: string
@@ -1155,6 +1326,33 @@ export type Database = {
           id?: string
           tokens_used?: number
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      topic_prerequisites: {
+        Row: {
+          created_at: string | null
+          id: string
+          prerequisite_topic: string
+          strength_required: number | null
+          subject_area: string | null
+          topic_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          prerequisite_topic: string
+          strength_required?: number | null
+          subject_area?: string | null
+          topic_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          prerequisite_topic?: string
+          strength_required?: number | null
+          subject_area?: string | null
+          topic_name?: string
         }
         Relationships: []
       }
