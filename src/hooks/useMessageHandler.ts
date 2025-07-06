@@ -55,14 +55,11 @@ export const useMessageHandler = () => {
       /create a quiz about (.+)/i,
     ];
 
-    const pathPatterns = [
-      /what should i learn next/i,
-      /learning path/i,
-    ];
-
     const homeworkPatterns = [
       /help with (.+) problem/i,
       /homework help/i,
+      /help me with my homework/i,
+      /solve this problem/i,
     ];
 
     for (const pattern of quizPatterns) {
@@ -71,15 +68,6 @@ export const useMessageHandler = () => {
         return {
           type: 'quiz',
           topic: match[1] || 'general',
-          originalMessage: message
-        };
-      }
-    }
-
-    for (const pattern of pathPatterns) {
-      if (pattern.test(message)) {
-        return {
-          type: 'learning_path',
           originalMessage: message
         };
       }
@@ -122,14 +110,21 @@ export const useMessageHandler = () => {
     try {
       // Handle special requests
       if (specialRequest) {
+        let responseContent = '';
+        if (specialRequest.type === 'quiz') {
+          responseContent = `I'll help you with that! Let me prepare a personalized quiz on ${specialRequest.topic} for you.`;
+        } else if (specialRequest.type === 'homework') {
+          responseContent = `I'll help you with your homework! I can explain concepts, guide you through problems step-by-step, and help you understand the underlying principles. What specific area would you like help with?`;
+        }
+
         const responseMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : specialRequest.type === 'learning_path' ? 'learning path' : 'homework guidance'} for you.`,
+          content: responseContent,
           isFromUser: false,
           timestamp: new Date(),
           type: 'text',
           specialFeature: specialRequest,
-          text: content,
+          text: responseContent,
           tokenCount: 0
         };
 
@@ -155,12 +150,12 @@ export const useMessageHandler = () => {
 
       const aiResponse: Message = {
         id: (Date.now() + 2).toString(),
-        content: data.choices[0].message.content,
+        content: data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request. Please try again.",
         isFromUser: false,
         timestamp: new Date(),
         type: 'text',
-        text: data.choices[0].message.content,
-        tokenCount: Math.ceil(data.choices[0].message.content.length / 4)
+        text: data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request. Please try again.",
+        tokenCount: Math.ceil((data?.choices?.[0]?.message?.content || "").length / 4)
       };
       
       setMessages(prev => [...prev, aiResponse]);

@@ -147,12 +147,6 @@ export const Header = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <Link 
-                    to="/demo" 
-                    className="text-yellow-300 hover:text-yellow-200 transition-colors text-lg font-medium hover:scale-105 transform duration-200"
-                  >
-                    Try Demo
-                  </Link>
                   <Link to="/auth">
                     <Button 
                       variant="outline" 
@@ -258,13 +252,6 @@ export const Header = () => {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-4 pt-4 border-t border-white/20">
-                  <Link 
-                    to="/demo" 
-                    className="text-yellow-300 hover:text-yellow-200 transition-colors text-lg font-medium py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Try Demo
-                  </Link>
                   <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                     <Button 
                       variant="outline" 
