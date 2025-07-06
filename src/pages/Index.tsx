@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
@@ -39,13 +40,13 @@ const Index = () => {
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
-              Transform Learning with AI-Powered Education
+              AI-Powered Education for Every Student
             </h1>
             <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Experience personalized, interactive education that adapts to every student's unique learning style and pace.
+              Personalized learning experiences that adapt to your unique style and pace
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <div className="flex justify-center mb-16">
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
@@ -492,7 +493,7 @@ const Index = () => {
               <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
                 {t('final.cta.subtitle')}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex justify-center">
                 <Button 
                   size="lg" 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
