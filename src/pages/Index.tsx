@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
@@ -24,10 +23,6 @@ const Index = () => {
     navigate('/auth');
   };
 
-  const handleTryDemo = () => {
-    navigate('/demo');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden">
       {/* Animated background elements */}
@@ -44,10 +39,10 @@ const Index = () => {
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
-              {t('hero.title')}
+              Transform Learning with AI-Powered Education
             </h1>
             <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
-              {t('hero.subtitle')}
+              Experience personalized, interactive education that adapts to every student's unique learning style and pace.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
@@ -56,17 +51,8 @@ const Index = () => {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
                 onClick={handleStartLearning}
               >
-                {t('cta.start')}
+                Start Learning
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                onClick={handleTryDemo}
-              >
-                {t('cta.demo')}
-                <BookOpen className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
