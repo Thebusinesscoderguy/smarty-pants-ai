@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Brain, Menu, X, MessageSquare, BarChart3 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 export const Header = () => {
   const { user } = useAuth();
@@ -54,7 +55,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="w-full bg-black/30 backdrop-blur-xl border-b border-white/20 sticky top-0 z-50">
+    <header className="w-full bg-black/30 backdrop-blur-xl sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -80,16 +81,22 @@ export const Header = () => {
                 Features
               </Link>
               <Link 
-                to="/how-it-works" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
-              >
-                How it Works
-              </Link>
-              <Link 
                 to="/pricing" 
                 className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
               >
                 Pricing
+              </Link>
+              <Link 
+                to="#about" 
+                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
+              >
+                About
+              </Link>
+              <Link 
+                to="#contact" 
+                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
+              >
+                Contact
               </Link>
               {user && (
                 <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-white/20">
@@ -121,8 +128,10 @@ export const Header = () => {
               )}
             </nav>
 
-            {/* User Actions */}
+            {/* Language Selector and User Actions */}
             <div className="flex items-center space-x-4">
+              <LanguageSelector />
+              
               {user ? (
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
@@ -152,12 +161,12 @@ export const Header = () => {
                       variant="outline" 
                       className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all duration-300"
                     >
-                      Sign In
+                      Login
                     </Button>
                   </Link>
                   <Link to="/auth?signup=true">
                     <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                      Get Started
+                      Sign Up
                     </Button>
                   </Link>
                 </div>
@@ -188,18 +197,25 @@ export const Header = () => {
                 Features
               </Link>
               <Link 
-                to="/how-it-works" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                How it Works
-              </Link>
-              <Link 
                 to="/pricing" 
                 className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Pricing
+              </Link>
+              <Link 
+                to="#about" 
+                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link 
+                to="#contact" 
+                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
               </Link>
               {user && (
                 <>
@@ -257,12 +273,12 @@ export const Header = () => {
                       variant="outline" 
                       className="border-white/30 bg-white/10 hover:bg-white/20 text-white w-full"
                     >
-                      Sign In
+                      Login
                     </Button>
                   </Link>
                   <Link to="/auth?signup=true" onClick={() => setIsMenuOpen(false)}>
                     <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white w-full">
-                      Get Started
+                      Sign Up
                     </Button>
                   </Link>
                 </div>
