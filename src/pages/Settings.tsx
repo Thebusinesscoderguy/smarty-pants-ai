@@ -169,7 +169,7 @@ const Settings = () => {
         </div>
 
         <div className="grid gap-12">
-          {/* AI Voice Settings */}
+          {/* AI Voice Settings - FIXED */}
           <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
             <CardHeader className="pb-8">
               <CardTitle className="text-white flex items-center text-3xl">
@@ -217,7 +217,7 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* Account Management */}
+          {/* Account Management - FIXED */}
           <Card className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border-red-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
             <CardHeader className="pb-8">
               <CardTitle className="text-white flex items-center text-3xl">

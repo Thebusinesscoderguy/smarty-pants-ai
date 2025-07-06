@@ -99,7 +99,7 @@ export const Header = () => {
             </button>
             <LanguageSelector />
             
-            {/* Conditional Authentication Buttons */}
+            {/* Conditional Authentication Buttons - FIXED */}
             {user ? (
               <div className="flex items-center space-x-4">
                 <span className="text-white/80 text-sm">

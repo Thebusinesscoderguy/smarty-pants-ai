@@ -175,7 +175,7 @@ const PublicPricing = () => {
               </CardFooter>
             </Card>
 
-            {/* School Plan */}
+            {/* School Plan - FIXED */}
             <Card className="w-full bg-black border border-green-500/50 text-white relative hover:border-green-400/70 transition-all duration-300">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-1 rounded-full text-sm font-bold">
                 SCHOOL
