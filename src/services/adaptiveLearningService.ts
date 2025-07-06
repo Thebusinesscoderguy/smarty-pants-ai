@@ -112,7 +112,7 @@ export class AdaptiveLearningService {
               multiModalContent: true
             },
             connections: ['node-2'],
-            status: 'available'
+            status: 'available' as const
           },
           {
             id: 'node-2',
@@ -143,7 +143,7 @@ export class AdaptiveLearningService {
               multiModalContent: true
             },
             connections: [],
-            status: 'locked'
+            status: 'locked' as const
           }
         ],
         progress: {
@@ -191,7 +191,7 @@ export class AdaptiveLearningService {
         if (node.id === nodeId) {
           return {
             ...node,
-            status: interactionData.type === 'complete' ? 'completed' : 'in-progress'
+            status: (interactionData.type === 'complete' ? 'completed' : 'in-progress') as LearningNode['status']
           };
         }
         return node;
@@ -257,13 +257,16 @@ export class AdaptiveLearningService {
   }
 
   static async saveLearningPath(path: AdaptivePath) {
+    // Convert AdaptivePath to a JSON-serializable format
+    const pathData = JSON.parse(JSON.stringify(path));
+    
     const { error } = await supabase
       .from('student_learning_paths')
       .upsert({
         id: path.id,
         student_id: path.studentId,
         path_name: `${path.subject} - ${path.goal}`,
-        path_data: path,
+        path_data: pathData,
         current_step: 0,
         total_steps: path.nodes.length,
         started_at: new Date().toISOString(),
@@ -285,6 +288,7 @@ export class AdaptiveLearningService {
     if (error) throw error;
     
     // Return the path_data which contains our AdaptivePath structure
-    return data.path_data as AdaptivePath;
+    // We need to properly type cast since we know the structure
+    return data.path_data as unknown as AdaptivePath;
   }
 }
