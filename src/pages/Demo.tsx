@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
-import { DemoMonitoringPanel } from '@/components/demo/DemoMonitoringPanel';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
@@ -19,7 +19,6 @@ const Demo = () => {
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [isPaused, setIsPaused] = useState(false);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
-  const [showMonitoring, setShowMonitoring] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -62,7 +61,6 @@ const Demo = () => {
     setTimeLeft(15 * 60);
     setIsPaused(false);
     setShowTimeWarning(false);
-    setShowMonitoring(false);
   };
 
   const handleRoleSelect = (selectedRole: string) => {
@@ -170,16 +168,11 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the actual interface
+  // Demo is running - show the actual chat interface with unified modern UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-purple-900/30 to-slate-900/50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-700/20 via-slate-900/20 to-slate-900/20"></div>
-      </div>
-
       {/* Demo Header with Timer */}
-      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-6 backdrop-blur-sm relative z-10">
+      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-6 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <Button
@@ -219,16 +212,6 @@ const Demo = () => {
                 >
                   <RotateCcw className="h-5 w-5" />
                 </Button>
-                {(role === 'parent' || role === 'school') && (
-                  <Button
-                    onClick={() => setShowMonitoring(!showMonitoring)}
-                    variant="outline"
-                    size="sm"
-                    className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-6 py-3"
-                  >
-                    {showMonitoring ? 'Hide Monitoring' : 'Show Monitoring'}
-                  </Button>
-                )}
               </>
             ) : (
               <div className="text-red-400 font-semibold text-lg">Demo Time Expired</div>
@@ -237,20 +220,12 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex relative z-10">
-        {/* Chat Interface */}
-        <div className={`${showMonitoring ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+      {/* Main Chat Interface with unified modern design */}
+      <main className="flex-1">
+        <div className="h-full">
           <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
         </div>
-
-        {/* Monitoring Panel */}
-        {showMonitoring && (role === 'parent' || role === 'school') && (
-          <div className="w-1/3 border-l border-white/10 bg-black/20 backdrop-blur-xl">
-            <DemoMonitoringPanel role={role} />
-          </div>
-        )}
-      </div>
+      </main>
 
       {/* Time Warning Modal */}
       {(showTimeWarning || timeLeft <= 0) && (

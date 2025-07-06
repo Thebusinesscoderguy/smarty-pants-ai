@@ -1,264 +1,241 @@
 
-import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useRef } from 'react';
+import { Message } from '@/types/message';
+import { useAudioHandler } from '@/hooks/useAudioHandler';
+import { useTokenUsage } from '@/hooks/useTokenUsage';
+import { useQuizMode } from '@/hooks/useQuizMode';
 import { toast } from '@/components/ui/use-toast';
-import { Message as LegacyMessage } from '@/types/message';
-
-interface Message {
-  id: string;
-  content: string;
-  isFromUser: boolean;
-  timestamp: Date;
-  type: string;
-  fileUrl?: string;
-  specialFeature?: any;
-  text?: string;
-  tokenCount?: number;
-  audioUrl?: string;
-  isPlaying?: boolean;
-  fileName?: string;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 export const useMessageHandler = () => {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Simple state for backward compatibility
-  const [apiKeyError, setApiKeyError] = useState(false);
-  const [isQuizMode, setIsQuizMode] = useState(false);
-  const [responseTimes, setResponseTimes] = useState<any[]>([]);
-  const [userStrengths, setUserStrengths] = useState<string[]>([]);
-  const [userWeaknesses, setUserWeaknesses] = useState<string[]>([]);
-  const [totalTokensUsed, setTotalTokensUsed] = useState(0);
-  const [inputTokens, setInputTokens] = useState(0);
-  const [outputTokens, setOutputTokens] = useState(0);
-  const [monthlyLimit] = useState(10000);
-  const [isTokenLimitReached, setIsTokenLimitReached] = useState(false);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const detectSpecialRequests = (message: string) => {
-    const lowerMessage = message.toLowerCase();
-    
-    const quizPatterns = [
-      /quiz me on (.+)/i,
-      /test me on (.+)/i,
-      /create a quiz about (.+)/i,
-    ];
-
-    const homeworkPatterns = [
-      /help with (.+) problem/i,
-      /homework help/i,
-      /help me with my homework/i,
-      /solve this problem/i,
-    ];
-
-    for (const pattern of quizPatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        return {
-          type: 'quiz',
-          topic: match[1] || 'general',
-          originalMessage: message
-        };
-      }
-    }
-
-    for (const pattern of homeworkPatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        return {
-          type: 'homework',
-          problem: match[1] || message,
-          originalMessage: message
-        };
-      }
-    }
-
-    return null;
-  };
-
-  const sendMessage = async (content: string, type: string = 'text', fileUrl?: string) => {
-    if (!content.trim()) return;
-
-    const specialRequest = detectSpecialRequests(content);
-    
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: content,
-      isFromUser: true,
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome-message',
+      text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
       timestamp: new Date(),
-      type: type,
-      fileUrl: fileUrl,
-      text: content,
-      tokenCount: Math.ceil(content.length / 4)
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-
+      isFromUser: false,
+      type: 'text',
+      tokenCount: 25
+    }
+  ]);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [apiKeyError, setApiKeyError] = useState(false);
+  
+  const { 
+    isQuizMode, 
+    setIsQuizMode,
+    lastQuestionTime,
+    setLastQuestionTime,
+    responseTimes,
+    userStrengths,
+    userWeaknesses,
+    getFastResponseTopics,
+    getSlowResponseTopics,
+    trackResponseTime
+  } = useQuizMode();
+  
+  const {
+    totalTokensUsed,
+    inputTokens,
+    outputTokens,
+    monthlyLimit,
+    incrementTokenCount,
+    isTokenLimitReached
+  } = useTokenUsage();
+  
+  const {
+    handlePlayAudio,
+    handlePauseAudio
+  } = useAudioHandler();
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  const fetchMessages = async () => {
+    // Placeholder for messages fetching logic
+  };
+  
+  const checkOpenAIKey = async () => {
     try {
-      // Handle special requests
-      if (specialRequest) {
-        let responseContent = '';
-        if (specialRequest.type === 'quiz') {
-          responseContent = `I'll help you with that! Let me prepare a personalized quiz on ${specialRequest.topic} for you.`;
-        } else if (specialRequest.type === 'homework') {
-          responseContent = `I'll help you with your homework! I can explain concepts, guide you through problems step-by-step, and help you understand the underlying principles. What specific area would you like help with?`;
-        }
-
-        const responseMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: responseContent,
-          isFromUser: false,
-          timestamp: new Date(),
-          type: 'text',
-          specialFeature: specialRequest,
-          text: responseContent,
-          tokenCount: 0
-        };
-
-        setMessages(prev => [...prev, responseMessage]);
-        setIsLoading(false);
-        return;
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: { text: "Test", voice: 'alloy' }
+      });
+      if (response.error && response.error.message && response.error.message.includes('API key')) {
+        setApiKeyError(true);
+        console.error("API key error from function:", response.error);
+      } else {
+        setApiKeyError(false);
       }
-
-      // Regular AI response
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            ...messages.slice(-5).map(m => ({ 
-              role: m.isFromUser ? 'user' : 'assistant', 
-              content: m.content 
-            })),
-            { role: 'user', content: content }
-          ]
-        }
-      });
-
-      if (error) throw error;
-
-      const aiResponse: Message = {
-        id: (Date.now() + 2).toString(),
-        content: data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request. Please try again.",
-        isFromUser: false,
-        timestamp: new Date(),
-        type: 'text',
-        text: data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request. Please try again.",
-        tokenCount: Math.ceil((data?.choices?.[0]?.message?.content || "").length / 4)
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
-
     } catch (error: any) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error sending message",
-        description: error.message || "Failed to send message",
-        variant: "destructive",
-      });
-      
-      const errorResponse: Message = {
-        id: (Date.now() + 3).toString(),
-        content: "Sorry, I'm having trouble processing your request. Please try again later.",
-        isFromUser: false,
+      console.error("Error checking OpenAI API key:", error);
+      if (error.message && error.message.includes('API key')) {
+        setApiKeyError(true);
+      }
+    }
+  };
+
+  const getAIResponse = async (userMessage: string, selectedVoice: string, curriculumContext?: any) => {
+    try {
+      const processingMessageId = `processing-${Date.now()}`;
+      const processingMessage: Message = {
+        id: processingMessageId,
+        text: "Processing your request...",
         timestamp: new Date(),
+        isFromUser: false,
         type: 'text',
-        text: "Sorry, I'm having trouble processing your request. Please try again later.",
         tokenCount: 0
       };
-      
-      setMessages(prev => [...prev, errorResponse]);
-    } finally {
-      setIsLoading(false);
+
+      setMessages(prev => [...prev, processingMessage]);
+
+      try {
+        // Get previous messages for context (limit to last 8 for token efficiency)
+        const conversationHistory = messages
+          .filter(m => m.id !== 'welcome-message' && !m.id?.startsWith('processing-'))
+          .slice(-8)
+          .map(m => ({
+            role: m.isFromUser ? "user" : "assistant", 
+            content: m.text
+          }));
+        
+        // Check if this appears to be a quiz-related message
+        const isQuizRequest = userMessage.toLowerCase().includes('quiz') || 
+                             userMessage.toLowerCase().includes('test') || 
+                             userMessage.toLowerCase().includes('question');
+        
+        // If we're starting a quiz, enable quiz mode
+        if (isQuizRequest && !isQuizMode) {
+          setIsQuizMode(true);
+        }
+        
+        // Natural AI tutor system prompt
+        let systemPrompt = `You are a friendly and knowledgeable AI tutor. You help students learn by:
+
+- Being conversational and approachable
+- Explaining concepts clearly and at an appropriate level
+- Breaking down complex topics into understandable parts
+- Encouraging questions and curiosity
+- Providing examples and practical applications
+- Being patient and supportive
+
+Respond naturally to whatever the student asks about. Don't assume everything is curriculum-related unless explicitly mentioned.`;
+
+        // Only add curriculum context if it's actually provided and relevant
+        if (curriculumContext && curriculumContext.title) {
+          systemPrompt += `\n\nNote: The student is currently working with the "${curriculumContext.title}" curriculum, but respond naturally to their questions regardless of whether they're curriculum-specific.`;
+        }
+
+        // Add quiz mode context if active
+        if (isQuizMode) {
+          systemPrompt += `\n\nYou're currently in quiz mode! Ask thoughtful educational questions and provide encouraging feedback on answers. Make learning fun and interactive.`;
+        }
+
+        // Add performance context if available
+        if (responseTimes.length > 0) {
+          systemPrompt += `\n\nBased on previous interactions, the student seems to be strong in: ${userStrengths.join(', ') || 'various areas'} and could use more practice with: ${userWeaknesses.join(', ') || 'some topics'}. Tailor your help accordingly.`;
+        }
+
+        // Generate AI response using OpenAI's chat completion API
+        const completionResponse = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages: [
+              {
+                role: "system",
+                content: systemPrompt
+              },
+              ...conversationHistory,
+              { role: "user", content: userMessage }
+            ]
+          }
+        });
+
+        if (completionResponse.error) {
+          throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+        }
+
+        const aiResponseText = completionResponse.data.content;
+        
+        // Check if this is a quiz question and update state
+        if (isQuizMode && aiResponseText.includes('?')) {
+          setLastQuestionTime(new Date());
+        }
+
+        // Generate speech from the AI response text
+        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+          body: { 
+            text: aiResponseText,
+            voice: selectedVoice || 'alloy'
+          }
+        });
+
+        if (voiceResponse.error) {
+          if (voiceResponse.error.message && voiceResponse.error.message.includes('API key')) {
+            setApiKeyError(true);
+          }
+          throw new Error(voiceResponse.error.message || 'Failed to generate speech');
+        }
+
+        const base64Audio = voiceResponse.data.audioContent;
+
+        const byteCharacters = atob(base64Audio);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        setMessages(prev => prev.filter(m => m.id !== processingMessageId));
+
+        const aiMessageId = `ai-${Date.now()}`;
+        const tokenCount = Math.ceil(aiResponseText.length / 4);
+        
+        const aiMessage: Message = {
+          id: aiMessageId,
+          text: aiResponseText,
+          timestamp: new Date(),
+          audioUrl: audioUrl,
+          isFromUser: false,
+          type: 'voice',
+          tokenCount: tokenCount
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+        incrementTokenCount(0, tokenCount);
+
+        setTimeout(() => {
+          if (aiMessageId) {
+            handlePlayAudio(aiMessageId, messages, setMessages);
+          }
+        }, 500);
+
+      } catch (error: any) {
+        setMessages(prev => prev.filter(m => m.id !== processingMessageId));
+        console.error("Error in getAIResponse:", error);
+        toast({
+          title: "Error",
+          description: "Failed to get AI response: " + error.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error("Error in getAIResponse:", error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response: " + error.message,
+        variant: "destructive"
+      });
     }
-  };
-
-  // Convert to legacy format
-  const convertToLegacyMessage = (msg: Message): LegacyMessage => ({
-    id: msg.id,
-    text: msg.content,
-    timestamp: msg.timestamp,
-    isFromUser: msg.isFromUser,
-    type: msg.type as 'text' | 'voice' | 'file',
-    audioUrl: msg.audioUrl,
-    isPlaying: msg.isPlaying,
-    fileUrl: msg.fileUrl,
-    fileName: msg.fileName,
-    tokenCount: msg.tokenCount || 0
-  });
-
-  const getLegacyMessages = (): LegacyMessage[] => {
-    return messages.map(convertToLegacyMessage);
-  };
-
-  const getAIResponse = async (message: string, voice?: string) => {
-    await sendMessage(message);
-  };
-
-  const handlePlayAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
-    ));
-  };
-
-  const handlePauseAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, isPlaying: false } : msg
-    ));
-  };
-
-  const uploadFile = async (file: File) => {
-    return URL.createObjectURL(file);
-  };
-
-  const fetchMessages = async () => {
-    // Implementation for fetching messages if needed
-  };
-
-  const checkOpenAIKey = () => {
-    // Implementation for checking OpenAI key
-  };
-
-  const trackResponseTime = (message: string, messageList: Message[]) => {
-    // Implementation for tracking response time
-  };
-
-  const incrementTokenCount = (count: number) => {
-    setTotalTokensUsed(prev => prev + count);
-    setInputTokens(prev => prev + count);
-  };
-
-  const getFastResponseTopics = (): string[] => {
-    return userStrengths;
-  };
-
-  const getSlowResponseTopics = (): string[] => {
-    return userWeaknesses;
   };
 
   return {
     messages,
     setMessages,
-    sendMessage,
-    isLoading,
     messagesEndRef,
-    detectSpecialRequests,
-    getLegacyMessages,
-    getAIResponse,
-    handlePlayAudio,
-    handlePauseAudio,
-    uploadFile,
     apiKeyError,
     isQuizMode,
     setIsQuizMode,
@@ -275,6 +252,9 @@ export const useMessageHandler = () => {
     scrollToBottom,
     fetchMessages,
     checkOpenAIKey,
+    getAIResponse,
+    handlePlayAudio,
+    handlePauseAudio,
     trackResponseTime,
     incrementTokenCount
   };

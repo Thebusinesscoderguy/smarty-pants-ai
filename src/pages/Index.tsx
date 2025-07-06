@@ -44,10 +44,10 @@ const Index = () => {
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
-              AI-Powered Education for Every Student
+              {t('hero.title')}
             </h1>
             <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Personalized learning experiences that adapt to your unique style and pace
+              {t('hero.subtitle')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
@@ -56,16 +56,17 @@ const Index = () => {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
                 onClick={handleStartLearning}
               >
-                Start Learning
+                {t('cta.start')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
                 size="lg" 
-                variant="outline"
-                className="border-white/30 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 text-lg backdrop-blur-sm transition-all duration-300"
+                variant="outline" 
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
                 onClick={handleTryDemo}
               >
-                Try Demo
+                {t('cta.demo')}
+                <BookOpen className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -82,7 +83,7 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
                 <Brain className="h-12 w-12 text-blue-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.adaptive.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
@@ -90,7 +91,7 @@ const Index = () => {
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 backdrop-blur-sm">
                 <MessageSquare className="h-12 w-12 text-purple-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.voice.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
@@ -98,7 +99,7 @@ const Index = () => {
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 backdrop-blur-sm">
                 <Lightbulb className="h-12 w-12 text-green-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.content.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
@@ -106,7 +107,7 @@ const Index = () => {
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300 backdrop-blur-sm">
                 <Gamepad2 className="h-12 w-12 text-orange-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.gamified.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
@@ -114,7 +115,7 @@ const Index = () => {
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
                 <BarChart className="h-12 w-12 text-teal-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.analytics.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
@@ -122,7 +123,7 @@ const Index = () => {
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 transition-all duration-300 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 hover:from-indigo-500/20 hover:to-purple-500/20 transition-all duration-300 backdrop-blur-sm">
                 <Users className="h-12 w-12 text-indigo-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.collaborative.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
@@ -500,18 +501,26 @@ const Index = () => {
         {/* Final CTA */}
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-12 backdrop-blur-sm">
+            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-12 border border-white/10 backdrop-blur-sm">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('final.cta.title')}</h2>
               <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
                 {t('final.cta.subtitle')}
               </p>
-              <div className="flex justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
                   size="lg" 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg"
                   onClick={handleStartLearning}
                 >
                   Start Learning
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
+                  onClick={handleTryDemo}
+                >
+                  {t('final.cta.demo')}
                 </Button>
               </div>
             </div>

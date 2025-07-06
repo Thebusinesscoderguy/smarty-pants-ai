@@ -5,10 +5,16 @@ import { toast } from '@/components/ui/use-toast';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useMessageHandler } from '@/hooks/useMessageHandler';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
-import { ModernChatInterface } from '@/components/voice/ModernChatInterface';
-import { VoiceControlPanel } from '@/components/voice/VoiceControlPanel';
-import { StatsOverlay } from '@/components/voice/StatsOverlay';
+import ChatHeader from '@/components/voice/ChatHeader';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import MessageList from '@/components/MessageList';
+import VoiceMessageInput from '@/components/VoiceMessageInput';
+import ApiKeyErrorAlert from '@/components/voice/ApiKeyErrorAlert';
+import TokenLimitAlert from '@/components/voice/TokenLimitAlert';
+import VoiceSettings from '@/components/voice/VoiceSettings';
+import QuizModeAnalysis from '@/components/voice/QuizModeAnalysis';
 import { supabase } from '@/integrations/supabase/client';
+import { Message } from '@/types/message';
 
 const Voice = () => {
   const { user } = useAuth();
@@ -46,8 +52,7 @@ const Voice = () => {
     handlePlayAudio,
     handlePauseAudio,
     trackResponseTime,
-    incrementTokenCount,
-    getLegacyMessages
+    incrementTokenCount
   } = useMessageHandler();
 
   const {
@@ -72,20 +77,21 @@ const Voice = () => {
 
   const processVoiceToText = async (audioBase64: string) => {
     try {
+      // Add a temporary message to show processing
       const processingMessageId = `processing-${Date.now()}`;
-      const processingMessage = {
+      const processingMessage: Message = {
         id: processingMessageId,
-        content: "🎤 Processing your voice message...",
+        text: "Processing your voice message...",
         timestamp: new Date(),
         isFromUser: false,
         type: 'text',
-        text: "🎤 Processing your voice message...",
         tokenCount: 0
       };
       
       setMessages(prev => [...prev, processingMessage]);
       
       try {
+        // Use supabase.functions.invoke instead of direct fetch
         const response = await supabase.functions.invoke('voice-to-text', {
           body: { audio: audioBase64 }
         });
@@ -99,27 +105,35 @@ const Voice = () => {
         
         const transcribedText = response.data.text;
         
+        // Remove the processing message
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
         
-        const userMessage = {
+        // Create a user message with the transcribed text
+        const userMessage: Message = {
           id: `voice-${Date.now()}`,
-          content: transcribedText,
+          text: transcribedText,
           timestamp: new Date(),
           isFromUser: true,
           type: 'voice',
-          text: transcribedText,
-          tokenCount: Math.ceil(transcribedText.length / 4),
-          audioUrl: audioData ? URL.createObjectURL(audioData) : undefined
+          tokenCount: Math.ceil(transcribedText.length / 4)
         };
+        
+        if (audioData) {
+          // Convert audioData to a URL
+          const audioUrl = URL.createObjectURL(audioData);
+          userMessage.audioUrl = audioUrl;
+        }
         
         setMessages(prev => [...prev, userMessage]);
         
+        // Track tokens and response time
         incrementTokenCount(userMessage.tokenCount || 0);
         trackResponseTime(transcribedText, messages);
         
         await getAIResponse(transcribedText, selectedVoice);
         
       } catch (error: any) {
+        // Remove the processing message
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
         
         console.error("Error in processVoiceToText:", error);
@@ -146,21 +160,22 @@ const Voice = () => {
     try {
       const tokenCount = Math.ceil(textMessage.length / 4);
       
+      // Create a temporary ID for this message
       const tempId = `text-${Date.now()}`;
       
-      const newUserMessage = {
+      const newUserMessage: Message = {
         id: tempId,
-        content: textMessage,
+        text: textMessage,
         timestamp: new Date(),
         isFromUser: true,
         type: 'text',
-        text: textMessage,
         tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setTextMessage('');
       
+      // Track tokens and response time
       incrementTokenCount(tokenCount);
       trackResponseTime(textMessage, messages);
       
@@ -179,26 +194,27 @@ const Voice = () => {
     if (!file) return;
     
     try {
-      const messageText = `📎 Uploaded file: ${file.name}`;
+      const messageText = `Uploaded file: ${file.name}`;
       const tokenCount = Math.ceil(messageText.length / 4);
       
+      // Create file URL directly
       const fileUrl = URL.createObjectURL(file);
       
-      const newUserMessage = {
+      const newUserMessage: Message = {
         id: `file-${Date.now()}`,
-        content: messageText,
+        text: messageText,
         timestamp: new Date(),
         fileUrl: fileUrl,
         fileName: file.name,
         isFromUser: true,
         type: 'file',
-        text: messageText,
         tokenCount: tokenCount
       };
       
       setMessages(prev => [...prev, newUserMessage]);
       setFile(null);
       
+      // Track tokens
       incrementTokenCount(tokenCount);
       
       await getAIResponse(`I've uploaded a file named ${file.name}. Can you help me with this?`, selectedVoice);
@@ -212,10 +228,24 @@ const Voice = () => {
     }
   };
 
+  const handleVoiceResponse = async () => {
+    // Voice response handling logic
+    if (textMessage.trim()) {
+      await getAIResponse(textMessage, selectedVoice);
+    } else {
+      toast({
+        title: "Empty Message",
+        description: "Please enter a message to get a voice response.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleRecordStop = async () => {
     handleStopRecording();
     
     if (audioData) {
+      // Convert blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioData);
       reader.onloadend = function() {
@@ -232,24 +262,14 @@ const Voice = () => {
     }
   };
 
-  const legacyMessages = getLegacyMessages();
-
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-purple-900/30 to-slate-900/50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-700/20 via-slate-900/20 to-slate-900/20"></div>
-      </div>
-
-      {/* Sidebar */}
-      <div className="relative z-10 w-64 flex-shrink-0 border-r border-white/10 backdrop-blur-xl bg-black/20">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
+      <div className="w-64 flex-shrink-0 border-r border-white/10">
         <AppSidebar />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col relative z-10 backdrop-blur-sm">
-        {/* Control Panel */}
-        <VoiceControlPanel
+      <div className="flex-1 flex flex-col max-h-screen overflow-hidden shadow-2xl">
+        <ChatHeader
           isRecording={isRecording}
           recordingTime={recordingTime}
           onStartRecording={isTokenLimitReached ? () => {
@@ -260,50 +280,60 @@ const Voice = () => {
             });
           } : handleStartRecording}
           onStopRecording={handleRecordStop}
-          apiKeyError={apiKeyError}
-          isTokenLimitReached={isTokenLimitReached}
-          monthlyLimit={monthlyLimit}
-          selectedVoice={selectedVoice}
-          changeVoice={changeVoice}
-          isQuizMode={isQuizMode}
-          setIsQuizMode={setIsQuizMode}
-          totalTokensUsed={totalTokensUsed}
-          inputTokens={inputTokens}
-          outputTokens={outputTokens}
-          isVoiceEnabled={isVoiceEnabled}
-          toggleVoice={toggleVoice}
-          responseTimes={responseTimes}
-          userStrengths={userStrengths}
-          userWeaknesses={userWeaknesses}
-          getFastResponseTopics={() => getFastResponseTopics().join(', ')}
-          getSlowResponseTopics={() => getSlowResponseTopics().join(', ')}
         />
 
-        {/* Chat Interface */}
-        <div className="flex-1 overflow-hidden">
-          <ModernChatInterface
-            messages={legacyMessages}
-            textMessage={textMessage}
-            setTextMessage={setTextMessage}
-            file={file}
-            setFile={setFile}
-            onSendText={handleSendTextMessage}
-            onFileUpload={handleFileUpload}
-            onKeyPress={handleKeyPress}
-            onPlayAudio={(messageId) => handlePlayAudio(messageId)}
-            onPauseAudio={(messageId) => handlePauseAudio(messageId)}
-            messagesEndRef={messagesEndRef}
-            disabled={isTokenLimitReached}
+        <div className="flex-1 flex flex-col px-4 py-2 space-y-4 overflow-hidden bg-gray-900/50">
+          <ApiKeyErrorAlert visible={apiKeyError} />
+          <TokenLimitAlert isTokenLimitReached={isTokenLimitReached} monthlyLimit={monthlyLimit} />
+
+          <VoiceSettings 
+            selectedVoice={selectedVoice}
+            setSelectedVoice={changeVoice}
+            isQuizMode={isQuizMode}
+            setIsQuizMode={setIsQuizMode}
+            totalTokensUsed={totalTokensUsed}
+            monthlyLimit={monthlyLimit}
+            inputTokens={inputTokens}
+            outputTokens={outputTokens}
+            isTokenLimitReached={isTokenLimitReached}
+            isVoiceEnabled={isVoiceEnabled}
+            onToggleVoice={toggleVoice}
           />
-        </div>
 
-        {/* Stats Overlay */}
-        <StatsOverlay
-          totalTokensUsed={totalTokensUsed}
-          monthlyLimit={monthlyLimit}
-          isQuizMode={isQuizMode}
-          responseTimes={responseTimes}
-        />
+          <QuizModeAnalysis 
+            isQuizMode={isQuizMode}
+            hasResponseData={responseTimes.length > 0}
+            userStrengths={userStrengths}
+            userWeaknesses={userWeaknesses}
+            getFastResponseTopics={getFastResponseTopics}
+            getSlowResponseTopics={getSlowResponseTopics}
+          />
+
+          <div className="flex-1 flex flex-col space-y-4">
+            <ScrollArea className="flex-1 pr-4">
+              <MessageList 
+                messages={messages}
+                onPlayAudio={(messageId) => handlePlayAudio(messageId, messages, setMessages)}
+                onPauseAudio={(messageId) => handlePauseAudio(messageId, messages, setMessages)}
+              />
+              <div ref={messagesEndRef} />
+            </ScrollArea>
+
+            <div className="pt-4 border-t border-white/10">
+              <VoiceMessageInput 
+                onSendText={handleSendTextMessage}
+                onVoiceResponse={handleVoiceResponse}
+                onFileUpload={handleFileUpload}
+                textMessage={textMessage}
+                setTextMessage={setTextMessage}
+                file={file}
+                setFile={setFile}
+                onKeyPress={handleKeyPress}
+                disabled={isTokenLimitReached}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

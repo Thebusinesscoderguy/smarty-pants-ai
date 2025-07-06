@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import UserAvatar from '@/components/UserAvatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, Menu, X, MessageSquare, BarChart3 } from 'lucide-react';
+import { Brain, Menu, X } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { LanguageSelector } from '@/components/LanguageSelector';
 
 export const Header = () => {
   const { user } = useAuth();
@@ -55,93 +54,68 @@ export const Header = () => {
   };
 
   return (
-    <header className="w-full bg-black/30 backdrop-blur-xl sticky top-0 z-50">
+    <header className="w-full bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center space-x-3 text-white hover:text-purple-300 transition-colors group"
+            className="flex items-center space-x-3 text-white hover:text-purple-300 transition-colors"
           >
-            <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl group-hover:from-purple-500 group-hover:to-blue-500 transition-all duration-300">
+            <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
               <Brain className="h-8 w-8 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
               TeachlyAI
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-8">
             <nav className="flex items-center space-x-6">
               <Link 
                 to="/features" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
+                className="text-white/80 hover:text-white transition-colors text-lg"
               >
                 Features
               </Link>
               <Link 
+                to="/how-it-works" 
+                className="text-white/80 hover:text-white transition-colors text-lg"
+              >
+                How it Works
+              </Link>
+              <Link 
                 to="/pricing" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
+                className="text-white/80 hover:text-white transition-colors text-lg"
               >
                 Pricing
               </Link>
-              <Link 
-                to="#about" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
-              >
-                About
-              </Link>
-              <Link 
-                to="#contact" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
-              >
-                Contact
-              </Link>
               {user && (
-                <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-white/20">
-                  <Link to="/chat">
-                    <Button
-                      variant="outline"
-                      className="border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 hover:text-white transition-all duration-300 rounded-xl flex items-center space-x-2"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      <span>Chat</span>
-                    </Button>
-                  </Link>
-                  <Link to="/monitoring">
-                    <Button
-                      variant="outline"
-                      className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-200 hover:text-white transition-all duration-300 rounded-xl flex items-center space-x-2"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      <span>Monitoring</span>
-                    </Button>
+                <>
+                  <Link 
+                    to="/chat" 
+                    className="text-white/80 hover:text-white transition-colors text-lg"
+                  >
+                    Chat
                   </Link>
                   <Link 
                     to="/progress" 
-                    className="text-white/80 hover:text-white transition-colors text-lg font-medium hover:scale-105 transform duration-200"
+                    className="text-white/80 hover:text-white transition-colors text-lg"
                   >
                     Dashboard
                   </Link>
-                </div>
+                </>
               )}
             </nav>
 
-            {/* Language Selector and User Actions */}
+            {/* User Actions */}
             <div className="flex items-center space-x-4">
-              <LanguageSelector />
-              
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <span className="text-white/90 text-sm font-medium block">
-                      Welcome back
-                    </span>
-                    <span className="text-purple-300 text-lg font-semibold">
-                      {getDisplayName()}
-                    </span>
-                  </div>
+                  <span className="text-white/80 text-lg">
+                    Welcome, {getDisplayName()}
+                  </span>
                   <UserAvatar 
                     avatarUrl={user.user_metadata?.avatar_url || null}
                     size="sm"
@@ -149,24 +123,30 @@ export const Header = () => {
                   <Button
                     onClick={handleSignOut}
                     variant="outline"
-                    className="border-white/30 bg-white/10 hover:bg-red-500/20 hover:border-red-400/30 text-white hover:text-red-200 rounded-xl transition-all duration-300"
+                    className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
                   >
                     Sign Out
                   </Button>
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
+                  <Link 
+                    to="/demo" 
+                    className="text-white/80 hover:text-white transition-colors text-lg"
+                  >
+                    Try Demo
+                  </Link>
                   <Link to="/auth">
                     <Button 
                       variant="outline" 
-                      className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all duration-300"
+                      className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
                     >
-                      Login
+                      Sign In
                     </Button>
                   </Link>
                   <Link to="/auth?signup=true">
-                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                      Sign Up
+                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl">
+                      Get Started
                     </Button>
                   </Link>
                 </div>
@@ -178,7 +158,7 @@ export const Header = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="md:hidden text-white hover:bg-white/10 rounded-xl"
+            className="md:hidden text-white"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -187,61 +167,41 @@ export const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden mt-6 pt-6 border-t border-white/20 bg-black/20 backdrop-blur-sm rounded-xl p-4">
+          <div className="md:hidden mt-4 pt-4 border-t border-white/10">
             <nav className="flex flex-col space-y-4">
               <Link 
                 to="/features" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
+                className="text-white/80 hover:text-white transition-colors text-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Features
               </Link>
               <Link 
+                to="/how-it-works" 
+                className="text-white/80 hover:text-white transition-colors text-lg"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                How it Works
+              </Link>
+              <Link 
                 to="/pricing" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
+                className="text-white/80 hover:text-white transition-colors text-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Pricing
               </Link>
-              <Link 
-                to="#about" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link 
-                to="#contact" 
-                className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </Link>
               {user && (
                 <>
-                  <div className="border-t border-white/20 pt-4 mt-4">
-                    <Link to="/chat" onClick={() => setIsMenuOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 hover:text-white mb-2"
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Chat
-                      </Button>
-                    </Link>
-                    <Link to="/monitoring" onClick={() => setIsMenuOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-200 hover:text-white mb-2"
-                      >
-                        <BarChart3 className="h-4 w-4 mr-2" />
-                        Monitoring
-                      </Button>
-                    </Link>
-                  </div>
+                  <Link 
+                    to="/chat" 
+                    className="text-white/80 hover:text-white transition-colors text-lg"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Chat
+                  </Link>
                   <Link 
                     to="/progress" 
-                    className="text-white/80 hover:text-white transition-colors text-lg font-medium py-2"
+                    className="text-white/80 hover:text-white transition-colors text-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
@@ -250,35 +210,39 @@ export const Header = () => {
               )}
               
               {user ? (
-                <div className="flex flex-col space-y-4 pt-4 border-t border-white/20">
-                  <div className="text-center">
-                    <span className="text-white/90 text-sm">Welcome back</span>
-                    <p className="text-purple-300 text-lg font-semibold">{getDisplayName()}</p>
-                  </div>
+                <div className="flex flex-col space-y-4 pt-4 border-t border-white/10">
+                  <span className="text-white/80">Welcome, {getDisplayName()}</span>
                   <Button
                     onClick={() => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
                     variant="outline"
-                    className="border-white/30 bg-white/10 hover:bg-red-500/20 text-white self-start"
+                    className="border-white/20 bg-white/10 hover:bg-white/20 text-white self-start"
                   >
                     Sign Out
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-col space-y-4 pt-4 border-t border-white/20">
+                <div className="flex flex-col space-y-4 pt-4 border-t border-white/10">
+                  <Link 
+                    to="/demo" 
+                    className="text-white/80 hover:text-white transition-colors text-lg"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Try Demo
+                  </Link>
                   <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                     <Button 
                       variant="outline" 
-                      className="border-white/30 bg-white/10 hover:bg-white/20 text-white w-full"
+                      className="border-white/20 bg-white/10 hover:bg-white/20 text-white w-full"
                     >
-                      Login
+                      Sign In
                     </Button>
                   </Link>
                   <Link to="/auth?signup=true" onClick={() => setIsMenuOpen(false)}>
                     <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white w-full">
-                      Sign Up
+                      Get Started
                     </Button>
                   </Link>
                 </div>

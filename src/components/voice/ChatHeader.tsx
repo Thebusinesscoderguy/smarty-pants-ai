@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { VoiceRecordingButton } from './VoiceRecordingButton';
+import VoiceRecordingButton from './VoiceRecordingButton';
 
 interface ChatHeaderProps {
   isRecording: boolean;
