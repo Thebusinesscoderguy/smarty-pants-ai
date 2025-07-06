@@ -1,22 +1,22 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { 
   MessageSquare, 
   Send, 
   Mic, 
   MicOff, 
   Upload, 
-  Sparkles,
   Bot,
   User,
   Volume2,
-  VolumeX
+  VolumeX,
+  Plus,
+  History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageList from '@/components/MessageList';
@@ -24,66 +24,87 @@ import { useMessageHandler } from '@/hooks/useMessageHandler';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
 
 export const ImprovedChatInterface = () => {
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [chatSessions, setChatSessions] = useState([{ id: '1', name: 'New Chat', active: true }]);
+  const [activeChatId, setActiveChatId] = useState('1');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const {
     messages,
-    setMessages,
+    isLoading,
     messagesEndRef,
-    apiKeyError,
-    isQuizMode,
-    setIsQuizMode,
     totalTokensUsed,
     monthlyLimit,
     isTokenLimitReached,
-    scrollToBottom,
-    fetchMessages,
-    checkOpenAIKey,
-    getAIResponse,
-    handlePlayAudio,
-    handlePauseAudio,
+    sendMessage,
     getLegacyMessages
   } = useMessageHandler();
 
   const {
     isRecording,
     recordingTime,
+    audioData,
     handleStartRecording,
-    handleStopRecording
+    handleStopRecording,
+    setAudioData
   } = useVoiceRecorder();
 
   const { selectedVoice, isVoiceEnabled, toggleVoice } = useVoiceSettings();
 
-  const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
-    if (user) {
-      fetchMessages();
-      checkOpenAIKey();
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [user]);
-
-  useEffect(() => {
-    scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  useEffect(() => {
+    if (audioData && !isRecording) {
+      handleVoiceMessage();
+    }
+  }, [audioData, isRecording]);
 
-    const messageText = input.trim();
-    setInput('');
-    setIsLoading(true);
+  const handleVoiceMessage = async () => {
+    if (!audioData) return;
 
     try {
-      await getAIResponse(messageText, selectedVoice);
+      // Convert audio blob to text (placeholder - would need voice-to-text service)
+      const audioText = "Voice message received"; // This would be the transcribed text
+      await sendMessage(audioText, 'voice');
+      setAudioData(null);
+    } catch (error) {
+      console.error('Error processing voice message:', error);
+      toast({
+        title: "Voice processing error",
+        description: "Could not process voice message",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!input.trim() && !file) return;
+
+    const messageText = input.trim();
+    const messageType = file ? 'file' : 'text';
+    const fileUrl = file ? URL.createObjectURL(file) : undefined;
+
+    setInput('');
+    setFile(null);
+    
+    try {
+      await sendMessage(messageText || `Uploaded file: ${file?.name}`, messageType, fileUrl);
     } catch (error) {
       console.error('Error sending message:', error);
-    } finally {
-      setIsLoading(false);
+      toast({
+        title: "Error sending message",
+        description: "Could not send your message. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -94,26 +115,88 @@ export const ImprovedChatInterface = () => {
     }
   };
 
-  const legacyMessages = getLegacyMessages();
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
+
+  const createNewChat = () => {
+    const newChatId = Date.now().toString();
+    const newChat = {
+      id: newChatId,
+      name: `Chat ${chatSessions.length + 1}`,
+      active: true
+    };
+    
+    setChatSessions(prev => [
+      ...prev.map(chat => ({ ...chat, active: false })),
+      newChat
+    ]);
+    setActiveChatId(newChatId);
+  };
+
+  const switchChat = (chatId: string) => {
+    setChatSessions(prev => prev.map(chat => ({
+      ...chat,
+      active: chat.id === chatId
+    })));
+    setActiveChatId(chatId);
+  };
+
+  const legacyMessages = getLegacyMessages() || [];
 
   return (
-    <div className="flex h-full bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900">
+    <div className="flex h-full bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            onClick={createNewChat}
+            className="w-full flex items-center space-x-2"
+            variant="outline"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Chat</span>
+          </Button>
+        </div>
+        
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-2">
+            <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+              <History className="h-4 w-4" />
+              <span>Previous Chats</span>
+            </div>
+            {chatSessions.map((chat) => (
+              <Button
+                key={chat.id}
+                onClick={() => switchChat(chat.id)}
+                variant={chat.active ? "default" : "ghost"}
+                className="w-full justify-start text-left"
+              >
+                {chat.name}
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
+
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <Card className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 rounded-none border-l-0 border-r-0 border-t-0">
+        <Card className="rounded-none border-l-0 border-r-0 border-t-0">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+                <div className="p-3 bg-gray-900 rounded-lg">
                   <Bot className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl text-white flex items-center">
+                  <CardTitle className="text-2xl flex items-center">
                     AI Learning Assistant
-                    <Sparkles className="ml-2 h-5 w-5 text-yellow-400" />
                   </CardTitle>
-                  <p className="text-white/70">Your personalized learning companion</p>
+                  <p className="text-gray-600">Your personalized learning companion</p>
                 </div>
               </div>
 
@@ -122,30 +205,14 @@ export const ImprovedChatInterface = () => {
                   onClick={toggleVoice}
                   variant="outline"
                   size="sm"
-                  className={`border-white/30 ${
-                    isVoiceEnabled 
-                      ? 'bg-green-500/20 text-green-300 border-green-500/30' 
-                      : 'bg-white/10 text-white/70'
-                  }`}
+                  className={isVoiceEnabled ? 'bg-green-50 text-green-700 border-green-200' : ''}
                 >
                   {isVoiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 </Button>
                 
-                <Badge variant="outline" className="border-blue-400/30 text-blue-300">
+                <Badge variant="outline">
                   {totalTokensUsed.toLocaleString()}/{monthlyLimit.toLocaleString()} tokens
                 </Badge>
-
-                <Button
-                  onClick={() => setIsQuizMode(!isQuizMode)}
-                  variant={isQuizMode ? "default" : "outline"}
-                  size="sm"
-                  className={isQuizMode 
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600" 
-                    : "border-white/30 bg-white/10 text-white hover:bg-white/20"
-                  }
-                >
-                  Quiz Mode
-                </Button>
               </div>
             </div>
           </CardHeader>
@@ -161,38 +228,36 @@ export const ImprovedChatInterface = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center justify-center h-96 text-center"
                 >
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mb-6 animate-pulse">
+                  <div className="w-24 h-24 rounded-full bg-gray-900 flex items-center justify-center mb-6">
                     <MessageSquare className="h-12 w-12 text-white" />
                   </div>
-                  <h3 className="text-3xl font-bold text-white mb-4">
+                  <h3 className="text-3xl font-bold text-gray-900 mb-4">
                     Welcome to Your AI Tutor
                   </h3>
-                  <p className="text-white/60 max-w-2xl text-lg leading-relaxed">
+                  <p className="text-gray-600 max-w-2xl text-lg leading-relaxed mb-8">
                     Ask me anything about your studies! I can help with homework, explain concepts, 
-                    create quizzes, solve problems, and guide your learning journey. 
-                    <br />
-                    <span className="text-purple-300 font-medium">What would you like to learn today?</span>
+                    create quizzes, solve problems, and guide your learning journey.
                   </p>
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
-                    <Card className="bg-white/5 border-white/10 p-4 hover:bg-white/10 transition-all cursor-pointer"
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
+                    <Card className="p-4 hover:bg-gray-50 transition-all cursor-pointer border-gray-200"
                           onClick={() => setInput("Help me with my math homework")}>
-                      <p className="text-white text-sm">📚 Help with homework</p>
+                      <p className="text-gray-700 text-sm">📚 Help with homework</p>
                     </Card>
-                    <Card className="bg-white/5 border-white/10 p-4 hover:bg-white/10 transition-all cursor-pointer"
+                    <Card className="p-4 hover:bg-gray-50 transition-all cursor-pointer border-gray-200"
                           onClick={() => setInput("Create a quiz on science topics")}>
-                      <p className="text-white text-sm">🧪 Create a quiz</p>
+                      <p className="text-gray-700 text-sm">🧪 Create a quiz</p>
                     </Card>
-                    <Card className="bg-white/5 border-white/10 p-4 hover:bg-white/10 transition-all cursor-pointer"
+                    <Card className="p-4 hover:bg-gray-50 transition-all cursor-pointer border-gray-200"
                           onClick={() => setInput("Explain quantum physics simply")}>
-                      <p className="text-white text-sm">💡 Explain concepts</p>
+                      <p className="text-gray-700 text-sm">💡 Explain concepts</p>
                     </Card>
                   </div>
                 </motion.div>
               ) : (
                 <MessageList 
                   messages={legacyMessages}
-                  onPlayAudio={handlePlayAudio}
-                  onPauseAudio={handlePauseAudio}
+                  onPlayAudio={() => {}}
+                  onPauseAudio={() => {}}
                 />
               )}
               <div ref={messagesEndRef} />
@@ -201,20 +266,20 @@ export const ImprovedChatInterface = () => {
         </div>
 
         {/* Input Area */}
-        <Card className="bg-black/30 backdrop-blur-xl border-white/20 rounded-none border-l-0 border-r-0 border-b-0">
+        <Card className="rounded-none border-l-0 border-r-0 border-b-0">
           <CardContent className="p-6">
             {file && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 bg-blue-500/20 rounded-lg flex items-center justify-between border border-blue-500/30"
+                className="mb-4 p-3 bg-blue-50 rounded-lg flex items-center justify-between border border-blue-200"
               >
-                <span className="text-blue-200 text-sm">📎 {file.name}</span>
+                <span className="text-blue-700 text-sm">📎 {file.name}</span>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setFile(null)}
-                  className="text-blue-300 hover:text-white hover:bg-blue-500/20"
+                  className="text-blue-600 hover:text-blue-800"
                 >
                   Remove
                 </Button>
@@ -228,7 +293,7 @@ export const ImprovedChatInterface = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me anything about your studies..."
-                  className="min-h-[60px] py-4 px-6 text-lg bg-white/10 border-white/30 text-white placeholder-white/50 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-2xl resize-none"
+                  className="min-h-[60px] py-4 px-6 text-lg resize-none"
                   disabled={isLoading || isTokenLimitReached}
                 />
                 
@@ -239,7 +304,7 @@ export const ImprovedChatInterface = () => {
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2"
                   >
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-red-400 text-sm font-medium">
+                    <span className="text-red-600 text-sm font-medium">
                       {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
                     </span>
                   </motion.div>
@@ -248,17 +313,17 @@ export const ImprovedChatInterface = () => {
 
               <div className="flex items-center space-x-2">
                 <input
+                  ref={fileInputRef}
                   type="file"
-                  id="file-upload"
                   className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={handleFileUpload}
                   accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                 />
                 <Button
-                  onClick={() => document.getElementById('file-upload')?.click()}
+                  onClick={() => fileInputRef.current?.click()}
                   variant="outline"
                   size="lg"
-                  className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl p-4"
+                  className="p-4"
                   disabled={isLoading}
                 >
                   <Upload className="h-5 w-5" />
@@ -268,10 +333,10 @@ export const ImprovedChatInterface = () => {
                   onClick={isRecording ? handleStopRecording : handleStartRecording}
                   variant="outline"
                   size="lg"
-                  className={`border-white/30 rounded-xl p-4 ${
+                  className={`p-4 ${
                     isRecording 
-                      ? 'bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30' 
-                      : 'bg-white/10 hover:bg-white/20 text-white'
+                      ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                      : ''
                   }`}
                   disabled={isLoading}
                 >
@@ -280,33 +345,14 @@ export const ImprovedChatInterface = () => {
 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!input.trim() || isLoading || isTokenLimitReached}
+                  disabled={(!input.trim() && !file) || isLoading || isTokenLimitReached}
                   size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl p-4 disabled:opacity-50"
+                  className="p-4"
                 >
-                  {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Sparkles className="h-5 w-5" />
-                    </motion.div>
-                  ) : (
-                    <Send className="h-5 w-5" />
-                  )}
+                  <Send className="h-5 w-5" />
                 </Button>
               </div>
             </div>
-
-            {apiKeyError && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg"
-              >
-                <p className="text-red-300 text-sm">{apiKeyError}</p>
-              </motion.div>
-            )}
           </CardContent>
         </Card>
       </div>

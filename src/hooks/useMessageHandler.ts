@@ -27,7 +27,7 @@ export const useMessageHandler = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Simple state for backward compatibility
-  const [apiKeyError, setApiKeyError] = useState(false);
+  const [apiKeyError, setApiKeyError] = useState<string | boolean>(false);
   const [isQuizMode, setIsQuizMode] = useState(false);
   const [responseTimes, setResponseTimes] = useState<any[]>([]);
   const [userStrengths, setUserStrengths] = useState<string[]>([]);
@@ -43,7 +43,9 @@ export const useMessageHandler = () => {
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const detectSpecialRequests = (message: string) => {
@@ -53,11 +55,6 @@ export const useMessageHandler = () => {
       /quiz me on (.+)/i,
       /test me on (.+)/i,
       /create a quiz about (.+)/i,
-    ];
-
-    const pathPatterns = [
-      /what should i learn next/i,
-      /learning path/i,
     ];
 
     const homeworkPatterns = [
@@ -71,15 +68,6 @@ export const useMessageHandler = () => {
         return {
           type: 'quiz',
           topic: match[1] || 'general',
-          originalMessage: message
-        };
-      }
-    }
-
-    for (const pattern of pathPatterns) {
-      if (pattern.test(message)) {
-        return {
-          type: 'learning_path',
           originalMessage: message
         };
       }
@@ -124,7 +112,7 @@ export const useMessageHandler = () => {
       if (specialRequest) {
         const responseMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : specialRequest.type === 'learning_path' ? 'learning path' : 'homework guidance'} for you.`,
+          content: `I'll help you with that! Let me prepare a ${specialRequest.type === 'quiz' ? 'personalized quiz' : 'homework guidance'} for you.`,
           isFromUser: false,
           timestamp: new Date(),
           type: 'text',
@@ -153,14 +141,16 @@ export const useMessageHandler = () => {
 
       if (error) throw error;
 
+      const responseContent = data?.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request right now. Please try again.";
+      
       const aiResponse: Message = {
         id: (Date.now() + 2).toString(),
-        content: data.choices[0].message.content,
+        content: responseContent,
         isFromUser: false,
         timestamp: new Date(),
         type: 'text',
-        text: data.choices[0].message.content,
-        tokenCount: Math.ceil(data.choices[0].message.content.length / 4)
+        text: responseContent,
+        tokenCount: Math.ceil(responseContent.length / 4)
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -197,7 +187,7 @@ export const useMessageHandler = () => {
     isFromUser: msg.isFromUser,
     type: msg.type as 'text' | 'voice' | 'file',
     audioUrl: msg.audioUrl,
-    isPlaying: msg.isPlaying,
+    isPlaying: msg.isPlaying || false,
     fileUrl: msg.fileUrl,
     fileName: msg.fileName,
     tokenCount: msg.tokenCount || 0
@@ -211,13 +201,13 @@ export const useMessageHandler = () => {
     await sendMessage(message);
   };
 
-  const handlePlayAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
+  const handlePlayAudio = (messageId: string) => {
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { ...msg, isPlaying: true } : { ...msg, isPlaying: false }
     ));
   };
 
-  const handlePauseAudio = (messageId: string, messageList?: Message[], setMessageList?: any) => {
+  const handlePauseAudio = (messageId: string) => {
     setMessages(prev => prev.map(msg => 
       msg.id === messageId ? { ...msg, isPlaying: false } : msg
     ));
