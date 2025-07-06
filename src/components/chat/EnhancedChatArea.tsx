@@ -102,7 +102,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         variant="ghost"
         size="sm"
         onClick={() => navigate('/chat')}
-        className="text-blue-400 hover:bg-white/10 hover:text-blue-300 flex items-center rounded-xl px-4 py-2"
+        className="text-blue-400 hover:bg-gray-700 hover:text-blue-300 flex items-center"
       >
         <MessageSquare className="h-4 w-4 mr-1" />
         {t('nav.chat') || 'Chat'}
@@ -111,10 +111,10 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         variant="ghost"
         size="sm"
         onClick={() => navigate('/progress')}
-        className="text-gray-400 hover:bg-white/10 hover:text-white flex items-center rounded-xl px-4 py-2"
+        className="text-gray-400 hover:bg-gray-700 hover:text-white flex items-center"
       >
         <BarChart3 className="h-4 w-4 mr-1" />
-        {t('nav.progress') || 'Dashboard'}
+        {t('nav.progress') || 'Progress'}
       </Button>
     </div>
   );
@@ -320,7 +320,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
           </div>
         </div>
 
-        {/* Enhanced Input Area - Modern UI with all features */}
+        {/* Enhanced Input Area */}
         <div className="flex-shrink-0 p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl">
           <div className="max-w-5xl mx-auto">
             {selectedFile && (
@@ -349,7 +349,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about learning..."
-                className="w-full px-6 py-4 pr-48 bg-white/10 border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
+                className="w-full px-6 py-4 pr-32 bg-white/10 border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
                 rows={1}
                 style={{ minHeight: '60px', maxHeight: '120px' }}
                 disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
@@ -370,7 +370,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                   size="sm"
                   className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
                   disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-                  title="Upload file"
                 >
                   <Upload className="h-5 w-5" />
                 </Button>
@@ -385,7 +384,6 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
                   disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
-                  title={isRecording ? 'Stop recording' : 'Start voice recording'}
                 >
                   {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 </Button>

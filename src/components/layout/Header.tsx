@@ -1,253 +1,152 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import UserAvatar from '@/components/UserAvatar';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Brain, Menu, X } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { Menu, X } from 'lucide-react';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 export const Header = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
-      });
-      
-      navigate('/');
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
+  console.log('Header rendering with language:', language);
+  console.log('Header: t function type:', typeof t);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setIsMenuOpen(false);
     }
   };
 
-  const getDisplayName = () => {
-    if (!user) return '';
-    
-    // Check if user has a display name from Google sign-in or other providers
-    if (user.user_metadata?.full_name) {
-      return user.user_metadata.full_name;
-    }
-    
-    if (user.user_metadata?.name) {
-      return user.user_metadata.name;
-    }
-    
-    // Fallback to email username
-    if (user.email) {
-      return user.email.split('@')[0];
-    }
-    
-    return 'User';
-  };
+  // Pre-compute translations to debug
+  const featuresText = t('nav.features');
+  const pricingText = t('nav.pricing');
+  const aboutText = t('nav.about');
+  const contactText = t('nav.contact');
+
+  console.log('Header translations:', {
+    features: featuresText,
+    pricing: pricingText,
+    about: aboutText,
+    contact: contactText
+  });
 
   return (
-    <header className="w-full bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
+    <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <nav className="flex items-center justify-between">
           {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center space-x-3 text-white hover:text-purple-300 transition-colors"
-          >
-            <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
-              <Brain className="h-8 w-8 text-white" />
+          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">T</span>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-              TeachlyAI
-            </span>
-          </Link>
+            <span className="text-2xl font-bold text-white">TeachlyAI</span>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <nav className="flex items-center space-x-6">
-              <Link 
-                to="/features" 
-                className="text-white/80 hover:text-white transition-colors text-lg"
-              >
-                Features
-              </Link>
-              <Link 
-                to="/how-it-works" 
-                className="text-white/80 hover:text-white transition-colors text-lg"
-              >
-                How it Works
-              </Link>
-              <Link 
-                to="/pricing" 
-                className="text-white/80 hover:text-white transition-colors text-lg"
-              >
-                Pricing
-              </Link>
-              {user && (
-                <>
-                  <Link 
-                    to="/chat" 
-                    className="text-white/80 hover:text-white transition-colors text-lg"
-                  >
-                    Chat
-                  </Link>
-                  <Link 
-                    to="/progress" 
-                    className="text-white/80 hover:text-white transition-colors text-lg"
-                  >
-                    Dashboard
-                  </Link>
-                </>
-              )}
-            </nav>
-
-            {/* User Actions */}
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-white/80 text-lg">
-                    Welcome, {getDisplayName()}
-                  </span>
-                  <UserAvatar 
-                    avatarUrl={user.user_metadata?.avatar_url || null}
-                    size="sm"
-                  />
-                  <Button
-                    onClick={handleSignOut}
-                    variant="outline"
-                    className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
-                  >
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-4">
-                  <Link 
-                    to="/demo" 
-                    className="text-white/80 hover:text-white transition-colors text-lg"
-                  >
-                    Try Demo
-                  </Link>
-                  <Link to="/auth">
-                    <Button 
-                      variant="outline" 
-                      className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/auth?signup=true">
-                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
+            <button 
+              onClick={() => scrollToSection('features')}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              {featuresText}
+            </button>
+            <button 
+              onClick={() => scrollToSection('pricing')}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              {pricingText}
+            </button>
+            <button 
+              onClick={() => scrollToSection('about')}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              {aboutText}
+            </button>
+            <button 
+              onClick={() => scrollToSection('contact')}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              {contactText}
+            </button>
+            <LanguageSelector />
+            <Button 
+              onClick={() => navigate('/auth')}
+              variant="outline" 
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+            >
+              Login
+            </Button>
+            <Button 
+              onClick={() => navigate('/auth?signup=true')}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+            >
+              Sign Up
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden text-white"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
-        </div>
+          <div className="md:hidden flex items-center space-x-4">
+            <LanguageSelector />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-white hover:bg-white/10"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
+        </nav>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-white/10">
-            <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/features" 
-                className="text-white/80 hover:text-white transition-colors text-lg"
-                onClick={() => setIsMenuOpen(false)}
+          <div className="md:hidden mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+            <div className="flex flex-col space-y-4">
+              <button 
+                onClick={() => scrollToSection('features')}
+                className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                Features
-              </Link>
-              <Link 
-                to="/how-it-works" 
-                className="text-white/80 hover:text-white transition-colors text-lg"
-                onClick={() => setIsMenuOpen(false)}
+                {featuresText}
+              </button>
+              <button 
+                onClick={() => scrollToSection('pricing')}
+                className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                How it Works
-              </Link>
-              <Link 
-                to="/pricing" 
-                className="text-white/80 hover:text-white transition-colors text-lg"
-                onClick={() => setIsMenuOpen(false)}
+                {pricingText}
+              </button>
+              <button 
+                onClick={() => scrollToSection('about')}
+                className="text-white/80 hover:text-white transition-colors py-2 text-left"
               >
-                Pricing
-              </Link>
-              {user && (
-                <>
-                  <Link 
-                    to="/chat" 
-                    className="text-white/80 hover:text-white transition-colors text-lg"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Chat
-                  </Link>
-                  <Link 
-                    to="/progress" 
-                    className="text-white/80 hover:text-white transition-colors text-lg"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                </>
-              )}
-              
-              {user ? (
-                <div className="flex flex-col space-y-4 pt-4 border-t border-white/10">
-                  <span className="text-white/80">Welcome, {getDisplayName()}</span>
-                  <Button
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMenuOpen(false);
-                    }}
-                    variant="outline"
-                    className="border-white/20 bg-white/10 hover:bg-white/20 text-white self-start"
-                  >
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col space-y-4 pt-4 border-t border-white/10">
-                  <Link 
-                    to="/demo" 
-                    className="text-white/80 hover:text-white transition-colors text-lg"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Try Demo
-                  </Link>
-                  <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                    <Button 
-                      variant="outline" 
-                      className="border-white/20 bg-white/10 hover:bg-white/20 text-white w-full"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/auth?signup=true" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white w-full">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </nav>
+                {aboutText}
+              </button>
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className="text-white/80 hover:text-white transition-colors py-2 text-left"
+              >
+                {contactText}
+              </button>
+              <div className="flex flex-col space-y-2 pt-2">
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  Login
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth?signup=true')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>
