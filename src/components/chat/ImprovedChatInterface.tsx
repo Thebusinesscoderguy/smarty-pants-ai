@@ -205,7 +205,7 @@ export const ImprovedChatInterface = () => {
     setActiveChatId(chatId);
   };
 
-  const legacyMessages = getLegacyMessages() || [];
+  const legacyMessages = getLegacyMessages();
 
   return (
     <div className="flex h-full bg-gray-50">

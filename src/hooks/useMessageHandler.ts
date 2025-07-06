@@ -57,28 +57,12 @@ export const useMessageHandler = () => {
       /create a quiz about (.+)/i,
     ];
 
-    const homeworkPatterns = [
-      /help with (.+) problem/i,
-      /homework help/i,
-    ];
-
     for (const pattern of quizPatterns) {
       const match = message.match(pattern);
       if (match) {
         return {
           type: 'quiz',
           topic: match[1] || 'general',
-          originalMessage: message
-        };
-      }
-    }
-
-    for (const pattern of homeworkPatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        return {
-          type: 'homework',
-          problem: match[1] || message,
           originalMessage: message
         };
       }
