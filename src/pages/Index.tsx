@@ -500,14 +500,6 @@ const Index = () => {
                 >
                   Start Learning
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                  onClick={handleTryDemo}
-                >
-                  {t('final.cta.demo')}
-                </Button>
               </div>
             </div>
           </div>
