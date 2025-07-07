@@ -4,14 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, language } = useLanguage();
-  const { user, signOut, isSigningOut } = useAuth();
   const navigate = useNavigate();
 
   console.log('Header rendering with language:', language);
@@ -23,41 +20,6 @@ export const Header = () => {
       element.scrollIntoView({ behavior: 'smooth' });
       setIsMenuOpen(false);
     }
-  };
-
-  const handleSignOut = async () => {
-    if (isSigningOut) {
-      return;
-    }
-    
-    try {
-      await signOut();
-      navigate('/', { replace: true });
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
-      });
-    } catch (error) {
-      console.error('Header: Sign out error:', error);
-      navigate('/', { replace: true });
-      toast({
-        title: "Session ended",
-        description: "You have been logged out.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Get first name from user metadata
-  const getFirstName = () => {
-    if (!user) return null;
-    
-    // Try to get first name from user metadata (Google sign-in)
-    const firstName = user.user_metadata?.first_name || 
-                     user.user_metadata?.given_name ||
-                     user.user_metadata?.full_name?.split(' ')[0];
-    
-    return firstName || user.email?.split('@')[0] || 'User';
   };
 
   // Pre-compute translations to debug
@@ -84,15 +46,6 @@ export const Header = () => {
             </div>
             <span className="text-2xl font-bold text-white">TeachlyAI</span>
           </div>
-
-          {/* Welcome message */}
-          {user && (
-            <div className="hidden md:block">
-              <span className="text-white/80 text-lg">
-                Welcome, {getFirstName()}!
-              </span>
-            </div>
-          )}
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -121,33 +74,19 @@ export const Header = () => {
               {contactText}
             </button>
             <LanguageSelector />
-            
-            {user ? (
-              <Button 
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                variant="outline" 
-                className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-              >
-                {isSigningOut ? 'Signing out...' : 'Sign Out'}
-              </Button>
-            ) : (
-              <>
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  variant="outline" 
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                >
-                  Login
-                </Button>
-                <Button 
-                  onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-                >
-                  Sign Up
-                </Button>
-              </>
-            )}
+            <Button 
+              onClick={() => navigate('/auth')}
+              variant="outline" 
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+            >
+              Login
+            </Button>
+            <Button 
+              onClick={() => navigate('/auth?signup=true')}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+            >
+              Sign Up
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -168,15 +107,6 @@ export const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
             <div className="flex flex-col space-y-4">
-              {/* Mobile welcome message */}
-              {user && (
-                <div className="text-center pb-4 border-b border-white/20">
-                  <span className="text-white text-lg">
-                    Welcome, {getFirstName()}!
-                  </span>
-                </div>
-              )}
-              
               <button 
                 onClick={() => scrollToSection('features')}
                 className="text-white/80 hover:text-white transition-colors py-2 text-left"
@@ -201,34 +131,20 @@ export const Header = () => {
               >
                 {contactText}
               </button>
-              
               <div className="flex flex-col space-y-2 pt-2">
-                {user ? (
-                  <Button 
-                    onClick={handleSignOut}
-                    disabled={isSigningOut}
-                    variant="outline" 
-                    className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                  >
-                    {isSigningOut ? 'Signing out...' : 'Sign Out'}
-                  </Button>
-                ) : (
-                  <>
-                    <Button 
-                      onClick={() => navigate('/auth')}
-                      variant="outline" 
-                      className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                    >
-                      Login
-                    </Button>
-                    <Button 
-                      onClick={() => navigate('/auth?signup=true')}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-                    >
-                      Sign Up
-                    </Button>
-                  </>
-                )}
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  Login
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth?signup=true')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                >
+                  Sign Up
+                </Button>
               </div>
             </div>
           </div>
