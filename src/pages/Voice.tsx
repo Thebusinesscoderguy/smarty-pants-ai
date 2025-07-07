@@ -8,16 +8,20 @@ import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import ChatHeader from '@/components/voice/ChatHeader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import MessageList from '@/components/MessageList';
-import VoiceMessageInput from '@/components/VoiceMessageInput';
 import ApiKeyErrorAlert from '@/components/voice/ApiKeyErrorAlert';
 import TokenLimitAlert from '@/components/voice/TokenLimitAlert';
 import VoiceSettings from '@/components/voice/VoiceSettings';
 import QuizModeAnalysis from '@/components/voice/QuizModeAnalysis';
 import { supabase } from '@/integrations/supabase/client';
 import { Message } from '@/types/message';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { SendHorizontal, Mic, MicOff, Upload, X, Settings, BarChart3, Volume2, VolumeX } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Voice = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [textMessage, setTextMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   
@@ -262,6 +266,12 @@ const Voice = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
       <div className="w-64 flex-shrink-0 border-r border-white/10">
@@ -269,18 +279,34 @@ const Voice = () => {
       </div>
 
       <div className="flex-1 flex flex-col max-h-screen overflow-hidden shadow-2xl">
-        <ChatHeader
-          isRecording={isRecording}
-          recordingTime={recordingTime}
-          onStartRecording={isTokenLimitReached ? () => {
-            toast({
-              title: "Token Limit Reached",
-              description: "You've reached your monthly token limit. Please try again next month.",
-              variant: "destructive"
-            });
-          } : handleStartRecording}
-          onStopRecording={handleRecordStop}
-        />
+        {/* Top Navigation */}
+        <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-bold text-white">Voice Chat</h1>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/progress')}
+                className="text-white hover:bg-white/10 rounded-xl px-4 py-2"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/settings')}
+                className="text-white hover:bg-white/10 rounded-xl px-4 py-2"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </div>
+          </div>
+        </div>
 
         <div className="flex-1 flex flex-col px-4 py-2 space-y-4 overflow-hidden bg-gray-900/50">
           <ApiKeyErrorAlert visible={apiKeyError} />
@@ -319,18 +345,118 @@ const Voice = () => {
               <div ref={messagesEndRef} />
             </ScrollArea>
 
+            {/* Enhanced Message Input */}
             <div className="pt-4 border-t border-white/10">
-              <VoiceMessageInput 
-                onSendText={handleSendTextMessage}
-                onVoiceResponse={handleVoiceResponse}
-                onFileUpload={handleFileUpload}
-                textMessage={textMessage}
-                setTextMessage={setTextMessage}
-                file={file}
-                setFile={setFile}
-                onKeyPress={handleKeyPress}
-                disabled={isTokenLimitReached}
-              />
+              <div className={`${isTokenLimitReached ? 'opacity-60 pointer-events-none' : ''}`}>
+                {file && (
+                  <div className="mb-3 flex items-center gap-2 bg-white/10 p-2 rounded-xl">
+                    <Upload className="h-4 w-4 text-blue-400" />
+                    <span className="flex-1 truncate text-sm">{file.name}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setFile(null)}
+                      className="h-6 w-6 p-0 hover:bg-white/10"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="flex items-end space-x-2">
+                  <div className="relative flex-1">
+                    <Textarea
+                      placeholder="Type your message..."
+                      value={textMessage}
+                      onChange={(e) => setTextMessage(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="min-h-[60px] bg-white/5 border-white/30 resize-none pr-32 text-white placeholder-white/60"
+                      disabled={isTokenLimitReached}
+                    />
+                    
+                    {/* Input Controls */}
+                    <div className="absolute right-2 top-2 flex items-center space-x-1">
+                      {/* File Input */}
+                      <input
+                        type="file"
+                        id="file-upload"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        disabled={isTokenLimitReached}
+                        accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => document.getElementById('file-upload')?.click()}
+                        className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
+                        disabled={isTokenLimitReached}
+                        title="Upload file"
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                      
+                      {/* Voice Input */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={isRecording ? handleRecordStop : (isTokenLimitReached ? () => {
+                          toast({
+                            title: "Token Limit Reached",
+                            description: "You've reached your monthly token limit. Please try again next month.",
+                            variant: "destructive"
+                          });
+                        } : handleStartRecording)}
+                        className={`h-8 w-8 p-0 ${isRecording ? 'text-red-400 hover:text-red-300' : 'text-white/70 hover:text-white'} hover:bg-white/10`}
+                        disabled={isTokenLimitReached}
+                        title={isRecording ? 'Stop recording' : 'Start recording'}
+                      >
+                        {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </Button>
+                      
+                      {/* Voice Response Toggle */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleVoice}
+                        className={`h-8 w-8 p-0 ${isVoiceEnabled ? 'text-purple-400 hover:text-purple-300' : 'text-white/70 hover:text-white'} hover:bg-white/10`}
+                        disabled={isTokenLimitReached}
+                        title={isVoiceEnabled ? 'Voice responses enabled' : 'Voice responses disabled'}
+                      >
+                        {isVoiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Send Button */}
+                  <Button
+                    onClick={handleSendTextMessage}
+                    disabled={!textMessage.trim() || isTokenLimitReached}
+                    className="bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl"
+                  >
+                    <SendHorizontal className="h-5 w-5" />
+                  </Button>
+                  
+                  {/* File Upload Button */}
+                  {file && (
+                    <Button 
+                      onClick={handleFileUpload}
+                      disabled={isTokenLimitReached}
+                      className="bg-purple-600 hover:bg-purple-700 px-4 py-3 rounded-xl"
+                    >
+                      Upload
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Recording Indicator */}
+                {isRecording && (
+                  <div className="mt-2 flex items-center justify-center text-red-400 text-sm">
+                    <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse mr-2"></div>
+                    Recording... {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
