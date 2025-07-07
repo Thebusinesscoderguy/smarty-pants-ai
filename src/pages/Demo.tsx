@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -167,31 +166,31 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - use EnhancedChatArea
+  // Demo is running - use the enhanced chat interface that matches the main Chat page
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
-      {/* Demo Header with Timer */}
-      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-6 backdrop-blur-sm">
+      {/* Demo Header with Timer - positioned at top */}
+      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-4 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
               size="sm"
-              className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-6 py-3 text-lg"
+              className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2"
             >
-              <ArrowLeft className="mr-3 h-5 w-5" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Exit Demo
             </Button>
-            <span className="text-lg text-slate-300 bg-white/10 px-6 py-3 rounded-xl">Demo Mode Active</span>
+            <span className="text-sm text-slate-300 bg-white/10 px-3 py-1 rounded-xl">Demo Mode</span>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             {timeLeft > 0 ? (
               <>
-                <div className="flex items-center space-x-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
-                  <Clock className="h-5 w-5" />
-                  <span className={`font-mono text-lg ${timeLeft <= 120 ? 'text-yellow-400' : 'text-white'}`}>
+                <div className="flex items-center space-x-2 px-3 py-1 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
+                  <Clock className="h-4 w-4" />
+                  <span className={`font-mono text-sm ${timeLeft <= 120 ? 'text-yellow-400' : 'text-white'}`}>
                     {formatTime(timeLeft)} remaining
                   </span>
                 </div>
@@ -199,27 +198,27 @@ const Demo = () => {
                   onClick={() => setIsPaused(!isPaused)}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-3"
+                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-2 py-1"
                 >
-                  {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+                  {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                 </Button>
                 <Button
                   onClick={resetDemo}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-3"
+                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-2 py-1"
                 >
-                  <RotateCcw className="h-5 w-5" />
+                  <RotateCcw className="h-4 w-4" />
                 </Button>
               </>
             ) : (
-              <div className="text-red-400 font-semibold text-lg">Demo Time Expired</div>
+              <div className="text-red-400 font-semibold text-sm">Demo Time Expired</div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Enhanced Chat Area */}
+      {/* Enhanced Chat Area - this is the same interface used in the main chat */}
       <div className="flex-1">
         <EnhancedChatArea 
           isDemoMode={true}
