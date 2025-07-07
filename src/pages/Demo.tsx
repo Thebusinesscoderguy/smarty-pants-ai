@@ -166,11 +166,11 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - use the enhanced chat interface that matches the main Chat page
+  // Demo is running - show the enhanced chat interface with demo timer overlay
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
-      {/* Demo Header with Timer - positioned at top */}
-      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-4 backdrop-blur-sm z-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative">
+      {/* Demo Timer Overlay - Fixed position */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-4 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -218,8 +218,8 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Enhanced Chat Area - this is the same interface used in the main chat */}
-      <div className="flex-1">
+      {/* Full Enhanced Chat Area - with padding for fixed header */}
+      <div className="flex-1 pt-16">
         <EnhancedChatArea 
           isDemoMode={true}
           demoTimeLeft={timeLeft}
