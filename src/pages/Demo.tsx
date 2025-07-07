@@ -8,7 +8,7 @@ import { ArrowLeft, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
-import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
+import { ChatArea } from '@/components/chat/ChatArea';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
@@ -165,7 +165,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - use the same unified EnhancedChatArea
+  // Demo is running - use the same ChatArea component that appears after Progress navigation
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
@@ -217,9 +217,9 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface - using the same unified component */}
+      {/* Main Chat Interface - using the same ChatArea component */}
       <main className="flex-1">
-        <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
+        <ChatArea />
       </main>
 
       {/* Time Warning Modal */}
