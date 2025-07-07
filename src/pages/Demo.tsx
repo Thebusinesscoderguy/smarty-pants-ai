@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -168,7 +167,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the actual chat interface with modern UI
+  // Demo is running - show the enhanced chat interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
@@ -220,7 +219,7 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface with modern design */}
+      {/* Main Chat Interface using EnhancedChatArea */}
       <main className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="h-full">
           <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
