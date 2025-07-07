@@ -6,8 +6,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageSquare, Send, Sparkles, Brain, BookOpen, Target, User, Bot, Settings, BarChart3, TestTube } from 'lucide-react';
+import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -16,7 +18,13 @@ const Chat = () => {
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isVoiceResponse, setIsVoiceResponse] = useState(true);
+  const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, message_count: number}>>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('chat');
 
   useEffect(() => {
@@ -29,6 +37,15 @@ const Chat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Initialize with demo chat sessions
+    setChatSessions([
+      { id: '1', title: 'Math Help Session', created_at: new Date().toISOString(), message_count: 5 },
+      { id: '2', title: 'Science Questions', created_at: new Date().toISOString(), message_count: 3 },
+      { id: '3', title: 'History Discussion', created_at: new Date().toISOString(), message_count: 8 },
+    ]);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -81,17 +98,18 @@ const Chat = () => {
   );
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() && !selectedFile) return;
 
     const userMessage = {
       id: Date.now().toString(),
-      content: inputMessage,
+      content: selectedFile ? `[File: ${selectedFile.name}] ${inputMessage}` : inputMessage,
       isUser: true,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setSelectedFile(null);
     setIsLoading(true);
 
     // Simulate AI response
@@ -107,28 +125,44 @@ const Chat = () => {
     }, 1000);
   };
 
-  const quickActions = [
-    { 
-      icon: Brain, 
-      label: 'Create Curriculum', 
-      action: () => setInputMessage('I want to create a custom AI curriculum. Please help me get started.') 
-    },
-    { 
-      icon: BookOpen, 
-      label: 'Study Help', 
-      action: () => setInputMessage('I need help studying for my upcoming exam. Can you create a study plan?') 
-    },
-    { 
-      icon: Target, 
-      label: 'Set Goals', 
-      action: () => setInputMessage('Help me set learning goals and track my progress.') 
-    },
-    { 
-      icon: TestTube, 
-      label: 'Create Tests', 
-      action: () => navigate('/progress') 
-    },
-  ];
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleVoiceToggle = () => {
+    setIsRecording(!isRecording);
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setActiveSessionId(null);
+    setInputMessage('');
+    setSelectedFile(null);
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    // Load messages for selected session (demo data)
+    setMessages([
+      { id: '1', content: 'Hello! How can I help you today?', isUser: false, timestamp: new Date() },
+      { id: '2', content: 'I need help with mathematics', isUser: true, timestamp: new Date() },
+    ]);
+  };
+
+  const deleteSession = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setChatSessions(prev => prev.filter(s => s.id !== sessionId));
+    if (activeSessionId === sessionId) {
+      handleNewChat();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
@@ -148,99 +182,205 @@ const Chat = () => {
         </div>
       </div>
 
-      <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent flex items-center">
-            <MessageSquare className="mr-4 h-14 w-14 text-purple-400" />
-            AI Learning Assistant
-          </h1>
-          <p className="text-slate-300 text-xl">
-            Your personal AI tutor is ready to help you learn anything
-          </p>
+      <main className="flex-1 flex max-w-7xl mx-auto w-full">
+        {/* Sidebar for Previous Chats */}
+        <div className="w-80 bg-white/5 border-r border-white/10 p-4 space-y-4">
+          <Button
+            onClick={handleNewChat}
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl"
+          >
+            <MessageSquarePlus className="h-4 w-4 mr-2" />
+            New Chat
+          </Button>
+
+          <Separator className="bg-white/20" />
+
+          <div>
+            <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Previous Chats</h3>
+            <ScrollArea className="h-[calc(100vh-300px)]">
+              <div className="space-y-2">
+                {chatSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    onClick={() => handleSelectSession(session.id)}
+                    className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                      activeSessionId === session.id
+                        ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
+                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-white truncate font-medium">{session.title}</p>
+                        <p className="text-xs text-white/60">
+                          {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => deleteSession(session.id, e)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
+                    >
+                      <Trash2 className="h-3 w-3 text-red-400" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
 
-        {/* Chat Container */}
-        <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl">
-          {/* Messages Area */}
-          <div className="flex-1 p-8 overflow-y-auto space-y-6">
-            {messages.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                  <Sparkles className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                  <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
-                  <p className="text-slate-300 text-xl">Start a conversation or try one of these quick actions:</p>
-                </div>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-                  {quickActions.map((action, index) => (
-                    <Card key={index} className="bg-white/10 border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group rounded-2xl" onClick={action.action}>
-                      <CardContent className="p-6 text-center">
-                        <div className="p-4 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl inline-block mb-4 group-hover:scale-110 transition-transform duration-300 border border-white/10">
-                          <action.icon className="h-8 w-8 text-purple-400" />
-                        </div>
-                        <h4 className="text-white font-semibold text-lg">{action.label}</h4>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                    <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
-                      {message.isUser ? <User className="h-5 w-5 text-white" /> : <Bot className="h-5 w-5 text-purple-400" />}
-                    </div>
-                    <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20`}>
-                      <p className="text-lg leading-relaxed">{message.content}</p>
-                      <p className="text-sm mt-3 opacity-70">
-                        {formatTime(message.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-            
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex items-start space-x-3 max-w-4xl">
-                  <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
-                    <Bot className="h-5 w-5 text-purple-400" />
-                  </div>
-                  <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
-                    <div className="flex space-x-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <div className="p-8">
+            <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent flex items-center">
+              <MessageSquare className="mr-4 h-14 w-14 text-purple-400" />
+              AI Learning Assistant
+            </h1>
+            <p className="text-slate-300 text-xl">
+              Your personal AI tutor is ready to help you learn anything
+            </p>
           </div>
 
-          {/* Input Area */}
-          <div className="p-6 border-t border-white/20">
-            <div className="flex space-x-4">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Ask me anything about learning..."
-                  className="w-full px-6 py-4 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
-                />
+          {/* Chat Container */}
+          <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
+            {/* Messages Area */}
+            <div className="flex-1 p-8 overflow-y-auto space-y-6">
+              {messages.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
+                    <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
+                    <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
+                    <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
+                  </div>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                      <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
+                        {message.isUser ? <User className="h-5 w-5 text-white" /> : <Bot className="h-5 w-5 text-purple-400" />}
+                      </div>
+                      <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20`}>
+                        <p className="text-lg leading-relaxed">{message.content}</p>
+                        <p className="text-sm mt-3 opacity-70">
+                          {formatTime(message.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex items-start space-x-3 max-w-4xl">
+                    <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
+                      <Bot className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-6 border-t border-white/20">
+              {selectedFile && (
+                <div className="mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm">
+                  <div className="flex items-center space-x-3">
+                    <Upload className="h-5 w-5 text-blue-400" />
+                    <span className="text-white font-medium">{selectedFile.name}</span>
+                  </div>
+                  <Button
+                    onClick={() => setSelectedFile(null)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl"
+                  >
+                    ×
+                  </Button>
+                </div>
+              )}
+              
+              <div className="flex space-x-4">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Ask me anything about learning..."
+                    className="w-full px-6 py-4 pr-40 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
+                  />
+                  
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                  />
+                  
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                    <Button
+                      onClick={handleFileUpload}
+                      variant="ghost"
+                      size="sm"
+                      className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                      title="Upload file"
+                    >
+                      <Upload className="h-5 w-5" />
+                    </Button>
+                    
+                    <Button
+                      onClick={handleVoiceToggle}
+                      variant="ghost"
+                      size="sm"
+                      className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
+                        isRecording 
+                          ? 'text-red-400 hover:text-red-300 bg-red-500/20 hover:bg-red-500/30' 
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                      title={isRecording ? 'Stop recording' : 'Start recording'}
+                    >
+                      {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                    </Button>
+                    
+                    <Button
+                      onClick={() => setIsVoiceResponse(!isVoiceResponse)}
+                      variant="ghost"
+                      size="sm"
+                      className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
+                        isVoiceResponse 
+                          ? 'text-purple-400 hover:text-purple-300 bg-purple-500/20 hover:bg-purple-500/30' 
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                      title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
+                    >
+                      <Volume2 className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
               </div>
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isLoading}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
-              >
-                <Send className="h-5 w-5" />
-              </Button>
             </div>
           </div>
         </div>
