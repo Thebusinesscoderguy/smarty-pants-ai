@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, BookOpen, Brain, Users, Trophy, Target, MessageSquare, BarChart3, Sparkles } from 'lucide-react';
