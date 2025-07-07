@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -25,7 +25,6 @@ const Demo = () => {
       interval = setInterval(() => {
         setTimeLeft((time) => {
           const newTime = time - 1;
-          // Show warning at 2 minutes remaining
           if (newTime === 120) {
             setShowTimeWarning(true);
           }
@@ -36,10 +35,8 @@ const Demo = () => {
     return () => clearInterval(interval);
   }, [demoStarted, isPaused, timeLeft]);
 
-  // Auto-redirect when time runs out
   useEffect(() => {
     if (timeLeft <= 0 && demoStarted) {
-      // Show signup/pricing options
       setShowTimeWarning(true);
     }
   }, [timeLeft, demoStarted]);
@@ -167,7 +164,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the enhanced chat interface
+  // Demo is running - use the unified EnhancedChatArea with demo timer
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
@@ -219,11 +216,9 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface using EnhancedChatArea */}
-      <main className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="h-full">
-          <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
-        </div>
+      {/* Main Chat Interface - using the same unified component */}
+      <main className="flex-1">
+        <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
       </main>
 
       {/* Time Warning Modal */}
