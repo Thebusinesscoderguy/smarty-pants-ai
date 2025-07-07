@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { selectedVoice, changeVoice } = useVoiceSettings();
+  const { selectedVoice, changeVoice, testVoice } = useVoiceSettings();
   const [isLoading, setIsLoading] = useState(false);
 
   const VOICE_OPTIONS = [
@@ -26,37 +25,6 @@ const Settings = () => {
     { value: 'nova', label: 'Nova', description: 'Bright and energetic' },
     { value: 'shimmer', label: 'Shimmer', description: 'Gentle and soothing' },
   ];
-
-  const testVoice = async () => {
-    const selectedVoiceOption = VOICE_OPTIONS.find(v => v.value === selectedVoice);
-    
-    try {
-      const testText = `Hello! This is a test of the ${selectedVoiceOption?.label} voice. How does this sound to you?`;
-      
-      const { data, error } = await supabase.functions.invoke('text-to-voice', {
-        body: { text: testText, voice: selectedVoice }
-      });
-
-      if (error) throw error;
-
-      if (data?.audioContent) {
-        const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-        await audio.play();
-        
-        toast({
-          title: "Voice Test",
-          description: `Testing ${selectedVoiceOption?.label} voice...`,
-        });
-      }
-    } catch (error: any) {
-      console.error('Voice test error:', error);
-      toast({
-        title: "Voice Test Failed",
-        description: "Could not test voice. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleRemoveStudent = async () => {
     if (!user) return;
