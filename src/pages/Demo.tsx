@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,7 @@ const Demo = () => {
     setShowRoleSelection(false);
   };
 
+  // Role selection screen
   if (!role) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -101,6 +103,7 @@ const Demo = () => {
     );
   }
 
+  // Pre-demo start screen
   if (!demoStarted) {
     const roleTitle = role === 'school' ? 'School Administrator' : role === 'parent' ? 'Parent Dashboard' : 'Student Learning';
     
@@ -164,7 +167,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - use the unified EnhancedChatArea with demo timer
+  // Demo is running - use the enhanced chat interface with demo timer header
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
@@ -216,7 +219,7 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface - using the same unified component */}
+      {/* Main Chat Interface - using the enhanced chat interface */}
       <main className="flex-1">
         <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
       </main>
