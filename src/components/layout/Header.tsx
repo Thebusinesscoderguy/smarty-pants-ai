@@ -4,21 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopNavBar } from './TopNavBar';
 
 export const Header = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isDemoMode = location.pathname.startsWith('/demo');
   
-  // If user is logged in, show the TopNavBar instead
-  if (user) {
+  // If user is logged in or in demo mode, show the TopNavBar instead
+  if (user || isDemoMode) {
     return <TopNavBar />;
   }
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, language } = useLanguage();
-  const navigate = useNavigate();
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);

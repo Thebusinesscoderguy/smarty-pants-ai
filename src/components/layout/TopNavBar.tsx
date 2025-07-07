@@ -17,6 +17,7 @@ export const TopNavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, isSigningOut } = useAuth();
+  const isDemoMode = location.pathname.startsWith('/demo');
   const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(null);
 
   const handleSignOut = async () => {
@@ -59,7 +60,7 @@ export const TopNavBar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  if (!user) return null;
+  if (!user && !isDemoMode) return null;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-white/10">
@@ -153,17 +154,19 @@ export const TopNavBar = () => {
             </Button>
           </div>
 
-          {/* Sign Out */}
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            size="sm"
-            disabled={isSigningOut}
-            className="border-white/20 bg-white/10 text-white hover:bg-white/20 rounded-xl px-4 py-2"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {isSigningOut ? 'Signing out...' : 'Sign Out'}
-          </Button>
+          {/* Sign Out - only show for authenticated users, not demo */}
+          {!isDemoMode && (
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              disabled={isSigningOut}
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20 rounded-xl px-4 py-2"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {isSigningOut ? 'Signing out...' : 'Sign Out'}
+            </Button>
+          )}
         </div>
       </div>
 
