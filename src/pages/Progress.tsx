@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,7 @@ import { DemoQuestDisplay } from '@/components/demo/DemoQuestDisplay';
 import { DemoAchievements } from '@/components/demo/DemoAchievements';
 import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { CurriculumSelector } from '@/components/CurriculumSelector';
-import { BarChart3, BookOpen, Target, Award, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock } from 'lucide-react';
+import { BarChart3, BookOpen, Target, Award, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -204,6 +203,245 @@ const Progress = () => {
     );
   };
 
+  const renderTestsTab = () => {
+    // Demo tests data
+    const demoTests = [
+      {
+        id: '1',
+        title: 'Mathematics Assessment',
+        subject: 'Mathematics',
+        status: 'completed',
+        score: 85,
+        totalQuestions: 20,
+        completedAt: '2024-01-15',
+        timeSpent: 45,
+        difficulty: 'Medium'
+      },
+      {
+        id: '2',
+        title: 'Science Quiz',
+        subject: 'Science',
+        status: 'completed',
+        score: 92,
+        totalQuestions: 15,
+        completedAt: '2024-01-12',
+        timeSpent: 30,
+        difficulty: 'Easy'
+      },
+      {
+        id: '3',
+        title: 'History Test',
+        subject: 'History',
+        status: 'available',
+        score: null,
+        totalQuestions: 25,
+        completedAt: null,
+        timeSpent: null,
+        difficulty: 'Hard'
+      },
+      {
+        id: '4',
+        title: 'English Comprehension',
+        subject: 'English',
+        status: 'in_progress',
+        score: null,
+        totalQuestions: 18,
+        completedAt: null,
+        timeSpent: 15,
+        difficulty: 'Medium'
+      }
+    ];
+
+    const getStatusIcon = (status: string) => {
+      switch (status) {
+        case 'completed':
+          return <CheckCircle className="h-5 w-5 text-green-400" />;
+        case 'in_progress':
+          return <Play className="h-5 w-5 text-blue-400" />;
+        case 'available':
+          return <FileText className="h-5 w-5 text-gray-400" />;
+        default:
+          return <XCircle className="h-5 w-5 text-red-400" />;
+      }
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'completed':
+          return 'text-green-400 bg-green-400/20';
+        case 'in_progress':
+          return 'text-blue-400 bg-blue-400/20';
+        case 'available':
+          return 'text-gray-400 bg-gray-400/20';
+        default:
+          return 'text-red-400 bg-red-400/20';
+      }
+    };
+
+    const getDifficultyColor = (difficulty: string) => {
+      switch (difficulty) {
+        case 'Easy':
+          return 'text-green-400 bg-green-400/20';
+        case 'Medium':
+          return 'text-yellow-400 bg-yellow-400/20';
+        case 'Hard':
+          return 'text-red-400 bg-red-400/20';
+        default:
+          return 'text-gray-400 bg-gray-400/20';
+      }
+    };
+
+    return (
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Tests & Assessments
+            </h3>
+            <p className="text-white/70 text-lg">Track your test performance and take new assessments</p>
+          </div>
+          <Button 
+            onClick={() => navigate('/quiz-generator')}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold shadow-lg"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create Test
+          </Button>
+        </div>
+
+        {/* Test Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-green-500/30 rounded-2xl shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-400 text-sm font-medium">Completed Tests</p>
+                  <p className="text-3xl font-bold text-white">2</p>
+                </div>
+                <CheckCircle className="h-10 w-10 text-green-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border-blue-500/30 rounded-2xl shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-400 text-sm font-medium">Average Score</p>
+                  <p className="text-3xl font-bold text-white">88.5%</p>
+                </div>
+                <TrendingUp className="h-10 w-10 text-blue-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500/30 rounded-2xl shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-400 text-sm font-medium">Available Tests</p>
+                  <p className="text-3xl font-bold text-white">1</p>
+                </div>
+                <FileText className="h-10 w-10 text-purple-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-600/20 to-red-600/20 border-orange-500/30 rounded-2xl shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-400 text-sm font-medium">In Progress</p>
+                  <p className="text-3xl font-bold text-white">1</p>
+                </div>
+                <Play className="h-10 w-10 text-orange-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tests List */}
+        <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-2xl shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-white text-2xl flex items-center">
+              <FileText className="mr-3 h-6 w-6 text-blue-400" />
+              Your Tests
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {demoTests.map((test) => (
+                <div
+                  key={test.id}
+                  className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all duration-200"
+                >
+                  <div className="flex items-center space-x-4">
+                    {getStatusIcon(test.status)}
+                    <div>
+                      <h4 className="text-white font-semibold text-lg">{test.title}</h4>
+                      <div className="flex items-center space-x-4 mt-1">
+                        <span className="text-white/60 text-sm">{test.subject}</span>
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getDifficultyColor(test.difficulty)}`}>
+                          {test.difficulty}
+                        </span>
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(test.status)}`}>
+                          {test.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-6">
+                    <div className="text-right">
+                      <div className="text-white/60 text-sm">Questions</div>
+                      <div className="text-white font-semibold">{test.totalQuestions}</div>
+                    </div>
+
+                    {test.status === 'completed' && (
+                      <>
+                        <div className="text-right">
+                          <div className="text-white/60 text-sm">Score</div>
+                          <div className={`font-semibold ${test.score >= 80 ? 'text-green-400' : test.score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {test.score}%
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-white/60 text-sm">Time</div>
+                          <div className="text-white font-semibold">{test.timeSpent}m</div>
+                        </div>
+                      </>
+                    )}
+
+                    {test.status === 'in_progress' && (
+                      <div className="text-right">
+                        <div className="text-white/60 text-sm">Time Spent</div>
+                        <div className="text-white font-semibold">{test.timeSpent}m</div>
+                      </div>
+                    )}
+
+                    <Button
+                      variant={test.status === 'completed' ? 'outline' : 'default'}
+                      size="sm"
+                      className={
+                        test.status === 'completed'
+                          ? 'border-white/20 text-white hover:bg-white/10'
+                          : test.status === 'in_progress'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                      }
+                    >
+                      {test.status === 'completed' ? 'Review' : test.status === 'in_progress' ? 'Continue' : 'Start Test'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex items-center justify-center">
@@ -252,7 +490,7 @@ const Progress = () => {
         </div>
 
         <Tabs defaultValue="monitoring" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="monitoring" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
@@ -281,6 +519,13 @@ const Progress = () => {
               <Award className="h-4 w-4 mr-2" />
               Achievements
             </TabsTrigger>
+            <TabsTrigger 
+              value="tests" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Tests
+            </TabsTrigger>
           </TabsList>
 
           <div className="space-y-8">
@@ -298,6 +543,10 @@ const Progress = () => {
 
             <TabsContent value="achievements" className="space-y-8">
               {user ? <StudentAchievements /> : <DemoAchievements />}
+            </TabsContent>
+
+            <TabsContent value="tests" className="space-y-8">
+              {renderTestsTab()}
             </TabsContent>
           </div>
         </Tabs>
