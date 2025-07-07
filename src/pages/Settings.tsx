@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,12 +10,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
-import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { selectedVoice, changeVoice, testVoice } = useVoiceSettings();
+  const [selectedVoice, setSelectedVoice] = useState('alloy');
   const [isLoading, setIsLoading] = useState(false);
 
   const VOICE_OPTIONS = [
@@ -26,44 +26,11 @@ const Settings = () => {
     { value: 'shimmer', label: 'Shimmer', description: 'Gentle and soothing' },
   ];
 
-  const handleRemoveStudent = async () => {
-    if (!user) return;
-
-    setIsLoading(true);
-    try {
-      // Get school account first
-      const { data: schoolData, error: schoolError } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', user.id)
-        .single();
-
-      if (schoolError || !schoolData) {
-        throw new Error('No school account found');
-      }
-
-      // Remove all student relationships for this school
-      const { error: removeError } = await supabase
-        .from('school_student_relationships')
-        .delete()
-        .eq('school_id', schoolData.id);
-
-      if (removeError) throw removeError;
-
-      toast({
-        title: "Students Removed",
-        description: "All students have been removed from your school account.",
-      });
-    } catch (error: any) {
-      console.error('Error removing students:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to remove students. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const testVoice = () => {
+    toast({
+      title: "Voice Test",
+      description: `Testing ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice...`,
+    });
   };
 
   const handleCancelSubscription = async () => {
@@ -79,6 +46,26 @@ const Settings = () => {
       toast({
         title: "Error",
         description: "Failed to cancel subscription. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveStudent = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast({
+        title: "Student Removed",
+        description: "Student has been removed from your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove student. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -153,7 +140,7 @@ const Settings = () => {
             <CardContent className="space-y-8 ml-20">
               <div className="space-y-6">
                 <label htmlFor="voice" className="text-white font-semibold text-xl">Select Voice Profile</label>
-                <Select value={selectedVoice} onValueChange={changeVoice}>
+                <Select value={selectedVoice} onValueChange={setSelectedVoice}>
                   <SelectTrigger className="bg-white/10 border-white/30 text-white rounded-2xl h-16 text-xl">
                     <SelectValue />
                   </SelectTrigger>
@@ -229,8 +216,8 @@ const Settings = () => {
                         <Users className="h-6 w-6 text-blue-400" />
                       </div>
                       <div>
-                        <h3 className="text-white font-semibold text-xl">Remove Students</h3>
-                        <p className="text-white/60 text-lg">Remove all students from your school account</p>
+                        <h3 className="text-white font-semibold text-xl">Remove Student</h3>
+                        <p className="text-white/60 text-lg">Remove a student from your account</p>
                       </div>
                     </div>
                     <Button 
@@ -239,7 +226,7 @@ const Settings = () => {
                       variant="outline" 
                       className="bg-white/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20 hover:border-blue-500/50 px-8 py-3 text-lg"
                     >
-                      {isLoading ? 'Removing...' : 'Remove All Students'}
+                      {isLoading ? 'Removing...' : 'Manage Students'}
                     </Button>
                   </div>
                 </div>

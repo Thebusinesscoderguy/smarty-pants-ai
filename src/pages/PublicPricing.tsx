@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CheckCircle, Users, User, ArrowRight, Building } from 'lucide-react';
+import { CheckCircle, Users, User, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
@@ -20,7 +20,7 @@ const PublicPricing = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto">
             {/* Individual Plan */}
             <Card className="w-full bg-black border border-white/20 text-white relative hover:border-purple-500/50 transition-all duration-300">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-bold">
@@ -171,86 +171,6 @@ const PublicPricing = () => {
                 </Button>
                 <p className="text-xs text-white/60 text-center">
                   Contact us for enterprise solutions
-                </p>
-              </CardFooter>
-            </Card>
-
-            {/* School Plan - FIXED PRICING */}
-            <Card className="w-full bg-black border border-green-500/50 text-white relative hover:border-green-400/70 transition-all duration-300">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-1 rounded-full text-sm font-bold">
-                SCHOOL
-              </div>
-              <CardHeader className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Building className="h-6 w-6" />
-                  <span className="text-lg font-semibold">School</span>
-                </div>
-                <CardTitle className="text-4xl font-bold">$199/month</CardTitle>
-                <CardDescription className="text-white/70">
-                  Up to 500 students included
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 text-center">
-                <div>
-                  <p className="text-xl mb-2">Everything in Business, plus:</p>
-                  <p className="text-white/70 mb-4">Full school management & advanced features</p>
-                </div>
-                
-                <ul className="space-y-3 text-left">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>All Business features included</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>Up to 500 students included</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>School-wide analytics & reporting</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>Custom curriculum management</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>Teacher training & onboarding</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>Dedicated account manager</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                    <span>Advanced security & compliance</span>
-                  </li>
-                </ul>
-                
-                <div className="bg-green-900/20 p-4 rounded-lg text-left">
-                  <h4 className="font-semibold mb-2">What's included:</h4>
-                  <ul className="text-sm space-y-1 text-green-200">
-                    <li>• Complete school management platform</li>
-                    <li>• Email invitations for students & teachers</li>
-                    <li>• Bulk enrollment & class management</li>
-                    <li>• Priority technical support</li>
-                    <li>• Custom integrations with school systems</li>
-                  </ul>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col gap-3">
-                <Button 
-                  className="w-full bg-green-600 hover:bg-green-700" 
-                  size="lg"
-                  asChild
-                >
-                  <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
-                    Start Free Trial
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <p className="text-xs text-white/60 text-center">
-                  14-day free trial for schools
                 </p>
               </CardFooter>
             </Card>
