@@ -5,14 +5,20 @@ import { Menu, X } from 'lucide-react';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { TopNavBar } from './TopNavBar';
 
 export const Header = () => {
+  const { user } = useAuth();
+  
+  // If user is logged in, show the TopNavBar instead
+  if (user) {
+    return <TopNavBar />;
+  }
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-
-  console.log('Header rendering with language:', language);
-  console.log('Header: t function type:', typeof t);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -27,13 +33,6 @@ export const Header = () => {
   const pricingText = t('nav.pricing');
   const aboutText = t('nav.about');
   const contactText = t('nav.contact');
-
-  console.log('Header translations:', {
-    features: featuresText,
-    pricing: pricingText,
-    about: aboutText,
-    contact: contactText
-  });
 
   return (
     <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8">
