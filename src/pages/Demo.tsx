@@ -26,6 +26,7 @@ const Demo = () => {
       interval = setInterval(() => {
         setTimeLeft((time) => {
           const newTime = time - 1;
+          // Show warning at 2 minutes remaining
           if (newTime === 120) {
             setShowTimeWarning(true);
           }
@@ -36,8 +37,10 @@ const Demo = () => {
     return () => clearInterval(interval);
   }, [demoStarted, isPaused, timeLeft]);
 
+  // Auto-redirect when time runs out
   useEffect(() => {
     if (timeLeft <= 0 && demoStarted) {
+      // Show signup/pricing options
       setShowTimeWarning(true);
     }
   }, [timeLeft, demoStarted]);
@@ -65,7 +68,6 @@ const Demo = () => {
     setShowRoleSelection(false);
   };
 
-  // Role selection screen
   if (!role) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -103,7 +105,6 @@ const Demo = () => {
     );
   }
 
-  // Pre-demo start screen
   if (!demoStarted) {
     const roleTitle = role === 'school' ? 'School Administrator' : role === 'parent' ? 'Parent Dashboard' : 'Student Learning';
     
@@ -167,7 +168,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - use the enhanced chat interface with demo timer header
+  // Demo is running - show the actual chat interface with modern UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
       {/* Demo Header with Timer */}
@@ -219,9 +220,11 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface - using the enhanced chat interface */}
-      <main className="flex-1">
-        <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
+      {/* Main Chat Interface with modern design */}
+      <main className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="h-full">
+          <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
+        </div>
       </main>
 
       {/* Time Warning Modal */}
