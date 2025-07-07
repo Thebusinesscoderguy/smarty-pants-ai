@@ -64,6 +64,7 @@ const Demo = () => {
   const handleRoleSelect = (selectedRole: string) => {
     navigate(`/demo?role=${selectedRole}`);
     setShowRoleSelection(false);
+    setDemoStarted(true); // Automatically start demo after role selection
   };
 
   if (!role) {
@@ -166,31 +167,31 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the enhanced chat interface with demo timer overlay
+  // Demo is running - show the enhanced chat interface with overlay timer
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative">
       {/* Demo Timer Overlay - Fixed position */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-white/10 p-4 backdrop-blur-xl">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600/90 to-blue-600/90 border-b border-white/20 p-3 backdrop-blur-xl shadow-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
               size="sm"
-              className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2"
+              className="border-white/30 bg-white/20 hover:bg-white/30 text-white rounded-xl px-3 py-1 text-sm font-medium"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Exit Demo
             </Button>
-            <span className="text-sm text-slate-300 bg-white/10 px-3 py-1 rounded-xl">Demo Mode</span>
+            <span className="text-sm text-white/90 bg-white/20 px-3 py-1 rounded-xl font-medium">Demo Mode</span>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {timeLeft > 0 ? (
               <>
-                <div className="flex items-center space-x-2 px-3 py-1 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
-                  <Clock className="h-4 w-4" />
-                  <span className={`font-mono text-sm ${timeLeft <= 120 ? 'text-yellow-400' : 'text-white'}`}>
+                <div className="flex items-center space-x-2 px-3 py-1 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
+                  <Clock className="h-4 w-4 text-white" />
+                  <span className={`font-mono text-sm font-semibold ${timeLeft <= 120 ? 'text-yellow-300' : 'text-white'}`}>
                     {formatTime(timeLeft)} remaining
                   </span>
                 </div>
@@ -198,7 +199,7 @@ const Demo = () => {
                   onClick={() => setIsPaused(!isPaused)}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-2 py-1"
+                  className="border-white/30 bg-white/20 hover:bg-white/30 text-white rounded-xl px-2 py-1"
                 >
                   {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                 </Button>
@@ -206,20 +207,20 @@ const Demo = () => {
                   onClick={resetDemo}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl px-2 py-1"
+                  className="border-white/30 bg-white/20 hover:bg-white/30 text-white rounded-xl px-2 py-1"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
               </>
             ) : (
-              <div className="text-red-400 font-semibold text-sm">Demo Time Expired</div>
+              <div className="text-red-300 font-semibold text-sm bg-red-500/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Full Enhanced Chat Area - with padding for fixed header */}
-      <div className="flex-1 pt-16">
+      {/* Enhanced Chat Area - exactly like your screenshots */}
+      <div className="flex-1 pt-14">
         <EnhancedChatArea 
           isDemoMode={true}
           demoTimeLeft={timeLeft}
@@ -228,7 +229,7 @@ const Demo = () => {
 
       {/* Time Warning Modal */}
       {(showTimeWarning || timeLeft <= 0) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-white/20 max-w-lg w-full shadow-2xl rounded-3xl">
             <CardHeader>
               <CardTitle className="text-white text-center text-2xl">
