@@ -1,10 +1,10 @@
 
-import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
+import { ChatArea } from '@/components/chat/ChatArea';
 
 const Chat = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <EnhancedChatArea />
+      <ChatArea />
     </div>
   );
 };
