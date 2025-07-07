@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
@@ -169,7 +169,7 @@ const Settings = () => {
         </div>
 
         <div className="grid gap-12">
-          {/* AI Voice Settings - FIXED */}
+          {/* AI Voice Settings */}
           <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
             <CardHeader className="pb-8">
               <CardTitle className="text-white flex items-center text-3xl">
@@ -217,7 +217,7 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* Account Management - FIXED */}
+          {/* Account Management */}
           <Card className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border-red-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
             <CardHeader className="pb-8">
               <CardTitle className="text-white flex items-center text-3xl">
