@@ -5,11 +5,13 @@ import { Menu, X } from 'lucide-react';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   console.log('Header rendering with language:', language);
   console.log('Header: t function type:', typeof t);
@@ -19,6 +21,15 @@ export const Header = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setIsMenuOpen(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
     }
   };
 
@@ -34,6 +45,9 @@ export const Header = () => {
     about: aboutText,
     contact: contactText
   });
+
+  // Get first name from user metadata
+  const firstName = user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
 
   return (
     <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8">
@@ -74,19 +88,35 @@ export const Header = () => {
               {contactText}
             </button>
             <LanguageSelector />
-            <Button 
-              onClick={() => navigate('/auth')}
-              variant="outline" 
-              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-            >
-              Login
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth?signup=true')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-            >
-              Sign Up
-            </Button>
+            
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-white/80">Welcome, {firstName}!</span>
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  Login
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth?signup=true')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -131,21 +161,35 @@ export const Header = () => {
               >
                 {contactText}
               </button>
-              <div className="flex flex-col space-y-2 pt-2">
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  variant="outline" 
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                >
-                  Login
-                </Button>
-                <Button 
-                  onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-                >
-                  Sign Up
-                </Button>
-              </div>
+              
+              {user ? (
+                <div className="flex flex-col space-y-2 pt-2">
+                  <span className="text-white/80 py-2">Welcome, {firstName}!</span>
+                  <Button 
+                    onClick={handleSignOut}
+                    variant="outline" 
+                    className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                  >
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-2 pt-2">
+                  <Button 
+                    onClick={() => navigate('/auth')}
+                    variant="outline" 
+                    className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                  >
+                    Login
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/auth?signup=true')}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
