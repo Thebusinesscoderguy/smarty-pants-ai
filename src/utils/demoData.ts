@@ -430,6 +430,55 @@ export const demoParentData = {
   ]
 };
 
+// Demo AI Student Summaries
+export const demoAISummaries = [
+  {
+    id: 'ai-summary-1',
+    student_id: 'student-1',
+    student_name: 'Emma Johnson',
+    summary_text: 'Emma demonstrates exceptional analytical thinking and consistently excels in mathematical concepts. She shows particular strength in algebra and statistical analysis, often completing problems ahead of schedule with remarkable accuracy. Her logical approach to problem-solving and attention to detail make her a standout performer in quantitative subjects.\n\nTo further enhance her learning journey, Emma could benefit from more challenging advanced mathematics modules and exploration of real-world applications. Consider introducing her to programming concepts and data science fundamentals to build upon her analytical strengths. Encouraging peer tutoring opportunities would also help develop her leadership skills while reinforcing her own understanding.',
+    strengths: ['Algebra', 'Statistics', 'Problem Solving', 'Mathematical Reasoning'],
+    weaknesses: ['Creative Writing', 'Art History'],
+    improvement_metrics: {
+      overall_trend: 'improving',
+      focus_areas: ['Advanced Mathematics', 'Programming Concepts'],
+      recommended_actions: ['Enroll in advanced math track', 'Introduce coding basics', 'Consider math competition team']
+    },
+    generated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    expires_at: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'ai-summary-2',
+    student_id: 'student-2',
+    student_name: 'Marcus Chen',
+    summary_text: 'Marcus shows strong comprehension skills and demonstrates steady progress across multiple subjects. He excels in science topics, particularly biology and chemistry, where his curiosity and methodical approach to experiments shine. His ability to connect theoretical concepts with practical applications indicates strong analytical thinking and scientific reasoning.\n\nMarcus would benefit from additional support in mathematics fundamentals to strengthen his foundation for advanced science courses. Implementing more visual learning aids and hands-on laboratory experiences could further enhance his understanding. Consider grouping him with peers for collaborative projects to develop teamwork skills while maintaining his scientific interests.',
+    strengths: ['Biology', 'Chemistry', 'Scientific Method', 'Laboratory Skills'],
+    weaknesses: ['Advanced Mathematics', 'Literary Analysis'],
+    improvement_metrics: {
+      overall_trend: 'stable',
+      focus_areas: ['Mathematics Foundation', 'Reading Comprehension'],
+      recommended_actions: ['Math tutoring sessions', 'Science fair participation', 'Reading group enrollment']
+    },
+    generated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    expires_at: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'ai-summary-3',
+    student_id: 'student-3',
+    student_name: 'Sophia Rodriguez',
+    summary_text: 'Sophia displays remarkable creativity and strong communication skills, particularly excelling in language arts and social studies. Her writing demonstrates sophisticated vocabulary and clear argumentative structure, while her presentations show confidence and engaging delivery. She actively participates in class discussions and shows empathy in group collaboration.\n\nTo maximize her potential, Sophia should focus on strengthening her mathematical reasoning skills through more practice with word problems and logical sequences. Introducing interdisciplinary projects that combine her writing strengths with analytical thinking could help bridge this gap. Consider advanced creative writing workshops and debate team participation to further develop her communication talents.',
+    strengths: ['Creative Writing', 'Public Speaking', 'Social Studies', 'Literature Analysis'],
+    weaknesses: ['Algebra', 'Geometry', 'Scientific Notation'],
+    improvement_metrics: {
+      overall_trend: 'improving',
+      focus_areas: ['Mathematical Problem Solving', 'Science Applications'],
+      recommended_actions: ['Math word problem practice', 'Join debate team', 'Creative writing workshop']
+    },
+    generated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    expires_at: new Date(Date.now() + 27 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
 // Helper functions to get demo data
 export const getDemoQuestData = () => demoParentData.quests;
 export const getDemoAchievementData = () => demoParentData.achievements;
@@ -438,15 +487,18 @@ export const getDemoAnalyticsData = () => demoParentData.analytics;
 export const getDemoMonitoringData = () => demoParentData.monitoring;
 export const getDemoOverallStats = () => demoParentData.overallStats;
 export const getDemoRecentActivity = () => demoParentData.recentActivity;
+export const getDemoAISummaries = () => demoAISummaries;
 export const getDemoChildName = () => demoParentData.childName;
 
-// Demo data for student classifications
-export const getDemoClassifications = () => [
+export const demoStudentClassifications = [
   {
     id: 'class-1',
     student_id: 'demo-student-1',
     classification_tag: 'High Achiever',
     assigned_automatically: true,
+    assigned_by: 'demo-admin-1',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     student_name: 'Emma Johnson'
   },
   {
@@ -454,6 +506,9 @@ export const getDemoClassifications = () => [
     student_id: 'demo-student-1',
     classification_tag: 'Visual Learner',
     assigned_automatically: false,
+    assigned_by: 'demo-admin-1',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     student_name: 'Emma Johnson'
   },
   {
@@ -461,6 +516,9 @@ export const getDemoClassifications = () => [
     student_id: 'demo-student-2', 
     classification_tag: 'Needs Support',
     assigned_automatically: true,
+    assigned_by: 'demo-admin-1',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     student_name: 'Alex Smith'
   },
   {
@@ -468,56 +526,20 @@ export const getDemoClassifications = () => [
     student_id: 'demo-student-3',
     classification_tag: 'STEM Focused',
     assigned_automatically: true,
+    assigned_by: 'demo-admin-1',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     student_name: 'Sarah Chen'
   }
 ];
 
-// Demo data for AI summaries
-export const getDemoAISummaries = () => [
-  {
-    id: 'ai-1',
-    student_id: 'demo-student-1',
-    student_name: 'Emma Johnson',
-    summary_text: `Emma demonstrates exceptional academic performance with 78% completion across all subjects, showing particular strength in Mathematics and World History. Her analytical approach to Linear Equations and Historical Timeline analysis indicates strong logical reasoning skills and attention to detail. She consistently maintains focus during 45-minute study sessions and has developed excellent self-directed learning habits.\n\nTo maximize her potential, Emma should focus on strengthening her Quadratic Functions understanding through visual learning methods that align with her learning style. Additional practice in Essay Writing Structure would help her express her strong analytical thinking in written form. With her current trajectory and recommended interventions, Emma is positioned to achieve advanced proficiency within 3-4 weeks.`,
-    strengths: ['Linear Equations', 'Historical Analysis', 'Self-Directed Learning', 'Analytical Thinking'],
-    weaknesses: ['Quadratic Functions', 'Essay Writing', 'Chemical Equations'],
-    improvement_metrics: {
-      overall_trend: 'improving',
-      focus_areas: ['Mathematics Problem Solving', 'Written Communication'],
-      recommended_actions: ['Visual math tools', 'Writing workshops', 'Peer collaboration'],
-      estimated_improvement_timeline: '3-4 weeks',
-      confidence_level: 'high'
-    },
-    generated_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'ai-2',
-    student_id: 'demo-student-2',
-    student_name: 'Alex Smith',
-    summary_text: `Alex shows steady engagement with 65% completion across subjects, demonstrating particular aptitude in Creative Writing and Art projects. While progress has been consistent, there are opportunities to accelerate learning through targeted support in core mathematical concepts. Alex responds well to hands-on activities and collaborative learning environments.\n\nImmediate focus should be placed on foundational Mathematics skills, particularly Basic Algebra and Number Operations. Implementing gamified learning approaches and peer tutoring sessions would align with Alex's collaborative learning style. With structured support and regular progress monitoring, significant improvement is expected within 4-6 weeks.`,
-    strengths: ['Creative Writing', 'Collaborative Learning', 'Art Projects'],
-    weaknesses: ['Basic Algebra', 'Number Operations', 'Reading Comprehension'],
-    improvement_metrics: {
-      overall_trend: 'stable',
-      focus_areas: ['Mathematics Fundamentals', 'Reading Skills'],
-      recommended_actions: ['Gamified learning', 'Peer tutoring', 'Regular check-ins'],
-      estimated_improvement_timeline: '4-6 weeks',
-      confidence_level: 'medium'
-    },
-    generated_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-  }
-];
-
-// Demo data for content assignments
-export const getDemoContentAssignments = () => [
+export const demoContentAssignments = [
   {
     id: 'assign-1',
-    content_type: 'test',
+    content_type: 'test' as const,
     content_id: 'test-1',
     content_title: 'Algebra Fundamentals Quiz',
-    assignment_type: 'classification',
+    assignment_type: 'classification' as const,
     classification_tag: 'Needs Support',
     student_count: 5,
     assigned_by: 'demo-admin',
@@ -527,10 +549,10 @@ export const getDemoContentAssignments = () => [
   },
   {
     id: 'assign-2',
-    content_type: 'quest',
+    content_type: 'quest' as const,
     content_id: 'quest-1', 
     content_title: 'Math Master Challenge',
-    assignment_type: 'classification',
+    assignment_type: 'classification' as const,
     classification_tag: 'High Achiever',
     student_count: 8,
     assigned_by: 'demo-admin',
@@ -539,10 +561,10 @@ export const getDemoContentAssignments = () => [
   },
   {
     id: 'assign-3',
-    content_type: 'curriculum',
+    content_type: 'curriculum' as const,
     content_id: 'curr-1',
     content_title: 'Advanced Chemistry Course',
-    assignment_type: 'classification',
+    assignment_type: 'classification' as const,
     classification_tag: 'STEM Focused',
     student_count: 12,
     assigned_by: 'demo-admin',
@@ -550,3 +572,7 @@ export const getDemoContentAssignments = () => [
     is_active: true
   }
 ];
+
+// Additional demo data exports
+export const getDemoClassifications = () => demoStudentClassifications;
+export const getDemoContentAssignments = () => demoContentAssignments;

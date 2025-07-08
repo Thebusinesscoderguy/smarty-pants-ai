@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, BookOpen, Plus } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, BookOpen, Plus, MessageSquare, Settings } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -22,6 +23,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
 const Monitoring = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('monitoring');
+  
   // Demo mode - no authentication restrictions for demonstration purposes
   const { studentProgress, overviewStats, loading: dataLoading } = useMonitoringData();
   const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
@@ -85,11 +90,52 @@ const Monitoring = () => {
     setAchievementForm({ name: '', description: '', type: 'milestone', points: 10, criteria: { requirement: '' } });
   };
 
+  const renderNavigation = () => (
+    <div className="flex items-center justify-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10 mb-8">
+      <Button
+        variant={currentPage === 'chat' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => {
+          setCurrentPage('chat');
+          navigate('/chat');
+        }}
+        className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
+      >
+        <MessageSquare className="h-4 w-4 mr-2" />
+        Chat
+      </Button>
+      <Button
+        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('monitoring')}
+        className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
+      >
+        <BarChart3 className="h-4 w-4 mr-2" />
+        Monitoring
+      </Button>
+      <Button
+        variant={currentPage === 'settings' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => {
+          setCurrentPage('settings');
+          navigate('/settings');
+        }}
+        className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
+      >
+        <Settings className="h-4 w-4 mr-2" />
+        Settings
+      </Button>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <Header />
       
       <main className="px-6 py-12 max-w-7xl mx-auto">
+        {/* Navigation */}
+        {renderNavigation()}
+        
         <div className="mb-12">
           <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center">
             <BarChart3 className="mr-6 h-16 w-16 text-blue-400" />
