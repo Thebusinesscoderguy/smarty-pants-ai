@@ -955,10 +955,157 @@ export const getDemoAchievementData = () => demoParentData.achievements;
 export const getDemoSubjectData = () => demoParentData.subjects;
 export const getDemoAnalyticsData = () => demoParentData.analytics;
 export const getDemoMonitoringData = () => demoParentData.monitoring;
-export const getDemoOverallStats = () => demoParentData.overallStats;
 export const getDemoRecentActivity = () => demoParentData.recentActivity;
 export const getDemoAISummaries = () => demoAISummaries;
 export const getDemoChildName = () => demoParentData.childName;
+
+// Demo student progress data for monitoring dashboard
+export const getDemoStudentProgress = () => [
+  {
+    student_id: 'student-1',
+    student_name: 'Emma Johnson',
+    email: 'emma.johnson@school.edu',
+    completion_percentage: 89,
+    total_time_spent: 4680, // 78 hours in minutes
+    completed_lessons: 156,
+    total_lessons: 180,
+    last_activity: '2024-01-20T16:45:00Z',
+    subjects: [
+      { subject_name: 'Mathematics', completion_percentage: 94, lessons_completed: 47, total_lessons: 50, time_spent: 1580 },
+      { subject_name: 'English Literature', completion_percentage: 88, lessons_completed: 35, total_lessons: 40, time_spent: 1240 },
+      { subject_name: 'Chemistry', completion_percentage: 82, lessons_completed: 28, total_lessons: 34, time_spent: 920 },
+      { subject_name: 'World History', completion_percentage: 96, lessons_completed: 38, total_lessons: 40, time_spent: 1120 }
+    ],
+    strengths: ['Linear Equations', 'Reading Comprehension', 'Historical Timeline', 'Chemical Bonding'],
+    weak_areas: ['Advanced Calculus', 'Poetry Analysis'],
+    test_scores: [
+      { test_name: 'Algebra Assessment', score: 94, percentage: 94, completed_at: '2024-01-18T14:30:00Z' },
+      { test_name: 'Literature Analysis', score: 88, percentage: 88, completed_at: '2024-01-17T10:15:00Z' }
+    ],
+    achievements: [
+      { name: 'Math Champion', earned_at: '2024-01-15T12:00:00Z', points: 50 },
+      { name: 'Dedicated Learner', earned_at: '2024-01-10T09:30:00Z', points: 25 }
+    ]
+  },
+  {
+    student_id: 'student-2',
+    student_name: 'Marcus Chen',
+    email: 'marcus.chen@school.edu',
+    completion_percentage: 92,
+    total_time_spent: 3840, // 64 hours in minutes
+    completed_lessons: 138,
+    total_lessons: 150,
+    last_activity: '2024-01-19T15:20:00Z',
+    subjects: [
+      { subject_name: 'Biology', completion_percentage: 91, lessons_completed: 32, total_lessons: 35, time_spent: 1050 },
+      { subject_name: 'Chemistry', completion_percentage: 89, lessons_completed: 30, total_lessons: 34, time_spent: 980 },
+      { subject_name: 'Physics', completion_percentage: 85, lessons_completed: 26, total_lessons: 30, time_spent: 890 },
+      { subject_name: 'Mathematics', completion_percentage: 93, lessons_completed: 28, total_lessons: 30, time_spent: 920 }
+    ],
+    strengths: ['Experimental Design', 'Molecular Biology', 'Problem Solving'],
+    weak_areas: ['Advanced Calculus Applications', 'Literary Analysis'],
+    test_scores: [
+      { test_name: 'Biology Midterm', score: 91, percentage: 91, completed_at: '2024-01-16T11:00:00Z' },
+      { test_name: 'Chemistry Lab Practical', score: 94, percentage: 94, completed_at: '2024-01-14T13:45:00Z' }
+    ],
+    achievements: [
+      { name: 'Science Explorer', earned_at: '2024-01-12T14:20:00Z', points: 40 },
+      { name: 'Lab Safety Expert', earned_at: '2024-01-08T16:10:00Z', points: 30 }
+    ]
+  },
+  {
+    student_id: 'student-3',
+    student_name: 'Sophia Rodriguez',
+    email: 'sophia.rodriguez@school.edu',
+    completion_percentage: 95,
+    total_time_spent: 4200, // 70 hours in minutes
+    completed_lessons: 171,
+    total_lessons: 180,
+    last_activity: '2024-01-20T14:30:00Z',
+    subjects: [
+      { subject_name: 'English Literature', completion_percentage: 96, lessons_completed: 48, total_lessons: 50, time_spent: 1440 },
+      { subject_name: 'World History', completion_percentage: 94, lessons_completed: 47, total_lessons: 50, time_spent: 1320 },
+      { subject_name: 'Spanish', completion_percentage: 92, lessons_completed: 46, total_lessons: 50, time_spent: 1200 },
+      { subject_name: 'Art History', completion_percentage: 88, lessons_completed: 30, total_lessons: 30, time_spent: 240 }
+    ],
+    strengths: ['Literary Analysis', 'Creative Writing', 'Cultural Studies', 'Public Speaking'],
+    weak_areas: ['Mathematical Modeling', 'Scientific Research'],
+    test_scores: [
+      { test_name: 'Shakespeare Analysis', score: 96, percentage: 96, completed_at: '2024-01-17T09:30:00Z' },
+      { test_name: 'Spanish Oral Exam', score: 92, percentage: 92, completed_at: '2024-01-15T11:15:00Z' }
+    ],
+    achievements: [
+      { name: 'Literary Scholar', earned_at: '2024-01-14T10:45:00Z', points: 45 },
+      { name: 'Cultural Ambassador', earned_at: '2024-01-11T13:20:00Z', points: 35 }
+    ]
+  },
+  {
+    student_id: 'student-4',
+    student_name: 'Alex Thompson',
+    email: 'alex.thompson@school.edu',
+    completion_percentage: 87,
+    total_time_spent: 3600, // 60 hours in minutes
+    completed_lessons: 131,
+    total_lessons: 150,
+    last_activity: '2024-01-19T12:15:00Z',
+    subjects: [
+      { subject_name: 'Computer Science', completion_percentage: 95, lessons_completed: 29, total_lessons: 30, time_spent: 1200 },
+      { subject_name: 'Mathematics', completion_percentage: 91, lessons_completed: 46, total_lessons: 50, time_spent: 1380 },
+      { subject_name: 'Physics', completion_percentage: 84, lessons_completed: 34, total_lessons: 40, time_spent: 960 },
+      { subject_name: 'English Literature', completion_percentage: 78, lessons_completed: 22, total_lessons: 30, time_spent: 60 }
+    ],
+    strengths: ['Programming', 'Algorithm Design', 'Web Development', 'Problem Solving'],
+    weak_areas: ['Classical Literature', 'Historical Analysis'],
+    test_scores: [
+      { test_name: 'Programming Project', score: 98, percentage: 98, completed_at: '2024-01-18T16:00:00Z' },
+      { test_name: 'Calculus Quiz', score: 89, percentage: 89, completed_at: '2024-01-16T14:20:00Z' }
+    ],
+    achievements: [
+      { name: 'Code Master', earned_at: '2024-01-13T15:30:00Z', points: 50 },
+      { name: 'Tech Innovator', earned_at: '2024-01-09T17:45:00Z', points: 40 }
+    ]
+  },
+  {
+    student_id: 'student-5',
+    student_name: 'Maria Gonzalez',
+    email: 'maria.gonzalez@school.edu',
+    completion_percentage: 90,
+    total_time_spent: 3960, // 66 hours in minutes
+    completed_lessons: 144,
+    total_lessons: 160,
+    last_activity: '2024-01-18T13:45:00Z',
+    subjects: [
+      { subject_name: 'Spanish', completion_percentage: 98, lessons_completed: 49, total_lessons: 50, time_spent: 1440 },
+      { subject_name: 'French', completion_percentage: 92, lessons_completed: 37, total_lessons: 40, time_spent: 1200 },
+      { subject_name: 'Cultural Studies', completion_percentage: 89, lessons_completed: 32, total_lessons: 35, time_spent: 960 },
+      { subject_name: 'English Literature', completion_percentage: 85, lessons_completed: 26, total_lessons: 35, time_spent: 360 }
+    ],
+    strengths: ['Multilingual Communication', 'Cultural Analysis', 'Translation Skills'],
+    weak_areas: ['Advanced Mathematics', 'Scientific Research'],
+    test_scores: [
+      { test_name: 'Spanish Literature', score: 95, percentage: 95, completed_at: '2024-01-17T10:30:00Z' },
+      { test_name: 'Cultural Analysis Essay', score: 92, percentage: 92, completed_at: '2024-01-15T15:00:00Z' }
+    ],
+    achievements: [
+      { name: 'Polyglot', earned_at: '2024-01-16T12:15:00Z', points: 55 },
+      { name: 'Global Citizen', earned_at: '2024-01-12T14:30:00Z', points: 40 }
+    ]
+  }
+];
+
+export const getDemoMonitoringOverviewStats = () => ({
+  totalStudents: 5,
+  avgCompletion: 91,
+  totalStudyTime: 333, // Total hours across all students
+  totalLessonsCompleted: 740,
+  totalTests: 12,
+  totalCurricula: 8,
+  totalQuests: 15,
+  totalAchievements: 23
+});
+
+// For the parent dashboard
+export const getDemoOverallStats = () => demoParentData.overallStats;
 
 export const demoStudentClassifications = [
   {
