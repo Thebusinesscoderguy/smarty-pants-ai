@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, BookOpen } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -168,7 +168,7 @@ const Monitoring = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-8 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-7 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
@@ -184,32 +184,18 @@ const Monitoring = () => {
               Students
             </TabsTrigger>
             <TabsTrigger 
-              value="subjects" 
+              value="curriculums" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
-              <Book className="h-4 w-4 mr-2" />
-              Subjects
+              <BookOpen className="h-4 w-4 mr-2" />
+              Curriculums
             </TabsTrigger>
             <TabsTrigger 
-              value="performance" 
+              value="quests" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Performance
-            </TabsTrigger>
-            <TabsTrigger 
-              value="assessments" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Assessments
-            </TabsTrigger>
-            <TabsTrigger 
-              value="engagement" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <Heart className="h-4 w-4 mr-2" />
-              Engagement
+              <Target className="h-4 w-4 mr-2" />
+              Quests
             </TabsTrigger>
             <TabsTrigger 
               value="achievements" 
@@ -219,11 +205,18 @@ const Monitoring = () => {
               Achievements
             </TabsTrigger>
             <TabsTrigger 
-              value="system" 
+              value="analytics" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
-              <Database className="h-4 w-4 mr-2" />
-              System
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tests" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Tests
             </TabsTrigger>
           </TabsList>
 
@@ -292,133 +285,46 @@ const Monitoring = () => {
                 <div className="text-center py-12">
                   <Users className="h-16 w-16 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Student Analytics</h3>
-                  <p className="text-white/60">Detailed student performance data will be displayed here</p>
+                  <p className="text-white/60">Individual student progress, performance metrics, and learning insights</p>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="subjects" className="space-y-8">
+          <TabsContent value="curriculums" className="space-y-8">
             <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
               <CardHeader>
                 <CardTitle className="text-white flex items-center text-2xl">
-                  <Book className="h-6 w-6 mr-3 text-green-400" />
-                  Subject Analytics
+                  <BookOpen className="h-6 w-6 mr-3 text-purple-400" />
+                  Curriculum Management
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Book className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Subject Performance</h3>
-                  <p className="text-white/60">Detailed subject analytics will be displayed here</p>
+                  <BookOpen className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Curriculum Analytics</h3>
+                  <p className="text-white/60">Track curriculum progress, completion rates, and effectiveness</p>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="performance" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <TrendingUp className="h-6 w-6 mr-3 text-green-400" />
-                    Learning Progress Trends
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <TrendingUp className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Performance Analytics</h3>
-                    <p className="text-white/60">Weekly and monthly performance trends</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Brain className="h-6 w-6 mr-3 text-purple-400" />
-                    AI Learning Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <Brain className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Cognitive Analysis</h3>
-                    <p className="text-white/60">AI-powered learning pattern insights</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="assessments" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <FileText className="h-6 w-6 mr-3 text-yellow-400" />
-                    Quiz & Test Results
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <FileText className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Assessment Analytics</h3>
-                    <p className="text-white/60">Comprehensive quiz and test performance data</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Target className="h-6 w-6 mr-3 text-orange-400" />
-                    Learning Objectives
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <Target className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Goal Tracking</h3>
-                    <p className="text-white/60">Progress towards learning objectives</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="engagement" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Heart className="h-6 w-6 mr-3 text-pink-400" />
-                    Student Engagement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <Heart className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Engagement Metrics</h3>
-                    <p className="text-white/60">Time spent, interaction rates, and motivation scores</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Calendar className="h-6 w-6 mr-3 text-blue-400" />
-                    Learning Patterns
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <Calendar className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Usage Patterns</h3>
-                    <p className="text-white/60">Daily and weekly learning behavior analysis</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="quests" className="space-y-8">
+            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center text-2xl">
+                  <Target className="h-6 w-6 mr-3 text-orange-400" />
+                  Quest Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Target className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Quest Analytics</h3>
+                  <p className="text-white/60">Monitor quest completion, student engagement, and reward distribution</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-8">
@@ -433,15 +339,15 @@ const Monitoring = () => {
                 <CardContent>
                   <div className="text-center py-12">
                     <Trophy className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Gamification Stats</h3>
-                    <p className="text-white/60">Earned badges, achievements, and rewards</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">Achievement Stats</h3>
+                    <p className="text-white/60">Track earned badges, milestones, and recognition</p>
                   </div>
                 </CardContent>
               </Card>
               <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center text-2xl">
-                    <Award className="h-6 w-6 mr-3 text-gold-400" />
+                    <Award className="h-6 w-6 mr-3 text-yellow-400" />
                     Leaderboards
                   </CardTitle>
                 </CardHeader>
@@ -456,35 +362,70 @@ const Monitoring = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="system" className="space-y-8">
+          <TabsContent value="analytics" className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center text-2xl">
-                    <Database className="h-6 w-6 mr-3 text-emerald-400" />
-                    System Health
+                    <TrendingUp className="h-6 w-6 mr-3 text-green-400" />
+                    Performance Analytics
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12">
-                    <Database className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Platform Status</h3>
-                    <p className="text-white/60">Server performance, uptime, and resource usage</p>
+                    <TrendingUp className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Learning Trends</h3>
+                    <p className="text-white/60">Comprehensive analytics and performance insights</p>
                   </div>
                 </CardContent>
               </Card>
               <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center text-2xl">
-                    <Zap className="h-6 w-6 mr-3 text-yellow-400" />
-                    AI Usage Analytics
+                    <Brain className="h-6 w-6 mr-3 text-purple-400" />
+                    AI Insights
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12">
-                    <Zap className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">AI Metrics</h3>
-                    <p className="text-white/60">Token usage, API calls, and AI performance</p>
+                    <Brain className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">AI Analytics</h3>
+                    <p className="text-white/60">Machine learning insights and predictive analytics</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tests" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center text-2xl">
+                    <FileText className="h-6 w-6 mr-3 text-yellow-400" />
+                    Test Results
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <FileText className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Assessment Data</h3>
+                    <p className="text-white/60">Comprehensive test scores, quiz results, and assessment analytics</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center text-2xl">
+                    <BarChart3 className="h-6 w-6 mr-3 text-blue-400" />
+                    Performance Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <BarChart3 className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Test Analytics</h3>
+                    <p className="text-white/60">Detailed test performance analysis and improvement suggestions</p>
                   </div>
                 </CardContent>
               </Card>
