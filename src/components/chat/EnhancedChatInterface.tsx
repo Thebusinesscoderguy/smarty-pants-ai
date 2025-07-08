@@ -67,7 +67,7 @@ export const EnhancedChatInterface = () => {
         throw new Error(response.error.message || 'Failed to process voice');
       }
       
-      const transcribedText = response.data.text;
+      const transcribedText = response.data?.text || '';
       setCurrentMessage(transcribedText);
       
       toast({
@@ -149,7 +149,7 @@ export const EnhancedChatInterface = () => {
   };
 
   const getAIResponse = async (messageText: string) => {
-    if (!messageText.trim()) return;
+    if (!messageText || !messageText.trim()) return;
     
     try {
       setIsLoading(true);
@@ -162,23 +162,25 @@ export const EnhancedChatInterface = () => {
       });
       
       if (response.error) {
-        throw new Error(response.error.message);
+        throw new Error(response.error.message || 'Failed to get AI response');
       }
+      
+      const responseText = response.data?.response || response.data?.content || 'I apologize, but I couldn\'t generate a response. Please try again.';
       
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,
-        text: response.data.response,
+        text: responseText,
         timestamp: new Date(),
         isFromUser: false,
         type: 'text',
-        tokenCount: Math.ceil(response.data.response.length / 4)
+        tokenCount: Math.ceil(responseText.length / 4)
       };
       
       setMessages(prev => [...prev, aiMessage]);
       
       // Generate voice response if enabled
-      if (isVoiceEnabled && response.data.response) {
-        await generateVoiceResponse(response.data.response, aiMessage.id);
+      if (isVoiceEnabled && responseText) {
+        await generateVoiceResponse(responseText, aiMessage.id);
       }
       
     } catch (error: any) {
@@ -203,18 +205,18 @@ export const EnhancedChatInterface = () => {
       });
       
       if (response.error) {
-        throw new Error(response.error.message);
+        throw new Error(response.error.message || 'Failed to generate voice');
       }
       
       // Update message with audio content
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, audioContent: response.data.audioContent }
-          : msg
-      ));
-      
-      // Auto-play the audio
-      if (response.data.audioContent) {
+      if (response.data?.audioContent) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, audioContent: response.data.audioContent }
+            : msg
+        ));
+        
+        // Auto-play the audio
         const audio = new Audio(`data:audio/mp3;base64,${response.data.audioContent}`);
         audio.play().catch(console.error);
       }
@@ -268,14 +270,6 @@ export const EnhancedChatInterface = () => {
         ));
       };
     }
-  };
-
-  const handlePauseAudio = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId 
-        ? { ...msg, isPlaying: false }
-        : msg
-    ));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -384,7 +378,7 @@ export const EnhancedChatInterface = () => {
           </div>
         )}
 
-        {/* Enhanced Input Area */}
+        {/* Enhanced Input Area - Fixed at bottom */}
         <div className="flex-shrink-0 p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl">
           <div className="max-w-4xl mx-auto">
             {selectedFile && (
