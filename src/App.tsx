@@ -22,6 +22,7 @@ import AcceptInvitation from './pages/AcceptInvitation';
 import SystemTest from './pages/SystemTest';
 import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
+import Monitoring from './pages/Monitoring';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/voice" element={<Voice />} />
                 <Route path="/progress" element={<Progress />} />
+                <Route path="/monitoring" element={<Monitoring />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/features" element={<Features />} />

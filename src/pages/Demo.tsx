@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Play, Pause, RotateCcw, MessageSquare, Send, MessageSquarePlus } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, MessageSquare, Send, MessageSquarePlus, Upload, Mic, BarChart3, Settings } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
@@ -203,14 +203,6 @@ const Demo = () => {
                 >
                   {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                 </Button>
-                <Button
-                  onClick={resetDemo}
-                  variant="outline"
-                  size="sm"
-                  className="border-white/30 bg-white/20 hover:bg-white/30 text-white rounded-xl px-2 py-1"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
               </>
             ) : (
               <div className="text-red-300 font-semibold text-sm bg-red-500/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
@@ -247,6 +239,34 @@ const Demo = () => {
                         placeholder="Ask me anything about learning..."
                         className="w-full px-6 py-4 pr-40 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
                       />
+                      
+                      {/* File and Voice Input Controls */}
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                        <input
+                          type="file"
+                          className="hidden"
+                          id="demo-file-input"
+                          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                        />
+                        <Button
+                          onClick={() => document.getElementById('demo-file-input')?.click()}
+                          variant="ghost"
+                          size="sm"
+                          className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                          title="Upload file"
+                        >
+                          <Upload className="h-5 w-5" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                          title="Voice input"
+                        >
+                          <Mic className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </div>
                     <button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl">
                       <Send className="h-5 w-5" />
@@ -262,6 +282,28 @@ const Demo = () => {
                 <MessageSquarePlus className="h-4 w-4 mr-2 inline" />
                 New Chat
               </button>
+              <div className="bg-white/20 h-px"></div>
+              
+              {/* Navigation */}
+              <div className="space-y-2">
+                <Button
+                  onClick={() => navigate('/monitoring')}
+                  variant="ghost"
+                  className="w-full justify-start text-white/70 hover:text-white hover:bg-white/10 h-10"
+                >
+                  <BarChart3 className="h-4 w-4 mr-3" />
+                  Monitoring
+                </Button>
+                <Button
+                  onClick={() => navigate('/settings')}
+                  variant="ghost"
+                  className="w-full justify-start text-white/70 hover:text-white hover:bg-white/10 h-10"
+                >
+                  <Settings className="h-4 w-4 mr-3" />
+                  Settings
+                </Button>
+              </div>
+              
               <div className="bg-white/20 h-px"></div>
               <div>
                 <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Previous Chats</h3>
@@ -314,13 +356,6 @@ const Demo = () => {
                     Continue Demo
                   </Button>
                 )}
-                <Button
-                  onClick={resetDemo}
-                  variant="ghost"
-                  className="text-slate-400 hover:text-white py-3"
-                >
-                  Restart Demo
-                </Button>
               </div>
             </CardContent>
           </Card>

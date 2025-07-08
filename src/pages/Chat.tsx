@@ -79,12 +79,12 @@ const Chat = () => {
         size="sm"
         onClick={() => {
           setCurrentPage('monitoring');
-          navigate('/progress');
+          navigate('/monitoring');
         }}
         className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
       >
         <BarChart3 className="h-4 w-4 mr-2" />
-        Dashboard
+        Monitoring
       </Button>
       <Button
         variant={currentPage === 'settings' ? 'default' : 'ghost'}
