@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
+import SettingsBar from '@/components/SettingsBar';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -114,13 +115,22 @@ const Settings = () => {
       
       <main className="px-6 py-12 max-w-6xl mx-auto">
         <div className="mb-12">
-          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center">
-            <SettingsIcon className="mr-6 h-16 w-16 text-blue-400" />
-            Settings
-          </h1>
-          <p className="text-white/70 text-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center">
+              <SettingsIcon className="mr-6 h-16 w-16 text-blue-400" />
+              Settings
+            </h1>
+            {/* Quick Settings Bar - Compact Version */}
+            <SettingsBar variant="compact" className="hidden md:block" />
+          </div>
+          <p className="text-white/70 text-2xl mb-6">
             Customize your AI learning experience and manage your account
           </p>
+          
+          {/* Quick Settings Bar - Default Version for smaller screens */}
+          <div className="md:hidden mb-8">
+            <SettingsBar variant="default" />
+          </div>
         </div>
 
         <div className="grid gap-12">
