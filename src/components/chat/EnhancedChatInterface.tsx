@@ -378,8 +378,8 @@ export const EnhancedChatInterface = () => {
           </div>
         )}
 
-        {/* Enhanced Input Area - Fixed at bottom */}
-        <div className="flex-shrink-0 p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl">
+        {/* Enhanced Input Area - Fixed at top */}
+        <div className="flex-shrink-0 p-6 border-b border-white/10 bg-black/20 backdrop-blur-xl order-first">
           <div className="max-w-4xl mx-auto">
             {selectedFile && (
               <div className="mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm">
