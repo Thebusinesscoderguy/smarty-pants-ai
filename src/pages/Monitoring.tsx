@@ -22,8 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
 const Monitoring = () => {
-  const { user } = useAuth();
-  const { userRole, isSchoolAdmin, loading: roleLoading } = useUserRole();
+  // Demo mode - no authentication restrictions for demonstration purposes
   const { studentProgress, overviewStats, loading: dataLoading } = useMonitoringData();
   const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
   const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
@@ -50,7 +49,8 @@ const Monitoring = () => {
     type: 'daily',
     difficulty: 'medium',
     target_value: 1,
-    rewards: { points: 10 }
+    rewards: { points: 10 },
+    requirements: {}
   });
 
   const [achievementForm, setAchievementForm] = useState({
@@ -74,7 +74,7 @@ const Monitoring = () => {
     
     await createQuest(questForm);
     setShowQuestDialog(false);
-    setQuestForm({ title: '', description: '', type: 'daily', difficulty: 'medium', target_value: 1, rewards: { points: 10 } });
+    setQuestForm({ title: '', description: '', type: 'daily', difficulty: 'medium', target_value: 1, rewards: { points: 10 }, requirements: {} });
   };
 
   const handleCreateAchievement = async () => {
@@ -84,33 +84,6 @@ const Monitoring = () => {
     setShowAchievementDialog(false);
     setAchievementForm({ name: '', description: '', type: 'milestone', points: 10, criteria: { requirement: '' } });
   };
-
-  // Check if user has permission to access monitoring
-  if (roleLoading) {
-    return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
-      <div className="animate-pulse">Loading...</div>
-    </div>;
-  }
-
-  if (userRole === 'student') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-        <Header />
-        <main className="px-6 py-12 max-w-7xl mx-auto">
-          <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-            <CardContent className="p-12 text-center">
-              <Shield className="h-16 w-16 text-white/40 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-white mb-4">Access Restricted</h3>
-              <p className="text-white/60 text-lg">
-                The monitoring dashboard is only available for teachers, parents, and school administrators.
-              </p>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -343,83 +316,73 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="students" className="space-y-8">
-            {isSchoolAdmin ? (
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Users className="h-6 w-6 mr-3 text-blue-400" />
-                    Student Performance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {dataLoading ? (
-                    <div className="text-center py-12">
-                      <div className="animate-pulse text-white/60">Loading student data...</div>
-                    </div>
-                  ) : studentProgress.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Users className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-white mb-2">No Students Found</h3>
-                      <p className="text-white/60">Add students to your school to start monitoring their progress</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {studentProgress.map((student) => (
-                        <Card key={student.student_id} className="bg-white/5 border-white/10">
-                          <CardContent className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <h3 className="text-xl font-semibold text-white">{student.student_name}</h3>
-                                <p className="text-white/60">Last activity: {student.last_activity ? new Date(student.last_activity).toLocaleDateString() : 'No recent activity'}</p>
-                              </div>
-                              <Badge variant={student.completion_percentage >= 80 ? "default" : student.completion_percentage >= 60 ? "secondary" : "destructive"}>
-                                {student.completion_percentage >= 80 ? "Excellent" : student.completion_percentage >= 60 ? "Good" : "Needs Improvement"}
-                              </Badge>
+            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center text-2xl">
+                  <Users className="h-6 w-6 mr-3 text-blue-400" />
+                  Student Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dataLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-pulse text-white/60">Loading student data...</div>
+                  </div>
+                ) : studentProgress.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Demo Mode - Sample Student Data</h3>
+                    <p className="text-white/60">In production, this would show real student analytics</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {studentProgress.map((student) => (
+                      <Card key={student.student_id} className="bg-white/5 border-white/10">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-xl font-semibold text-white">{student.student_name}</h3>
+                              <p className="text-white/60">Last activity: {student.last_activity ? new Date(student.last_activity).toLocaleDateString() : 'No recent activity'}</p>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <p className="text-sm text-white/60">Progress</p>
-                                <Progress value={student.completion_percentage} className="mt-2" />
-                                <p className="text-xs text-white/60 mt-1">{student.completion_percentage}%</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-white/60">Study Time</p>
-                                <p className="text-xl font-bold text-white">{Math.round(student.total_time_spent / 60)}h</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-white/60">Lessons</p>
-                                <p className="text-xl font-bold text-white">{student.completed_lessons}/{student.total_lessons}</p>
+                            <Badge variant={student.completion_percentage >= 80 ? "default" : student.completion_percentage >= 60 ? "secondary" : "destructive"}>
+                              {student.completion_percentage >= 80 ? "Excellent" : student.completion_percentage >= 60 ? "Good" : "Needs Improvement"}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <p className="text-sm text-white/60">Progress</p>
+                              <Progress value={student.completion_percentage} className="mt-2" />
+                              <p className="text-xs text-white/60 mt-1">{student.completion_percentage}%</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-white/60">Study Time</p>
+                              <p className="text-xl font-bold text-white">{Math.round(student.total_time_spent / 60)}h</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-white/60">Lessons</p>
+                              <p className="text-xl font-bold text-white">{student.completed_lessons}/{student.total_lessons}</p>
+                            </div>
+                          </div>
+                          {student.test_scores.length > 0 && (
+                            <div className="mt-4">
+                              <p className="text-sm text-white/60 mb-2">Recent Test Scores</p>
+                              <div className="space-y-2">
+                                {student.test_scores.slice(0, 3).map((test, index) => (
+                                  <div key={index} className="flex justify-between items-center text-sm">
+                                    <span className="text-white/80">{test.test_name}</span>
+                                    <span className="text-white font-medium">{test.percentage}%</span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                            {student.test_scores.length > 0 && (
-                              <div className="mt-4">
-                                <p className="text-sm text-white/60 mb-2">Recent Test Scores</p>
-                                <div className="space-y-2">
-                                  {student.test_scores.slice(0, 3).map((test, index) => (
-                                    <div key={index} className="flex justify-between items-center text-sm">
-                                      <span className="text-white/80">{test.test_name}</span>
-                                      <span className="text-white font-medium">{test.percentage}%</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardContent className="p-12 text-center">
-                  <Shield className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">School Admin Only</h3>
-                  <p className="text-white/60">Student analytics are only available for school administrators</p>
-                </CardContent>
-              </Card>
-            )}
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="curriculums" className="space-y-8">
