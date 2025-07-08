@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { logOAuthDebugInfo, testOAuthConfiguration } from '@/utils/oauthDebug';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -26,6 +27,16 @@ const Auth = () => {
   useEffect(() => {
     if (user) {
       navigate('/chat');
+    }
+    
+    // Enable debug mode in development
+    if (import.meta.env?.DEV) {
+      console.log('🔧 Development mode - OAuth debug info available');
+      (window as any).debugOAuth = () => {
+        logOAuthDebugInfo();
+        testOAuthConfiguration();
+      };
+      console.log('💡 Run window.debugOAuth() in console for OAuth debug information');
     }
   }, [user, navigate]);
 
@@ -102,20 +113,51 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
+    setError('');
+    
+        try {
+      // Log debug information
+      logOAuthDebugInfo();
+      
+      console.log('Initiating Google OAuth with redirect URL:', `${window.location.origin}/chat`);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/chat`
+          redirectTo: `${window.location.origin}/chat`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       
       if (error) {
-        setError(error.message);
+        console.error('Google OAuth error:', error);
+        
+        // Log additional debug info on error
+        await testOAuthConfiguration();
+        
+        // Provide more specific error messages
+        if (error.message.includes('403')) {
+          setError('OAuth configuration error. Please check if Google sign-in is properly configured in your project settings. Check console for debug information.');
+        } else if (error.message.includes('redirect_uri')) {
+          setError('Redirect URI mismatch. Please check your OAuth configuration. Check console for debug information.');
+        } else if (error.message.includes('unauthorized_client')) {
+          setError('OAuth client not authorized. Please verify your Google Console configuration. Check console for debug information.');
+        } else {
+          setError(`Google sign-in error: ${error.message}. Check console for debug information.`);
+        }
+        return;
       }
+      
+      console.log('Google OAuth initiated successfully:', data);
+      
+      // Note: The user will be redirected to Google, so we don't set loading to false here
+      // The loading state will be reset when the component unmounts or remounts
     } catch (error: any) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
+      console.error('Unexpected error during Google sign-in:', error);
+      setError(`An unexpected error occurred: ${error.message || 'Please try again.'}`);
       setLoading(false);
     }
   };
