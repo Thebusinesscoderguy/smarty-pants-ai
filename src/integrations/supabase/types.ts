@@ -53,6 +53,45 @@ export type Database = {
         }
         Relationships: []
       }
+      content_assignments: {
+        Row: {
+          assigned_by: string
+          assignment_type: string
+          classification_tag: string | null
+          content_id: string
+          content_type: string
+          created_at: string | null
+          due_date: string | null
+          id: string
+          is_active: boolean | null
+          target_id: string | null
+        }
+        Insert: {
+          assigned_by: string
+          assignment_type: string
+          classification_tag?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          target_id?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          assignment_type?: string
+          classification_tag?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          target_id?: string | null
+        }
+        Relationships: []
+      }
       curricula: {
         Row: {
           content: Json
@@ -924,6 +963,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_ai_summaries: {
+        Row: {
+          expires_at: string | null
+          generated_at: string | null
+          id: string
+          improvement_metrics: Json | null
+          strengths: Json | null
+          student_id: string
+          summary_text: string
+          weaknesses: Json | null
+        }
+        Insert: {
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          improvement_metrics?: Json | null
+          strengths?: Json | null
+          student_id: string
+          summary_text: string
+          weaknesses?: Json | null
+        }
+        Update: {
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          improvement_metrics?: Json | null
+          strengths?: Json | null
+          student_id?: string
+          summary_text?: string
+          weaknesses?: Json | null
+        }
+        Relationships: []
+      }
+      student_classifications: {
+        Row: {
+          assigned_automatically: boolean | null
+          assigned_by: string | null
+          classification_tag: string
+          created_at: string | null
+          id: string
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_automatically?: boolean | null
+          assigned_by?: string | null
+          classification_tag: string
+          created_at?: string | null
+          id?: string
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_automatically?: boolean | null
+          assigned_by?: string | null
+          classification_tag?: string
+          created_at?: string | null
+          id?: string
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       student_interactions: {
         Row: {

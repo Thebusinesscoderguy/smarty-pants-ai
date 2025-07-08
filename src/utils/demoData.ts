@@ -439,3 +439,114 @@ export const getDemoMonitoringData = () => demoParentData.monitoring;
 export const getDemoOverallStats = () => demoParentData.overallStats;
 export const getDemoRecentActivity = () => demoParentData.recentActivity;
 export const getDemoChildName = () => demoParentData.childName;
+
+// Demo data for student classifications
+export const getDemoClassifications = () => [
+  {
+    id: 'class-1',
+    student_id: 'demo-student-1',
+    classification_tag: 'High Achiever',
+    assigned_automatically: true,
+    student_name: 'Emma Johnson'
+  },
+  {
+    id: 'class-2', 
+    student_id: 'demo-student-1',
+    classification_tag: 'Visual Learner',
+    assigned_automatically: false,
+    student_name: 'Emma Johnson'
+  },
+  {
+    id: 'class-3',
+    student_id: 'demo-student-2', 
+    classification_tag: 'Needs Support',
+    assigned_automatically: true,
+    student_name: 'Alex Smith'
+  },
+  {
+    id: 'class-4',
+    student_id: 'demo-student-3',
+    classification_tag: 'STEM Focused',
+    assigned_automatically: true,
+    student_name: 'Sarah Chen'
+  }
+];
+
+// Demo data for AI summaries
+export const getDemoAISummaries = () => [
+  {
+    id: 'ai-1',
+    student_id: 'demo-student-1',
+    student_name: 'Emma Johnson',
+    summary_text: `Emma demonstrates exceptional academic performance with 78% completion across all subjects, showing particular strength in Mathematics and World History. Her analytical approach to Linear Equations and Historical Timeline analysis indicates strong logical reasoning skills and attention to detail. She consistently maintains focus during 45-minute study sessions and has developed excellent self-directed learning habits.\n\nTo maximize her potential, Emma should focus on strengthening her Quadratic Functions understanding through visual learning methods that align with her learning style. Additional practice in Essay Writing Structure would help her express her strong analytical thinking in written form. With her current trajectory and recommended interventions, Emma is positioned to achieve advanced proficiency within 3-4 weeks.`,
+    strengths: ['Linear Equations', 'Historical Analysis', 'Self-Directed Learning', 'Analytical Thinking'],
+    weaknesses: ['Quadratic Functions', 'Essay Writing', 'Chemical Equations'],
+    improvement_metrics: {
+      overall_trend: 'improving',
+      focus_areas: ['Mathematics Problem Solving', 'Written Communication'],
+      recommended_actions: ['Visual math tools', 'Writing workshops', 'Peer collaboration'],
+      estimated_improvement_timeline: '3-4 weeks',
+      confidence_level: 'high'
+    },
+    generated_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'ai-2',
+    student_id: 'demo-student-2',
+    student_name: 'Alex Smith',
+    summary_text: `Alex shows steady engagement with 65% completion across subjects, demonstrating particular aptitude in Creative Writing and Art projects. While progress has been consistent, there are opportunities to accelerate learning through targeted support in core mathematical concepts. Alex responds well to hands-on activities and collaborative learning environments.\n\nImmediate focus should be placed on foundational Mathematics skills, particularly Basic Algebra and Number Operations. Implementing gamified learning approaches and peer tutoring sessions would align with Alex's collaborative learning style. With structured support and regular progress monitoring, significant improvement is expected within 4-6 weeks.`,
+    strengths: ['Creative Writing', 'Collaborative Learning', 'Art Projects'],
+    weaknesses: ['Basic Algebra', 'Number Operations', 'Reading Comprehension'],
+    improvement_metrics: {
+      overall_trend: 'stable',
+      focus_areas: ['Mathematics Fundamentals', 'Reading Skills'],
+      recommended_actions: ['Gamified learning', 'Peer tutoring', 'Regular check-ins'],
+      estimated_improvement_timeline: '4-6 weeks',
+      confidence_level: 'medium'
+    },
+    generated_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
+// Demo data for content assignments
+export const getDemoContentAssignments = () => [
+  {
+    id: 'assign-1',
+    content_type: 'test',
+    content_id: 'test-1',
+    content_title: 'Algebra Fundamentals Quiz',
+    assignment_type: 'classification',
+    classification_tag: 'Needs Support',
+    student_count: 5,
+    assigned_by: 'demo-admin',
+    created_at: new Date().toISOString(),
+    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    is_active: true
+  },
+  {
+    id: 'assign-2',
+    content_type: 'quest',
+    content_id: 'quest-1', 
+    content_title: 'Math Master Challenge',
+    assignment_type: 'classification',
+    classification_tag: 'High Achiever',
+    student_count: 8,
+    assigned_by: 'demo-admin',
+    created_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: 'assign-3',
+    content_type: 'curriculum',
+    content_id: 'curr-1',
+    content_title: 'Advanced Chemistry Course',
+    assignment_type: 'classification',
+    classification_tag: 'STEM Focused',
+    student_count: 12,
+    assigned_by: 'demo-admin',
+    created_at: new Date().toISOString(),
+    is_active: true
+  }
+];
