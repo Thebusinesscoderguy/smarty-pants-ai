@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getDemoQuestList } from '@/utils/demoData';
 
 export interface Quest {
   id: string;
@@ -24,8 +25,16 @@ export const useQuestManagement = () => {
   const { user } = useAuth();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Use demo data when not authenticated or in demo mode
+  const useDemoData = !user || window.location.href.includes('demo');
 
   const fetchQuests = async () => {
+    if (useDemoData) {
+      setQuests(getDemoQuestList());
+      return;
+    }
+    
     if (!user) return;
 
     setLoading(true);
@@ -146,7 +155,7 @@ export const useQuestManagement = () => {
 
   useEffect(() => {
     fetchQuests();
-  }, [user]);
+  }, [user, useDemoData]);
 
   return {
     quests,

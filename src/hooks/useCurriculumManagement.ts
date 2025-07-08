@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getDemoCurriculumData } from '@/utils/demoData';
 
 export interface Curriculum {
   id: string;
@@ -19,8 +20,16 @@ export const useCurriculumManagement = () => {
   const { user } = useAuth();
   const [curricula, setCurricula] = useState<Curriculum[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Use demo data when not authenticated or in demo mode
+  const useDemoData = !user || window.location.href.includes('demo');
 
   const fetchCurricula = async () => {
+    if (useDemoData) {
+      setCurricula(getDemoCurriculumData());
+      return;
+    }
+    
     if (!user) return;
 
     setLoading(true);
@@ -155,7 +164,7 @@ export const useCurriculumManagement = () => {
 
   useEffect(() => {
     fetchCurricula();
-  }, [user]);
+  }, [user, useDemoData]);
 
   return {
     curricula,

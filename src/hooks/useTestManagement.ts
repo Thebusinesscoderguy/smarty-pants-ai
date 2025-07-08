@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getDemoTestData } from '@/utils/demoData';
 
 export interface Test {
   id: string;
@@ -32,8 +33,16 @@ export const useTestManagement = () => {
   const { user } = useAuth();
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Use demo data when not authenticated or in demo mode
+  const useDemoData = !user || window.location.href.includes('demo');
 
   const fetchTests = async () => {
+    if (useDemoData) {
+      setTests(getDemoTestData());
+      return;
+    }
+    
     if (!user) return;
 
     setLoading(true);
@@ -173,7 +182,7 @@ export const useTestManagement = () => {
 
   useEffect(() => {
     fetchTests();
-  }, [user]);
+  }, [user, useDemoData]);
 
   return {
     tests,

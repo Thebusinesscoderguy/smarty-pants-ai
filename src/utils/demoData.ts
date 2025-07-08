@@ -1379,3 +1379,133 @@ export const demoContentAssignments = [
 // Additional demo data exports
 export const getDemoClassifications = () => demoStudentClassifications;
 export const getDemoContentAssignments = () => demoContentAssignments;
+
+// Demo curricula data
+export const getDemoCurriculumData = () => [
+  {
+    id: 'curr-1',
+    title: 'Advanced Mathematics Curriculum',
+    description: 'Comprehensive math program covering algebra, geometry, and calculus',
+    grade_level: '9-12',
+    content: { modules: ['Algebra II', 'Geometry', 'Pre-Calculus', 'AP Calculus'] },
+    is_active: true,
+    school_id: 'demo-school',
+    subject_id: 'math-001',
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'curr-2', 
+    title: 'English Literature & Composition',
+    description: 'Complete English curriculum with focus on critical analysis',
+    grade_level: '9-12',
+    content: { modules: ['World Literature', 'American Literature', 'Poetry Analysis', 'Creative Writing'] },
+    is_active: true,
+    school_id: 'demo-school',
+    subject_id: 'eng-001',
+    created_at: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'curr-3',
+    title: 'Science Fundamentals',
+    description: 'Integrated science program covering physics, chemistry, and biology',
+    grade_level: '9-11',
+    content: { modules: ['Physics Basics', 'Chemistry Foundations', 'Biology Essentials', 'Lab Techniques'] },
+    is_active: true,
+    school_id: 'demo-school',
+    subject_id: 'sci-001',
+    created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
+// Demo tests data
+export const getDemoTestData = () => [
+  {
+    id: 'test-1',
+    title: 'Algebra II Mid-term Exam',
+    description: 'Comprehensive test covering quadratic equations and functions',
+    subject: 'Mathematics',
+    time_limit_minutes: 90,
+    is_mandatory: true,
+    ai_graded: true,
+    ai_generated: false,
+    total_points: 100,
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    creator_id: 'demo-teacher'
+  },
+  {
+    id: 'test-2',
+    title: 'Literature Analysis Quiz',
+    description: 'Short quiz on Shakespeare\'s Hamlet',
+    subject: 'English',
+    time_limit_minutes: 45,
+    is_mandatory: false,
+    ai_graded: true,
+    ai_generated: true,
+    total_points: 50,
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    creator_id: 'demo-teacher'
+  },
+  {
+    id: 'test-3',
+    title: 'Chemistry Lab Safety Assessment',
+    description: 'Essential safety procedures and protocols test',
+    subject: 'Chemistry',
+    time_limit_minutes: 30,
+    is_mandatory: true,
+    ai_graded: false,
+    ai_generated: false,
+    total_points: 75,
+    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    creator_id: 'demo-teacher'
+  }
+];
+
+// Transform quest data to match the expected format
+export const getDemoQuestList = () => [
+  ...demoParentData.quests.active.map(quest => ({
+    ...quest,
+    created_by_id: 'demo-teacher',
+    created_by: 'teacher',
+    is_active: true,
+    created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    rewards: { points: 50, badge: quest.reward },
+    requirements: { accuracy: 0.9 }
+  })),
+  ...demoParentData.quests.completed.map(quest => ({
+    ...quest,
+    created_by_id: 'demo-teacher',
+    created_by: 'teacher',
+    is_active: false,
+    created_at: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
+    rewards: { points: 30, badge: quest.reward },
+    requirements: { accuracy: 0.8 }
+  }))
+];
+
+// Transform achievement data to match the expected format
+export const getDemoAchievementList = () => [
+  ...demoParentData.achievements.earned.map(achievement => ({
+    id: achievement.id,
+    name: achievement.name,
+    description: achievement.description,
+    type: achievement.type as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge',
+    icon: achievement.icon,
+    criteria: { target: 100 },
+    points: 25,
+    school_id: 'demo-school',
+    creator_id: 'demo-admin',
+    created_at: achievement.earned_at
+  })),
+  ...demoParentData.achievements.available.map(achievement => ({
+    id: achievement.id,
+    name: achievement.name,
+    description: achievement.description,
+    type: achievement.type as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge',
+    icon: achievement.icon,
+    criteria: { target: 100 },
+    points: 20,
+    school_id: 'demo-school',
+    creator_id: 'demo-admin',
+    created_at: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString()
+  }))
+];
