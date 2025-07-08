@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useToast } from '@/components/ui/use-toast';
 import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
+import { EnhancedChatInterface } from '@/components/chat/EnhancedChatInterface';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
@@ -167,7 +167,7 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the enhanced chat interface with overlay timer
+  // Demo is running - show the enhanced chat interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative">
       {/* Demo Timer Overlay - Fixed position */}
@@ -219,67 +219,9 @@ const Demo = () => {
         </div>
       </div>
 
-      {/* Chat Area - unified with post-progress interface */}
+      {/* Enhanced Chat Interface */}
       <div className="flex-1 pt-14">
-        <div className="min-h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
-          <main className="flex-1 flex max-w-7xl mx-auto w-full">
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col">
-              {/* Chat Container */}
-              <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8 mt-8">
-                {/* Messages Area */}
-                <div className="flex-1 p-8 overflow-y-auto space-y-6">
-                  <div className="text-center py-16">
-                    <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                      <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                      <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
-                      <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Input Area */}
-                <div className="p-6 border-t border-white/20">
-                  <div className="flex space-x-4">
-                    <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        placeholder="Ask me anything about learning..."
-                        className="w-full px-6 py-4 pr-40 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
-                      />
-                    </div>
-                    <button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl">
-                      <Send className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar for Previous Chats */}
-            <div className="w-80 bg-white/5 border-l border-white/10 p-4 space-y-4">
-              <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl">
-                <MessageSquarePlus className="h-4 w-4 mr-2 inline" />
-                New Chat
-              </button>
-              <div className="bg-white/20 h-px"></div>
-              <div>
-                <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Previous Chats</h3>
-                <div className="space-y-2">
-                  <div className="group flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-white truncate font-medium">Math Help Session</p>
-                        <p className="text-xs text-white/60">Today • 5 messages</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
+        <EnhancedChatInterface />
       </div>
 
       {/* Time Warning Modal */}
