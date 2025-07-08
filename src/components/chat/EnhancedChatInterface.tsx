@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
@@ -33,6 +32,19 @@ export const EnhancedChatInterface = () => {
     handleStartRecording,
     handleStopRecording
   } = useVoiceRecorder();
+
+  // Initialize with welcome message
+  useEffect(() => {
+    const welcomeMessage: Message = {
+      id: 'welcome',
+      text: "Hello! I'm your AI Learning Assistant. I can help you with any subject - just ask me a question, upload a file, or start a conversation. What would you like to learn about today?",
+      timestamp: new Date(),
+      isFromUser: false,
+      type: 'text',
+      tokenCount: 35
+    };
+    setMessages([welcomeMessage]);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -254,14 +266,24 @@ export const EnhancedChatInterface = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-1 p-6">
-          <MessageList 
-            messages={messages}
-            onPlayAudio={handlePlayAudio}
-            onPauseAudio={handlePauseAudio}
-          />
-          <div ref={messagesEndRef} />
+          <div className="max-w-4xl mx-auto">
+            <MessageList 
+              messages={messages}
+              onPlayAudio={handlePlayAudio}
+              onPauseAudio={handlePauseAudio}
+            />
+            {isLoading && (
+              <div className="flex justify-center py-8">
+                <div className="flex items-center space-x-3 text-white/70 bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white/70"></div>
+                  <span className="text-lg">AI is thinking...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </ScrollArea>
 
         {isRecording && (
@@ -273,21 +295,23 @@ export const EnhancedChatInterface = () => {
           </div>
         )}
 
-        <ChatInput
-          currentMessage={currentMessage}
-          setCurrentMessage={setCurrentMessage}
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-          isAnalyzing={isAnalyzing}
-          selectedFile={selectedFile}
-          setSelectedFile={setSelectedFile}
-          isRecording={isRecording}
-          onStartRecording={handleStartRecording}
-          onStopRecording={handleVoiceRecordStop}
-          isVoiceResponse={isVoiceEnabled}
-          onToggleVoiceResponse={toggleVoice}
-          onFileUpload={handleFileUpload}
-        />
+        <div className="flex-shrink-0">
+          <ChatInput
+            currentMessage={currentMessage}
+            setCurrentMessage={setCurrentMessage}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            isAnalyzing={isAnalyzing}
+            selectedFile={selectedFile}
+            setSelectedFile={setSelectedFile}
+            isRecording={isRecording}
+            onStartRecording={handleStartRecording}
+            onStopRecording={handleVoiceRecordStop}
+            isVoiceResponse={isVoiceEnabled}
+            onToggleVoiceResponse={toggleVoice}
+            onFileUpload={handleFileUpload}
+          />
+        </div>
       </div>
     </div>
   );
