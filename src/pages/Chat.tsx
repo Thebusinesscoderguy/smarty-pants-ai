@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -22,7 +23,6 @@ const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
   const [isVoiceResponse, setIsVoiceResponse] = useState(true);
   const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, message_count: number}>>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -30,6 +30,16 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('chat');
+
+  // Voice recording functionality
+  const {
+    isRecording,
+    recordingTime,
+    audioData,
+    setAudioData,
+    handleStartRecording,
+    handleStopRecording
+  } = useVoiceRecorder();
 
   useEffect(() => {
     // Handle initial message from navigation state
@@ -212,18 +222,15 @@ const Chat = () => {
 
   const handleVoiceToggle = async () => {
     if (isRecording) {
-      setIsRecording(false);
-      // Stop recording logic would go here
+      handleStopRecording();
+      // Process the voice message when recording stops
+      if (audioData) {
+        await handleVoiceMessage(audioData);
+        setAudioData(null);
+      }
     } else {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        setIsRecording(true);
-        // Start recording logic would go here
-        // For now, just simulate recording for 3 seconds
-        setTimeout(() => {
-          setIsRecording(false);
-          stream.getTracks().forEach(track => track.stop());
-        }, 3000);
+        await handleStartRecording();
       } catch (error) {
         toast({
           title: "Error",
@@ -231,6 +238,78 @@ const Chat = () => {
           variant: "destructive"
         });
       }
+    }
+  };
+
+  const handleVoiceMessage = async (audioBlob: Blob) => {
+    try {
+      // Convert blob to base64 for voice-to-text processing
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = async function() {
+        const base64data = (reader.result as string).split(',')[1];
+        
+        // Call voice-to-text function
+        const voiceResponse = await supabase.functions.invoke('voice-to-text', {
+          body: { audio: base64data }
+        });
+
+        if (voiceResponse.error) {
+          throw new Error(voiceResponse.error.message || 'Failed to process voice');
+        }
+
+        const transcribedText = voiceResponse.data.text;
+        
+        // Create user message with transcribed text
+        const userMessage = {
+          id: Date.now().toString(),
+          content: transcribedText,
+          isUser: true,
+          timestamp: new Date(),
+          audioUrl: URL.createObjectURL(audioBlob)
+        };
+
+        setMessages(prev => [...prev, userMessage]);
+        setShowWelcome(false);
+        setIsLoading(true);
+
+        // Generate AI response
+        try {
+          const response = await generateAIResponse(transcribedText);
+          
+          const aiResponse = {
+            id: (Date.now() + 1).toString(),
+            content: response.text,
+            isUser: false,
+            timestamp: new Date(),
+            audioUrl: response.audioUrl
+          };
+
+          setMessages(prev => [...prev, aiResponse]);
+          
+          // Auto-play voice response if available
+          if (response.audioUrl && isVoiceResponse) {
+            setTimeout(() => {
+              const audio = new Audio(response.audioUrl);
+              audio.play().catch(console.error);
+            }, 500);
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to get AI response. Please try again.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process voice message",
+        variant: "destructive"
+      });
     }
   };
 
@@ -375,6 +454,28 @@ const Chat = () => {
                     className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl"
                   >
                     ×
+                  </Button>
+                </div>
+              )}
+              
+              {/* Recording Indicator */}
+              {isRecording && (
+                <div className="mb-4 flex items-center justify-center text-red-400 text-sm bg-red-500/10 p-3 rounded-2xl border border-red-500/20">
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse mr-2"></div>
+                  Recording... {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                  <Button
+                    onClick={() => {
+                      handleStopRecording();
+                      if (audioData) {
+                        handleVoiceMessage(audioData);
+                        setAudioData(null);
+                      }
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="ml-4 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-xl"
+                  >
+                    Stop & Send
                   </Button>
                 </div>
               )}
