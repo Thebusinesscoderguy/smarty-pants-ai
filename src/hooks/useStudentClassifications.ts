@@ -74,7 +74,7 @@ export const useStudentClassifications = () => {
         return;
       }
 
-      const studentIds = students.map(s => s.student_id);
+      const studentIds = students.map(s => s.id);
 
       // Get all classifications for these students
       const { data: classificationData } = await supabase

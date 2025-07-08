@@ -59,7 +59,7 @@ export const useAISummaries = () => {
         return;
       }
 
-      const studentIds = students.map(s => s.student_id);
+      const studentIds = students.map(s => s.id);
 
       // Get AI summaries for these students (non-expired only)
       const { data: summaryData } = await supabase
@@ -71,11 +71,11 @@ export const useAISummaries = () => {
       // Enrich with student names
       const enrichedSummaries = (summaryData || []).map(summary => ({
         ...summary,
-        strengths: Array.isArray(summary.strengths) ? summary.strengths : [],
-        weaknesses: Array.isArray(summary.weaknesses) ? summary.weaknesses : [],
+        strengths: Array.isArray(summary.strengths) ? summary.strengths as string[] : [],
+        weaknesses: Array.isArray(summary.weaknesses) ? summary.weaknesses as string[] : [],
         improvement_metrics: summary.improvement_metrics || {},
         student_name: students?.find(s => s.id === summary.student_id)?.display_name || 'Unknown Student'
-      }));
+      })) as AIStudentSummary[];
 
       setSummaries(enrichedSummaries);
 
@@ -203,7 +203,12 @@ Generate comprehensive insights focusing on specific topics, learning patterns, 
       });
 
       await fetchSummaries();
-      return savedSummary;
+      return {
+        ...savedSummary,
+        strengths: Array.isArray(savedSummary.strengths) ? savedSummary.strengths as string[] : [],
+        weaknesses: Array.isArray(savedSummary.weaknesses) ? savedSummary.weaknesses as string[] : [],
+        improvement_metrics: savedSummary.improvement_metrics || {}
+      } as AIStudentSummary;
 
     } catch (error: any) {
       console.error('Error generating AI summary:', error);

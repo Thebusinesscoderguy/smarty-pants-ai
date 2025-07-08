@@ -108,6 +108,8 @@ export const useContentAssignments = () => {
 
           return {
             ...assignment,
+            content_type: assignment.content_type as ContentAssignment['content_type'],
+            assignment_type: assignment.assignment_type as ContentAssignment['assignment_type'],
             content_title: contentTitle,
             student_count: studentCount
           };
