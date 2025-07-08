@@ -1,0 +1,159 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge';
+  icon?: string;
+  criteria: any;
+  points: number;
+  school_id?: string;
+  creator_id?: string;
+  created_at: string;
+}
+
+export const useAchievementManagement = () => {
+  const { user } = useAuth();
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchAchievements = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('achievements')
+        .select('*')
+        .eq('creator_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAchievements(data || []);
+    } catch (error: any) {
+      console.error('Error fetching achievements:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch achievements: " + error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createAchievement = async (achievementData: {
+    name: string;
+    description?: string;
+    type: 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge';
+    icon?: string;
+    criteria: any;
+    points: number;
+  }) => {
+    if (!user) return null;
+
+    try {
+      // Check if user is school admin
+      const { data: schoolData } = await supabase
+        .from('school_accounts')
+        .select('id')
+        .eq('admin_user_id', user.id)
+        .single();
+
+      const { data, error } = await supabase
+        .from('achievements')
+        .insert({
+          ...achievementData,
+          creator_id: user.id,
+          school_id: schoolData?.id || null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Achievement created successfully!",
+      });
+
+      await fetchAchievements();
+      return data;
+    } catch (error: any) {
+      console.error('Error creating achievement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create achievement: " + error.message,
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updateAchievement = async (id: string, updates: Partial<Achievement>) => {
+    try {
+      const { error } = await supabase
+        .from('achievements')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Achievement updated successfully!",
+      });
+
+      await fetchAchievements();
+    } catch (error: any) {
+      console.error('Error updating achievement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update achievement: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteAchievement = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('achievements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Achievement deleted successfully!",
+      });
+
+      await fetchAchievements();
+    } catch (error: any) {
+      console.error('Error deleting achievement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete achievement: " + error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchAchievements();
+  }, [user]);
+
+  return {
+    achievements,
+    loading,
+    createAchievement,
+    updateAchievement,
+    deleteAchievement,
+    fetchAchievements
+  };
+};

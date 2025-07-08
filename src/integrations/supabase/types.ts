@@ -17,29 +17,38 @@ export type Database = {
       achievements: {
         Row: {
           created_at: string | null
+          creator_id: string | null
           criteria: Json | null
           description: string | null
           icon: string | null
           id: string
           name: string
+          points: number | null
+          school_id: string | null
           type: Database["public"]["Enums"]["achievement_type"]
         }
         Insert: {
           created_at?: string | null
+          creator_id?: string | null
           criteria?: Json | null
           description?: string | null
           icon?: string | null
           id?: string
           name: string
+          points?: number | null
+          school_id?: string | null
           type: Database["public"]["Enums"]["achievement_type"]
         }
         Update: {
           created_at?: string | null
+          creator_id?: string | null
           criteria?: Json | null
           description?: string | null
           icon?: string | null
           id?: string
           name?: string
+          points?: number | null
+          school_id?: string | null
           type?: Database["public"]["Enums"]["achievement_type"]
         }
         Relationships: []
@@ -97,6 +106,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      curriculum_progress: {
+        Row: {
+          completed_sections: string[] | null
+          created_at: string | null
+          current_section: string | null
+          curriculum_id: string
+          id: string
+          last_accessed: string | null
+          progress_percentage: number | null
+          student_id: string
+          time_spent_minutes: number | null
+        }
+        Insert: {
+          completed_sections?: string[] | null
+          created_at?: string | null
+          current_section?: string | null
+          curriculum_id: string
+          id?: string
+          last_accessed?: string | null
+          progress_percentage?: number | null
+          student_id: string
+          time_spent_minutes?: number | null
+        }
+        Update: {
+          completed_sections?: string[] | null
+          created_at?: string | null
+          current_section?: string | null
+          curriculum_id?: string
+          id?: string
+          last_accessed?: string | null
+          progress_percentage?: number | null
+          student_id?: string
+          time_spent_minutes?: number | null
+        }
+        Relationships: []
       }
       daily_challenges: {
         Row: {
@@ -586,6 +631,8 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          requirements: Json | null
+          rewards: Json | null
           subject_id: string | null
           target_value: number
           title: string
@@ -600,6 +647,8 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          requirements?: Json | null
+          rewards?: Json | null
           subject_id?: string | null
           target_value: number
           title: string
@@ -614,6 +663,8 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          requirements?: Json | null
+          rewards?: Json | null
           subject_id?: string | null
           target_value?: number
           title?: string
@@ -1270,6 +1321,7 @@ export type Database = {
       }
       tests: {
         Row: {
+          ai_generated: boolean | null
           ai_graded: boolean | null
           created_at: string | null
           creator_id: string
@@ -1283,6 +1335,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          ai_generated?: boolean | null
           ai_graded?: boolean | null
           created_at?: string | null
           creator_id: string
@@ -1296,6 +1349,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          ai_generated?: boolean | null
           ai_graded?: boolean | null
           created_at?: string | null
           creator_id?: string
@@ -1492,6 +1546,7 @@ export type Database = {
           created_at: string
           current_value: number | null
           id: string
+          progress_data: Json | null
           quest_id: string
           school_id: string | null
           user_id: string
@@ -1502,6 +1557,7 @@ export type Database = {
           created_at?: string
           current_value?: number | null
           id?: string
+          progress_data?: Json | null
           quest_id: string
           school_id?: string | null
           user_id: string
@@ -1512,6 +1568,7 @@ export type Database = {
           created_at?: string
           current_value?: number | null
           id?: string
+          progress_data?: Json | null
           quest_id?: string
           school_id?: string | null
           user_id?: string

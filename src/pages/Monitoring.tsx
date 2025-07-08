@@ -4,37 +4,113 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, BookOpen } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, BookOpen, Plus } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useMonitoringData } from '@/hooks/useMonitoringData';
+import { useTestManagement } from '@/hooks/useTestManagement';
+import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
+import { useQuestManagement } from '@/hooks/useQuestManagement';
+import { useAchievementManagement } from '@/hooks/useAchievementManagement';
+import { TestCreator } from '@/components/TestCreator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 const Monitoring = () => {
   const { user } = useAuth();
-  const [activeStudents, setActiveStudents] = useState(124);
-  const [totalSessions, setTotalSessions] = useState(1456);
-  const [avgSessionTime, setAvgSessionTime] = useState(23);
-  const [completionRate, setCompletionRate] = useState(87);
-  const [engagementScore, setEngagementScore] = useState(94);
-  const [assessmentAvg, setAssessmentAvg] = useState(78);
-  const [achievementsEarned, setAchievementsEarned] = useState(156);
-  const [systemHealth, setSystemHealth] = useState(99);
-  const [parentReports, setParentReports] = useState(89);
-  const [aiUsage, setAiUsage] = useState(2340);
+  const { userRole, isSchoolAdmin, loading: roleLoading } = useUserRole();
+  const { studentProgress, overviewStats, loading: dataLoading } = useMonitoringData();
+  const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
+  const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
+  const { quests, createQuest, deleteQuest } = useQuestManagement();
+  const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
 
-  const recentActivity = [
-    { id: 1, student: "Emma Wilson", subject: "Mathematics", progress: 85, time: "2 hours ago" },
-    { id: 2, student: "James Miller", subject: "Science", progress: 92, time: "3 hours ago" },
-    { id: 3, student: "Sarah Davis", subject: "English", progress: 78, time: "4 hours ago" },
-    { id: 4, student: "Michael Brown", subject: "History", progress: 90, time: "5 hours ago" },
-  ];
+  // Dialog states
+  const [showTestCreator, setShowTestCreator] = useState(false);
+  const [showCurriculumDialog, setShowCurriculumDialog] = useState(false);
+  const [showQuestDialog, setShowQuestDialog] = useState(false);
+  const [showAchievementDialog, setShowAchievementDialog] = useState(false);
 
-  const subjectProgress = [
-    { subject: "Mathematics", progress: 85, students: 45 },
-    { subject: "Science", progress: 78, students: 38 },
-    { subject: "English", progress: 92, students: 52 },
-    { subject: "History", progress: 73, students: 29 },
-    { subject: "Geography", progress: 81, students: 34 },
-  ];
+  // Form states
+  const [curriculumForm, setCurriculumForm] = useState({
+    title: '',
+    description: '',
+    grade_level: '',
+    content: { sections: [] }
+  });
+
+  const [questForm, setQuestForm] = useState({
+    title: '',
+    description: '',
+    type: 'daily',
+    difficulty: 'medium',
+    target_value: 1,
+    rewards: { points: 10 }
+  });
+
+  const [achievementForm, setAchievementForm] = useState({
+    name: '',
+    description: '',
+    type: 'milestone' as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge',
+    points: 10,
+    criteria: { requirement: '' }
+  });
+
+  const handleCreateCurriculum = async () => {
+    if (!curriculumForm.title) return;
+    
+    await createCurriculum(curriculumForm);
+    setShowCurriculumDialog(false);
+    setCurriculumForm({ title: '', description: '', grade_level: '', content: { sections: [] } });
+  };
+
+  const handleCreateQuest = async () => {
+    if (!questForm.title) return;
+    
+    await createQuest(questForm);
+    setShowQuestDialog(false);
+    setQuestForm({ title: '', description: '', type: 'daily', difficulty: 'medium', target_value: 1, rewards: { points: 10 } });
+  };
+
+  const handleCreateAchievement = async () => {
+    if (!achievementForm.name) return;
+    
+    await createAchievement(achievementForm);
+    setShowAchievementDialog(false);
+    setAchievementForm({ name: '', description: '', type: 'milestone', points: 10, criteria: { requirement: '' } });
+  };
+
+  // Check if user has permission to access monitoring
+  if (roleLoading) {
+    return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
+      <div className="animate-pulse">Loading...</div>
+    </div>;
+  }
+
+  if (userRole === 'student') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+        <Header />
+        <main className="px-6 py-12 max-w-7xl mx-auto">
+          <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+            <CardContent className="p-12 text-center">
+              <Shield className="h-16 w-16 text-white/40 mx-auto mb-4" />
+              <h3 className="text-2xl font-semibold text-white mb-4">Access Restricted</h3>
+              <p className="text-white/60 text-lg">
+                The monitoring dashboard is only available for teachers, parents, and school administrators.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -58,7 +134,7 @@ const Monitoring = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-200 text-sm font-medium">Active Students</p>
-                  <p className="text-white text-3xl font-bold">{activeStudents}</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalStudents}</p>
                 </div>
                 <div className="p-3 bg-blue-500/20 rounded-xl">
                   <Users className="h-6 w-6 text-blue-400" />
@@ -71,11 +147,11 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-200 text-sm font-medium">Total Sessions</p>
-                  <p className="text-white text-3xl font-bold">{totalSessions.toLocaleString()}</p>
+                  <p className="text-green-200 text-sm font-medium">Total Tests</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalTests}</p>
                 </div>
                 <div className="p-3 bg-green-500/20 rounded-xl">
-                  <Activity className="h-6 w-6 text-green-400" />
+                  <FileText className="h-6 w-6 text-green-400" />
                 </div>
               </div>
             </CardContent>
@@ -85,8 +161,8 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200 text-sm font-medium">Avg Session Time</p>
-                  <p className="text-white text-3xl font-bold">{avgSessionTime}m</p>
+                  <p className="text-purple-200 text-sm font-medium">Study Time</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalStudyTime}h</p>
                 </div>
                 <div className="p-3 bg-purple-500/20 rounded-xl">
                   <Clock className="h-6 w-6 text-purple-400" />
@@ -99,8 +175,8 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-200 text-sm font-medium">Completion Rate</p>
-                  <p className="text-white text-3xl font-bold">{completionRate}%</p>
+                  <p className="text-orange-200 text-sm font-medium">Avg Completion</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.avgCompletion}%</p>
                 </div>
                 <div className="p-3 bg-orange-500/20 rounded-xl">
                   <Target className="h-6 w-6 text-orange-400" />
@@ -113,11 +189,11 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-pink-200 text-sm font-medium">Engagement Score</p>
-                  <p className="text-white text-3xl font-bold">{engagementScore}%</p>
+                  <p className="text-pink-200 text-sm font-medium">Curricula</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalCurricula}</p>
                 </div>
                 <div className="p-3 bg-pink-500/20 rounded-xl">
-                  <Heart className="h-6 w-6 text-pink-400" />
+                  <BookOpen className="h-6 w-6 text-pink-400" />
                 </div>
               </div>
             </CardContent>
@@ -127,11 +203,11 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-yellow-200 text-sm font-medium">Assessment Avg</p>
-                  <p className="text-white text-3xl font-bold">{assessmentAvg}%</p>
+                  <p className="text-yellow-200 text-sm font-medium">Quests</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalQuests}</p>
                 </div>
                 <div className="p-3 bg-yellow-500/20 rounded-xl">
-                  <FileText className="h-6 w-6 text-yellow-400" />
+                  <Target className="h-6 w-6 text-yellow-400" />
                 </div>
               </div>
             </CardContent>
@@ -142,7 +218,7 @@ const Monitoring = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-cyan-200 text-sm font-medium">Achievements</p>
-                  <p className="text-white text-3xl font-bold">{achievementsEarned}</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalAchievements}</p>
                 </div>
                 <div className="p-3 bg-cyan-500/20 rounded-xl">
                   <Trophy className="h-6 w-6 text-cyan-400" />
@@ -155,11 +231,11 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-emerald-200 text-sm font-medium">System Health</p>
-                  <p className="text-white text-3xl font-bold">{systemHealth}%</p>
+                  <p className="text-emerald-200 text-sm font-medium">Lessons Completed</p>
+                  <p className="text-white text-3xl font-bold">{overviewStats.totalLessonsCompleted}</p>
                 </div>
                 <div className="p-3 bg-emerald-500/20 rounded-xl">
-                  <Shield className="h-6 w-6 text-emerald-400" />
+                  <Book className="h-6 w-6 text-emerald-400" />
                 </div>
               </div>
             </CardContent>
@@ -231,16 +307,16 @@ const Monitoring = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                  {studentProgress.slice(0, 4).map((student) => (
+                    <div key={student.student_id} className="p-4 bg-white/5 rounded-2xl border border-white/10">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-white font-semibold">{activity.student}</h4>
-                        <span className="text-white/60 text-sm">{activity.time}</span>
+                        <h4 className="text-white font-semibold">{student.student_name}</h4>
+                        <span className="text-white/60 text-sm">{student.last_activity ? new Date(student.last_activity).toLocaleDateString() : 'No activity'}</span>
                       </div>
-                      <p className="text-white/80 mb-2">{activity.subject}</p>
+                      <p className="text-white/80 mb-2">Progress: {student.completion_percentage}%</p>
                       <div className="flex items-center space-x-3">
-                        <Progress value={activity.progress} className="flex-1 h-2" />
-                        <span className="text-white/90 text-sm font-medium">{activity.progress}%</span>
+                        <Progress value={student.completion_percentage} className="flex-1 h-2" />
+                        <span className="text-white/90 text-sm font-medium">{student.completion_percentage}%</span>
                       </div>
                     </div>
                   ))}
@@ -256,110 +332,433 @@ const Monitoring = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {subjectProgress.map((subject, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h4 className="text-white font-medium">{subject.subject}</h4>
-                        <span className="text-white/70 text-sm">{subject.students} students</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Progress value={subject.progress} className="flex-1 h-3" />
-                        <span className="text-white/90 text-sm font-medium w-12">{subject.progress}%</span>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="text-center py-12">
+                    <TrendingUp className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Subject Analytics</h3>
+                    <p className="text-white/60">Subject-specific performance data will appear here</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
           <TabsContent value="students" className="space-y-8">
-            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center text-2xl">
-                  <Users className="h-6 w-6 mr-3 text-blue-400" />
-                  Student Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Users className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Student Analytics</h3>
-                  <p className="text-white/60">Individual student progress, performance metrics, and learning insights</p>
-                </div>
-              </CardContent>
-            </Card>
+            {isSchoolAdmin ? (
+              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center text-2xl">
+                    <Users className="h-6 w-6 mr-3 text-blue-400" />
+                    Student Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {dataLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-pulse text-white/60">Loading student data...</div>
+                    </div>
+                  ) : studentProgress.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Users className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">No Students Found</h3>
+                      <p className="text-white/60">Add students to your school to start monitoring their progress</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {studentProgress.map((student) => (
+                        <Card key={student.student_id} className="bg-white/5 border-white/10">
+                          <CardContent className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-xl font-semibold text-white">{student.student_name}</h3>
+                                <p className="text-white/60">Last activity: {student.last_activity ? new Date(student.last_activity).toLocaleDateString() : 'No recent activity'}</p>
+                              </div>
+                              <Badge variant={student.completion_percentage >= 80 ? "default" : student.completion_percentage >= 60 ? "secondary" : "destructive"}>
+                                {student.completion_percentage >= 80 ? "Excellent" : student.completion_percentage >= 60 ? "Good" : "Needs Improvement"}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <p className="text-sm text-white/60">Progress</p>
+                                <Progress value={student.completion_percentage} className="mt-2" />
+                                <p className="text-xs text-white/60 mt-1">{student.completion_percentage}%</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-white/60">Study Time</p>
+                                <p className="text-xl font-bold text-white">{Math.round(student.total_time_spent / 60)}h</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-white/60">Lessons</p>
+                                <p className="text-xl font-bold text-white">{student.completed_lessons}/{student.total_lessons}</p>
+                              </div>
+                            </div>
+                            {student.test_scores.length > 0 && (
+                              <div className="mt-4">
+                                <p className="text-sm text-white/60 mb-2">Recent Test Scores</p>
+                                <div className="space-y-2">
+                                  {student.test_scores.slice(0, 3).map((test, index) => (
+                                    <div key={index} className="flex justify-between items-center text-sm">
+                                      <span className="text-white/80">{test.test_name}</span>
+                                      <span className="text-white font-medium">{test.percentage}%</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+                <CardContent className="p-12 text-center">
+                  <Shield className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">School Admin Only</h3>
+                  <p className="text-white/60">Student analytics are only available for school administrators</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="curriculums" className="space-y-8">
             <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-white flex items-center text-2xl">
                   <BookOpen className="h-6 w-6 mr-3 text-purple-400" />
                   Curriculum Management
                 </CardTitle>
+                <Dialog open={showCurriculumDialog} onOpenChange={setShowCurriculumDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-purple-600 hover:bg-purple-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Curriculum
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-slate-900 border-white/20">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Create New Curriculum</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white">Title</Label>
+                        <Input
+                          value={curriculumForm.title}
+                          onChange={(e) => setCurriculumForm(prev => ({ ...prev, title: e.target.value }))}
+                          className="bg-white/10 border-white/20 text-white"
+                          placeholder="Curriculum title"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Description</Label>
+                        <Textarea
+                          value={curriculumForm.description}
+                          onChange={(e) => setCurriculumForm(prev => ({ ...prev, description: e.target.value }))}
+                          className="bg-white/10 border-white/20 text-white"
+                          placeholder="Curriculum description"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Grade Level</Label>
+                        <Select value={curriculumForm.grade_level} onValueChange={(value) => setCurriculumForm(prev => ({ ...prev, grade_level: value }))}>
+                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                            <SelectValue placeholder="Select grade level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => (
+                              <SelectItem key={i + 1} value={`Grade ${i + 1}`}>Grade {i + 1}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={handleCreateCurriculum} className="w-full bg-purple-600 hover:bg-purple-700">
+                        Create Curriculum
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <BookOpen className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Curriculum Analytics</h3>
-                  <p className="text-white/60">Track curriculum progress, completion rates, and effectiveness</p>
-                </div>
+                {curricula.length === 0 ? (
+                  <div className="text-center py-12">
+                    <BookOpen className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No Curricula Yet</h3>
+                    <p className="text-white/60">Create your first curriculum to get started</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {curricula.map((curriculum) => (
+                      <Card key={curriculum.id} className="bg-white/5 border-white/10">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white">{curriculum.title}</h3>
+                              <p className="text-white/60 text-sm">{curriculum.description}</p>
+                              {curriculum.grade_level && (
+                                <Badge variant="outline" className="mt-2">{curriculum.grade_level}</Badge>
+                              )}
+                            </div>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => deleteCurriculum(curriculum.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-white/60">Created: {new Date(curriculum.created_at).toLocaleDateString()}</span>
+                            <Badge variant={curriculum.is_active ? "default" : "secondary"}>
+                              {curriculum.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="quests" className="space-y-8">
             <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-white flex items-center text-2xl">
                   <Target className="h-6 w-6 mr-3 text-orange-400" />
                   Quest Management
                 </CardTitle>
+                <Dialog open={showQuestDialog} onOpenChange={setShowQuestDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-orange-600 hover:bg-orange-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Quest
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-slate-900 border-white/20">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Create New Quest</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white">Title</Label>
+                        <Input
+                          value={questForm.title}
+                          onChange={(e) => setQuestForm(prev => ({ ...prev, title: e.target.value }))}
+                          className="bg-white/10 border-white/20 text-white"
+                          placeholder="Quest title"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Description</Label>
+                        <Textarea
+                          value={questForm.description}
+                          onChange={(e) => setQuestForm(prev => ({ ...prev, description: e.target.value }))}
+                          className="bg-white/10 border-white/20 text-white"
+                          placeholder="Quest description"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-white">Type</Label>
+                          <Select value={questForm.type} onValueChange={(value) => setQuestForm(prev => ({ ...prev, type: value }))}>
+                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="daily">Daily</SelectItem>
+                              <SelectItem value="weekly">Weekly</SelectItem>
+                              <SelectItem value="milestone">Milestone</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-white">Difficulty</Label>
+                          <Select value={questForm.difficulty} onValueChange={(value) => setQuestForm(prev => ({ ...prev, difficulty: value }))}>
+                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="easy">Easy</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="hard">Hard</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-white">Target Value</Label>
+                        <Input
+                          type="number"
+                          value={questForm.target_value}
+                          onChange={(e) => setQuestForm(prev => ({ ...prev, target_value: parseInt(e.target.value) || 1 }))}
+                          className="bg-white/10 border-white/20 text-white"
+                        />
+                      </div>
+                      <Button onClick={handleCreateQuest} className="w-full bg-orange-600 hover:bg-orange-700">
+                        Create Quest
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Target className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Quest Analytics</h3>
-                  <p className="text-white/60">Monitor quest completion, student engagement, and reward distribution</p>
-                </div>
+                {quests.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Target className="h-16 w-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No Quests Yet</h3>
+                    <p className="text-white/60">Create your first quest to gamify learning</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {quests.map((quest) => (
+                      <Card key={quest.id} className="bg-white/5 border-white/10">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white">{quest.title}</h3>
+                              <p className="text-white/60 text-sm">{quest.description}</p>
+                              <div className="flex gap-2 mt-2">
+                                <Badge variant="outline">{quest.type}</Badge>
+                                <Badge variant="secondary">{quest.difficulty}</Badge>
+                                {quest.is_active && <Badge variant="default">Active</Badge>}
+                              </div>
+                            </div>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => deleteQuest(quest.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Target:</span>
+                              <span className="text-white">{quest.target_value}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Created:</span>
+                              <span className="text-white">{new Date(quest.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Trophy className="h-6 w-6 mr-3 text-cyan-400" />
-                    Badges & Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-white flex items-center text-2xl">
+                  <Trophy className="h-6 w-6 mr-3 text-cyan-400" />
+                  Achievement Management
+                </CardTitle>
+                <Dialog open={showAchievementDialog} onOpenChange={setShowAchievementDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-cyan-600 hover:bg-cyan-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Achievement
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-slate-900 border-white/20">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Create New Achievement</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-white">Name</Label>
+                        <Input
+                          value={achievementForm.name}
+                          onChange={(e) => setAchievementForm(prev => ({ ...prev, name: e.target.value }))}
+                          className="bg-white/10 border-white/20 text-white"
+                          placeholder="Achievement name"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-white">Description</Label>
+                        <Textarea
+                          value={achievementForm.description}
+                          onChange={(e) => setAchievementForm(prev => ({ ...prev, description: e.target.value }))}
+                          className="bg-white/10 border-white/20 text-white"
+                          placeholder="Achievement description"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-white">Type</Label>
+                          <Select value={achievementForm.type} onValueChange={(value) => setAchievementForm(prev => ({ ...prev, type: value }))}>
+                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="milestone">Milestone</SelectItem>
+                              <SelectItem value="completion">Completion</SelectItem>
+                              <SelectItem value="mastery">Mastery</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-white">Points</Label>
+                          <Input
+                            type="number"
+                            value={achievementForm.points}
+                            onChange={(e) => setAchievementForm(prev => ({ ...prev, points: parseInt(e.target.value) || 10 }))}
+                            className="bg-white/10 border-white/20 text-white"
+                          />
+                        </div>
+                      </div>
+                      <Button onClick={handleCreateAchievement} className="w-full bg-cyan-600 hover:bg-cyan-700">
+                        Create Achievement
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                {achievements.length === 0 ? (
                   <div className="text-center py-12">
                     <Trophy className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Achievement Stats</h3>
-                    <p className="text-white/60">Track earned badges, milestones, and recognition</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">No Achievements Yet</h3>
+                    <p className="text-white/60">Create your first achievement to reward student progress</p>
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Award className="h-6 w-6 mr-3 text-yellow-400" />
-                    Leaderboards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <Award className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Rankings</h3>
-                    <p className="text-white/60">Class and school-wide performance rankings</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {achievements.map((achievement) => (
+                      <Card key={achievement.id} className="bg-white/5 border-white/10">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
+                              <p className="text-white/60 text-sm">{achievement.description}</p>
+                              <div className="flex gap-2 mt-2">
+                                <Badge variant="outline">{achievement.type}</Badge>
+                                <Badge variant="secondary">{achievement.points} pts</Badge>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => deleteAchievement(achievement.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-white/60">Created: {new Date(achievement.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-8">
@@ -398,38 +797,78 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="tests" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <FileText className="h-6 w-6 mr-3 text-yellow-400" />
-                    Test Results
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-white flex items-center text-2xl">
+                  <FileText className="h-6 w-6 mr-3 text-yellow-400" />
+                  Test Management
+                </CardTitle>
+                <Dialog open={showTestCreator} onOpenChange={setShowTestCreator}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-yellow-600 hover:bg-yellow-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Test
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-slate-900 border-white/20 max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Create New Test</DialogTitle>
+                    </DialogHeader>
+                    <TestCreator onTestCreated={() => setShowTestCreator(false)} />
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                {tests.length === 0 ? (
                   <div className="text-center py-12">
                     <FileText className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Assessment Data</h3>
-                    <p className="text-white/60">Comprehensive test scores, quiz results, and assessment analytics</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">No Tests Yet</h3>
+                    <p className="text-white/60">Create your first test to start assessing students</p>
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <BarChart3 className="h-6 w-6 mr-3 text-blue-400" />
-                    Performance Metrics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Test Analytics</h3>
-                    <p className="text-white/60">Detailed test performance analysis and improvement suggestions</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {tests.map((test) => (
+                      <Card key={test.id} className="bg-white/5 border-white/10">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white">{test.title}</h3>
+                              <p className="text-white/60 text-sm">{test.description}</p>
+                              <div className="flex gap-2 mt-2">
+                                {test.subject && <Badge variant="outline">{test.subject}</Badge>}
+                                {test.ai_generated && <Badge variant="secondary">AI Generated</Badge>}
+                                {test.is_mandatory && <Badge variant="destructive">Mandatory</Badge>}
+                              </div>
+                            </div>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => deleteTest(test.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Time Limit:</span>
+                              <span className="text-white">{test.time_limit_minutes} minutes</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Total Points:</span>
+                              <span className="text-white">{test.total_points}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Created:</span>
+                              <span className="text-white">{new Date(test.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
