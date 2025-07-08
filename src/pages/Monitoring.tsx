@@ -692,7 +692,7 @@ const Monitoring = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label className="text-white">Type</Label>
-                          <Select value={achievementForm.type} onValueChange={(value) => setAchievementForm(prev => ({ ...prev, type: value }))}>
+                          <Select value={achievementForm.type} onValueChange={(value) => setAchievementForm(prev => ({ ...prev, type: value as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge' }))}>
                             <SelectTrigger className="bg-white/10 border-white/20 text-white">
                               <SelectValue />
                             </SelectTrigger>
