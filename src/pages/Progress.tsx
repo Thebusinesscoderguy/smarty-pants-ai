@@ -101,8 +101,7 @@ const Progress = () => {
 
   const renderMonitoringTab = () => {
     if (!user) {
-      // In demo mode, show real components with mock data
-      return <ParentDashboard />;
+      return <DemoParentDashboard />;
     }
     
     if (userRole === 'parent') {

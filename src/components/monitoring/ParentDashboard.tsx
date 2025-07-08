@@ -6,8 +6,8 @@ import { TrendingUp, TrendingDown, Users, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockParentDashboard } from '@/utils/mockData';
-import { useLocation } from 'react-router-dom';
 
 interface StudentData {
   student_id: string;
@@ -21,13 +21,9 @@ export const ParentDashboard = () => {
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  const location = useLocation();
-  
-  // Check if in demo mode
-  const isDemoMode = location.pathname.includes('/demo') || !user;
 
   useEffect(() => {
-    if (isDemoMode) {
+    if (isMockDataEnabled()) {
       setIsLoading(true);
       setStudentData(mockParentDashboard);
       setIsLoading(false);
@@ -37,7 +33,7 @@ export const ParentDashboard = () => {
     if (user) {
       fetchChildData();
     }
-  }, [user, isDemoMode]);
+  }, [user]);
 
   const fetchChildData = async () => {
     if (!user) return;
@@ -169,7 +165,7 @@ export const ParentDashboard = () => {
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2 text-white">No Child Connected</h3>
           <p className="text-gray-300">
-            {isDemoMode ? 
+            {isMockDataEnabled() ? 
               "This is mock data for demonstration purposes." :
               "No child account is connected to your parent account. Please contact your school administrator to set up the connection."
             }

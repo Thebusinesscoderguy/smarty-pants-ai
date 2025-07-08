@@ -23,7 +23,6 @@ import SystemTest from './pages/SystemTest';
 import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
 import Settings from './pages/Settings';
-import Monitoring from './pages/Monitoring';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -55,7 +54,6 @@ function App() {
                 <Route path="/math-solver" element={<MathSolver />} />
                 <Route path="/quiz" element={<QuizGenerator />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/monitoring" element={<Monitoring />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
