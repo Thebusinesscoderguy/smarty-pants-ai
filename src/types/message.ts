@@ -6,6 +6,7 @@ export interface Message {
   isFromUser: boolean;
   type: 'text' | 'voice' | 'file';
   audioUrl?: string;
+  audioContent?: string;
   isPlaying?: boolean;
   fileUrl?: string;
   fileName?: string;
