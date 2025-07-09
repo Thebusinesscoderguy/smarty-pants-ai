@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EnhancedStudentDashboard } from '@/components/monitoring/EnhancedStudentDashboard';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -362,73 +363,7 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="students" className="space-y-8">
-            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center text-2xl">
-                  <Users className="h-6 w-6 mr-3 text-blue-400" />
-                  Student Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dataLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-pulse text-white/60">Loading student data...</div>
-                  </div>
-                ) : studentProgress.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Users className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Demo Mode - Sample Student Data</h3>
-                    <p className="text-white/60">In production, this would show real student analytics</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {studentProgress.map((student) => (
-                      <Card key={student.student_id} className="bg-white/5 border-white/10">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-xl font-semibold text-white">{student.student_name}</h3>
-                              <p className="text-white/60">Last activity: {student.last_activity ? new Date(student.last_activity).toLocaleDateString() : 'No recent activity'}</p>
-                            </div>
-                            <Badge variant={student.completion_percentage >= 80 ? "default" : student.completion_percentage >= 60 ? "secondary" : "destructive"}>
-                              {student.completion_percentage >= 80 ? "Excellent" : student.completion_percentage >= 60 ? "Good" : "Needs Improvement"}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <p className="text-sm text-white/60">Progress</p>
-                              <Progress value={student.completion_percentage} className="mt-2" />
-                              <p className="text-xs text-white/60 mt-1">{student.completion_percentage}%</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-white/60">Study Time</p>
-                              <p className="text-xl font-bold text-white">{Math.round(student.total_time_spent / 60)}h</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-white/60">Lessons</p>
-                              <p className="text-xl font-bold text-white">{student.completed_lessons}/{student.total_lessons}</p>
-                            </div>
-                          </div>
-                          {student.test_scores.length > 0 && (
-                            <div className="mt-4">
-                              <p className="text-sm text-white/60 mb-2">Recent Test Scores</p>
-                              <div className="space-y-2">
-                                {student.test_scores.slice(0, 3).map((test, index) => (
-                                  <div key={index} className="flex justify-between items-center text-sm">
-                                    <span className="text-white/80">{test.test_name}</span>
-                                    <span className="text-white font-medium">{test.percentage}%</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <EnhancedStudentDashboard />
           </TabsContent>
 
           <TabsContent value="curriculums" className="space-y-8">

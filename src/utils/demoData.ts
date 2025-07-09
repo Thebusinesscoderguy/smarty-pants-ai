@@ -596,9 +596,161 @@ export const demoParentData = {
         subjects: { name: "Chemistry" },
         improvement_trend: "improving",
         last_practiced: "2024-01-18T13:20:00Z"
+      },
+      {
+        id: "str-5",
+        topic_name: "Cell Biology",
+        strength_score: 0.91,
+        total_attempts: 22,
+        correct_attempts: 20,
+        subjects: { name: "Biology" },
+        improvement_trend: "stable",
+        last_practiced: "2024-01-15T12:10:00Z"
+      },
+      {
+        id: "str-6",
+        topic_name: "Spanish Vocabulary",
+        strength_score: 0.86,
+        total_attempts: 30,
+        correct_attempts: 26,
+        subjects: { name: "Spanish" },
+        improvement_trend: "improving",
+        last_practiced: "2024-01-13T17:25:00Z"
       }
     ],
     weaknesses: [
+      {
+        id: "weak-1",
+        topic_name: "Advanced Calculus",
+        strength_score: 0.45,
+        total_attempts: 12,
+        correct_attempts: 5,
+        subjects: { name: "Mathematics" },
+        improvement_trend: "needs_attention",
+        last_practiced: "2024-01-20T14:30:00Z"
+      },
+      {
+        id: "weak-2",
+        topic_name: "Poetry Analysis", 
+        strength_score: 0.52,
+        total_attempts: 8,
+        correct_attempts: 4,
+        subjects: { name: "English Literature" },
+        improvement_trend: "improving",
+        last_practiced: "2024-01-19T16:45:00Z"
+      },
+      {
+        id: "weak-3",
+        topic_name: "Electromagnetic Fields",
+        strength_score: 0.38,
+        total_attempts: 10,
+        correct_attempts: 4,
+        subjects: { name: "Physics" },
+        improvement_trend: "needs_attention",
+        last_practiced: "2024-01-16T15:20:00Z"
+      },
+      {
+        id: "weak-4",
+        topic_name: "Algorithm Complexity",
+        strength_score: 0.42,
+        total_attempts: 15,
+        correct_attempts: 6,
+        subjects: { name: "Computer Science" },
+        improvement_trend: "struggling",
+        last_practiced: "2024-01-14T18:40:00Z"
+      }
+    ],
+    performance_metrics: {
+      overall_accuracy: 78.5,
+      average_response_time_ms: 2450,
+      total_study_time_hours: 125.8,
+      active_days_this_month: 22,
+      improvement_rate: 12.3,
+      engagement_score: 8.7,
+      consistency_score: 9.1
+    },
+    learning_patterns: {
+      best_study_times: ["2:00 PM - 4:00 PM", "7:00 PM - 9:00 PM"],
+      preferred_difficulty: "medium-hard",
+      attention_span_minutes: 35,
+      break_frequency: "every 45 minutes",
+      learning_style: "visual-kinesthetic"
+    }
+  },
+  
+  // Additional monitoring data
+  studentProgress: [
+    {
+      student_id: "demo-student-1",
+      student_name: "Emma Thompson",
+      completion_percentage: 92,
+      completed_lessons: 47,
+      total_lessons: 50,
+      total_time_spent: 1850, // minutes
+      last_activity: "2024-01-20T15:30:00Z",
+      subjects: [
+        {
+          subject_name: "Mathematics",
+          completion_percentage: 95,
+          lessons_completed: 19,
+          total_lessons: 20,
+          time_spent: 580
+        },
+        {
+          subject_name: "English",
+          completion_percentage: 88,
+          lessons_completed: 14,
+          total_lessons: 16,
+          time_spent: 420
+        },
+        {
+          subject_name: "Science",
+          completion_percentage: 93,
+          lessons_completed: 14,
+          total_lessons: 15,
+          time_spent: 450
+        }
+      ],
+      strengths: ["Problem Solving", "Critical Thinking", "Mathematics", "Reading Comprehension"],
+      weak_areas: ["Writing Skills", "Public Speaking"]
+    },
+    {
+      student_id: "demo-student-2", 
+      student_name: "Marcus Johnson",
+      completion_percentage: 76,
+      completed_lessons: 38,
+      total_lessons: 50,
+      total_time_spent: 1240,
+      last_activity: "2024-01-19T14:15:00Z",
+      subjects: [
+        {
+          subject_name: "Mathematics",
+          completion_percentage: 82,
+          lessons_completed: 16,
+          total_lessons: 20,
+          time_spent: 380
+        },
+        {
+          subject_name: "English", 
+          completion_percentage: 70,
+          lessons_completed: 11,
+          total_lessons: 16,
+          time_spent: 320
+        },
+        {
+          subject_name: "Science",
+          completion_percentage: 75,
+          lessons_completed: 11,
+          total_lessons: 15,
+          time_spent: 290
+        }
+      ],
+      strengths: ["Mathematics", "Logical Reasoning", "Science Experiments"],
+      weak_areas: ["Essay Writing", "Literature Analysis", "History"]
+    }
+  ],
+
+  weaknesses: [
       {
         id: "weak-1",
         topic_name: "Quadratic Functions", 
