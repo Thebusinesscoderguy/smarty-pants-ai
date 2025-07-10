@@ -5,15 +5,13 @@ import { EnhancedStudentDashboard } from '@/components/monitoring/EnhancedStuden
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, BookOpen, Target, Award, Trash2, Settings, TestTube } from 'lucide-react';
+import { Plus, Users, BookOpen, Target, Award, Trash2, Settings } from 'lucide-react';
 import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
-import { SystemTestPanel } from '@/components/SystemTestPanel';
 import { toast } from '@/hooks/use-toast';
 
 const Monitoring = () => {
-  const [showSystemTests, setShowSystemTests] = useState(false);
   const { curricula, loading: curriculaLoading, deleteCurriculum } = useCurriculumManagement();
   const { quests, loading: questsLoading, deleteQuest } = useQuestManagement();
   const { achievements, loading: achievementsLoading, deleteAchievement } = useAchievementManagement();
@@ -48,37 +46,6 @@ const Monitoring = () => {
     }
   };
 
-  if (showSystemTests) {
-    return (
-      <div className="flex min-h-screen bg-black text-white">
-        <AppSidebar />
-        <div className="flex-1 overflow-hidden">
-          <header className="p-6 border-b border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">System Testing</h1>
-                <p className="text-gray-400 mt-1">
-                  Comprehensive testing of all APIs, workflows, and integrations
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSystemTests(false)}
-                className="text-white border-white/20 hover:bg-white/10"
-              >
-                Back to Monitoring
-              </Button>
-            </div>
-          </header>
-          
-          <main className="p-6">
-            <SystemTestPanel />
-          </main>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-black text-white">
       <AppSidebar />
@@ -92,20 +59,10 @@ const Monitoring = () => {
                 Track student progress, performance, and engagement across all subjects
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSystemTests(true)}
-                className="text-white border-white/20 hover:bg-white/10 flex items-center gap-2"
-              >
-                <TestTube className="h-4 w-4" />
-                System Tests
-              </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Get Started
-              </Button>
-            </div>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Get Started
+            </Button>
           </div>
         </header>
         
