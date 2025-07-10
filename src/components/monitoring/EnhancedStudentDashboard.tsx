@@ -142,7 +142,7 @@ export const EnhancedStudentDashboard = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Avg Progress</p>
-                <p className="text-2xl font-bold">{overviewStats?.averageProgress || 0}%</p>
+                <p className="text-2xl font-bold">{overviewStats?.avgCompletion || 0}%</p>
                 <p className="text-xs text-green-600">+5% from last month</p>
               </div>
             </div>
@@ -157,7 +157,7 @@ export const EnhancedStudentDashboard = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Study Hours</p>
-                <p className="text-2xl font-bold">{overviewStats?.totalStudyHours || 0}h</p>
+                <p className="text-2xl font-bold">{overviewStats?.totalStudyTime || 0}h</p>
                 <p className="text-xs text-blue-600">This month</p>
               </div>
             </div>
