@@ -73,6 +73,14 @@ export const useCurriculumManagement = () => {
     content: any;
     subject_id?: string;
   }) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Curriculum creation would work in the full version.",
+      });
+      return null;
+    }
+
     if (!user) return null;
 
     try {
@@ -113,6 +121,14 @@ export const useCurriculumManagement = () => {
   };
 
   const updateCurriculum = async (id: string, updates: Partial<Curriculum>) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Curriculum updates would work in the full version.",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('curricula')
@@ -138,6 +154,14 @@ export const useCurriculumManagement = () => {
   };
 
   const deleteCurriculum = async (id: string) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Curriculum deletion would work in the full version.",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('curricula')

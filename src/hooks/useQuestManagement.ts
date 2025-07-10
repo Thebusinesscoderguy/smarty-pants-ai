@@ -70,6 +70,14 @@ export const useQuestManagement = () => {
     rewards?: any;
     requirements?: any;
   }) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Quest creation would work in the full version.",
+      });
+      return null;
+    }
+
     if (!user) return null;
 
     try {
@@ -104,6 +112,14 @@ export const useQuestManagement = () => {
   };
 
   const updateQuest = async (id: string, updates: Partial<Quest>) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Quest updates would work in the full version.",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('quests')
@@ -129,6 +145,14 @@ export const useQuestManagement = () => {
   };
 
   const deleteQuest = async (id: string) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Quest deletion would work in the full version.",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('quests')

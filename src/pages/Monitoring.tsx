@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { getDemoQuestCompletions, getDemoAchievementCompletions } from '@/utils/demoData';
 
 const Monitoring = () => {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ const Monitoring = () => {
   const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
   const { quests, createQuest, deleteQuest } = useQuestManagement();
   const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
+
+  // Get completion data for demo
+  const questCompletions = getDemoQuestCompletions();
+  const achievementCompletions = getDemoAchievementCompletions();
 
   // Dialog states
   const [showTestCreator, setShowTestCreator] = useState(false);
@@ -555,41 +560,82 @@ const Monitoring = () => {
                     <p className="text-white/60">Create your first quest to gamify learning</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {quests.map((quest) => (
-                      <Card key={quest.id} className="bg-white/5 border-white/10">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-white">{quest.title}</h3>
-                              <p className="text-white/60 text-sm">{quest.description}</p>
-                              <div className="flex gap-2 mt-2">
-                                <Badge variant="outline">{quest.type}</Badge>
-                                <Badge variant="secondary">{quest.difficulty}</Badge>
-                                {quest.is_active && <Badge variant="default">Active</Badge>}
+                  <div className="space-y-6">
+                    {quests.map((quest) => {
+                      const completionData = questCompletions.find(q => q.quest_id === quest.id);
+                      return (
+                        <Card key={quest.id} className="bg-white/5 border-white/10">
+                          <CardContent className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-white">{quest.title}</h3>
+                                <p className="text-white/60 text-sm">{quest.description}</p>
+                                <div className="flex gap-2 mt-2">
+                                  <Badge variant="outline">{quest.type}</Badge>
+                                  <Badge variant="secondary">{quest.difficulty}</Badge>
+                                  {quest.is_active && <Badge variant="default">Active</Badge>}
+                                </div>
+                              </div>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => deleteQuest(quest.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                            
+                            {/* Student Completion Section */}
+                            {completionData && (
+                              <div className="mt-4 pt-4 border-t border-white/10">
+                                <h4 className="text-white font-medium mb-3 flex items-center">
+                                  <Users className="h-4 w-4 mr-2" />
+                                  Student Progress ({completionData.completed_by.length} students)
+                                </h4>
+                                <div className="space-y-2">
+                                  {completionData.completed_by.map((student) => (
+                                    <div key={student.student_id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                      <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                          {student.student_name.charAt(0)}
+                                        </div>
+                                        <span className="text-white">{student.student_name}</span>
+                                      </div>
+                                      <div className="flex items-center space-x-4">
+                                        <div className="text-right">
+                                          <div className="text-white text-sm">{student.progress}/{quest.target_value}</div>
+                                          <Progress value={(student.progress / quest.target_value) * 100} className="w-20 h-2" />
+                                        </div>
+                                        {student.completed_at ? (
+                                          <Badge variant="default" className="bg-green-600">
+                                            Completed
+                                          </Badge>
+                                        ) : (
+                                          <Badge variant="secondary">
+                                            In Progress
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="space-y-2 text-sm mt-4">
+                              <div className="flex justify-between">
+                                <span className="text-white/60">Target:</span>
+                                <span className="text-white">{quest.target_value}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-white/60">Created:</span>
+                                <span className="text-white">{new Date(quest.created_at).toLocaleDateString()}</span>
                               </div>
                             </div>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => deleteQuest(quest.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Target:</span>
-                              <span className="text-white">{quest.target_value}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Created:</span>
-                              <span className="text-white">{new Date(quest.created_at).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -672,33 +718,63 @@ const Monitoring = () => {
                     <p className="text-white/60">Create your first achievement to reward student progress</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {achievements.map((achievement) => (
-                      <Card key={achievement.id} className="bg-white/5 border-white/10">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
-                              <p className="text-white/60 text-sm">{achievement.description}</p>
-                              <div className="flex gap-2 mt-2">
-                                <Badge variant="outline">{achievement.type}</Badge>
-                                <Badge variant="secondary">{achievement.points} pts</Badge>
+                  <div className="space-y-6">
+                    {achievements.map((achievement) => {
+                      const completionData = achievementCompletions.find(a => a.achievement_id === achievement.id);
+                      return (
+                        <Card key={achievement.id} className="bg-white/5 border-white/10">
+                          <CardContent className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
+                                <p className="text-white/60 text-sm">{achievement.description}</p>
+                                <div className="flex gap-2 mt-2">
+                                  <Badge variant="outline">{achievement.type}</Badge>
+                                  <Badge variant="secondary">{achievement.points} pts</Badge>
+                                </div>
                               </div>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => deleteAchievement(achievement.id)}
+                              >
+                                Delete
+                              </Button>
                             </div>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => deleteAchievement(achievement.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-white/60">Created: {new Date(achievement.created_at).toLocaleDateString()}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                            
+                            {/* Student Completion Section */}
+                            {completionData && (
+                              <div className="mt-4 pt-4 border-t border-white/10">
+                                <h4 className="text-white font-medium mb-3 flex items-center">
+                                  <Award className="h-4 w-4 mr-2" />
+                                  Earned by Students ({completionData.earned_by.length} students)
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {completionData.earned_by.map((student) => (
+                                    <div key={student.student_id} className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
+                                      <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                        {student.student_name.charAt(0)}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="text-white font-medium">{student.student_name}</div>
+                                        <div className="text-white/60 text-xs">
+                                          Earned {new Date(student.earned_at).toLocaleDateString()}
+                                        </div>
+                                      </div>
+                                      <Trophy className="h-4 w-4 text-yellow-400" />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="flex justify-between text-sm mt-4">
+                              <span className="text-white/60">Created: {new Date(achievement.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

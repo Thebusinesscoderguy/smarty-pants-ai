@@ -63,6 +63,14 @@ export const useAchievementManagement = () => {
     criteria: any;
     points: number;
   }) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Achievement creation would work in the full version.",
+      });
+      return null;
+    }
+
     if (!user) return null;
 
     try {
@@ -104,6 +112,14 @@ export const useAchievementManagement = () => {
   };
 
   const updateAchievement = async (id: string, updates: Partial<Achievement>) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Achievement updates would work in the full version.",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('achievements')
@@ -129,6 +145,14 @@ export const useAchievementManagement = () => {
   };
 
   const deleteAchievement = async (id: string) => {
+    if (useDemoData) {
+      toast({
+        title: "Demo Mode",
+        description: "This is a demo. Achievement deletion would work in the full version.",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('achievements')
