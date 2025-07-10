@@ -15,7 +15,7 @@ export const SystemTestPanel = () => {
   const [currentTest, setCurrentTest] = useState<string>('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
 
-  const handleRunTests = async (forceMode: boolean = true) => {
+  const handleRunTests = async (forceMode: boolean = true) => { // Changed default to true
     setIsRunning(true);
     setTestResults([]);
     setCurrentTest('');
@@ -167,7 +167,7 @@ export const SystemTestPanel = () => {
         <CardContent className="space-y-4">
           <div className="flex gap-2 flex-wrap">
             <Button 
-              onClick={() => handleRunTests(true)}
+              onClick={() => handleRunTests(true)} // Changed to default force mode
               disabled={isRunning}
               className="flex items-center gap-2"
             >
@@ -185,7 +185,7 @@ export const SystemTestPanel = () => {
             </Button>
 
             <Button 
-              onClick={() => handleRunTests(false)}
+              onClick={() => handleRunTests(false)} // Changed to non-force mode
               disabled={isRunning}
               variant="outline"
               className="flex items-center gap-2"
