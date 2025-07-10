@@ -28,6 +28,10 @@ const Index = () => {
     navigate('/demo');
   };
 
+  const handleSystemTests = () => {
+    navigate('/system-test');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden">
       {/* Animated background elements */}
@@ -67,6 +71,15 @@ const Index = () => {
               >
                 {t('cta.demo')}
                 <BookOpen className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-orange-400/30 bg-orange-500/10 text-orange-100 hover:bg-orange-500/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
+                onClick={handleSystemTests}
+              >
+                System Tests
+                <Zap className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
