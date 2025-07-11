@@ -14,8 +14,6 @@ export const SystemTestPanel = () => {
   const [healthStatus, setHealthStatus] = useState<{status: string, message: string} | null>(null);
   const [currentTest, setCurrentTest] = useState<string>('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [hasAutoRun, setHasAutoRun] = useState(false);
-
   const handleRunTests = async (forceMode: boolean = true) => { // Changed default to true
     setIsRunning(true);
     setTestResults([]);
@@ -153,13 +151,6 @@ export const SystemTestPanel = () => {
 
   const progressPercentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
 
-  // Auto-run tests when component mounts
-  useEffect(() => {
-    if (!hasAutoRun && !isRunning) {
-      setHasAutoRun(true);
-      handleRunTests(true);
-    }
-  }, [hasAutoRun, isRunning]);
 
   return (
     <div className="space-y-6">
