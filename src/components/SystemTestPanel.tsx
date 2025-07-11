@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { runSystemTests, quickHealthCheck, type TestSuite, type TestResult } fro
 import { toast } from '@/components/ui/use-toast';
 
 export const SystemTestPanel = () => {
+  const navigate = useNavigate();
   const [isRunning, setIsRunning] = useState(false);
   const [testResults, setTestResults] = useState<TestSuite[]>([]);
   const [healthStatus, setHealthStatus] = useState<{status: string, message: string} | null>(null);
@@ -62,15 +64,20 @@ export const SystemTestPanel = () => {
       if (failedTests > 0) {
         toast({
           title: "Tests Completed with Issues",
-          description: `${failedTests} out of ${totalTests} tests failed. Check results below.`,
+          description: `${failedTests} out of ${totalTests} tests failed. Redirecting to results...`,
           variant: "destructive"
         });
       } else {
         toast({
           title: "All Tests Passed!",
-          description: `${totalTests} tests completed successfully.`,
+          description: `${totalTests} tests completed successfully. Redirecting to results...`,
         });
       }
+
+      // Navigate to results page after a brief delay
+      setTimeout(() => {
+        navigate('/test-results', { state: { testResults: suiteResults } });
+      }, 1500);
     } catch (error: any) {
       console.error("Test execution error:", error);
       toast({
