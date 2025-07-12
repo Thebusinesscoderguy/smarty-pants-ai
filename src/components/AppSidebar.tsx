@@ -11,7 +11,8 @@ import {
   FileQuestion,
   Settings,
   Users,
-  BookOpen
+  BookOpen,
+  TestTube
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,6 +40,7 @@ const navigationItems = [
   { title: "Math Solver", icon: Calculator, url: "/math-solver" },
   { title: "Quiz Generator", icon: FileQuestion, url: "/quiz" },
   { title: "Progress", icon: TrendingUp, url: "/progress" },
+  { title: "System Test", icon: TestTube, url: "/system-test" },
 ];
 
 const AppSidebar = () => {

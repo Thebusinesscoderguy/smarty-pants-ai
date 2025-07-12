@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Play, CheckCircle, XCircle, Clock, AlertCircle, Zap } from 'lucide-react';
+import { Loader2, Play, CheckCircle, XCircle, Clock, AlertCircle, Zap, Activity } from 'lucide-react';
 import { runSystemTests, quickHealthCheck, type TestSuite, type TestResult } from '@/utils/systemTester';
 import { toast } from '@/components/ui/use-toast';
 
@@ -160,10 +160,10 @@ export const SystemTestPanel = () => {
 
 
   return (
-    <div className="space-y-6 p-6 bg-background text-foreground min-h-screen">
-      <Card>
+    <div className="space-y-6">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-card-foreground">
             <Play className="h-5 w-5" />
             System Testing Panel
           </CardTitle>
