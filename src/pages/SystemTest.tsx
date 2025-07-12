@@ -4,13 +4,13 @@ import { AppSidebar } from '@/components/AppSidebar';
 
 const SystemTest = () => {
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen bg-background text-foreground">
       <AppSidebar />
       
       <div className="flex-1 overflow-hidden">
-        <header className="p-6 border-b border-white/20">
+        <header className="p-6 border-b border-border">
           <h1 className="text-2xl font-bold">System Testing</h1>
-          <p className="text-gray-400 mt-1">
+          <p className="text-muted-foreground mt-1">
             Comprehensive testing of all APIs, workflows, and integrations
           </p>
         </header>
