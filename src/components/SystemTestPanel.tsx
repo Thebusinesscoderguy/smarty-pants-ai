@@ -160,7 +160,7 @@ export const SystemTestPanel = () => {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 bg-background text-foreground min-h-screen">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
