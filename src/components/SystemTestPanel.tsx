@@ -16,6 +16,30 @@ export const SystemTestPanel = () => {
   const [healthStatus, setHealthStatus] = useState<{status: string, message: string} | null>(null);
   const [currentTest, setCurrentTest] = useState<string>('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+
+  // Initialize with sample test results to show functionality
+  useEffect(() => {
+    const sampleResults: TestSuite[] = [{
+      name: 'System Tests (Sample)',
+      results: [
+        { name: 'Database Connection', status: 'pass', message: 'Successfully connected to database', duration: 125 },
+        { name: 'Authentication Service', status: 'pass', message: 'Auth service responding correctly', duration: 89 },
+        { name: 'OpenAI API Connection', status: 'fail', message: 'API key not configured or invalid', duration: 2034 },
+        { name: 'Voice Recognition', status: 'skip', message: 'Skipped due to missing API key', duration: 0 },
+        { name: 'File Upload Service', status: 'pass', message: 'File upload working correctly', duration: 156 },
+        { name: 'User Profile Management', status: 'pass', message: 'Profile operations successful', duration: 203 },
+        { name: 'Quiz Generator', status: 'fail', message: 'Service timeout after 5 seconds', duration: 5000 },
+        { name: 'Achievement System', status: 'pass', message: 'Achievement tracking functional', duration: 78 },
+        { name: 'Real-time Analytics', status: 'skip', message: 'Analytics service unavailable', duration: 0 },
+        { name: 'Email Notifications', status: 'pass', message: 'Email service operational', duration: 445 },
+      ],
+      totalTests: 10,
+      passedTests: 5,
+      failedTests: 2,
+      skippedTests: 3
+    }];
+    setTestResults(sampleResults);
+  }, []);
   const handleRunTests = async (forceMode: boolean = true) => { // Changed default to true
     setIsRunning(true);
     setTestResults([]);
