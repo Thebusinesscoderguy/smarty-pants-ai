@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, AlertCircle, Play, RefreshCw } from 'lucide-react';
 
+// Add console log to debug
+console.log('SystemTestPanel component loaded');
+
 interface TestResult {
   name: string;
   status: 'pass' | 'fail' | 'skip';
@@ -93,8 +96,11 @@ export const SystemTestPanel = () => {
     }
   };
 
+  console.log('SystemTestPanel rendering with', testResults.length, 'test suites');
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background text-foreground p-4">
+      <div className="text-white text-2xl font-bold mb-4">System Test Panel Debug</div>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
