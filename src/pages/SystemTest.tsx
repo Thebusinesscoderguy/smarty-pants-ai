@@ -1,14 +1,10 @@
 import React from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Clock, AlertCircle, Play, RefreshCw, Activity } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Play, RefreshCw } from 'lucide-react';
 
 const SystemTest = () => {
-  console.log('SystemTest page rendering');
+  console.log('SystemTest page rendering - new version');
 
-  // Test results data
   const testResults = [
     {
       name: 'Core System Tests',
@@ -18,11 +14,7 @@ const SystemTest = () => {
         { name: 'User Profile Management', status: 'pass', message: 'Profile operations successful', duration: 203 },
         { name: 'File Upload Service', status: 'pass', message: 'File upload working correctly', duration: 156 },
         { name: 'Email Notifications', status: 'pass', message: 'Email service operational', duration: 445 },
-      ],
-      totalTests: 5,
-      passedTests: 5,
-      failedTests: 0,
-      skippedTests: 0
+      ]
     },
     {
       name: 'API Integration Tests',
@@ -32,11 +24,7 @@ const SystemTest = () => {
         { name: 'Quiz Generator', status: 'fail', message: 'Service timeout after 5 seconds', duration: 5000 },
         { name: 'Real-time Analytics', status: 'skip', message: 'Analytics service unavailable', duration: 0 },
         { name: 'Translation Service', status: 'pass', message: 'Translation API responding', duration: 234 },
-      ],
-      totalTests: 5,
-      passedTests: 1,
-      failedTests: 2,
-      skippedTests: 2
+      ]
     },
     {
       name: 'UI Component Tests',
@@ -46,145 +34,141 @@ const SystemTest = () => {
         { name: 'Navigation Menu', status: 'pass', message: 'Navigation working properly', duration: 45 },
         { name: 'Form Validation', status: 'fail', message: 'Some validation rules not working', duration: 189 },
         { name: 'Mobile Responsiveness', status: 'skip', message: 'Mobile testing not configured', duration: 0 },
-      ],
-      totalTests: 5,
-      passedTests: 3,
-      failedTests: 1,
-      skippedTests: 1
+      ]
     }
   ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pass':
-        return <CheckCircle className="h-4 w-4 text-green-400" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'fail':
-        return <XCircle className="h-4 w-4 text-red-400" />;
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case 'skip':
-        return <Clock className="h-4 w-4 text-yellow-400" />;
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'pass':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
+        return 'bg-green-100 text-green-800 border border-green-200';
       case 'fail':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
+        return 'bg-red-100 text-red-800 border border-red-200';
       case 'skip':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-white">
       <AppSidebar />
       
-      <div className="flex-1 overflow-hidden">
-        <header className="p-6 border-b border-border bg-card">
-          <h1 className="text-2xl font-bold text-card-foreground">System Testing</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="flex-1 bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 p-6">
+          <h1 className="text-2xl font-bold text-gray-900">System Testing</h1>
+          <p className="text-gray-600 mt-1">
             Comprehensive testing of all APIs, workflows, and integrations
           </p>
-        </header>
+        </div>
         
-        <main className="p-6 bg-background">
-          <div className="space-y-6">
-            {/* Control Panel */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-card-foreground">
-                  <Activity className="h-5 w-5" />
-                  System Testing Panel
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  System test results showing passed, failed, and skipped tests
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2 flex-wrap">
-                  <Button className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Play className="h-4 w-4" />
-                    Run System Tests
-                  </Button>
-                  
-                  <Button variant="outline" className="flex items-center gap-2 border-border text-foreground hover:bg-accent">
-                    <RefreshCw className="h-4 w-4" />
-                    Refresh Results
-                  </Button>
-                  
-                  <Button variant="outline" className="flex items-center gap-2 border-border text-foreground hover:bg-accent">
-                    <CheckCircle className="h-4 w-4" />
-                    Quick Health Check
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Test Results */}
-            <div className="space-y-4">
-              {testResults.map((suite, suiteIndex) => (
-                <Card key={suiteIndex} className="bg-card border-border">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-card-foreground">{suite.name}</CardTitle>
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="border-border text-foreground">
-                          {suite.totalTests} total
-                        </Badge>
-                        <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
-                          {suite.passedTests} passed
-                        </Badge>
-                        {suite.failedTests > 0 && (
-                          <Badge className="bg-red-500/20 text-red-300 border-red-500/30">
-                            {suite.failedTests} failed
-                          </Badge>
-                        )}
-                        {suite.skippedTests > 0 && (
-                          <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
-                            {suite.skippedTests} skipped
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {suite.results.map((result, resultIndex) => (
-                        <div 
-                          key={resultIndex}
-                          className="flex items-start justify-between p-3 border border-border rounded-lg bg-card"
-                        >
-                          <div className="flex items-start gap-3 flex-1">
-                            {getStatusIcon(result.status)}
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm text-card-foreground">{result.name}</h4>
-                              <p className="text-sm text-muted-foreground mt-1">{result.message}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className={getStatusColor(result.status)}>
-                              {result.status}
-                            </Badge>
-                            {result.duration !== undefined && (
-                              <span className="text-xs text-muted-foreground">
-                                {result.duration}ms
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {/* Main Content */}
+        <div className="p-6">
+          {/* Control Panel */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-6">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Play className="h-5 w-5" />
+                System Testing Panel
+              </h2>
+              <p className="text-gray-600 mt-1">
+                System test results showing passed, failed, and skipped tests
+              </p>
+            </div>
+            <div className="p-6">
+              <div className="flex gap-3 flex-wrap">
+                <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                  <Play className="h-4 w-4" />
+                  Run System Tests
+                </button>
+                
+                <button className="flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh Results
+                </button>
+                
+                <button className="flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                  <CheckCircle className="h-4 w-4" />
+                  Quick Health Check
+                </button>
+              </div>
             </div>
           </div>
-        </main>
+
+          {/* Test Results */}
+          <div className="space-y-6">
+            {testResults.map((suite, suiteIndex) => (
+              <div key={suiteIndex} className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">{suite.name}</h3>
+                    <div className="flex gap-2">
+                      <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm border border-gray-200">
+                        {suite.results.length} total
+                      </span>
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm border border-green-200">
+                        {suite.results.filter(r => r.status === 'pass').length} passed
+                      </span>
+                      {suite.results.filter(r => r.status === 'fail').length > 0 && (
+                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm border border-red-200">
+                          {suite.results.filter(r => r.status === 'fail').length} failed
+                        </span>
+                      )}
+                      {suite.results.filter(r => r.status === 'skip').length > 0 && (
+                        <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm border border-yellow-200">
+                          {suite.results.filter(r => r.status === 'skip').length} skipped
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-3">
+                    {suite.results.map((result, resultIndex) => (
+                      <div 
+                        key={resultIndex}
+                        className="flex items-start justify-between p-4 border border-gray-200 rounded-lg bg-gray-50"
+                      >
+                        <div className="flex items-start gap-3 flex-1">
+                          {getStatusIcon(result.status)}
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm text-gray-900">{result.name}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{result.message}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(result.status)}`}>
+                            {result.status}
+                          </span>
+                          {result.duration !== undefined && (
+                            <span className="text-xs text-gray-500">
+                              {result.duration}ms
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
