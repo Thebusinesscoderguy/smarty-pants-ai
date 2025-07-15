@@ -63,65 +63,12 @@ const OpenAIKeyForm = () => {
   };
 
   const handleSaveKey = async () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "Error",
-        description: "API key cannot be empty",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validate API key format (should start with "sk-")
-    if (!apiKey.startsWith('sk-')) {
-      toast({
-        title: "Error",
-        description: "Invalid API key format. OpenAI API keys should start with 'sk-'",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      
-      // Store in localStorage for debugging
-      localStorage.setItem('openai_api_key', apiKey);
-      
-      // Attempt to verify the key
-      const response = await supabase.functions.invoke('text-to-voice', {
-        body: { 
-          text: "Verifying new OpenAI API key", 
-          voice: 'alloy' 
-        }
-      });
-
-      console.log("New API key verification response:", response);
-
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to verify API key');
-      }
-      
-      toast({
-        title: "Success",
-        description: "Your OpenAI API key has been saved and verified.",
-      });
-      
-      setKeyExists(true);
-      setIsEditing(false);
-      
-      // Re-check the key status after saving
-      await checkOpenAIKey();
-    } catch (error: any) {
-      console.error("Failed to save API key:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save API key",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    toast({
+      title: "Info",
+      description: "OpenAI API key needs to be set in Supabase secrets. Check the instructions below.",
+      variant: "default"
+    });
+    setIsEditing(false);
   };
 
   return (
@@ -185,9 +132,12 @@ const OpenAIKeyForm = () => {
         </div>
       )}
       
-      <div className="mt-2 text-xs text-white/60">
-        <p>Note: Open AI keys should start with 'sk-'. For this demo, the key is stored in localStorage.</p>
-        <p>In a production app, keys should be securely saved server-side.</p>
+      <div className="mt-2 text-xs text-white/60 space-y-1">
+        <p><strong>To set your OpenAI API key:</strong></p>
+        <p>1. Go to Supabase Dashboard → Settings → Edge Functions</p>
+        <p>2. Add secret: <code className="bg-gray-800 px-1 rounded">OPENAI_API_KEY</code> = your_sk_key</p>
+        <p>3. Your key should start with 'sk-' and be from platform.openai.com</p>
+        <p className="text-yellow-400">The system will automatically detect when you've added the key!</p>
       </div>
     </div>
   );
