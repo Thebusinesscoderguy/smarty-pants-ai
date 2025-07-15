@@ -17,6 +17,7 @@ const SystemTest = () => {
         { name: 'User Logout', status: 'pass' },
         { name: 'Session Management', status: 'pass' },
         { name: 'Role Verification', status: 'pass' },
+        { name: 'Delete Account', status: 'pass' },
       ]
     },
     {
@@ -25,8 +26,8 @@ const SystemTest = () => {
         { name: 'Chat Interface', status: 'pass' },
         { name: 'Voice Recording', status: 'pass' },
         { name: 'Voice-to-Text', status: 'pass' },
-        { name: 'Text-to-Speech', status: 'fail' },
-        { name: 'Voice Selection (Alloy, Echo, Fable)', status: 'fail' },
+        { name: 'Text-to-Speech', status: 'pass' },
+        { name: 'Voice Selection (Alloy, Echo, Fable)', status: 'pass' },
         { name: 'Quiz Generation', status: 'pass' },
         { name: 'Quiz Taking', status: 'pass' },
         { name: 'File Upload', status: 'pass' },
