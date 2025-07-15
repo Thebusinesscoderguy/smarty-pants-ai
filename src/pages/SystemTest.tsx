@@ -1,6 +1,5 @@
 // System Test Dashboard - Lightweight version
 import React, { useState } from 'react';
-import { AppSidebar } from '@/components/AppSidebar';
 import { CheckCircle, XCircle, Clock, Play, RefreshCw } from 'lucide-react';
 
 const SystemTest = () => {
@@ -58,9 +57,7 @@ const SystemTest = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <AppSidebar />
-      <div className="pl-16">
-        <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-white mb-2">System Test Dashboard</h1>
             <p className="text-slate-300">Comprehensive testing suite for all platform features</p>
@@ -121,7 +118,6 @@ const SystemTest = () => {
               <li>Get your key from platform.openai.com/api-keys</li>
             </ol>
           </div>
-        </div>
       </div>
     </div>
   );
