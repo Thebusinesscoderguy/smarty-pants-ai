@@ -1,3 +1,4 @@
+// System Test Dashboard - Comprehensive testing for all platform features
 import React, { useState } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { 
