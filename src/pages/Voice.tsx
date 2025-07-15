@@ -246,17 +246,31 @@ const Voice = () => {
   };
 
   const handleRecordStop = async () => {
+    if (!isRecording) return;
+    
     handleStopRecording();
     
-    if (audioData) {
-      // Convert blob to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(audioData);
-      reader.onloadend = function() {
-        const base64data = (reader.result as string).split(',')[1];
-        processVoiceToText(base64data);
-      };
-    }
+    // Wait a bit for the recording to finish processing
+    setTimeout(() => {
+      if (audioData) {
+        // Convert blob to base64
+        const reader = new FileReader();
+        reader.readAsDataURL(audioData);
+        reader.onloadend = function() {
+          const base64data = (reader.result as string).split(',')[1];
+          processVoiceToText(base64data);
+        };
+        
+        // Clear the audio data
+        setAudioData(null);
+      } else {
+        toast({
+          title: "Recording Error",
+          description: "No audio data captured. Please try recording again.",
+          variant: "destructive"
+        });
+      }
+    }, 200);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

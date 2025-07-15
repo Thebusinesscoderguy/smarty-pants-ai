@@ -18,6 +18,7 @@ export const useVoiceSettings = () => {
 
   const changeVoice = (voice: string) => {
     setSelectedVoice(voice);
+    console.log('Voice changed to:', voice);
     toast({
       title: "Voice changed",
       description: `Now using ${voice} voice`,
@@ -30,5 +31,6 @@ export const useVoiceSettings = () => {
     selectedVoice,
     toggleVoice,
     changeVoice,
+    setSelectedVoice: changeVoice,
   };
 };
