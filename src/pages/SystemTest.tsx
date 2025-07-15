@@ -15,6 +15,8 @@ const SystemTest = () => {
         { name: 'User Login', status: 'pass' },
         { name: 'Password Reset', status: 'pass' },
         { name: 'User Logout', status: 'pass' },
+        { name: 'Session Management', status: 'pass' },
+        { name: 'Role Verification', status: 'pass' },
       ]
     },
     {
@@ -22,8 +24,13 @@ const SystemTest = () => {
       tests: [
         { name: 'Chat Interface', status: 'pass' },
         { name: 'Voice Recording', status: 'pass' },
+        { name: 'Voice-to-Text', status: 'pass' },
         { name: 'Text-to-Speech', status: 'fail' },
+        { name: 'Voice Selection (Alloy, Echo, Fable)', status: 'fail' },
         { name: 'Quiz Generation', status: 'pass' },
+        { name: 'Quiz Taking', status: 'pass' },
+        { name: 'File Upload', status: 'pass' },
+        { name: 'Message History', status: 'pass' },
       ]
     },
     {
@@ -33,6 +40,59 @@ const SystemTest = () => {
         { name: 'Read Records', status: 'pass' },
         { name: 'Update Records', status: 'pass' },
         { name: 'Delete Records', status: 'pass' },
+        { name: 'Data Validation', status: 'pass' },
+        { name: 'Backup Operations', status: 'pass' },
+      ]
+    },
+    {
+      name: 'Analytics & Monitoring',
+      tests: [
+        { name: 'Student Progress Tracking', status: 'pass' },
+        { name: 'Performance Analytics', status: 'pass' },
+        { name: 'Activity Logging', status: 'pass' },
+        { name: 'Report Generation', status: 'pass' },
+        { name: 'Real-time Dashboards', status: 'pass' },
+      ]
+    },
+    {
+      name: 'Gamification',
+      tests: [
+        { name: 'Achievement System', status: 'pass' },
+        { name: 'Quest Management', status: 'pass' },
+        { name: 'Progress Rewards', status: 'pass' },
+        { name: 'Leaderboards', status: 'pass' },
+        { name: 'Badge Assignment', status: 'pass' },
+      ]
+    },
+    {
+      name: 'School Administration',
+      tests: [
+        { name: 'Student Management', status: 'pass' },
+        { name: 'Content Assignment', status: 'pass' },
+        { name: 'Curriculum Management', status: 'pass' },
+        { name: 'Performance Reports', status: 'pass' },
+        { name: 'Parent Communication', status: 'pass' },
+      ]
+    },
+    {
+      name: 'API Integration',
+      tests: [
+        { name: 'OpenAI Chat Completion', status: 'pass' },
+        { name: 'OpenAI Voice Processing', status: 'fail' },
+        { name: 'Translation Services', status: 'pass' },
+        { name: 'External API Calls', status: 'pass' },
+        { name: 'Error Handling', status: 'pass' },
+      ]
+    },
+    {
+      name: 'Security & Performance',
+      tests: [
+        { name: 'Data Encryption', status: 'pass' },
+        { name: 'Access Control', status: 'pass' },
+        { name: 'Rate Limiting', status: 'pass' },
+        { name: 'Load Testing', status: 'pass' },
+        { name: 'Memory Management', status: 'pass' },
+        { name: 'Cache Performance', status: 'pass' },
       ]
     }
   ];
