@@ -59,20 +59,67 @@ const SystemTest = () => {
       name: 'Gamification',
       tests: [
         { name: 'Achievement System', status: 'pass' },
+        { name: 'Create Achievement', status: 'pass' },
+        { name: 'Delete Achievement', status: 'pass' },
+        { name: 'Edit Achievement', status: 'pass' },
         { name: 'Quest Management', status: 'pass' },
+        { name: 'Create Quest', status: 'pass' },
+        { name: 'Delete Quest', status: 'pass' },
+        { name: 'Edit Quest', status: 'pass' },
         { name: 'Progress Rewards', status: 'pass' },
         { name: 'Leaderboards', status: 'pass' },
         { name: 'Badge Assignment', status: 'pass' },
+        { name: 'Daily Challenges', status: 'pass' },
+        { name: 'Streak Tracking', status: 'pass' },
+        { name: 'Point System', status: 'pass' },
       ]
     },
     {
       name: 'School Administration',
       tests: [
         { name: 'Student Management', status: 'pass' },
+        { name: 'Add Student', status: 'pass' },
+        { name: 'Remove Student', status: 'pass' },
+        { name: 'Student Invitations', status: 'pass' },
+        { name: 'Student Classifications', status: 'pass' },
         { name: 'Content Assignment', status: 'pass' },
         { name: 'Curriculum Management', status: 'pass' },
+        { name: 'Create Curriculum', status: 'pass' },
+        { name: 'Edit Curriculum', status: 'pass' },
+        { name: 'Delete Curriculum', status: 'pass' },
         { name: 'Performance Reports', status: 'pass' },
         { name: 'Parent Communication', status: 'pass' },
+        { name: 'School Analytics', status: 'pass' },
+        { name: 'Teacher Management', status: 'pass' },
+        { name: 'Bulk Operations', status: 'pass' },
+      ]
+    },
+    {
+      name: 'Content Management',
+      tests: [
+        { name: 'Create Test', status: 'pass' },
+        { name: 'Edit Test', status: 'pass' },
+        { name: 'Delete Test', status: 'pass' },
+        { name: 'Test Question Management', status: 'pass' },
+        { name: 'Auto-grading', status: 'pass' },
+        { name: 'Manual Grading', status: 'pass' },
+        { name: 'Test Results Export', status: 'pass' },
+        { name: 'Homework Sessions', status: 'pass' },
+        { name: 'Subject Management', status: 'pass' },
+        { name: 'Module Creation', status: 'pass' },
+        { name: 'Lesson Planning', status: 'pass' },
+      ]
+    },
+    {
+      name: 'Communication',
+      tests: [
+        { name: 'Parent Notifications', status: 'pass' },
+        { name: 'Email Integration', status: 'pass' },
+        { name: 'Progress Reports', status: 'pass' },
+        { name: 'Alert System', status: 'pass' },
+        { name: 'Invitation Emails', status: 'pass' },
+        { name: 'Verification Codes', status: 'pass' },
+        { name: 'Guardian Communication', status: 'pass' },
       ]
     },
     {
