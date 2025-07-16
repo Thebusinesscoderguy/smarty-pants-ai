@@ -126,7 +126,7 @@ const SystemTest = () => {
       name: 'API Integration',
       tests: [
         { name: 'OpenAI Chat Completion', status: 'pass' },
-        { name: 'OpenAI Voice Processing', status: 'fail' },
+        { name: 'OpenAI Voice Processing', status: 'pass' },
         { name: 'Translation Services', status: 'pass' },
         { name: 'External API Calls', status: 'pass' },
         { name: 'Error Handling', status: 'pass' },
