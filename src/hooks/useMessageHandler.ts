@@ -79,8 +79,6 @@ export const useMessageHandler = () => {
   const getAIResponse = async (userMessage: string, selectedVoice: string, curriculumContext?: any, isVoiceEnabled: boolean = true) => {
     try {
       const processingMessageId = `processing-${Date.now()}`;
-      const aiMessageId = `ai-${Date.now() + 1}`; // Ensure unique ID
-      
       const processingMessage: Message = {
         id: processingMessageId,
         text: "Processing your request...",
@@ -139,20 +137,7 @@ Respond naturally to whatever the student asks about. Don't assume everything is
           systemPrompt += `\n\nBased on previous interactions, the student seems to be strong in: ${userStrengths.join(', ') || 'various areas'} and could use more practice with: ${userWeaknesses.join(', ') || 'some topics'}. Tailor your help accordingly.`;
         }
 
-        // Create a placeholder message for streaming
-        const streamingMessage: Message = {
-          id: aiMessageId,
-          text: "",
-          timestamp: new Date(),
-          isFromUser: false,
-          type: 'text',
-          tokenCount: 0
-        };
-
-        // Remove processing message and add streaming message
-        setMessages(prev => prev.filter(m => m.id !== processingMessageId).concat(streamingMessage));
-
-        // Generate AI response using OpenAI's chat completion API with streaming
+        // Generate AI response using OpenAI's chat completion API
         const completionResponse = await supabase.functions.invoke('chat-completion', {
           body: {
             messages: [
@@ -170,52 +155,7 @@ Respond naturally to whatever the student asks about. Don't assume everything is
           throw new Error(completionResponse.error.message || 'Failed to generate AI response');
         }
 
-        // Handle streaming response
-        let aiResponseText = '';
-        const response = new Response(completionResponse.data);
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-
-        if (reader) {
-          let buffer = '';
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                try {
-                  const data = JSON.parse(line.slice(6));
-                  if (data.content) {
-                    aiResponseText += data.content;
-                    
-                    // Update the streaming message in real-time
-                    setMessages(prev => prev.map(msg => 
-                      msg.id === aiMessageId 
-                        ? { ...msg, text: aiResponseText }
-                        : msg
-                    ));
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
-                }
-              }
-            }
-          }
-        } else {
-          // Fallback for non-streaming response
-          aiResponseText = completionResponse.data.content || completionResponse.data;
-          setMessages(prev => prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { ...msg, text: aiResponseText }
-              : msg
-          ));
-        }
+        const aiResponseText = completionResponse.data.content;
         
         // Check if this is a quiz question and update state
         if (isQuizMode && aiResponseText.includes('?')) {
@@ -258,19 +198,22 @@ Respond naturally to whatever the student asks about. Don't assume everything is
           }
         }
 
-        // Update final message with audio and token count
+        setMessages(prev => prev.filter(m => m.id !== processingMessageId));
+
+        const aiMessageId = `ai-${Date.now()}`;
         const tokenCount = Math.ceil(aiResponseText.length / 4);
         
-        setMessages(prev => prev.map(msg => 
-          msg.id === aiMessageId 
-            ? { 
-                ...msg, 
-                audioUrl: audioUrl,
-                type: audioUrl ? 'voice' : 'text',
-                tokenCount: tokenCount
-              }
-            : msg
-        ));
+        const aiMessage: Message = {
+          id: aiMessageId,
+          text: aiResponseText,
+          timestamp: new Date(),
+          audioUrl: audioUrl,
+          isFromUser: false,
+          type: audioUrl ? 'voice' : 'text',
+          tokenCount: tokenCount
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
         incrementTokenCount(0, tokenCount);
 
         // Only auto-play if voice is enabled and audio was generated
@@ -283,8 +226,7 @@ Respond naturally to whatever the student asks about. Don't assume everything is
         }
 
       } catch (error: any) {
-        // Remove both processing and streaming messages on error
-        setMessages(prev => prev.filter(m => m.id !== processingMessageId && m.id !== aiMessageId));
+        setMessages(prev => prev.filter(m => m.id !== processingMessageId));
         console.error("Error in getAIResponse:", error);
         toast({
           title: "Error",
