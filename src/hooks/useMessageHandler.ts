@@ -76,7 +76,7 @@ export const useMessageHandler = () => {
     }
   };
 
-  const getAIResponse = async (userMessage: string, selectedVoice: string, curriculumContext?: any) => {
+  const getAIResponse = async (userMessage: string, selectedVoice: string, curriculumContext?: any, isVoiceEnabled: boolean = true) => {
     try {
       const processingMessageId = `processing-${Date.now()}`;
       const processingMessage: Message = {
@@ -162,32 +162,41 @@ Respond naturally to whatever the student asks about. Don't assume everything is
           setLastQuestionTime(new Date());
         }
 
-        // Generate speech from the AI response text
-        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-          body: { 
-            text: aiResponseText,
-            voice: selectedVoice || 'alloy'
+        // Generate speech from the AI response text only if voice is enabled
+        let audioUrl = null;
+        
+        // Check if voice is enabled before generating speech
+        if (isVoiceEnabled) {
+          console.log('Generating voice response with voice:', selectedVoice);
+          const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+            body: { 
+              text: aiResponseText,
+              voice: selectedVoice || 'alloy'
+            }
+          });
+
+          if (voiceResponse.error) {
+            console.error('Voice generation error:', voiceResponse.error);
+            if (voiceResponse.error.message && voiceResponse.error.message.includes('API key')) {
+              setApiKeyError(true);
+            }
+            // Don't throw error, just log it and continue without voice
+            console.warn('Continuing without voice due to error:', voiceResponse.error.message);
+          } else {
+            const base64Audio = voiceResponse.data.audioContent;
+
+            const byteCharacters = atob(base64Audio);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+
+            audioUrl = URL.createObjectURL(audioBlob);
+            console.log('Voice response generated successfully');
           }
-        });
-
-        if (voiceResponse.error) {
-          if (voiceResponse.error.message && voiceResponse.error.message.includes('API key')) {
-            setApiKeyError(true);
-          }
-          throw new Error(voiceResponse.error.message || 'Failed to generate speech');
         }
-
-        const base64Audio = voiceResponse.data.audioContent;
-
-        const byteCharacters = atob(base64Audio);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
-
-        const audioUrl = URL.createObjectURL(audioBlob);
 
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));
 
@@ -200,18 +209,21 @@ Respond naturally to whatever the student asks about. Don't assume everything is
           timestamp: new Date(),
           audioUrl: audioUrl,
           isFromUser: false,
-          type: 'voice',
+          type: audioUrl ? 'voice' : 'text',
           tokenCount: tokenCount
         };
 
         setMessages(prev => [...prev, aiMessage]);
         incrementTokenCount(0, tokenCount);
 
-        setTimeout(() => {
-          if (aiMessageId) {
-            handlePlayAudio(aiMessageId, messages, setMessages);
-          }
-        }, 500);
+        // Only auto-play if voice is enabled and audio was generated
+        if (audioUrl && isVoiceEnabled) {
+          setTimeout(() => {
+            if (aiMessageId) {
+              handlePlayAudio(aiMessageId, messages, setMessages);
+            }
+          }, 500);
+        }
 
       } catch (error: any) {
         setMessages(prev => prev.filter(m => m.id !== processingMessageId));

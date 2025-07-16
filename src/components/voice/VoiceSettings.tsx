@@ -67,8 +67,18 @@ const VoiceSettings = ({
 
       <div className="flex items-center gap-2">
         <label htmlFor="voice-select" className="text-sm font-medium text-white/80">Voice Type:</label>
-        <Select value={selectedVoice} onValueChange={setSelectedVoice} disabled={isTokenLimitReached}>
-          <SelectTrigger id="voice-select" className="w-[140px] bg-white/5 border-white/20">
+        <Select 
+          value={selectedVoice} 
+          onValueChange={(value) => {
+            console.log('Voice selection changed to:', value);
+            setSelectedVoice(value);
+          }} 
+          disabled={isTokenLimitReached || !isVoiceEnabled}
+        >
+          <SelectTrigger 
+            id="voice-select" 
+            className={`w-[140px] bg-white/5 border-white/20 ${!isVoiceEnabled ? 'opacity-50' : ''}`}
+          >
             <SelectValue placeholder="Choose voice" />
           </SelectTrigger>
           <SelectContent className="bg-gray-900 z-50">
@@ -79,6 +89,9 @@ const VoiceSettings = ({
             ))}
           </SelectContent>
         </Select>
+        {selectedVoice && isVoiceEnabled && (
+          <span className="text-xs text-green-400">✓ {OPENAI_VOICES.find(v => v.value === selectedVoice)?.label}</span>
+        )}
       </div>
       
       <div className="flex items-center gap-2">

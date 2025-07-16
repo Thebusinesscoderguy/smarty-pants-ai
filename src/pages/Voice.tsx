@@ -134,7 +134,7 @@ const Voice = () => {
         incrementTokenCount(userMessage.tokenCount || 0);
         trackResponseTime(transcribedText, messages);
         
-        await getAIResponse(transcribedText, selectedVoice);
+        await getAIResponse(transcribedText, selectedVoice, undefined, isVoiceEnabled);
         
       } catch (error: any) {
         // Remove the processing message
@@ -183,7 +183,7 @@ const Voice = () => {
       incrementTokenCount(tokenCount);
       trackResponseTime(textMessage, messages);
       
-      await getAIResponse(textMessage, selectedVoice);
+      await getAIResponse(textMessage, selectedVoice, undefined, isVoiceEnabled);
     } catch (error: any) {
       console.error("Error sending message:", error);
       toast({
@@ -221,7 +221,7 @@ const Voice = () => {
       // Track tokens
       incrementTokenCount(tokenCount);
       
-      await getAIResponse(`I've uploaded a file named ${file.name}. Can you help me with this?`, selectedVoice);
+      await getAIResponse(`I've uploaded a file named ${file.name}. Can you help me with this?`, selectedVoice, undefined, isVoiceEnabled);
     } catch (error: any) {
       console.error("Error uploading file:", error);
       toast({
@@ -235,11 +235,64 @@ const Voice = () => {
   const handleVoiceResponse = async () => {
     // Voice response handling logic
     if (textMessage.trim()) {
-      await getAIResponse(textMessage, selectedVoice);
+      await getAIResponse(textMessage, selectedVoice, undefined, isVoiceEnabled);
     } else {
       toast({
         title: "Empty Message",
         description: "Please enter a message to get a voice response.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const testVoice = async () => {
+    if (!isVoiceEnabled) {
+      toast({
+        title: "Voice Disabled",
+        description: "Please enable voice first to test voices.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const testText = `Hello! This is how the ${selectedVoice} voice sounds. I'm ready to help you learn.`;
+      
+      console.log('Testing voice:', selectedVoice);
+      const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+        body: { 
+          text: testText,
+          voice: selectedVoice || 'alloy'
+        }
+      });
+
+      if (voiceResponse.error) {
+        throw new Error(voiceResponse.error.message || 'Failed to generate test voice');
+      }
+
+      const base64Audio = voiceResponse.data.audioContent;
+      const byteCharacters = atob(base64Audio);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Create audio element and play
+      const audio = new Audio(audioUrl);
+      audio.play();
+
+      toast({
+        title: "Voice Test",
+        description: `Playing sample with ${selectedVoice} voice`,
+      });
+    } catch (error: any) {
+      console.error("Error testing voice:", error);
+      toast({
+        title: "Voice Test Failed",
+        description: error.message,
         variant: "destructive"
       });
     }
@@ -326,19 +379,31 @@ const Voice = () => {
           <ApiKeyErrorAlert visible={apiKeyError} />
           <TokenLimitAlert isTokenLimitReached={isTokenLimitReached} monthlyLimit={monthlyLimit} />
 
-          <VoiceSettings 
-            selectedVoice={selectedVoice}
-            setSelectedVoice={changeVoice}
-            isQuizMode={isQuizMode}
-            setIsQuizMode={setIsQuizMode}
-            totalTokensUsed={totalTokensUsed}
-            monthlyLimit={monthlyLimit}
-            inputTokens={inputTokens}
-            outputTokens={outputTokens}
-            isTokenLimitReached={isTokenLimitReached}
-            isVoiceEnabled={isVoiceEnabled}
-            onToggleVoice={toggleVoice}
-          />
+          <div className="flex items-center gap-4">
+            <VoiceSettings 
+              selectedVoice={selectedVoice}
+              setSelectedVoice={changeVoice}
+              isQuizMode={isQuizMode}
+              setIsQuizMode={setIsQuizMode}
+              totalTokensUsed={totalTokensUsed}
+              monthlyLimit={monthlyLimit}
+              inputTokens={inputTokens}
+              outputTokens={outputTokens}
+              isTokenLimitReached={isTokenLimitReached}
+              isVoiceEnabled={isVoiceEnabled}
+              onToggleVoice={toggleVoice}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testVoice}
+              disabled={!isVoiceEnabled || isTokenLimitReached}
+              className="bg-white/5 border-white/20 hover:bg-white/10 text-white"
+            >
+              <Volume2 className="h-4 w-4 mr-2" />
+              Test Voice
+            </Button>
+          </div>
 
           <QuizModeAnalysis 
             isQuizMode={isQuizMode}
