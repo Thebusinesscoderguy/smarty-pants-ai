@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EnhancedStudentDashboard } from '@/components/monitoring/EnhancedStudentDashboard';
+import { StudentManagement } from '@/components/admin/StudentManagement';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -368,6 +369,7 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="students" className="space-y-8">
+            <StudentManagement />
             <EnhancedStudentDashboard />
           </TabsContent>
 
