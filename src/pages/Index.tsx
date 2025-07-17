@@ -75,6 +75,15 @@ const Index = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
+                className="border-green-400/30 bg-green-500/10 text-green-100 hover:bg-green-500/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
+                onClick={() => navigate('/school-admin')}
+              >
+                School Admin
+                <Users className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
                 className="border-orange-400/30 bg-orange-500/10 text-orange-100 hover:bg-orange-500/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
                 onClick={handleSystemTests}
               >
