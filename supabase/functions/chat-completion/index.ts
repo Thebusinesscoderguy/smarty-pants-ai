@@ -66,6 +66,7 @@ serve(async (req) => {
             { role: 'user', content: 'Hello' }
           ],
           temperature: 0.7,
+          stream: true,
         }),
         signal: controller.signal
       });
@@ -89,14 +90,64 @@ serve(async (req) => {
         );
       }
 
-      const data = await response.json();
-      console.log('OpenAI response received successfully');
+      console.log('OpenAI streaming response received, forwarding stream');
 
-      return new Response(JSON.stringify({
-        success: true,
-        content: data.choices[0].message.content
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      // Create a streaming response
+      const stream = new ReadableStream({
+        async start(controller) {
+          const reader = response.body?.getReader();
+          if (!reader) {
+            controller.close();
+            return;
+          }
+
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  if (data === '[DONE]') {
+                    controller.close();
+                    return;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    const content = parsed.choices?.[0]?.delta?.content;
+                    if (content) {
+                      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ content })}\n\n`));
+                    }
+                  } catch (e) {
+                    // Skip invalid JSON
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Stream processing error:', error);
+          } finally {
+            controller.close();
+          }
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/plain',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
       });
       
     } catch (fetchError) {
