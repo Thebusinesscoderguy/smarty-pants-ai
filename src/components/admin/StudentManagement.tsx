@@ -131,6 +131,15 @@ export const StudentManagement = () => {
       return;
     }
 
+    if (!newStudentFirstName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the student's first name",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setIsInviting(true);
       console.log('Starting invitation process for:', newStudentEmail);
@@ -240,14 +249,14 @@ export const StudentManagement = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading student data...</div>;
+    return <div className="animate-pulse text-primary">Loading student data...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white">Student Management</h2>
-        <p className="text-gray-400">
+        <h2 className="text-2xl font-bold text-primary">Student Management</h2>
+        <p className="text-muted-foreground">
           Invite and manage students in your school
           <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
             ✅ Real Email Invitations
@@ -256,9 +265,9 @@ export const StudentManagement = () => {
       </div>
 
       {/* Invite Student Form */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-primary/10 border-primary/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <UserPlus className="h-5 w-5" />
             Invite Student
             <Badge variant="secondary" className="bg-green-600">
@@ -269,29 +278,31 @@ export const StudentManagement = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              placeholder="Email address"
+              placeholder="Email address *"
               type="email"
               value={newStudentEmail}
               onChange={(e) => setNewStudentEmail(e.target.value)}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-primary/10 border-primary/20 text-primary"
+              required
             />
             <Input
-              placeholder="First name (optional)"
+              placeholder="First name *"
               value={newStudentFirstName}
               onChange={(e) => setNewStudentFirstName(e.target.value)}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-primary/10 border-primary/20 text-primary"
+              required
             />
             <Input
               placeholder="Last name (optional)"
               value={newStudentLastName}
               onChange={(e) => setNewStudentLastName(e.target.value)}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-primary/10 border-primary/20 text-primary"
             />
           </div>
           <Button 
             onClick={inviteStudent}
-            disabled={isInviting || !newStudentEmail.trim()}
-            className="bg-blue-600 hover:bg-blue-700"
+            disabled={isInviting || !newStudentEmail.trim() || !newStudentFirstName.trim()}
+            className="bg-primary hover:bg-primary/90"
           >
             {isInviting ? "Sending Email..." : "📧 Send Email Invitation"}
           </Button>
@@ -299,36 +310,36 @@ export const StudentManagement = () => {
       </Card>
 
       {/* Invitations List */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-primary/10 border-primary/20">
         <CardHeader>
-          <CardTitle className="text-white">Student Invitations</CardTitle>
+          <CardTitle className="text-primary">Student Invitations</CardTitle>
         </CardHeader>
         <CardContent>
           {invitations.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No invitations sent yet</p>
+            <p className="text-muted-foreground text-center py-8">No invitations sent yet</p>
           ) : (
             <div className="space-y-4">
               {invitations.map((invitation) => (
                 <div
                   key={invitation.id}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
+                  className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/10"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
                       {invitation.used ? (
                         <CheckCircle className="h-5 w-5 text-green-500" />
                       ) : (
-                        <Mail className="h-5 w-5 text-blue-400" />
+                        <Mail className="h-5 w-5 text-primary" />
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-white">
+                      <p className="font-medium text-primary">
                         {invitation.first_name || invitation.last_name
                           ? `${invitation.first_name || ''} ${invitation.last_name || ''}`.trim()
                           : invitation.email}
                       </p>
-                      <p className="text-sm text-gray-400">{invitation.email}</p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground">{invitation.email}</p>
+                      <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
                         <span className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
                           Sent {new Date(invitation.created_at).toLocaleDateString()}
@@ -339,7 +350,7 @@ export const StudentManagement = () => {
                           </span>
                         )}
                         {!invitation.used && (
-                          <span className="text-blue-400 font-mono">
+                          <span className="text-primary font-mono">
                             Code: {invitation.invitation_code}
                           </span>
                         )}

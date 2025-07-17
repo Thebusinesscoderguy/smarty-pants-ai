@@ -41,6 +41,29 @@ const VoiceSettings = ({
   isVoiceEnabled,
   onToggleVoice
 }: VoiceSettingsProps) => {
+  const testVoice = async (voice: string) => {
+    try {
+      const response = await fetch('https://twfzlbockonxopuindaw.supabase.co/functions/v1/text-to-voice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: "Hello! This is how I sound. Nice to meet you!",
+          voice: voice
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+        audio.play();
+      }
+    } catch (error) {
+      console.log('Voice test failed:', error);
+    }
+  };
+
   return (
     <div className="flex flex-row items-center gap-4 mb-2">
       <TokenUsageDisplay
@@ -72,6 +95,10 @@ const VoiceSettings = ({
           onValueChange={(value) => {
             console.log('Voice selection changed to:', value);
             setSelectedVoice(value);
+            // Test the new voice with a sample phrase
+            if (isVoiceEnabled) {
+              testVoice(value);
+            }
           }} 
           disabled={isTokenLimitReached || !isVoiceEnabled}
         >

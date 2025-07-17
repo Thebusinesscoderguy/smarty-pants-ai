@@ -137,16 +137,16 @@ const Auth = () => {
           
           <CardContent className="px-8 pb-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/20 rounded-2xl p-1 mb-8">
+              <TabsList className="grid w-full grid-cols-2 bg-white/20 rounded-2xl p-1 mb-8 gap-1">
                 <TabsTrigger 
                   value="signin" 
-                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3"
+                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3 px-4"
                 >
                   Sign In
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
-                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3"
+                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3 px-4"
                 >
                   Sign Up
                 </TabsTrigger>
