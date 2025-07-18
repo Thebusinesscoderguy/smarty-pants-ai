@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Volume, VolumeX } from 'lucide-react';
+import { Volume, VolumeX, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 
 const OPENAI_VOICES = [
@@ -41,27 +42,130 @@ const VoiceSettings = ({
   isVoiceEnabled,
   onToggleVoice
 }: VoiceSettingsProps) => {
-  const testVoice = async (voice: string) => {
+  const [isTestingVoice, setIsTestingVoice] = useState(false);
+  const [testingVoice, setTestingVoice] = useState<string | null>(null);
+  const [voiceTestStatus, setVoiceTestStatus] = useState<{[key: string]: 'success' | 'error' | null}>({});
+  const { toast } = useToast();
+
+  const testVoice = async (voice: string, showToast: boolean = false) => {
+    console.log('🎵 Starting voice test for:', voice);
+    setIsTestingVoice(true);
+    setTestingVoice(voice);
+    setVoiceTestStatus(prev => ({ ...prev, [voice]: null }));
+
+    if (showToast) {
+      toast({
+        title: "Testing Voice",
+        description: `Testing ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice...`,
+      });
+    }
+
     try {
+      console.log('🌐 Making request to text-to-voice function...');
+      
       const response = await fetch('https://twfzlbockonxopuindaw.supabase.co/functions/v1/text-to-voice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: "Hello! This is how I sound. Nice to meet you!",
+          text: `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice. How do I sound?`,
           voice: voice
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-        audio.play();
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error:', errorText);
+        throw new Error(`Voice test failed: ${response.status} - ${errorText}`);
       }
-    } catch (error) {
-      console.log('Voice test failed:', error);
+
+      const data = await response.json();
+      console.log('✅ Voice test response received, audio data length:', data.audioContent?.length || 0);
+
+      if (!data.audioContent) {
+        throw new Error('No audio content received from server');
+      }
+
+      // Create and play audio
+      console.log('🎵 Creating audio element...');
+      const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+      
+      // Add event listeners for better debugging
+      audio.addEventListener('loadstart', () => console.log('🎵 Audio loading started'));
+      audio.addEventListener('canplay', () => console.log('🎵 Audio can play'));
+      audio.addEventListener('playing', () => console.log('🎵 Audio is playing'));
+      audio.addEventListener('ended', () => console.log('🎵 Audio ended'));
+      audio.addEventListener('error', (e) => console.error('🎵 Audio error:', e));
+
+      // Try to play the audio
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        await playPromise;
+        console.log('🎵 Audio playback started successfully');
+      }
+
+      setVoiceTestStatus(prev => ({ ...prev, [voice]: 'success' }));
+      
+      if (showToast) {
+        toast({
+          title: "Voice Test Successful",
+          description: `${OPENAI_VOICES.find(v => v.value === voice)?.label} voice is working perfectly!`,
+        });
+      }
+
+    } catch (error: any) {
+      console.error('❌ Voice test failed:', error);
+      setVoiceTestStatus(prev => ({ ...prev, [voice]: 'error' }));
+      
+      let errorMessage = 'Unknown error occurred';
+      
+      if (error.message.includes('API key')) {
+        errorMessage = 'OpenAI API key not configured properly';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage = 'Rate limit exceeded. Please try again later.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Voice service is taking too long to respond';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Network connection issue. Please check your internet.';
+      } else if (error.message.includes('autoplay')) {
+        errorMessage = 'Browser blocked audio playback. Try clicking to test manually.';
+      } else {
+        errorMessage = error.message || 'Voice test failed';
+      }
+
+      toast({
+        title: "Voice Test Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestingVoice(false);
+      setTestingVoice(null);
+      
+      // Clear status after 3 seconds
+      setTimeout(() => {
+        setVoiceTestStatus(prev => ({ ...prev, [voice]: null }));
+      }, 3000);
     }
+  };
+
+  const getVoiceStatusIcon = (voice: string) => {
+    if (testingVoice === voice && isTestingVoice) {
+      return <Loader2 className="h-4 w-4 animate-spin text-blue-400" />;
+    }
+    
+    const status = voiceTestStatus[voice];
+    if (status === 'success') {
+      return <CheckCircle className="h-4 w-4 text-green-400" />;
+    } else if (status === 'error') {
+      return <XCircle className="h-4 w-4 text-red-400" />;
+    }
+    
+    return null;
   };
 
   return (
@@ -93,29 +197,72 @@ const VoiceSettings = ({
         <Select 
           value={selectedVoice} 
           onValueChange={(value) => {
-            console.log('Voice selection changed to:', value);
+            console.log('🔄 Voice selection changed to:', value);
             setSelectedVoice(value);
-            // Always test the new voice with a sample phrase
+            // Auto-test the new voice when selected
             testVoice(value);
           }} 
-          disabled={isTokenLimitReached}
+          disabled={isTokenLimitReached || isTestingVoice}
         >
           <SelectTrigger 
             id="voice-select" 
-            className={`w-[140px] bg-white/5 border-white/20 ${!isVoiceEnabled ? 'opacity-50' : ''}`}
+            className={`w-[140px] bg-white/5 border-white/20 ${(!isVoiceEnabled || isTestingVoice) ? 'opacity-50' : ''}`}
           >
             <SelectValue placeholder="Choose voice" />
           </SelectTrigger>
           <SelectContent className="bg-gray-900 z-50">
             {OPENAI_VOICES.map(voice => (
-              <SelectItem key={voice.value} value={voice.value}>
-                {voice.label}
+              <SelectItem key={voice.value} value={voice.value} className="flex items-center justify-between">
+                <span>{voice.label}</span>
+                {getVoiceStatusIcon(voice.value)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {selectedVoice && isVoiceEnabled && (
-          <span className="text-xs text-green-400">✓ {OPENAI_VOICES.find(v => v.value === selectedVoice)?.label}</span>
+        
+        {selectedVoice && (
+          <div className="flex items-center gap-2">
+            {isTestingVoice && testingVoice === selectedVoice ? (
+              <span className="text-xs text-blue-400 flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Testing...
+              </span>
+            ) : (
+              <>
+                {voiceTestStatus[selectedVoice] === 'success' && (
+                  <span className="text-xs text-green-400 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Ready
+                  </span>
+                )}
+                {voiceTestStatus[selectedVoice] === 'error' && (
+                  <span className="text-xs text-red-400 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    Failed
+                  </span>
+                )}
+                {!voiceTestStatus[selectedVoice] && (
+                  <span className="text-xs text-green-400">
+                    ✓ {OPENAI_VOICES.find(v => v.value === selectedVoice)?.label}
+                  </span>
+                )}
+              </>
+            )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => testVoice(selectedVoice, true)}
+              disabled={isTestingVoice || isTokenLimitReached}
+              className="bg-white/5 border-white/20 hover:bg-white/10 text-white/80 px-2 py-1 text-xs"
+            >
+              {isTestingVoice && testingVoice === selectedVoice ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                'Test'
+              )}
+            </Button>
+          </div>
         )}
       </div>
       
