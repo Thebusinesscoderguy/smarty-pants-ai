@@ -95,10 +95,8 @@ const VoiceSettings = ({
           onValueChange={(value) => {
             console.log('Voice selection changed to:', value);
             setSelectedVoice(value);
-            // Test the new voice with a sample phrase
-            if (isVoiceEnabled) {
-              testVoice(value);
-            }
+            // Always test the new voice with a sample phrase
+            testVoice(value);
           }} 
           disabled={isTokenLimitReached || !isVoiceEnabled}
         >
