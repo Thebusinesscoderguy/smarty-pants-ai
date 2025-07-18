@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Volume, VolumeX, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
+import { supabase } from '@/integrations/supabase/client';
 
 const OPENAI_VOICES = [
   { label: 'Alloy (Default)', value: 'alloy' },
@@ -63,26 +64,21 @@ const VoiceSettings = ({
     try {
       console.log('🌐 Making request to text-to-voice function...');
       
-      const response = await fetch('https://twfzlbockonxopuindaw.supabase.co/functions/v1/text-to-voice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: {
           text: `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice. How do I sound?`,
           voice: voice
-        })
+        }
       });
 
-      console.log('📡 Response status:', response.status);
+      console.log('📡 Response:', response);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API Error:', errorText);
-        throw new Error(`Voice test failed: ${response.status} - ${errorText}`);
+      if (response.error) {
+        console.error('❌ API Error:', response.error);
+        throw new Error(`Voice test failed: ${response.error}`);
       }
 
-      const data = await response.json();
+      const data = response.data;
       console.log('✅ Voice test response received, audio data length:', data.audioContent?.length || 0);
 
       if (!data.audioContent) {
