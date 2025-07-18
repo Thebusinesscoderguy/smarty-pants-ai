@@ -98,7 +98,7 @@ const VoiceSettings = ({
             // Always test the new voice with a sample phrase
             testVoice(value);
           }} 
-          disabled={isTokenLimitReached || !isVoiceEnabled}
+          disabled={isTokenLimitReached}
         >
           <SelectTrigger 
             id="voice-select" 
