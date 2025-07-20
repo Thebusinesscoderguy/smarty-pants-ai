@@ -64,9 +64,12 @@ const VoiceSettings = ({
     try {
       console.log('🌐 Making request to text-to-voice function...');
       
+      const testText = `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice. How do I sound?`;
+      console.log('🎵 Test text being sent:', testText);
+      
       const response = await supabase.functions.invoke('text-to-voice', {
         body: {
-          text: `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice. How do I sound?`,
+          text: testText,
           voice: voice
         }
       });
