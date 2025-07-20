@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Volume, VolumeX, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Volume, VolumeX, Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import TokenUsageDisplay from '@/components/voice/TokenUsageDisplay';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const OPENAI_VOICES = [
   { label: 'Alloy (Default)', value: 'alloy' },
@@ -47,9 +48,26 @@ const VoiceSettings = ({
   const [testingVoice, setTestingVoice] = useState<string | null>(null);
   const [voiceTestStatus, setVoiceTestStatus] = useState<{[key: string]: 'success' | 'error' | null}>({});
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const testVoice = async (voice: string, showToast: boolean = false) => {
     console.log('🎵 Starting voice test for:', voice);
+    console.log('🔐 User authentication status:', { 
+      hasUser: !!user, 
+      userId: user?.id,
+      isAuthenticated: !!user 
+    });
+
+    // Check authentication first
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in first to test voice functionality.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsTestingVoice(true);
     setTestingVoice(voice);
     setVoiceTestStatus(prev => ({ ...prev, [voice]: null }));
@@ -66,6 +84,17 @@ const VoiceSettings = ({
       
       const testText = `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice. How do I sound?`;
       console.log('🎵 Test text being sent:', testText);
+      console.log('🎵 Voice parameter:', voice);
+      
+      // Get current session info for debugging
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('🔐 Current session:', { 
+        hasSession: !!session, 
+        sessionError,
+        userId: session?.user?.id 
+      });
+
+      const startTime = performance.now();
       
       const response = await supabase.functions.invoke('text-to-voice', {
         body: {
@@ -74,37 +103,101 @@ const VoiceSettings = ({
         }
       });
 
-      console.log('📡 Response:', response);
+      const endTime = performance.now();
+      console.log(`📡 Function call completed in ${endTime - startTime}ms`);
+      console.log('📡 Full response:', response);
+      console.log('📡 Response data:', response.data);
+      console.log('📡 Response error:', response.error);
       
       if (response.error) {
-        console.error('❌ API Error:', response.error);
-        throw new Error(`Voice test failed: ${response.error}`);
+        console.error('❌ Supabase Function Error:', response.error);
+        throw new Error(`Voice test failed: ${JSON.stringify(response.error)}`);
       }
 
       const data = response.data;
-      console.log('✅ Voice test response received, audio data length:', data.audioContent?.length || 0);
+      console.log('✅ Voice test response received');
+      console.log('🎵 Audio data check:', {
+        hasAudioContent: !!data?.audioContent,
+        audioContentLength: data?.audioContent?.length || 0,
+        dataKeys: Object.keys(data || {})
+      });
 
-      if (!data.audioContent) {
+      if (!data?.audioContent) {
         throw new Error('No audio content received from server');
       }
 
-      // Create and play audio
+      // Create and play audio with better error handling
       console.log('🎵 Creating audio element...');
-      const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+      const audio = new Audio();
       
-      // Add event listeners for better debugging
+      // Set up comprehensive event listeners for debugging
       audio.addEventListener('loadstart', () => console.log('🎵 Audio loading started'));
+      audio.addEventListener('loadeddata', () => console.log('🎵 Audio data loaded'));
       audio.addEventListener('canplay', () => console.log('🎵 Audio can play'));
+      audio.addEventListener('canplaythrough', () => console.log('🎵 Audio can play through'));
       audio.addEventListener('playing', () => console.log('🎵 Audio is playing'));
       audio.addEventListener('ended', () => console.log('🎵 Audio ended'));
-      audio.addEventListener('error', (e) => console.error('🎵 Audio error:', e));
+      audio.addEventListener('pause', () => console.log('🎵 Audio paused'));
+      audio.addEventListener('error', (e) => {
+        console.error('🎵 Audio error event:', e);
+        console.error('🎵 Audio error details:', {
+          error: audio.error,
+          networkState: audio.networkState,
+          readyState: audio.readyState
+        });
+      });
 
-      // Try to play the audio
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        await playPromise;
-        console.log('🎵 Audio playback started successfully');
+      // Set audio source
+      const audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
+      console.log('🎵 Setting audio source, first 100 chars:', audioSrc.substring(0, 100));
+      audio.src = audioSrc;
+
+      // Try to play with explicit user interaction handling
+      try {
+        console.log('🎵 Attempting to play audio...');
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          await playPromise;
+          console.log('🎵 Audio playback started successfully');
+        }
+      } catch (playError) {
+        console.error('🎵 Audio play error:', playError);
+        
+        // If autoplay fails, offer manual download/play option
+        if (playError.name === 'NotAllowedError') {
+          toast({
+            title: "Audio Test Complete",
+            description: "Browser blocked auto-play. Audio was generated successfully. Click the audio controls to play manually.",
+          });
+          
+          // Create a temporary audio element that user can interact with
+          const audioElement = document.createElement('audio');
+          audioElement.src = audioSrc;
+          audioElement.controls = true;
+          audioElement.style.position = 'fixed';
+          audioElement.style.top = '20px';
+          audioElement.style.right = '20px';
+          audioElement.style.zIndex = '9999';
+          audioElement.style.backgroundColor = 'white';
+          audioElement.style.border = '2px solid #333';
+          audioElement.style.borderRadius = '8px';
+          audioElement.style.padding = '10px';
+          
+          document.body.appendChild(audioElement);
+          
+          // Remove after 10 seconds
+          setTimeout(() => {
+            if (document.body.contains(audioElement)) {
+              document.body.removeChild(audioElement);
+            }
+          }, 10000);
+          
+          setVoiceTestStatus(prev => ({ ...prev, [voice]: 'success' }));
+          return;
+        } else {
+          throw playError;
+        }
       }
 
       setVoiceTestStatus(prev => ({ ...prev, [voice]: 'success' }));
@@ -117,27 +210,41 @@ const VoiceSettings = ({
       }
 
     } catch (error: any) {
-      console.error('❌ Voice test failed:', error);
+      console.error('❌ Voice test failed with error:', error);
+      console.error('❌ Error stack:', error.stack);
       setVoiceTestStatus(prev => ({ ...prev, [voice]: 'error' }));
       
       let errorMessage = 'Unknown error occurred';
+      let errorTitle = 'Voice Test Failed';
       
-      if (error.message.includes('API key')) {
-        errorMessage = 'OpenAI API key not configured properly';
-      } else if (error.message.includes('rate limit')) {
-        errorMessage = 'Rate limit exceeded. Please try again later.';
-      } else if (error.message.includes('timeout')) {
-        errorMessage = 'Voice service is taking too long to respond';
-      } else if (error.message.includes('network')) {
-        errorMessage = 'Network connection issue. Please check your internet.';
-      } else if (error.message.includes('autoplay')) {
-        errorMessage = 'Browser blocked audio playback. Try clicking to test manually.';
+      // Enhanced error categorization
+      if (!user) {
+        errorTitle = 'Authentication Required';
+        errorMessage = 'Please log in to test voice functionality';
+      } else if (error.message?.includes('API key') || error.message?.includes('api_key_error')) {
+        errorTitle = 'API Configuration Error';
+        errorMessage = 'OpenAI API key not configured properly. Please contact the administrator.';
+      } else if (error.message?.includes('rate limit') || error.message?.includes('rate_limit_error')) {
+        errorTitle = 'Rate Limit Exceeded';
+        errorMessage = 'Too many requests. Please try again in a few minutes.';
+      } else if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+        errorTitle = 'Service Timeout';
+        errorMessage = 'Voice service is taking too long to respond. Please try again.';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorTitle = 'Network Error';
+        errorMessage = 'Network connection issue. Please check your internet connection.';
+      } else if (error.message?.includes('autoplay') || error.message?.includes('NotAllowedError')) {
+        errorTitle = 'Browser Restriction';
+        errorMessage = 'Browser blocked audio playback. The voice was generated successfully.';
+      } else if (error.message?.includes('No audio content')) {
+        errorTitle = 'Audio Generation Failed';
+        errorMessage = 'The voice service did not return audio content. Please try again.';
       } else {
-        errorMessage = error.message || 'Voice test failed';
+        errorMessage = error.message || 'Voice test failed. Please check console for details.';
       }
 
       toast({
-        title: "Voice Test Failed",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });
@@ -145,10 +252,10 @@ const VoiceSettings = ({
       setIsTestingVoice(false);
       setTestingVoice(null);
       
-      // Clear status after 3 seconds
+      // Clear status after 5 seconds
       setTimeout(() => {
         setVoiceTestStatus(prev => ({ ...prev, [voice]: null }));
-      }, 3000);
+      }, 5000);
     }
   };
 
@@ -166,6 +273,27 @@ const VoiceSettings = ({
     
     return null;
   };
+
+  // Show authentication warning if not logged in
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center gap-4 mb-2 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+        <div className="flex items-center gap-2 text-red-400">
+          <AlertCircle className="h-5 w-5" />
+          <span className="font-semibold">Authentication Required</span>
+        </div>
+        <p className="text-sm text-red-300 text-center">
+          Please log in to access voice settings and test voice functionality.
+        </p>
+        <Button 
+          onClick={() => window.location.href = '/auth'}
+          className="bg-red-600 hover:bg-red-700 text-white"
+        >
+          Go to Login
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-row items-center gap-4 mb-2">
@@ -198,8 +326,10 @@ const VoiceSettings = ({
           onValueChange={(value) => {
             console.log('🔄 Voice selection changed to:', value);
             setSelectedVoice(value);
-            // Auto-test the new voice when selected
-            testVoice(value);
+            // Auto-test the new voice when selected (only if authenticated)
+            if (user) {
+              testVoice(value);
+            }
           }} 
           disabled={isTokenLimitReached || isTestingVoice}
         >
