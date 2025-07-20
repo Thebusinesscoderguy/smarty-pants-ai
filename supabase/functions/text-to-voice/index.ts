@@ -42,9 +42,9 @@ serve(async (req) => {
       );
     }
 
-    // Check for test mode - return mock response for system tests
-    if (text.toLowerCase().includes('system test') || text.toLowerCase().includes('test')) {
-      console.log("Test request detected, returning mock response");
+    // Check for test mode - return mock response for system tests only
+    if (text.toLowerCase().includes('system test')) {
+      console.log("System test request detected, returning mock response");
       
       // Return a small mock base64 audio content for testing
       const mockAudioBase64 = 'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuN3vHJeSgFJnvLasd0A=='; // Very small WAV file
