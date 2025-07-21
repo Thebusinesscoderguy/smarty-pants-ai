@@ -58,8 +58,18 @@ const VoiceSettings = ({
       isAuthenticated: !!user 
     });
 
-    // Check authentication first
-    if (!user) {
+    // Check current session directly from supabase instead of just user state
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    console.log('🔐 Direct session check:', { 
+      hasSession: !!session, 
+      sessionError,
+      userId: session?.user?.id,
+      userFromContext: !!user
+    });
+
+    // Check authentication - use session instead of just user state
+    if (!session?.user) {
+      console.log('❌ No authenticated session found, cannot test voice');
       toast({
         title: "Authentication Required",
         description: "Please log in first to test voice functionality.",
@@ -67,6 +77,8 @@ const VoiceSettings = ({
       });
       return;
     }
+
+    console.log('✅ Authentication confirmed, proceeding with voice test');
 
     setIsTestingVoice(true);
     setTestingVoice(voice);
