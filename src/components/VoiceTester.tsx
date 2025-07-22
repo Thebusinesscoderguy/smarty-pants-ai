@@ -1,11 +1,10 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Volume2, Sparkles } from 'lucide-react';
-import { useVoiceSettings } from '@/hooks/useVoiceSettings';
+import { Volume2, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const VOICE_OPTIONS = [
@@ -18,62 +17,187 @@ const VOICE_OPTIONS = [
 ];
 
 const VoiceTester: React.FC = () => {
-  const { selectedVoice, setSelectedVoice } = useVoiceSettings();
-  const { user } = useAuth();
+  const [selectedVoice, setSelectedVoice] = React.useState('alloy');
   const { toast } = useToast();
   const [isTestingVoice, setIsTestingVoice] = React.useState(false);
 
-  const testVoice = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in first to test voice functionality.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const testVoice = async (voice: string, showToast: boolean = true) => {
+    console.log('🎵 Starting voice test for:', voice);
+    
     setIsTestingVoice(true);
 
+    if (showToast) {
+      toast({
+        title: "Testing Voice",
+        description: `Testing ${VOICE_OPTIONS.find(v => v.value === voice)?.label} voice...`,
+      });
+    }
+
     try {
-      const { data, error } = await supabase.functions.invoke('text-to-voice', {
-        body: { 
-          text: `Hello! This is the ${selectedVoice} voice. How do you like it?`,
-          voice: selectedVoice 
+      const testText = `Hello! This is the ${VOICE_OPTIONS.find(v => v.value === voice)?.label} voice. How do you like it?`;
+      console.log('🎵 Test text being sent:', testText);
+      
+      const startTime = performance.now();
+      
+      const response = await supabase.functions.invoke('text-to-voice', {
+        body: {
+          text: testText,
+          voice: voice
         }
       });
 
-      if (error) throw error;
+      const endTime = performance.now();
+      console.log(`📡 Function call completed in ${endTime - startTime}ms`);
+      console.log('📡 Response:', response);
+      
+      if (response.error) {
+        console.error('❌ Supabase Function Error:', response.error);
+        throw new Error(`Voice test failed: ${JSON.stringify(response.error)}`);
+      }
 
-      if (data?.audioContent) {
-        const audioBlob = new Blob([
-          new Uint8Array(atob(data.audioContent).split('').map(c => c.charCodeAt(0)))
-        ], { type: 'audio/mpeg' });
-        
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        await audio.play();
-        
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-        };
+      const data = response.data;
+      console.log('✅ Voice test response received');
+      console.log('🎵 Audio data check:', {
+        hasAudioContent: !!data?.audioContent,
+        audioContentLength: data?.audioContent?.length || 0
+      });
 
+      if (!data?.audioContent) {
+        throw new Error('No audio content received from server');
+      }
+
+      // Create and play audio with better error handling
+      console.log('🎵 Creating audio element...');
+      const audio = new Audio();
+      
+      // Set up event listeners for debugging
+      audio.addEventListener('loadstart', () => console.log('🎵 Audio loading started'));
+      audio.addEventListener('canplay', () => console.log('🎵 Audio can play'));
+      audio.addEventListener('playing', () => console.log('🎵 Audio is playing'));
+      audio.addEventListener('ended', () => console.log('🎵 Audio ended'));
+      audio.addEventListener('error', (e) => {
+        console.error('🎵 Audio error event:', e);
+        console.error('🎵 Audio error details:', {
+          error: audio.error,
+          networkState: audio.networkState,
+          readyState: audio.readyState
+        });
+      });
+
+      // Set audio source
+      const audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
+      console.log('🎵 Setting audio source, first 100 chars:', audioSrc.substring(0, 100));
+      audio.src = audioSrc;
+
+      // Try to play with explicit user interaction handling
+      try {
+        console.log('🎵 Attempting to play audio...');
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          await playPromise;
+          console.log('🎵 Audio playback started successfully');
+        }
+      } catch (playError) {
+        console.error('🎵 Audio play error:', playError);
+        
+        // If autoplay fails, create a temporary audio element for manual play
+        if (playError.name === 'NotAllowedError') {
+          if (showToast) {
+            toast({
+              title: "Voice Test Complete",
+              description: "Browser blocked auto-play. Click the audio controls to play manually.",
+            });
+          }
+          
+          // Create a temporary audio element that user can interact with
+          const audioElement = document.createElement('audio');
+          audioElement.src = audioSrc;
+          audioElement.controls = true;
+          audioElement.style.position = 'fixed';
+          audioElement.style.top = '20px';
+          audioElement.style.right = '20px';
+          audioElement.style.zIndex = '9999';
+          audioElement.style.backgroundColor = 'white';
+          audioElement.style.border = '2px solid #333';
+          audioElement.style.borderRadius = '8px';
+          audioElement.style.padding = '10px';
+          
+          document.body.appendChild(audioElement);
+          
+          // Remove after 10 seconds
+          setTimeout(() => {
+            if (document.body.contains(audioElement)) {
+              document.body.removeChild(audioElement);
+            }
+          }, 10000);
+          
+          return;
+        } else {
+          throw playError;
+        }
+      }
+
+      if (showToast) {
         toast({
-          title: "Voice Test Complete",
-          description: `Successfully tested ${selectedVoice} voice`,
+          title: "Voice Test Successful",
+          description: `${VOICE_OPTIONS.find(v => v.value === voice)?.label} voice is working perfectly!`,
         });
       }
+
     } catch (error: any) {
-      console.error('Voice test error:', error);
-      toast({
-        title: "Voice Test Failed",
-        description: error.message || "Failed to test voice",
-        variant: "destructive",
-      });
+      console.error('❌ Voice test failed with error:', error);
+      
+      let errorMessage = 'Unknown error occurred';
+      let errorTitle = 'Voice Test Failed';
+      
+      // Enhanced error categorization
+      if (error.message?.includes('API key') || error.message?.includes('api_key_error')) {
+        errorTitle = 'API Configuration Error';
+        errorMessage = 'OpenAI API key not configured properly. Please contact the administrator.';
+      } else if (error.message?.includes('rate limit') || error.message?.includes('rate_limit_error')) {
+        errorTitle = 'Rate Limit Exceeded';
+        errorMessage = 'Too many requests. Please try again in a few minutes.';
+      } else if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+        errorTitle = 'Service Timeout';
+        errorMessage = 'Voice service is taking too long to respond. Please try again.';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorTitle = 'Network Error';
+        errorMessage = 'Network connection issue. Please check your internet connection.';
+      } else if (error.message?.includes('autoplay') || error.message?.includes('NotAllowedError')) {
+        errorTitle = 'Browser Restriction';
+        errorMessage = 'Browser blocked audio playback. The voice was generated successfully.';
+      } else if (error.message?.includes('No audio content')) {
+        errorTitle = 'Audio Generation Failed';
+        errorMessage = 'The voice service did not return audio content. Please try again.';
+      } else {
+        errorMessage = error.message || 'Voice test failed. Please check console for details.';
+      }
+
+      if (showToast) {
+        toast({
+          title: errorTitle,
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsTestingVoice(false);
     }
+  };
+
+  const handleVoiceChange = async (voice: string) => {
+    console.log('🔄 Voice selection changed to:', voice);
+    setSelectedVoice(voice);
+    
+    // Automatically test the new voice when selected
+    await testVoice(voice, false);
+    
+    toast({
+      title: "Voice changed",
+      description: `Now using ${VOICE_OPTIONS.find(v => v.value === voice)?.label} voice`,
+      duration: 2000,
+    });
   };
 
   const selectedVoiceInfo = VOICE_OPTIONS.find(v => v.value === selectedVoice);
@@ -94,7 +218,7 @@ const VoiceTester: React.FC = () => {
         <div className="space-y-6">
           <div>
             <label className="text-white font-medium mb-3 block">Select Voice Profile</label>
-            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+            <Select value={selectedVoice} onValueChange={handleVoiceChange} disabled={isTestingVoice}>
               <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
                 <SelectValue>
                   <div className="flex flex-col items-start">
@@ -116,24 +240,32 @@ const VoiceTester: React.FC = () => {
             </Select>
           </div>
 
+          {isTestingVoice && (
+            <div className="bg-blue-900/50 rounded-lg p-4 flex items-center gap-3">
+              <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+              <span className="text-blue-200 text-sm">Testing {selectedVoiceInfo?.label} voice...</span>
+            </div>
+          )}
+
           <div className="bg-blue-900/50 rounded-lg p-4 flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-blue-400" />
             <span className="text-blue-200 text-sm">Voice changes will apply to new conversations</span>
           </div>
 
           <Button 
-            onClick={testVoice}
-            disabled={isTestingVoice || !user}
+            onClick={() => testVoice(selectedVoice, true)}
+            disabled={isTestingVoice}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-full transition-all duration-200"
           >
-            {isTestingVoice ? 'Testing Voice...' : 'Test Voice'}
+            {isTestingVoice ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Testing Voice...
+              </>
+            ) : (
+              'Test Voice Again'
+            )}
           </Button>
-
-          {!user && (
-            <p className="text-yellow-400 text-sm text-center">
-              Please log in to test voice functionality
-            </p>
-          )}
         </div>
       </Card>
     </div>
