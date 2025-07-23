@@ -148,8 +148,9 @@ const Index = () => {
       
       {showRoleSelection && (
         <RoleSelection 
+          isOpen={showRoleSelection}
           onClose={() => setShowRoleSelection(false)}
-          onRoleSelected={handleRoleSelected}
+          onRoleSelect={handleRoleSelected}
         />
       )}
     </div>
