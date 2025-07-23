@@ -5,6 +5,7 @@ import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbul
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
+import VoiceTester from '@/components/VoiceTester';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -81,6 +82,11 @@ const Index = () => {
                 System Tests
                 <Zap className="ml-2 h-5 w-5" />
               </Button>
+            </div>
+
+            {/* Voice Tester Section */}
+            <div className="mt-16">
+              <VoiceTester />
             </div>
           </div>
         </section>
