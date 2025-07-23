@@ -8,7 +8,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import Index from './pages/Index';
 import Chat from './pages/Chat';
-
 import Progress from './pages/Progress';
 import Auth from './pages/Auth';
 import Demo from './pages/Demo';
@@ -25,6 +24,7 @@ import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
 import Monitoring from './pages/Monitoring';
 import Settings from './pages/Settings';
+import VoiceTest from './pages/VoiceTest';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -41,7 +41,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/chat" element={<Chat />} />
-                
                 <Route path="/progress" element={<Progress />} />
                 <Route path="/monitoring" element={<Monitoring />} />
                 <Route path="/auth" element={<Auth />} />
@@ -58,6 +57,7 @@ function App() {
                 <Route path="/math-solver" element={<MathSolver />} />
                 <Route path="/quiz" element={<QuizGenerator />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/voice-test" element={<VoiceTest />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
