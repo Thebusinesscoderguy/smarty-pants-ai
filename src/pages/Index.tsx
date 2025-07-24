@@ -19,7 +19,7 @@ const Index = () => {
     setShowRoleSelection(true);
   };
 
-  const handleRoleSelected = (role: 'student' | 'teacher' | 'parent') => {
+  const handleRoleSelected = (role: string) => {
     console.log('Role selected:', role);
     navigate('/onboarding', { state: { role } });
   };
