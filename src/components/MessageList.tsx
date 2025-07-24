@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Volume2, VolumeX, User, Bot, FileText, Image, Play, Pause, File, Download } from 'lucide-react';
+import { Volume2, VolumeX, User, Bot, FileText, Image, Play, Pause, File, Download, Loader2 } from 'lucide-react';
 import { Message } from '@/types/message';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface MessageListProps {
   messages: Message[];
@@ -19,12 +21,104 @@ const MessageList: React.FC<MessageListProps> = ({
   onPauseAudio, 
   playingAudioId 
 }) => {
+  const [speakingMessages, setSpeakingMessages] = useState<Set<string>>(new Set());
+  const [loadingTTS, setLoadingTTS] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
   const formatTime = (date: Date) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  };
+
+  const handleTextToSpeech = async (messageId: string, text: string) => {
+    if (speakingMessages.has(messageId)) {
+      // Stop current playback
+      setSpeakingMessages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+      return;
+    }
+
+    setLoadingTTS(prev => new Set(prev).add(messageId));
+
+    try {
+      console.log('Converting text to speech:', text.substring(0, 50) + '...');
+      
+      const { data, error } = await supabase.functions.invoke('text-to-voice', {
+        body: {
+          text: text,
+          voice: 'alloy' // You can make this configurable later
+        }
+      });
+
+      if (error) {
+        console.error('Text-to-speech error:', error);
+        toast({
+          title: "Speech Error",
+          description: "Failed to convert text to speech. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.audioContent) {
+        // Convert base64 to audio blob
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // Play the audio
+        const audio = new Audio(audioUrl);
+        
+        setSpeakingMessages(prev => new Set(prev).add(messageId));
+        
+        audio.onended = () => {
+          setSpeakingMessages(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(messageId);
+            return newSet;
+          });
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        audio.onerror = () => {
+          setSpeakingMessages(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(messageId);
+            return newSet;
+          });
+          URL.revokeObjectURL(audioUrl);
+          toast({
+            title: "Playback Error",
+            description: "Failed to play the generated speech.",
+            variant: "destructive",
+          });
+        };
+        
+        await audio.play();
+      }
+    } catch (error) {
+      console.error('Text-to-speech error:', error);
+      toast({
+        title: "Speech Error",
+        description: "Failed to convert text to speech. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingTTS(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+    }
   };
 
   const renderFileContent = (message: Message) => {
@@ -138,9 +232,18 @@ const MessageList: React.FC<MessageListProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2"
+                      onClick={() => handleTextToSpeech(message.id || '', message.text)}
+                      disabled={loadingTTS.has(message.id || '')}
+                      className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all duration-200"
+                      title={speakingMessages.has(message.id || '') ? "Stop speech" : "Read aloud"}
                     >
-                      <Volume2 className="h-4 w-4" />
+                      {loadingTTS.has(message.id || '') ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : speakingMessages.has(message.id || '') ? (
+                        <VolumeX className="h-4 w-4" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
                     </Button>
                   )}
                 </div>
