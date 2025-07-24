@@ -341,6 +341,20 @@ const Auth = () => {
             </Tabs>
           </CardContent>
         </Card>
+        
+        {/* Demo Chat Access */}
+        <div className="mt-8 text-center">
+          <Button
+            onClick={() => navigate('/chat')}
+            variant="outline"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl px-8 py-3"
+          >
+            Try Chat Demo
+          </Button>
+          <p className="text-slate-400 text-sm mt-2">
+            Test the chatbot without signing up
+          </p>
+        </div>
       </main>
       
       <Footer />
