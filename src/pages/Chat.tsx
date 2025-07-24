@@ -23,7 +23,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [isVoiceResponse, setIsVoiceResponse] = useState(true);
+  
   const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, message_count: number}>>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -123,35 +123,11 @@ const Chat = () => {
       // Check if it's a test/mock response (non-streaming)
       if (completionResponse.data?.content) {
         const aiResponseText = completionResponse.data.content;
-        
-        // Generate voice response if enabled
-        let audioUrl = undefined;
-        if (isVoiceResponse) {
-          const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-            body: { 
-              text: aiResponseText,
-              voice: 'alloy'
-            }
-          });
-
-          if (!voiceResponse.error && voiceResponse.data?.audioContent) {
-            const base64Audio = voiceResponse.data.audioContent;
-            const byteCharacters = atob(base64Audio);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
-            audioUrl = URL.createObjectURL(audioBlob);
-          }
-        }
-
-        return { text: aiResponseText, audioUrl };
+        return { text: aiResponseText };
       }
 
       // For streaming response, fall back to a simple response
-      return { text: "Hello! I'm your AI tutor. How can I help you learn today?", audioUrl: undefined };
+      return { text: "Hello! I'm your AI tutor. How can I help you learn today?" };
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
@@ -181,19 +157,10 @@ const Chat = () => {
         id: (Date.now() + 1).toString(),
         content: response.text,
         isUser: false,
-        timestamp: new Date(),
-        audioUrl: response.audioUrl
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiResponse]);
-      
-      // Auto-play voice response if available
-      if (response.audioUrl && isVoiceResponse) {
-        setTimeout(() => {
-          const audio = new Audio(response.audioUrl);
-          audio.play().catch(console.error);
-        }, 500);
-      }
     } catch (error) {
       toast({
         title: "Error",
@@ -240,9 +207,44 @@ const Chat = () => {
     }
   };
 
-  const handlePlayAudio = (audioUrl: string) => {
-    const audio = new Audio(audioUrl);
-    audio.play().catch(console.error);
+  const handleTextToSpeech = async (text: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-voice', {
+        body: {
+          text: text,
+          voice: 'alloy'
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Speech Error",
+          description: "Failed to convert text to speech. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.audioContent) {
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const audio = new Audio(audioUrl);
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        await audio.play();
+      }
+    } catch (error) {
+      toast({
+        title: "Speech Error",
+        description: "Failed to convert text to speech. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleNewChat = () => {
@@ -330,12 +332,13 @@ const Chat = () => {
                           <p className="text-sm opacity-70">
                             {formatTime(message.timestamp)}
                           </p>
-                          {!message.isUser && message.audioUrl && (
+                          {!message.isUser && (
                             <Button
-                              onClick={() => handlePlayAudio(message.audioUrl!)}
+                              onClick={() => handleTextToSpeech(message.content)}
                               variant="ghost"
                               size="sm"
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10"
+                              title="Read aloud"
                             >
                               <Volume2 className="h-4 w-4" />
                             </Button>
@@ -415,33 +418,6 @@ const Chat = () => {
                       <Upload className="h-5 w-5" />
                     </Button>
                     
-                    <Button
-                      onClick={handleVoiceToggle}
-                      variant="ghost"
-                      size="sm"
-                      className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
-                        isRecording 
-                          ? 'text-red-400 hover:text-red-300 bg-red-500/20 hover:bg-red-500/30' 
-                          : 'text-white/70 hover:text-white hover:bg-white/10'
-                      }`}
-                      title={isRecording ? 'Stop recording' : 'Start recording'}
-                    >
-                      {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                    </Button>
-                    
-                    <Button
-                      onClick={() => setIsVoiceResponse(!isVoiceResponse)}
-                      variant="ghost"
-                      size="sm"
-                      className={`p-2 h-10 w-10 rounded-xl transition-all duration-200 ${
-                        isVoiceResponse 
-                          ? 'text-purple-400 hover:text-purple-300 bg-purple-500/20 hover:bg-purple-500/30' 
-                          : 'text-white/70 hover:text-white hover:bg-white/10'
-                      }`}
-                      title={isVoiceResponse ? 'Voice responses enabled' : 'Voice responses disabled'}
-                    >
-                      {isVoiceResponse ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                    </Button>
                   </div>
                 </div>
                 
