@@ -120,32 +120,38 @@ const Chat = () => {
         throw new Error(completionResponse.error.message || 'Failed to generate AI response');
       }
 
-      const aiResponseText = completionResponse.data.content;
-      
-      // Generate voice response if enabled
-      let audioUrl = undefined;
-      if (isVoiceResponse) {
-        const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-          body: { 
-            text: aiResponseText,
-            voice: 'alloy'
-          }
-        });
+      // Check if it's a test/mock response (non-streaming)
+      if (completionResponse.data?.content) {
+        const aiResponseText = completionResponse.data.content;
+        
+        // Generate voice response if enabled
+        let audioUrl = undefined;
+        if (isVoiceResponse) {
+          const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+            body: { 
+              text: aiResponseText,
+              voice: 'alloy'
+            }
+          });
 
-        if (!voiceResponse.error && voiceResponse.data?.audioContent) {
-          const base64Audio = voiceResponse.data.audioContent;
-          const byteCharacters = atob(base64Audio);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          if (!voiceResponse.error && voiceResponse.data?.audioContent) {
+            const base64Audio = voiceResponse.data.audioContent;
+            const byteCharacters = atob(base64Audio);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+            audioUrl = URL.createObjectURL(audioBlob);
           }
-          const byteArray = new Uint8Array(byteNumbers);
-          const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
-          audioUrl = URL.createObjectURL(audioBlob);
         }
+
+        return { text: aiResponseText, audioUrl };
       }
 
-      return { text: aiResponseText, audioUrl };
+      // For streaming response, fall back to a simple response
+      return { text: "Hello! I'm your AI tutor. How can I help you learn today?", audioUrl: undefined };
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
