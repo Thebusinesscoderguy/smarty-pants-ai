@@ -5,11 +5,24 @@ import { Menu, X } from 'lucide-react';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast.success('Signed out successfully');
+    } catch (error) {
+      toast.error('Error signing out');
+    }
+  };
 
   console.log('Header rendering with language:', language);
   console.log('Header: t function type:', typeof t);
@@ -74,19 +87,31 @@ export const Header = () => {
               {contactText}
             </button>
             <LanguageSelector />
-            <Button 
-              onClick={() => navigate('/auth')}
-              variant="outline" 
-              className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-            >
-              Login
-            </Button>
-            <Button 
-              onClick={() => navigate('/auth?signup=true')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-            >
-              Sign Up
-            </Button>
+            {user ? (
+              <Button 
+                onClick={handleSignOut}
+                variant="outline" 
+                className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+              >
+                Sign Out
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  Login
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth?signup=true')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -132,19 +157,31 @@ export const Header = () => {
                 {contactText}
               </button>
               <div className="flex flex-col space-y-2 pt-2">
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  variant="outline" 
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                >
-                  Login
-                </Button>
-                <Button 
-                  onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
-                >
-                  Sign Up
-                </Button>
+                {user ? (
+                  <Button 
+                    onClick={handleSignOut}
+                    variant="outline" 
+                    className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                  >
+                    Sign Out
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      onClick={() => navigate('/auth')}
+                      variant="outline" 
+                      className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                    >
+                      Login
+                    </Button>
+                    <Button 
+                      onClick={() => navigate('/auth?signup=true')}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                    >
+                      Sign Up
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
