@@ -30,6 +30,7 @@ import NotFound from './pages/NotFound';
 const queryClient = new QueryClient();
 
 function App() {
+  // Clean app without system tests
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
