@@ -40,7 +40,7 @@ const navigationItems = [
   { title: "Math Solver", icon: Calculator, url: "/math-solver" },
   { title: "Quiz Generator", icon: FileQuestion, url: "/quiz" },
   { title: "Progress", icon: TrendingUp, url: "/progress" },
-  { title: "System Test", icon: TestTube, url: "/system-test" },
+  
 ];
 
 const AppSidebar = () => {

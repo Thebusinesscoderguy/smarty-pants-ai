@@ -19,8 +19,8 @@ import PricingCheckout from './pages/PricingCheckout';
 import Onboarding from './pages/Onboarding';
 import SchoolAdmin from './pages/SchoolAdmin';
 import AcceptInvitation from './pages/AcceptInvitation';
-import SystemTest from './pages/SystemTest';
-import TestResults from './pages/TestResults';
+
+
 import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
 import Monitoring from './pages/Monitoring';
@@ -53,8 +53,8 @@ function App() {
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/school-admin" element={<SchoolAdmin />} />
                 <Route path="/accept-invitation" element={<AcceptInvitation />} />
-                <Route path="/system-test" element={<SystemTest />} />
-                <Route path="/test-results" element={<TestResults />} />
+                
+                
                 <Route path="/math-solver" element={<MathSolver />} />
                 <Route path="/quiz" element={<QuizGenerator />} />
                 <Route path="/settings" element={<Settings />} />

@@ -226,7 +226,7 @@ const PublicPricing = () => {
               size="lg"
               asChild
             >
-              <Link to="/system-test" className="flex items-center gap-2 justify-center">
+              <Link to="/demo" className="flex items-center gap-2 justify-center">
                 Try Demo
                 <ArrowRight className="h-4 w-4" />
               </Link>

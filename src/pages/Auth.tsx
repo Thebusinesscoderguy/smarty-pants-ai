@@ -125,59 +125,62 @@ const Auth = () => {
       <Header />
       
       <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
-        <Card className="w-full max-w-lg bg-white/10 border-white/20 backdrop-blur-xl shadow-2xl rounded-3xl">
-          <CardHeader className="text-center pb-8">
-            <CardTitle className="text-3xl font-bold text-white mb-2">
-              Welcome to TeachlyAI
-            </CardTitle>
-            <p className="text-slate-300 text-lg">
-              Join thousands of learners already transforming their education
-            </p>
-          </CardHeader>
+        <div className="w-full max-w-md mx-auto">
+          <Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
+            <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
+              <CardTitle className="text-2xl font-bold text-white mb-3">
+                Welcome to TeachlyAI
+              </CardTitle>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Your AI-powered learning companion
+              </p>
+            </CardHeader>
           
-          <CardContent className="px-8 pb-8">
+          <CardContent className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/20 rounded-2xl p-1 mb-8 gap-1">
+              <TabsList className="grid w-full grid-cols-2 bg-white/10 rounded-xl p-1 mb-6">
                 <TabsTrigger 
                   value="signin" 
-                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3 px-4"
+                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg font-medium py-2 px-4 transition-all duration-200"
                 >
                   Sign In
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
-                  className="data-[state=active]:bg-white/30 data-[state=active]:text-white rounded-xl font-semibold py-3 px-4"
+                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg font-medium py-2 px-4 transition-all duration-200"
                 >
                   Sign Up
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="signin" className="space-y-6">
-                <form onSubmit={handleSignIn} className="space-y-6">
-                  <div>
+              <TabsContent value="signin" className="space-y-4">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-300">Email</label>
                     <Input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="your.email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
+                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
                     />
                   </div>
                   
-                  <div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-300">Password</label>
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
+                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
                     />
                   </div>
                   
                   {error && (
-                    <div className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-xl border border-red-500/30">
+                    <div className="text-red-300 text-xs text-center bg-red-500/5 p-3 rounded-lg border border-red-500/20">
                       {error}
                     </div>
                   )}
@@ -185,18 +188,18 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl h-12 text-lg font-semibold"
+                    className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     {loading ? 'Signing In...' : 'Sign In'}
                   </Button>
                 </form>
                 
-                <div className="relative">
+                <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-white/20" />
+                    <span className="w-full border-t border-white/15" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-transparent px-4 text-white/60 font-medium">or</span>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-card px-3 text-white/50 font-medium">or</span>
                   </div>
                 </div>
                 
@@ -204,7 +207,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl h-12 text-lg"
+                  className="w-full bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg h-11 text-base font-medium transition-all duration-200"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -227,12 +230,12 @@ const Auth = () => {
                   Continue with Google
                 </Button>
                 
-                <div className="text-center text-sm">
+                <div className="text-center text-sm mt-4">
                   <p className="text-slate-400">
                     Don't have an account?{' '}
                     <button
                       onClick={() => setActiveTab('signup')}
-                      className="text-purple-400 hover:text-purple-300 underline font-medium"
+                      className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
                     >
                       Sign up here
                     </button>
@@ -240,43 +243,46 @@ const Auth = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="signup" className="space-y-6">
-                <form onSubmit={handleSignUp} className="space-y-6">
-                  <div>
+              <TabsContent value="signup" className="space-y-4">
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-300">Email</label>
                     <Input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="your.email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
+                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
                     />
                   </div>
                   
-                  <div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-300">Password</label>
                     <Input
                       type="password"
-                      placeholder="Create a password"
+                      placeholder="Minimum 6 characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
+                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
                     />
                   </div>
                   
-                  <div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-300">Confirm Password</label>
                     <Input
                       type="password"
-                      placeholder="Confirm your password"
+                      placeholder="Re-enter your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className="bg-white/10 border-white/30 text-white placeholder-white/60 rounded-xl h-12 text-lg"
+                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
                     />
                   </div>
                   
                   {error && (
-                    <div className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-xl border border-red-500/30">
+                    <div className="text-red-300 text-xs text-center bg-red-500/5 p-3 rounded-lg border border-red-500/20">
                       {error}
                     </div>
                   )}
@@ -284,18 +290,18 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl h-12 text-lg font-semibold"
+                    className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </form>
                 
-                <div className="relative">
+                <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-white/20" />
+                    <span className="w-full border-t border-white/15" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-transparent px-4 text-white/60 font-medium">or</span>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-card px-3 text-white/50 font-medium">or</span>
                   </div>
                 </div>
                 
@@ -303,7 +309,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl h-12 text-lg"
+                  className="w-full bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg h-11 text-base font-medium transition-all duration-200"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -326,12 +332,12 @@ const Auth = () => {
                   Continue with Google
                 </Button>
                 
-                <div className="text-center text-sm">
+                <div className="text-center text-sm mt-4">
                   <p className="text-slate-400">
                     Already have an account?{' '}
                     <button
                       onClick={() => setActiveTab('signin')}
-                      className="text-purple-400 hover:text-purple-300 underline font-medium"
+                      className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
                     >
                       Sign in here
                     </button>
@@ -343,17 +349,18 @@ const Auth = () => {
         </Card>
         
         {/* Demo Chat Access */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <Button
             onClick={() => navigate('/chat')}
             variant="outline"
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl px-8 py-3"
+            className="bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg px-6 py-2 text-sm font-medium transition-all duration-200"
           >
-            Try Chat Demo
+            Try Demo Without Account
           </Button>
-          <p className="text-slate-400 text-sm mt-2">
-            Test the chatbot without signing up
+          <p className="text-slate-400 text-xs mt-2">
+            Test the AI tutor instantly
           </p>
+        </div>
         </div>
       </main>
       
