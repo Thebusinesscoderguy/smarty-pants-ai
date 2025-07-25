@@ -10,11 +10,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
+import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedVoice, setSelectedVoice] = useState('alloy');
+  const { selectedVoice, changeVoice } = useVoiceSettings();
   const [isLoading, setIsLoading] = useState(false);
 
   const VOICE_OPTIONS = [
@@ -26,11 +27,49 @@ const Settings = () => {
     { value: 'shimmer', label: 'Shimmer', description: 'Gentle and soothing' },
   ];
 
-  const testVoice = () => {
-    toast({
-      title: "Voice Test",
-      description: `Testing ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice...`,
-    });
+  const testVoice = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-voice', {
+        body: {
+          text: `Hello! I'm your AI assistant speaking with the ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice. How do I sound?`,
+          voice: selectedVoice
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Voice Test Failed",
+          description: "Could not test voice. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.audioContent) {
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const audio = new Audio(audioUrl);
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        await audio.play();
+        
+        toast({
+          title: "Voice Test",
+          description: `Testing ${VOICE_OPTIONS.find(v => v.value === selectedVoice)?.label} voice...`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Voice Test Failed",
+        description: "Could not test voice. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelSubscription = async () => {
@@ -140,7 +179,7 @@ const Settings = () => {
             <CardContent className="space-y-8 ml-20">
               <div className="space-y-6">
                 <label htmlFor="voice" className="text-white font-semibold text-xl">Select Voice Profile</label>
-                <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                <Select value={selectedVoice} onValueChange={changeVoice}>
                   <SelectTrigger className="bg-white/10 border-white/30 text-white rounded-2xl h-16 text-xl">
                     <SelectValue />
                   </SelectTrigger>

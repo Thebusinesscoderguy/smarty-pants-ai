@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX } from 'lucide-react';
+import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -30,6 +31,7 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('chat');
+  const { selectedVoice } = useVoiceSettings();
 
   useEffect(() => {
     // Handle initial message from navigation state
@@ -212,7 +214,7 @@ const Chat = () => {
       const { data, error } = await supabase.functions.invoke('text-to-voice', {
         body: {
           text: text,
-          voice: 'alloy'
+          voice: selectedVoice
         }
       });
 
