@@ -25,7 +25,12 @@ const Index = () => {
   };
 
   const handleTryDemo = () => {
-    navigate('/demo');
+    const demoUsed = localStorage.getItem('demo_used');
+    if (demoUsed) {
+      navigate('/auth');
+    } else {
+      navigate('/demo');
+    }
   };
 
 

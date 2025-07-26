@@ -465,7 +465,7 @@ const Progress = () => {
               {renderNavigation()}
             </div>
             <div className="text-white/60 text-sm">
-              {user ? `Welcome back, ${user.email?.split('@')[0]}` : 'Demo Mode'}
+              {user ? `Welcome back, ${user.user_metadata?.first_name || user.email?.split('@')[0]}` : 'Demo Mode'}
             </div>
           </div>
         </div>

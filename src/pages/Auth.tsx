@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -351,7 +352,14 @@ const Auth = () => {
         {/* Demo Chat Access */}
         <div className="mt-6 text-center">
           <Button
-            onClick={() => navigate('/chat')}
+            onClick={() => {
+              const demoUsed = localStorage.getItem('demo_used');
+              if (!demoUsed) {
+                navigate('/demo');
+              } else {
+                toast.error('Demo already used. Please sign up for full access!');
+              }
+            }}
             variant="outline"
             className="bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg px-6 py-2 text-sm font-medium transition-all duration-200"
           >

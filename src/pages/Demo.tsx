@@ -21,6 +21,19 @@ const Demo = () => {
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const { toast } = useToast();
 
+  // Check if demo was already used
+  useEffect(() => {
+    const demoUsed = localStorage.getItem('demo_used');
+    if (demoUsed) {
+      navigate('/auth');
+      toast({
+        title: "Demo Already Used",
+        description: "You've already tried our demo. Please sign up for full access!",
+        variant: "destructive"
+      });
+    }
+  }, [navigate, toast]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (demoStarted && !isPaused && timeLeft > 0) {
@@ -40,6 +53,8 @@ const Demo = () => {
   useEffect(() => {
     if (timeLeft <= 0 && demoStarted) {
       setShowTimeWarning(true);
+      // Mark demo as used when time expires
+      localStorage.setItem('demo_used', 'true');
     }
   }, [timeLeft, demoStarted]);
 

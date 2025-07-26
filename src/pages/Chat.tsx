@@ -287,7 +287,7 @@ const Chat = () => {
               {renderNavigation()}
             </div>
             <div className="text-white/60 text-sm bg-white/10 px-4 py-2 rounded-xl">
-              {user ? `Welcome, ${user.email?.split('@')[0]}` : 'Demo Mode'}
+              {user ? `Welcome, ${user.user_metadata?.first_name || user.email?.split('@')[0]}` : 'Demo Mode'}
             </div>
           </div>
         </div>
