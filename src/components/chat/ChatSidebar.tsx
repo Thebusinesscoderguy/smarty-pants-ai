@@ -41,13 +41,8 @@ export const ChatSidebar = ({
     if (user) {
       fetchChatSessions();
     } else {
-      const demoSessions = getDemoChatSessions().map(session => ({
-        id: session.id,
-        title: session.title,
-        created_at: session.created_at,
-        message_count: session.messages.length
-      }));
-      setChatSessions(demoSessions);
+      // No demo sessions for authenticated users
+      setChatSessions([]);
     }
   }, [user]);
 

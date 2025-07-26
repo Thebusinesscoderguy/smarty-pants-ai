@@ -77,24 +77,21 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     }
   }, [selectedCurriculum, isDemoMode, setMessages]);
 
-  // Initialize demo messages
+  // Initialize demo messages only in demo mode
   useEffect(() => {
-    if (isDemoMode && !selectedCurriculum) {
-      const demoSessions = getDemoChatSessions();
-      if (demoSessions.length > 0) {
-        setDemoMessages([
-          {
-            id: 'demo-welcome',
-            text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
-            timestamp: new Date(),
-            isFromUser: false,
-            type: 'text',
-            tokenCount: 35
-          }
-        ]);
-      }
+    if (isDemoMode && !selectedCurriculum && !user) {
+      setDemoMessages([
+        {
+          id: 'demo-welcome',
+          text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
+          timestamp: new Date(),
+          isFromUser: false,
+          type: 'text',
+          tokenCount: 35
+        }
+      ]);
     }
-  }, [isDemoMode, selectedCurriculum]);
+  }, [isDemoMode, selectedCurriculum, user]);
 
   const renderNavigation = () => (
     <div className="flex items-center space-x-2">
@@ -231,7 +228,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
-    if (isDemoMode) {
+    if (isDemoMode && !user) {
       const demoSessions = getDemoChatSessions();
       const session = demoSessions.find(s => s.id === sessionId);
       if (session) {
