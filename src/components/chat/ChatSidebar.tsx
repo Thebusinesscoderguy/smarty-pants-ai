@@ -7,7 +7,7 @@ import { MessageSquarePlus, MessageSquare, Trash2, BookOpen } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getDemoChatSessions } from '@/utils/demoChatData';
+
 
 interface ChatSession {
   id: string;
@@ -41,7 +41,7 @@ export const ChatSidebar = ({
     if (user) {
       fetchChatSessions();
     } else {
-      // No demo sessions for authenticated users
+      // Clear sessions for unauthenticated users
       setChatSessions([]);
     }
   }, [user]);
@@ -167,9 +167,9 @@ export const ChatSidebar = ({
               )}
             </div>
           ))}
-          {chatSessions.length === 0 && (
+          {chatSessions.length === 0 && user && (
             <p className="text-xs text-gray-400 text-center py-4">
-              {user ? 'No previous chats yet' : 'Try the demo conversations above!'}
+              No previous chats yet
             </p>
           )}
         </div>
