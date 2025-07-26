@@ -198,7 +198,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   };
 
   const handleNewChat = () => {
-    if (isDemoMode) {
+    if (isDemoMode && !user) {
       setDemoMessages([
         {
           id: 'demo-welcome-new',
@@ -237,7 +237,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
     }
   };
 
-  const displayMessages = isDemoMode ? demoMessages : messages;
+  const displayMessages = (isDemoMode && !user) ? demoMessages : messages;
   
   return (
     <div className="flex h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
