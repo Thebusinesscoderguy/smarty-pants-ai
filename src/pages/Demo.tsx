@@ -228,7 +228,115 @@ const Demo = () => {
 
       {/* Chat Area - unified with post-progress interface */}
       <div className="flex-1 pt-14">
-        <EnhancedChatArea isDemoMode={true} demoTimeLeft={timeLeft} />
+        <div className="min-h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
+          <main className="flex-1 flex max-w-7xl mx-auto w-full">
+            {/* Chat Area */}
+            <div className="flex-1 flex flex-col">
+              {/* Chat Container */}
+              <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8 mt-8">
+                {/* Messages Area */}
+                <div className="flex-1 p-8 overflow-y-auto space-y-6">
+                  <div className="text-center py-16">
+                    <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
+                      <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
+                      <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
+                      <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Input Area */}
+                <div className="p-6 border-t border-white/20">
+                  <div className="flex space-x-4">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        placeholder="Ask me anything about learning..."
+                        className="w-full px-6 py-4 pr-40 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
+                      />
+                      
+                      {/* File and Voice Input Controls */}
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                        <input
+                          type="file"
+                          className="hidden"
+                          id="demo-file-input"
+                          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                        />
+                        <Button
+                          onClick={() => document.getElementById('demo-file-input')?.click()}
+                          variant="ghost"
+                          size="sm"
+                          className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                          title="Upload file"
+                        >
+                          <Upload className="h-5 w-5" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                          title="Voice input"
+                        >
+                          <Mic className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl">
+                      <Send className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar for Previous Chats */}
+            <div className="w-80 bg-white/5 border-l border-white/10 p-4 space-y-4">
+              <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl">
+                <MessageSquarePlus className="h-4 w-4 mr-2 inline" />
+                New Chat
+              </button>
+              <div className="bg-white/20 h-px"></div>
+              
+              {/* Navigation */}
+              <div className="space-y-2">
+                <Button
+                  onClick={() => navigate('/monitoring')}
+                  variant="ghost"
+                  className="w-full justify-start text-white/70 hover:text-white hover:bg-white/10 h-10"
+                >
+                  <BarChart3 className="h-4 w-4 mr-3" />
+                  Monitoring
+                </Button>
+                <Button
+                  onClick={() => navigate('/settings')}
+                  variant="ghost"
+                  className="w-full justify-start text-white/70 hover:text-white hover:bg-white/10 h-10"
+                >
+                  <Settings className="h-4 w-4 mr-3" />
+                  Settings
+                </Button>
+              </div>
+              
+              <div className="bg-white/20 h-px"></div>
+              <div>
+                <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Previous Chats</h3>
+                <div className="space-y-2">
+                  <div className="group flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-white truncate font-medium">Math Help Session</p>
+                        <p className="text-xs text-white/60">Today • 5 messages</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
 
       {/* Time Warning Modal */}
