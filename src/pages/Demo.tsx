@@ -19,6 +19,8 @@ const Demo = () => {
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [isPaused, setIsPaused] = useState(false);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [messages, setMessages] = useState<Array<{text: string, isUser: boolean}>>([]);
   const { toast } = useToast();
 
   // Check if demo was already used
@@ -80,6 +82,27 @@ const Demo = () => {
     navigate(`/demo?role=${selectedRole}`);
     setShowRoleSelection(false);
     setDemoStarted(true); // Automatically start demo after role selection
+  };
+
+  const handleSendMessage = () => {
+    if (inputValue.trim()) {
+      setMessages(prev => [...prev, { text: inputValue, isUser: true }]);
+      setInputValue('');
+      
+      // Simulate AI response after a short delay
+      setTimeout(() => {
+        setMessages(prev => [...prev, { 
+          text: "Thanks for your question! This is a demo response. In the full version, you'd get detailed AI-powered answers to help with your learning.", 
+          isUser: false 
+        }]);
+      }, 1000);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
   };
 
   if (!role) {
@@ -236,13 +259,27 @@ const Demo = () => {
               <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8 mt-8">
                 {/* Messages Area */}
                 <div className="flex-1 p-8 overflow-y-auto space-y-6">
-                  <div className="text-center py-16">
-                    <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                      <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                      <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
-                      <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
+                  {messages.length === 0 ? (
+                    <div className="text-center py-16">
+                      <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
+                        <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
+                        <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
+                        <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    messages.map((message, index) => (
+                      <div key={index} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-3xl p-4 rounded-2xl ${
+                          message.isUser 
+                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' 
+                            : 'bg-white/10 text-white border border-white/20'
+                        }`}>
+                          <p className="text-sm lg:text-base">{message.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 {/* Input Area */}
@@ -251,6 +288,9 @@ const Demo = () => {
                     <div className="flex-1 relative">
                       <input
                         type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={handleKeyPress}
                         placeholder="Ask me anything about learning..."
                         className="w-full px-6 py-4 pr-40 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
                       />
@@ -283,7 +323,10 @@ const Demo = () => {
                         </Button>
                       </div>
                     </div>
-                    <button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl">
+                    <button 
+                      onClick={handleSendMessage}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl"
+                    >
                       <Send className="h-5 w-5" />
                     </button>
                   </div>
