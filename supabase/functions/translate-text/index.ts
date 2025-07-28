@@ -7,77 +7,68 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Multiple translation services for fallback
-const TRANSLATION_SERVICES = [
-  {
-    name: 'LibreTranslate',
-    url: 'https://libretranslate.de/translate',
-    transform: (text: string, source: string, target: string) => ({
-      q: text,
-      source: source,
-      target: target,
-      format: 'text'
-    }),
-    extract: (data: any) => data.translatedText
-  },
-  {
-    name: 'MyMemory',
-    url: 'https://api.mymemory.translated.net/get',
-    transform: (text: string, source: string, target: string) => null,
-    extract: (data: any) => data.responseData?.translatedText,
-    method: 'GET',
-    buildUrl: (text: string, source: string, target: string) => 
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`
-  }
-];
+// Use OpenAI for reliable translation
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
-async function tryTranslationService(service: any, text: string, sourceLang: string, targetLang: string) {
-  try {
-    console.log(`Trying ${service.name} for: "${text}" from ${sourceLang} to ${targetLang}`);
-    
-    let response;
-    if (service.method === 'GET') {
-      const url = service.buildUrl(text, sourceLang, targetLang);
-      response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Translation Bot)'
-        }
-      });
-    } else {
-      response = await fetch(service.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; Translation Bot)'
+async function translateWithOpenAI(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  const languageNames: { [key: string]: string } = {
+    'en': 'English',
+    'es': 'Spanish', 
+    'fr': 'French',
+    'de': 'German',
+    'zh': 'Chinese',
+    'ja': 'Japanese',
+    'pt': 'Portuguese',
+    'it': 'Italian',
+    'ru': 'Russian',
+    'ar': 'Arabic'
+  };
+
+  const sourceLanguage = languageNames[sourceLang] || sourceLang;
+  const targetLanguage = languageNames[targetLang] || targetLang;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a professional translator. Translate the given text from ${sourceLanguage} to ${targetLanguage}. Only return the translated text, no explanations or additional content.`
         },
-        body: JSON.stringify(service.transform(text, sourceLang, targetLang)),
-      });
-    }
+        {
+          role: 'user',
+          content: text
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 1000
+    }),
+  });
 
-    if (!response.ok) {
-      throw new Error(`${service.name} API error: ${response.status} ${response.statusText}`);
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error(`${service.name} returned non-JSON response`);
-    }
-
-    const data = await response.json();
-    const translatedText = service.extract(data);
-    
-    if (translatedText && translatedText.trim() !== '' && translatedText !== text) {
-      console.log(`${service.name} success: "${text}" -> "${translatedText}"`);
-      return translatedText;
-    }
-    
-    throw new Error(`${service.name} returned empty or unchanged translation`);
-  } catch (error) {
-    console.error(`${service.name} failed:`, error.message);
-    throw error;
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`OpenAI API error: ${response.status} ${error}`);
   }
+
+  const data = await response.json();
+  const translatedText = data.choices[0]?.message?.content?.trim();
+  
+  if (!translatedText) {
+    throw new Error('No translation received from OpenAI');
+  }
+
+  return translatedText;
 }
+
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -91,42 +82,50 @@ serve(async (req) => {
     if (!text || !targetLang) {
       throw new Error('Missing required parameters: text and targetLang');
     }
+
+    // Skip translation if same language
+    if (sourceLang === targetLang) {
+      return new Response(JSON.stringify({ 
+        translatedText: text,
+        originalText: text,
+        targetLang,
+        sourceLang,
+        service: 'none'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     console.log(`Translation request: "${text}" from ${sourceLang} to ${targetLang}`);
 
-    // Try each translation service in order
-    let lastError;
-    for (const service of TRANSLATION_SERVICES) {
-      try {
-        const translatedText = await tryTranslationService(service, text, sourceLang, targetLang);
-        
-        return new Response(JSON.stringify({ 
-          translatedText,
-          originalText: text,
-          targetLang,
-          sourceLang,
-          service: service.name
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      } catch (error) {
-        lastError = error;
-        continue; // Try next service
-      }
-    }
+    try {
+      const translatedText = await translateWithOpenAI(text, sourceLang, targetLang);
+      
+      return new Response(JSON.stringify({ 
+        translatedText,
+        originalText: text,
+        targetLang,
+        sourceLang,
+        service: 'OpenAI'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
 
-    // All services failed
-    console.error('All translation services failed, returning original text');
-    return new Response(JSON.stringify({ 
-      translatedText: text,
-      originalText: text,
-      targetLang,
-      sourceLang,
-      error: `All translation services failed. Last error: ${lastError?.message}`,
-      fallback: true
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    } catch (error) {
+      console.error('OpenAI translation failed:', error.message);
+      
+      // Return original text as fallback
+      return new Response(JSON.stringify({ 
+        translatedText: text,
+        originalText: text,
+        targetLang,
+        sourceLang,
+        error: `Translation failed: ${error.message}`,
+        fallback: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
   } catch (error) {
     console.error('Translation function error:', error);
