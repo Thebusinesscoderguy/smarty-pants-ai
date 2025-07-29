@@ -3,12 +3,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Play, Pause } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, MessageSquare, User, Send } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useToast } from '@/components/ui/use-toast';
-import { EnhancedChatArea } from '@/components/chat/EnhancedChatArea';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +19,11 @@ const Demo = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const { toast } = useToast();
+
+  // Chat functionality state
+  const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date}>>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Check if demo was already used
   useEffect(() => {
@@ -80,6 +84,33 @@ const Demo = () => {
     navigate(`/demo?role=${selectedRole}`);
     setShowRoleSelection(false);
     setDemoStarted(true); // Automatically start demo after role selection
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      content: inputMessage,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    // Simulate AI response for demo
+    setTimeout(() => {
+      const aiResponse = {
+        id: (Date.now() + 1).toString(),
+        content: "Hello! I'm your AI tutor. This is a demo response. In the full version, I can help you with any subject and provide detailed explanations, step-by-step solutions, and personalized learning guidance.",
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+      setIsLoading(false);
+    }, 1500);
   };
 
 
@@ -183,10 +214,10 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - show the enhanced chat interface with overlay timer
+  // Demo is running - copy the exact Chat page design but with timer
   return (
-    <div className="min-h-screen relative">
-      {/* Demo Timer Overlay - Fixed position */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
+      {/* Demo Timer Overlay - Fixed position at top */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600/90 to-blue-600/90 border-b border-white/20 p-3 backdrop-blur-xl shadow-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -226,10 +257,126 @@ const Demo = () => {
           </div>
         </div>
       </div>
+      
+      {/* Copy Chat page structure exactly with padding for timer */}
+      <div className="pt-20">
+        <Header />
+        
+        {/* Modern Navigation Bar */}
+        <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-20 z-40">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white transition-all duration-200 rounded-xl px-4 py-2"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Chat
+                  </Button>
+                </div>
+              </div>
+              <div className="text-white/60 text-sm bg-white/10 px-4 py-2 rounded-xl">
+                Demo Mode
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Enhanced Chat Area with demo mode */}
-      <div className="pt-14">
-        <EnhancedChatArea />
+        <main className="flex-1 flex max-w-7xl mx-auto w-full">
+          {/* Chat Area - Copy exact structure from Chat.tsx */}
+          <div className="flex-1 flex flex-col">
+            {/* Welcome Section - Only show when no messages */}
+            {messages.length === 0 && (
+              <div className="p-8">
+                <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent flex items-center">
+                  <MessageSquare className="mr-4 h-14 w-14 text-purple-400" />
+                  AI Learning Assistant
+                </h1>
+                <p className="text-slate-300 text-xl">
+                  Your personal AI tutor is ready to help you learn anything
+                </p>
+              </div>
+            )}
+
+            {/* Chat Container */}
+            <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
+              {/* Messages Area */}
+              <div className="flex-1 p-8 overflow-y-auto space-y-6">
+                {messages.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
+                      <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
+                      <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
+                      <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
+                    </div>
+                  </div>
+                ) : (
+                  messages.map((message) => (
+                    <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                        <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
+                          {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
+                        </div>
+                        <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group`}>
+                          <p className="text-lg leading-relaxed">{message.content}</p>
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-sm opacity-70">
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-start space-x-3 max-w-4xl">
+                      <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
+                        <MessageSquare className="h-5 w-5 text-purple-400" />
+                      </div>
+                      <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
+                        <div className="flex space-x-2">
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Area */}
+              <div className="p-6 border-t border-white/20">
+                <div className="flex space-x-4">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Ask me anything about learning..."
+                      className="w-full px-6 py-4 pr-20 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
+                    />
+                  </div>
+                  
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || isLoading}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
 
       {/* Time Warning Modal */}
