@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
@@ -88,7 +89,7 @@ const Demo = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || timeLeft <= 0) return;
 
     const userMessage = {
       id: Date.now().toString(),
@@ -98,20 +99,51 @@ const Demo = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputMessage;
     setInputMessage('');
     setIsLoading(true);
 
-    // Simulate AI response for demo
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI tutor. Provide clear, educational responses to help students learn."
+            },
+            ...messages.map(msg => ({
+              role: msg.isUser ? 'user' : 'assistant',
+              content: msg.content
+            })),
+            { role: 'user', content: messageText }
+          ]
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       const aiResponse = {
         id: (Date.now() + 1).toString(),
-        content: "Hello! I'm your AI tutor. This is a demo response. In the full version, I can help you with any subject and provide detailed explanations, step-by-step solutions, and personalized learning guidance.",
+        content: data.choices[0]?.message?.content || "I'm sorry, I couldn't process your request right now.",
         isUser: false,
         timestamp: new Date()
       };
+
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorResponse = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again.",
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
 
