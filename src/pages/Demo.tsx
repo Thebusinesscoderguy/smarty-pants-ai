@@ -341,18 +341,7 @@ const Demo = () => {
           {currentPage === 'chat' && (
             // Chat Area - Copy exact structure from Chat.tsx
             <div className="flex-1 flex flex-col">
-              {/* Welcome Section - Only show when no messages */}
-              {messages.length === 0 && (
-                <div className="p-8">
-                  <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent flex items-center">
-                    <MessageSquare className="mr-4 h-14 w-14 text-purple-400" />
-                    AI Learning Assistant
-                  </h1>
-                  <p className="text-slate-300 text-xl">
-                    Your personal AI tutor is ready to help you learn anything
-                  </p>
-                </div>
-              )}
+              {/* No welcome section for demo */}
 
               {/* Chat Container */}
               <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
