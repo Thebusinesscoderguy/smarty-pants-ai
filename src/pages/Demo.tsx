@@ -103,34 +103,60 @@ const Demo = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <Header />
         <main className="flex items-center justify-center min-h-[80vh] px-6">
-          <div className="text-center max-w-4xl">
+          <div className="text-center max-w-6xl">
             <div className="mb-12">
               <h1 className="text-7xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
                 Experience TeachlyAI Demo
               </h1>
-              <p className="text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
+              <p className="text-2xl text-slate-300 leading-relaxed max-w-4xl mx-auto">
                 Choose your perspective to get a personalized demo experience. You'll have 15 minutes to explore our full platform.
               </p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-12 border border-white/10 shadow-2xl">
-              <Button 
-                onClick={() => setShowRoleSelection(true)} 
-                size="lg" 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-12 py-6 rounded-2xl text-xl font-semibold shadow-xl"
-              >
-                Choose Your Role
-              </Button>
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {/* Student Demo Card */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl hover:bg-white/10 transition-all duration-300">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <User className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-white mb-4">Student Demo</h3>
+                  <p className="text-slate-300 text-lg leading-relaxed">
+                    Experience learning like a student. Chat with AI tutors, solve problems, track progress, and explore gamified learning features.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => handleRoleSelect('student')}
+                  size="lg" 
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-2xl text-xl font-semibold shadow-xl"
+                >
+                  Try Student Demo
+                </Button>
+              </div>
+
+              {/* School Demo Card */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl hover:bg-white/10 transition-all duration-300">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Settings className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-white mb-4">School Demo</h3>
+                  <p className="text-slate-300 text-lg leading-relaxed">
+                    See how administrators manage students, monitor progress, assign content, and view comprehensive analytics across the platform.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => handleRoleSelect('school')}
+                  size="lg" 
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-2xl text-xl font-semibold shadow-xl"
+                >
+                  Try School Demo
+                </Button>
+              </div>
             </div>
           </div>
         </main>
         <Footer />
-        <RoleSelection 
-          isOpen={showRoleSelection} 
-          onClose={() => setShowRoleSelection(false)} 
-          mode="demo"
-          onRoleSelect={handleRoleSelect}
-        />
       </div>
     );
   }
