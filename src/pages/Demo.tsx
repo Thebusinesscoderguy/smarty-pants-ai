@@ -348,13 +348,7 @@ const Demo = () => {
                 {/* Messages Area */}
                 <div className="flex-1 p-8 overflow-y-auto space-y-6">
                   {messages.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                        <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                        <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
-                        <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
-                      </div>
-                    </div>
+                    <div className="flex-1"></div>
                   ) : (
                     messages.map((message) => (
                       <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
