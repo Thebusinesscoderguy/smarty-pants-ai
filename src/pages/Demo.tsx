@@ -89,12 +89,39 @@ const Demo = () => {
   };
 
   const handleSendMessage = async () => {
-    // Redirect to auth when trying to interact
-    navigate('/auth');
-    toast({
-      title: "Sign Up to Continue",
-      description: "Create an account to chat with our AI tutors and access all features!",
-    });
+    if (!inputMessage.trim() || isLoading || timeLeft <= 0) return;
+    
+    const userMessage = {
+      id: Date.now().toString(),
+      content: inputMessage,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+    
+    // Simulate AI response with demo data
+    setTimeout(() => {
+      const responses = [
+        "Great question! I'm here to help you learn. This is a demo response showing how our AI tutors work.",
+        "I can help you with math, science, language arts, and more! Try asking me about any subject.",
+        "In the full version, I can provide detailed explanations, create custom tests, and track your progress.",
+        "That's an interesting topic! Our AI is designed to adapt to your learning style and pace.",
+        "Perfect! I love helping students explore new concepts. What would you like to learn more about?"
+      ];
+      
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        content: responses[Math.floor(Math.random() * responses.length)],
+        isUser: false,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      setIsLoading(false);
+    }, 1500);
   };
 
 
@@ -366,16 +393,15 @@ const Demo = () => {
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        onFocus={handleSendMessage}
-                        onClick={handleSendMessage}
-                        placeholder="Ask me anything about learning... (Click to sign up!)"
+                        disabled={timeLeft <= 0}
+                        placeholder={timeLeft <= 0 ? "Demo time expired - Sign up to continue!" : "Ask me anything about learning..."}
                         className="w-full px-6 py-4 pr-20 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm cursor-pointer"
                       />
                     </div>
                     
                     <Button
-                      onClick={handleSendMessage}
-                      disabled={!inputMessage.trim() || isLoading}
+                      onClick={timeLeft <= 0 ? () => navigate('/auth') : handleSendMessage}
+                      disabled={!inputMessage.trim() || isLoading || timeLeft <= 0}
                       className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
                     >
                       <Send className="h-5 w-5" />
