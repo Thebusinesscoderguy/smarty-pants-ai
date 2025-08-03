@@ -88,6 +88,39 @@ const Demo = () => {
     setDemoStarted(true); // Automatically start demo after role selection
   };
 
+  const generateAIResponse = async (userMessage: string) => {
+    try {
+      // Generate text response using chat completion
+      const completionResponse = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI tutor. Provide clear, educational responses to help students learn."
+            },
+            { role: "user", content: userMessage }
+          ]
+        }
+      });
+
+      if (completionResponse.error) {
+        throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+      }
+
+      // Check if it's a test/mock response (non-streaming)
+      if (completionResponse.data?.content) {
+        const aiResponseText = completionResponse.data.content;
+        return { text: aiResponseText };
+      }
+
+      // For streaming response, fall back to a simple response
+      return { text: "Hello! I'm your AI tutor. How can I help you learn today?" };
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      throw error;
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || timeLeft <= 0) return;
     
@@ -102,17 +135,26 @@ const Demo = () => {
     setInputMessage('');
     setIsLoading(true);
     
-    // Simulate AI response after delay
-    setTimeout(() => {
-      const aiMessage = {
+    try {
+      const response = await generateAIResponse(userMessage.content);
+      
+      const aiResponse = {
         id: (Date.now() + 1).toString(),
-        content: "This is a demo response! I'm TeachlyAI and I can help you with any subject. In the full version, I provide detailed explanations, solve math problems, help with homework, and adapt to your learning style. Sign up to experience my full capabilities!",
+        content: response.text,
         isUser: false,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
 
@@ -235,28 +277,20 @@ const Demo = () => {
             <span className="text-sm text-white/90 bg-white/20 px-3 py-1 rounded-xl font-medium">Demo Mode</span>
           </div>
 
-          <div className="flex items-center space-x-3">
-            {timeLeft > 0 ? (
-              <>
-                <div className="flex items-center space-x-2 px-3 py-1 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                  <Clock className="h-4 w-4 text-white" />
-                  <span className={`font-mono text-sm font-semibold ${timeLeft <= 120 ? 'text-yellow-300' : 'text-white'}`}>
-                    {formatTime(timeLeft)} remaining
-                  </span>
-                </div>
-                <Button
-                  onClick={() => setIsPaused(!isPaused)}
-                  variant="outline"
-                  size="sm"
-                  className="border-white/30 bg-white/20 hover:bg-white/30 text-white rounded-xl px-2 py-1"
-                >
-                  {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-                </Button>
-              </>
-            ) : (
-              <div className="text-red-300 font-semibold text-sm bg-red-500/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
-            )}
-          </div>
+           <div className="flex items-center space-x-3">
+             {timeLeft > 0 ? (
+               <>
+                 <div className="flex items-center space-x-2 px-3 py-1 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
+                   <Clock className="h-4 w-4 text-white" />
+                   <span className={`font-mono text-sm font-semibold ${timeLeft <= 120 ? 'text-yellow-300' : 'text-white'}`}>
+                     {formatTime(timeLeft)} remaining
+                   </span>
+                 </div>
+               </>
+             ) : (
+               <div className="text-red-300 font-semibold text-sm bg-red-500/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
+             )}
+           </div>
         </div>
       </div>
       
