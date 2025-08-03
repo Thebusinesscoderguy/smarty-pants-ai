@@ -348,27 +348,6 @@ const Auth = () => {
             </Tabs>
           </CardContent>
         </Card>
-        
-        {/* Demo Chat Access */}
-        <div className="mt-6 text-center">
-          <Button
-            onClick={() => {
-              const demoUsed = localStorage.getItem('demo_used');
-              if (!demoUsed) {
-                navigate('/demo');
-              } else {
-                toast.error('Demo already used. Please sign up for full access!');
-              }
-            }}
-            variant="outline"
-            className="bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg px-6 py-2 text-sm font-medium transition-all duration-200"
-          >
-            Try Demo Without Account
-          </Button>
-          <p className="text-slate-400 text-xs mt-2">
-            Test the AI tutor instantly
-          </p>
-        </div>
         </div>
       </main>
       

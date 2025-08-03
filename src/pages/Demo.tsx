@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Play, Pause, MessageSquare, User, Send, BarChart3, Settings } from 'lucide-react';
+import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
@@ -26,6 +26,10 @@ const Demo = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('chat');
+  
+  // Chat sessions state
+  const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, messages: Array<{id: string, content: string, isUser: boolean, timestamp: Date}>}>>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   // Check if demo was already used
   useEffect(() => {
@@ -39,6 +43,46 @@ const Demo = () => {
       });
     }
   }, [navigate, toast]);
+
+  // Initialize demo chat sessions
+  useEffect(() => {
+    setChatSessions([
+      {
+        id: '1',
+        title: 'Math Algebra Help',
+        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        messages: [
+          { id: '1', content: 'Hello! How can I help you with math today?', isUser: false, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+          { id: '2', content: 'I need help solving quadratic equations', isUser: true, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30000) },
+          { id: '3', content: 'Great! Quadratic equations are in the form ax² + bx + c = 0. We can solve them using the quadratic formula: x = (-b ± √(b²-4ac)) / 2a. Would you like me to walk through an example?', isUser: false, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 60000) },
+          { id: '4', content: 'Yes please! Can you solve x² - 5x + 6 = 0?', isUser: true, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 90000) },
+          { id: '5', content: 'Absolutely! For x² - 5x + 6 = 0, we have a=1, b=-5, c=6. Using the quadratic formula: x = (5 ± √(25-24))/2 = (5 ± 1)/2. So x = 3 or x = 2.', isUser: false, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 120000) }
+        ]
+      },
+      {
+        id: '2',
+        title: 'Science - Photosynthesis',
+        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        messages: [
+          { id: '6', content: 'Hi! What would you like to learn about science today?', isUser: false, timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+          { id: '7', content: 'Can you explain photosynthesis to me?', isUser: true, timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 30000) },
+          { id: '8', content: 'Of course! Photosynthesis is the process plants use to make food from sunlight. The equation is: 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂. Plants absorb carbon dioxide and water, then use chlorophyll to convert light into glucose and oxygen.', isUser: false, timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 60000) }
+        ]
+      },
+      {
+        id: '3',
+        title: 'History - Ancient Rome',
+        created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        messages: [
+          { id: '9', content: 'Welcome! What historical topic interests you?', isUser: false, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000) },
+          { id: '10', content: 'Tell me about the Roman Empire', isUser: true, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 30000) },
+          { id: '11', content: 'The Roman Empire was one of history\'s largest and most influential civilizations! It began as a republic in 509 BCE and became an empire in 27 BCE under Augustus. At its peak, it controlled much of Europe, North Africa, and the Middle East. Would you like to know about a specific aspect?', isUser: false, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 60000) },
+          { id: '12', content: 'What were some of their greatest achievements?', isUser: true, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 90000) },
+          { id: '13', content: 'Rome had many incredible achievements! They built amazing architecture like the Colosseum and Pantheon, created an extensive road network ("All roads lead to Rome"), developed advanced engineering with aqueducts, established a legal system that influences us today, and spread Latin which became the basis for Romance languages.', isUser: false, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 120000) }
+        ]
+      }
+    ]);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -154,6 +198,28 @@ const Demo = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setActiveSessionId(null);
+    setInputMessage('');
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (session) {
+      setActiveSessionId(sessionId);
+      setMessages([...session.messages]);
+    }
+  };
+
+  const deleteSession = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setChatSessions(prev => prev.filter(s => s.id !== sessionId));
+    if (activeSessionId === sessionId) {
+      handleNewChat();
     }
   };
 
@@ -354,86 +420,132 @@ const Demo = () => {
 
         <main className="flex-1 flex max-w-7xl mx-auto w-full">
           {currentPage === 'chat' && (
-            // Chat Area - Copy exact structure from Chat.tsx
-            <div className="flex-1 flex flex-col">
-              {/* No welcome section for demo */}
-
-              {/* Chat Container */}
-              <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
-                 {/* Messages Area */}
-                <div className="flex-1 p-8 overflow-y-auto space-y-6">
-                  {messages.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                        <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                        <h3 className="text-3xl font-bold text-white mb-2">Try Our AI Chat</h3>
-                        <p className="text-slate-300 text-xl mb-4">Type a message below to see our AI in action</p>
-                        <p className="text-yellow-300 text-sm">Demo mode - Sign up to continue chatting!</p>
+            <>
+              {/* Chat Area */}
+              <div className="flex-1 flex flex-col">
+                {/* Chat Container */}
+                <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
+                   {/* Messages Area */}
+                  <div className="flex-1 p-8 overflow-y-auto space-y-6">
+                    {messages.length === 0 ? (
+                      <div className="text-center py-16">
+                        <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
+                          <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
+                          <h3 className="text-3xl font-bold text-white mb-2">Try Our AI Chat</h3>
+                          <p className="text-slate-300 text-xl mb-4">Type a message below to see our AI in action</p>
+                          <p className="text-yellow-300 text-sm">Demo mode - Sign up to continue chatting!</p>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    messages.map((message) => (
-                      <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                          <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
-                            {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
+                    ) : (
+                      messages.map((message) => (
+                        <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                            <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
+                              {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
+                            </div>
+                            <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group`}>
+                              <p className="text-lg leading-relaxed">{message.content}</p>
+                              <div className="flex items-center justify-between mt-3">
+                                <p className="text-sm opacity-70">
+                                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group`}>
-                            <p className="text-lg leading-relaxed">{message.content}</p>
-                            <div className="flex items-center justify-between mt-3">
-                              <p className="text-sm opacity-70">
-                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                        </div>
+                      ))
+                    )}
+                    
+                    {isLoading && (
+                      <div className="flex justify-start">
+                        <div className="flex items-start space-x-3 max-w-4xl">
+                          <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
+                            <MessageSquare className="h-5 w-5 text-purple-400" />
+                          </div>
+                          <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
+                            <div className="flex space-x-2">
+                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
+                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))
-                  )}
-                  
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="flex items-start space-x-3 max-w-4xl">
-                        <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
-                          <MessageSquare className="h-5 w-5 text-purple-400" />
-                        </div>
-                        <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
-                          <div className="flex space-x-2">
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
 
-                {/* Input Area */}
-                <div className="p-6 border-t border-white/20">
-                  <div className="flex space-x-4">
-                    <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        value={inputMessage}
-                        onChange={(e) => setInputMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder={timeLeft <= 0 ? "Demo time expired - Sign up to continue!" : "Ask me anything about learning..."}
-                        className="w-full px-6 py-4 pr-20 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm cursor-pointer"
-                      />
+                  {/* Input Area */}
+                  <div className="p-6 border-t border-white/20">
+                    <div className="flex space-x-4">
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={inputMessage}
+                          onChange={(e) => setInputMessage(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                          placeholder={timeLeft <= 0 ? "Demo time expired - Sign up to continue!" : "Ask me anything about learning..."}
+                          className="w-full px-6 py-4 pr-20 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm cursor-pointer"
+                        />
+                      </div>
+                      
+                      <Button
+                        onClick={handleSendMessage}
+                        disabled={!inputMessage.trim() || isLoading}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
+                      >
+                        <Send className="h-5 w-5" />
+                      </Button>
                     </div>
-                    
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!inputMessage.trim() || isLoading}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
                   </div>
                 </div>
               </div>
-            </div>
+
+              {/* Sidebar for Previous Chats */}
+              <div className="w-80 bg-white/5 border-l border-white/10 p-4 space-y-4">
+                <Button
+                  onClick={handleNewChat}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl"
+                >
+                  <MessageSquarePlus className="h-4 w-4 mr-2" />
+                  New Chat
+                </Button>
+
+                <div className="border-t border-white/20 pt-4">
+                  <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Demo Conversations</h3>
+                  <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
+                    {chatSessions.map((session) => (
+                      <div
+                        key={session.id}
+                        onClick={() => handleSelectSession(session.id)}
+                        className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                          activeSessionId === session.id
+                            ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
+                            : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm text-white truncate font-medium">{session.title}</p>
+                            <p className="text-xs text-white/60">
+                              {new Date(session.created_at).toLocaleDateString()} • {session.messages.length} messages
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => deleteSession(session.id, e)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
+                        >
+                          <Trash2 className="h-3 w-3 text-red-400" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {currentPage === 'monitoring' && (
