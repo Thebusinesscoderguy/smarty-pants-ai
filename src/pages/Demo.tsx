@@ -89,12 +89,30 @@ const Demo = () => {
   };
 
   const handleSendMessage = async () => {
-    // Redirect to auth when trying to interact
-    navigate('/auth');
-    toast({
-      title: "Sign Up to Continue",
-      description: "Create an account to chat with our AI tutors and access all features!",
-    });
+    if (!inputMessage.trim() || timeLeft <= 0) return;
+    
+    const userMessage = {
+      id: Date.now().toString(),
+      content: inputMessage,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+    
+    // Simulate AI response after delay
+    setTimeout(() => {
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "This is a demo response! I'm TeachlyAI and I can help you with any subject. In the full version, I provide detailed explanations, solve math problems, help with homework, and adapt to your learning style. Sign up to experience my full capabilities!",
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      setIsLoading(false);
+    }, 1500);
   };
 
 
@@ -366,9 +384,7 @@ const Demo = () => {
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        onFocus={handleSendMessage}
-                        onClick={handleSendMessage}
-                        placeholder="Ask me anything about learning... (Click to sign up!)"
+                        placeholder={timeLeft <= 0 ? "Demo time expired - Sign up to continue!" : "Ask me anything about learning..."}
                         className="w-full px-6 py-4 pr-20 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm cursor-pointer"
                       />
                     </div>
