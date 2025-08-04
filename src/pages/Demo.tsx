@@ -466,7 +466,7 @@ const Demo = () => {
                           <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
                           <h3 className="text-3xl font-bold text-white mb-2">Try Our AI Chat</h3>
                           <p className="text-slate-300 text-xl mb-4">Type a message below to see our AI in action</p>
-                          <p className="text-yellow-300 text-sm">Demo mode - Sign up to continue chatting!</p>
+                          
                         </div>
                       </div>
                     ) : (
