@@ -3,14 +3,12 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2, Volume2 } from 'lucide-react';
+import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useVoiceSettings } from '@/hooks/useVoiceSettings';
-import VoiceSettings from '@/components/voice/VoiceSettings';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
@@ -32,9 +30,6 @@ const Demo = () => {
   // Chat sessions state
   const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, messages: Array<{id: string, content: string, isUser: boolean, timestamp: Date}>}>>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  
-  // Voice functionality
-  const { isVoiceEnabled, selectedVoice, toggleVoice, changeVoice } = useVoiceSettings();
 
   // Check if demo was already used
   useEffect(() => {
@@ -170,39 +165,6 @@ const Demo = () => {
     }
   };
 
-  const handleTextToSpeech = async (text: string) => {
-    if (!isVoiceEnabled) return;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('text-to-voice', {
-        body: {
-          text: text,
-          voice: selectedVoice
-        }
-      });
-
-      if (error) {
-        console.error('Speech Error:', error);
-        return;
-      }
-
-      if (data && data.audioContent) {
-        const binaryString = atob(data.audioContent);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        const audio = new Audio(audioUrl);
-        audio.onended = () => URL.revokeObjectURL(audioUrl);
-        await audio.play();
-      }
-    } catch (error) {
-      console.error('Speech Error:', error);
-    }
-  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || timeLeft <= 0) return;
@@ -451,23 +413,6 @@ const Demo = () => {
                 </div>
               </div>
               
-              {/* Voice Settings Bar */}
-              <div className="bg-white/5 border-t border-white/10 p-4">
-                <VoiceSettings
-                  selectedVoice={selectedVoice}
-                  setSelectedVoice={changeVoice}
-                  isQuizMode={false}
-                  setIsQuizMode={() => {}}
-                  totalTokensUsed={0}
-                  monthlyLimit={1000}
-                  inputTokens={0}
-                  outputTokens={0}
-                  isTokenLimitReached={false}
-                  isVoiceEnabled={isVoiceEnabled}
-                  onToggleVoice={toggleVoice}
-                />
-              </div>
-              
               <div className="text-white/60 text-sm bg-white/10 px-4 py-2 rounded-xl">
                 Demo Mode
               </div>
@@ -500,22 +445,13 @@ const Demo = () => {
                             <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
                               {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
                             </div>
-                            <div 
-                              className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/15 cursor-pointer'} shadow-xl border border-white/20 group transition-all duration-200`}
-                              onClick={() => !message.isUser && handleTextToSpeech(message.content)}
-                              title={!message.isUser ? 'Click to hear this message' : undefined}
-                            >
-                              <p className="text-lg leading-relaxed">{message.content}</p>
-                              <div className="flex items-center justify-between mt-3">
-                                <p className="text-sm opacity-70">
-                                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                                {!message.isUser && isVoiceEnabled && (
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-purple-300">
-                                    🔊 Click to speak
-                                  </div>
-                                )}
-                              </div>
+                             <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group`}>
+                               <p className="text-lg leading-relaxed">{message.content}</p>
+                               <div className="flex items-center justify-between mt-3">
+                                 <p className="text-sm opacity-70">
+                                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                 </p>
+                               </div>
                             </div>
                           </div>
                         </div>
