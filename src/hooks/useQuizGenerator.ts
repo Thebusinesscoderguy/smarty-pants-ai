@@ -35,14 +35,6 @@ export const useQuizGenerator = () => {
     questionCount: number = 5,
     conversationHistory?: any[]
   ): Promise<Quiz | null> => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to generate quizzes",
-        variant: "destructive"
-      });
-      return null;
-    }
 
     setIsGenerating(true);
     try {
