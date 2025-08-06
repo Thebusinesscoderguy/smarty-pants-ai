@@ -1,35 +1,68 @@
 
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2, Volume2 } from 'lucide-react';
+import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2, Volume2, Upload, Mic, Bot, VolumeX } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EnhancedStudentDashboard } from '@/components/monitoring/EnhancedStudentDashboard';
+import { useVoiceSettings } from '@/hooks/useVoiceSettings';
+import { useMonitoringData } from '@/hooks/useMonitoringData';
+import { useTestManagement } from '@/hooks/useTestManagement';
+import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
+import { useQuestManagement } from '@/hooks/useQuestManagement';
+import { useAchievementManagement } from '@/hooks/useAchievementManagement';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Demo = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const role = searchParams.get('role');
   const [showRoleSelection, setShowRoleSelection] = useState(!role);
   const [demoStarted, setDemoStarted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
-  const [isPaused, setIsPaused] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15 * 60);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const { toast } = useToast();
+  const { selectedVoice, changeVoice } = useVoiceSettings();
 
   // Chat functionality state
-  const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date}>>([]);
+  const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date, audioUrl?: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('chat');
+  const [showWelcome, setShowWelcome] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Chat sessions state
-  const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, messages: Array<{id: string, content: string, isUser: boolean, timestamp: Date}>}>>([]);
+  const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, message_count: number}>>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
+  // Monitoring hooks with demo data
+  const { studentProgress, overviewStats } = useMonitoringData();
+  const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
+  const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
+  const { quests, createQuest, deleteQuest } = useQuestManagement();
+  const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
+
+  const VOICE_OPTIONS = [
+    { value: 'alloy', label: 'Alloy (Default)', description: 'Balanced and clear' },
+    { value: 'echo', label: 'Echo', description: 'Deep and resonant' },
+    { value: 'fable', label: 'Fable', description: 'Warm and storytelling' },
+    { value: 'onyx', label: 'Onyx', description: 'Strong and confident' },
+    { value: 'nova', label: 'Nova', description: 'Bright and energetic' },
+    { value: 'shimmer', label: 'Shimmer', description: 'Gentle and soothing' },
+  ];
 
   // Check if demo was already used
   useEffect(() => {
@@ -47,46 +80,26 @@ const Demo = () => {
   // Initialize demo chat sessions
   useEffect(() => {
     setChatSessions([
-      {
-        id: '1',
-        title: 'Math Algebra Help',
-        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        messages: [
-          { id: '1', content: 'Hello! How can I help you with math today?', isUser: false, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
-          { id: '2', content: 'I need help solving quadratic equations', isUser: true, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30000) },
-          { id: '3', content: 'Great! Quadratic equations are in the form ax² + bx + c = 0. We can solve them using the quadratic formula: x = (-b ± √(b²-4ac)) / 2a. Would you like me to walk through an example?', isUser: false, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 60000) },
-          { id: '4', content: 'Yes please! Can you solve x² - 5x + 6 = 0?', isUser: true, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 90000) },
-          { id: '5', content: 'Absolutely! For x² - 5x + 6 = 0, we have a=1, b=-5, c=6. Using the quadratic formula: x = (5 ± √(25-24))/2 = (5 ± 1)/2. So x = 3 or x = 2.', isUser: false, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 120000) }
-        ]
-      },
-      {
-        id: '2',
-        title: 'Science - Photosynthesis',
-        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        messages: [
-          { id: '6', content: 'Hi! What would you like to learn about science today?', isUser: false, timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
-          { id: '7', content: 'Can you explain photosynthesis to me?', isUser: true, timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 30000) },
-          { id: '8', content: 'Of course! Photosynthesis is the process plants use to make food from sunlight. The equation is: 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂. Plants absorb carbon dioxide and water, then use chlorophyll to convert light into glucose and oxygen.', isUser: false, timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 60000) }
-        ]
-      },
-      {
-        id: '3',
-        title: 'History - Ancient Rome',
-        created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        messages: [
-          { id: '9', content: 'Welcome! What historical topic interests you?', isUser: false, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000) },
-          { id: '10', content: 'Tell me about the Roman Empire', isUser: true, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 30000) },
-          { id: '11', content: 'The Roman Empire was one of history\'s largest and most influential civilizations! It began as a republic in 509 BCE and became an empire in 27 BCE under Augustus. At its peak, it controlled much of Europe, North Africa, and the Middle East. Would you like to know about a specific aspect?', isUser: false, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 60000) },
-          { id: '12', content: 'What were some of their greatest achievements?', isUser: true, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 90000) },
-          { id: '13', content: 'Rome had many incredible achievements! They built amazing architecture like the Colosseum and Pantheon, created an extensive road network ("All roads lead to Rome"), developed advanced engineering with aqueducts, established a legal system that influences us today, and spread Latin which became the basis for Romance languages.', isUser: false, timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000 + 120000) }
-        ]
-      }
+      { id: '1', title: 'Math Help Session', created_at: new Date().toISOString(), message_count: 5 },
+      { id: '2', title: 'Science Questions', created_at: new Date().toISOString(), message_count: 3 },
+      { id: '3', title: 'History Discussion', created_at: new Date().toISOString(), message_count: 8 },
     ]);
   }, []);
 
+  // Handle initial message from navigation state
+  useEffect(() => {
+    if (location.state?.message) {
+      setInputMessage(location.state.message);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (demoStarted && !isPaused && timeLeft > 0) {
+    if (demoStarted && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((time) => {
           const newTime = time - 1;
@@ -98,15 +111,18 @@ const Demo = () => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [demoStarted, isPaused, timeLeft]);
+  }, [demoStarted, timeLeft]);
 
   useEffect(() => {
     if (timeLeft <= 0 && demoStarted) {
       setShowTimeWarning(true);
-      // Mark demo as used when time expires
       localStorage.setItem('demo_used', 'true');
     }
   }, [timeLeft, demoStarted]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -119,22 +135,14 @@ const Demo = () => {
     setTimeLeft(15 * 60);
   };
 
-  const resetDemo = () => {
-    setDemoStarted(false);
-    setTimeLeft(15 * 60);
-    setIsPaused(false);
-    setShowTimeWarning(false);
-  };
-
   const handleRoleSelect = (selectedRole: string) => {
     navigate(`/demo?role=${selectedRole}`);
     setShowRoleSelection(false);
-    setDemoStarted(true); // Automatically start demo after role selection
+    setDemoStarted(true);
   };
 
   const generateAIResponse = async (userMessage: string) => {
     try {
-      // Generate text response using chat completion
       const completionResponse = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
@@ -151,13 +159,10 @@ const Demo = () => {
         throw new Error(completionResponse.error.message || 'Failed to generate AI response');
       }
 
-      // Check if it's a test/mock response (non-streaming)
       if (completionResponse.data?.content) {
-        const aiResponseText = completionResponse.data.content;
-        return { text: aiResponseText };
+        return { text: completionResponse.data.content };
       }
 
-      // For streaming response, fall back to a simple response
       return { text: "Hello! I'm your AI tutor. How can I help you learn today?" };
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -165,35 +170,17 @@ const Demo = () => {
     }
   };
 
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
-
-  const handleTextToSpeech = async (text: string, messageId?: string) => {
-    // Prevent multiple simultaneous requests
-    if (isSpeaking) return;
-    
-    setIsSpeaking(true);
-    if (messageId) setCurrentlyPlaying(messageId);
-
+  // Instant voice functionality for demo
+  const handleTextToSpeech = async (text: string) => {
     try {
-      // Create a promise that resolves quickly for demo purposes
-      const speechPromise = supabase.functions.invoke('text-to-voice', {
+      const { data, error } = await supabase.functions.invoke('text-to-voice', {
         body: {
-          text: text.length > 200 ? text.substring(0, 200) + "..." : text, // Truncate for faster response
-          voice: 'alloy'
+          text: text.length > 150 ? text.substring(0, 150) + "..." : text,
+          voice: selectedVoice
         }
       });
 
-      // Add a minimum delay to prevent too-fast clicking
-      const [{ data, error }] = await Promise.all([
-        speechPromise,
-        new Promise(resolve => setTimeout(resolve, 100))
-      ]);
-
-      if (error) {
-        console.error('Speech Error:', error);
-        return;
-      }
+      if (error) return;
 
       if (data && data.audioContent) {
         const binaryString = atob(data.audioContent);
@@ -205,47 +192,59 @@ const Demo = () => {
         const audioUrl = URL.createObjectURL(audioBlob);
         
         const audio = new Audio(audioUrl);
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          setIsSpeaking(false);
-          setCurrentlyPlaying(null);
-        };
-        audio.onerror = () => {
-          URL.revokeObjectURL(audioUrl);
-          setIsSpeaking(false);
-          setCurrentlyPlaying(null);
-        };
-        
-        // Preload and play immediately
-        audio.load();
-        await audio.play().catch(() => {
-          setIsSpeaking(false);
-          setCurrentlyPlaying(null);
-        });
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        await audio.play().catch(() => {});
       }
     } catch (error) {
-      console.error('Speech Error:', error);
-    } finally {
-      if (!currentlyPlaying) {
-        setIsSpeaking(false);
+      // Silently fail for demo
+    }
+  };
+
+  const testVoice = async (voice: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-voice', {
+        body: {
+          text: `Hello! I'm your AI assistant speaking with the ${VOICE_OPTIONS.find(v => v.value === voice)?.label} voice.`,
+          voice: voice
+        }
+      });
+
+      if (error) return;
+
+      if (data && data.audioContent) {
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const audio = new Audio(audioUrl);
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        await audio.play().catch(() => {});
       }
+    } catch (error) {
+      // Silently fail for demo
     }
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || timeLeft <= 0) return;
-    
+    if (!inputMessage.trim() && !selectedFile) return;
+
     const userMessage = {
       id: Date.now().toString(),
-      content: inputMessage,
+      content: selectedFile ? `[File: ${selectedFile.name}] ${inputMessage}` : inputMessage,
       isUser: true,
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setSelectedFile(null);
     setIsLoading(true);
-    
+    setShowWelcome(false);
+
     try {
       const response = await generateAIResponse(userMessage.content);
       
@@ -268,18 +267,32 @@ const Demo = () => {
     }
   };
 
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
   const handleNewChat = () => {
     setMessages([]);
     setActiveSessionId(null);
     setInputMessage('');
+    setSelectedFile(null);
+    setShowWelcome(true);
   };
 
   const handleSelectSession = (sessionId: string) => {
-    const session = chatSessions.find(s => s.id === sessionId);
-    if (session) {
-      setActiveSessionId(sessionId);
-      setMessages([...session.messages]);
-    }
+    setActiveSessionId(sessionId);
+    setMessages([
+      { id: '1', content: 'Hello! How can I help you today?', isUser: false, timestamp: new Date() },
+      { id: '2', content: 'I need help with mathematics', isUser: true, timestamp: new Date() },
+    ]);
+    setShowWelcome(false);
   };
 
   const deleteSession = (sessionId: string, e: React.MouseEvent) => {
@@ -290,6 +303,45 @@ const Demo = () => {
     }
   };
 
+  const renderNavigation = () => (
+    <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
+      <Button
+        variant={currentPage === 'chat' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('chat')}
+        className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+      >
+        <MessageSquare className="h-4 w-4 mr-2" />
+        Chat
+      </Button>
+      <Button
+        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('monitoring')}
+        className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+      >
+        <BarChart3 className="h-4 w-4 mr-2" />
+        Monitoring
+      </Button>
+      <Button
+        variant={currentPage === 'settings' ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setCurrentPage('settings')}
+        className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+      >
+        <Settings className="h-4 w-4 mr-2" />
+        Settings
+      </Button>
+    </div>
+  );
+
+  const formatMessageTime = (date: Date) => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  };
 
   if (!role) {
     return (
@@ -391,10 +443,10 @@ const Demo = () => {
     );
   }
 
-  // Demo is running - copy the exact Chat page design but with timer
+  // Demo is running - show full app interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
-      {/* Demo Timer Overlay - Fixed position at top */}
+      {/* Demo Timer Overlay */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600/90 to-blue-600/90 border-b border-white/20 p-3 backdrop-blur-xl shadow-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -449,13 +501,7 @@ const Demo = () => {
                   <Button
                     variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
                     size="sm"
-                    onClick={() => {
-                      navigate('/auth');
-                      toast({
-                        title: "Sign Up for Full Monitoring",
-                        description: "Access detailed analytics and progress tracking with a free account!",
-                      });
-                    }}
+                          onClick={() => setCurrentPage('monitoring')}
                     className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
@@ -506,8 +552,8 @@ const Demo = () => {
                               {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
                             </div>
                              <div 
-                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/15 cursor-pointer'} shadow-xl border border-white/20 group transition-all duration-200 ${currentlyPlaying === message.id ? 'ring-2 ring-purple-400' : ''}`}
-                               onClick={() => !message.isUser && handleTextToSpeech(message.content, message.id)}
+                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/15 cursor-pointer'} shadow-xl border border-white/20 group transition-all duration-200`}
+                               onClick={() => !message.isUser && handleTextToSpeech(message.content)}
                                title={!message.isUser ? 'Click to hear this message' : undefined}
                              >
                                <p className="text-lg leading-relaxed">{message.content}</p>
@@ -516,9 +562,9 @@ const Demo = () => {
                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                  </p>
                                  {!message.isUser && (
-                                   <div className={`transition-opacity text-xs ${currentlyPlaying === message.id ? 'opacity-100 text-purple-300' : 'opacity-0 group-hover:opacity-100 text-purple-300'}`}>
-                                     <Volume2 className={`h-3 w-3 inline mr-1 ${currentlyPlaying === message.id ? 'animate-pulse' : ''}`} />
-                                     {currentlyPlaying === message.id ? 'Playing...' : 'Click to speak'}
+                                   <div className="transition-opacity text-xs opacity-0 group-hover:opacity-100 text-purple-300">
+                                     <Volume2 className="h-3 w-3 inline mr-1" />
+                                     Click to speak
                                    </div>
                                  )}
                                </div>
@@ -600,7 +646,7 @@ const Demo = () => {
                           <div className="min-w-0 flex-1">
                             <p className="text-sm text-white truncate font-medium">{session.title}</p>
                             <p className="text-xs text-white/60">
-                              {new Date(session.created_at).toLocaleDateString()} • {session.messages.length} messages
+                              {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
                             </p>
                           </div>
                         </div>
@@ -765,36 +811,32 @@ const Demo = () => {
                       <p className="text-slate-300 text-sm mb-3">Click to test different AI voices</p>
                       <div className="grid grid-cols-2 gap-3">
                         <Button
-                          onClick={() => handleTextToSpeech("Hello! This is the Alloy voice. It's clear and friendly for learning.", "test-alloy")}
-                          disabled={isSpeaking}
+                          onClick={() => testVoice('alloy')}
                           variant="outline"
                           className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
-                          {currentlyPlaying === "test-alloy" ? "Playing..." : "Test Alloy"}
+                          Test Alloy
                         </Button>
                         <Button
-                          onClick={() => handleTextToSpeech("Hi there! This is the Echo voice, great for explanations and tutorials.", "test-echo")}
-                          disabled={isSpeaking}
+                          onClick={() => testVoice('echo')}
                           variant="outline"
                           className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
-                          {currentlyPlaying === "test-echo" ? "Playing..." : "Test Echo"}
+                          Test Echo
                         </Button>
                         <Button
-                          onClick={() => handleTextToSpeech("Welcome! I'm the Fable voice, perfect for storytelling and engaging content.", "test-fable")}
-                          disabled={isSpeaking}
+                          onClick={() => testVoice('fable')}
                           variant="outline"
                           className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
-                          {currentlyPlaying === "test-fable" ? "Playing..." : "Test Fable"}
+                          Test Fable
                         </Button>
                         <Button
-                          onClick={() => handleTextToSpeech("Hello! I'm the Nova voice, energetic and great for younger learners.", "test-nova")}
-                          disabled={isSpeaking}
+                          onClick={() => testVoice('nova')}
                           variant="outline"
                           className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
-                          {currentlyPlaying === "test-nova" ? "Playing..." : "Test Nova"}
+                          Test Nova
                         </Button>
                       </div>
                     </div>
