@@ -165,14 +165,30 @@ const Demo = () => {
     }
   };
 
-  const handleTextToSpeech = async (text: string) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+
+  const handleTextToSpeech = async (text: string, messageId?: string) => {
+    // Prevent multiple simultaneous requests
+    if (isSpeaking) return;
+    
+    setIsSpeaking(true);
+    if (messageId) setCurrentlyPlaying(messageId);
+
     try {
-      const { data, error } = await supabase.functions.invoke('text-to-voice', {
+      // Create a promise that resolves quickly for demo purposes
+      const speechPromise = supabase.functions.invoke('text-to-voice', {
         body: {
-          text: text,
+          text: text.length > 200 ? text.substring(0, 200) + "..." : text, // Truncate for faster response
           voice: 'alloy'
         }
       });
+
+      // Add a minimum delay to prevent too-fast clicking
+      const [{ data, error }] = await Promise.all([
+        speechPromise,
+        new Promise(resolve => setTimeout(resolve, 100))
+      ]);
 
       if (error) {
         console.error('Speech Error:', error);
@@ -189,11 +205,30 @@ const Demo = () => {
         const audioUrl = URL.createObjectURL(audioBlob);
         
         const audio = new Audio(audioUrl);
-        audio.onended = () => URL.revokeObjectURL(audioUrl);
-        await audio.play();
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          setIsSpeaking(false);
+          setCurrentlyPlaying(null);
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          setIsSpeaking(false);
+          setCurrentlyPlaying(null);
+        };
+        
+        // Preload and play immediately
+        audio.load();
+        await audio.play().catch(() => {
+          setIsSpeaking(false);
+          setCurrentlyPlaying(null);
+        });
       }
     } catch (error) {
       console.error('Speech Error:', error);
+    } finally {
+      if (!currentlyPlaying) {
+        setIsSpeaking(false);
+      }
     }
   };
 
@@ -429,13 +464,7 @@ const Demo = () => {
                   <Button
                     variant={currentPage === 'settings' ? 'default' : 'ghost'}
                     size="sm"
-                    onClick={() => {
-                      navigate('/auth');
-                      toast({
-                        title: "Sign Up for Full Settings",
-                        description: "Customize your learning experience with a free account!",
-                      });
-                    }}
+                    onClick={() => setCurrentPage('settings')}
                     className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
                   >
                     <Settings className="h-4 w-4 mr-2" />
@@ -477,8 +506,8 @@ const Demo = () => {
                               {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
                             </div>
                              <div 
-                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/15 cursor-pointer'} shadow-xl border border-white/20 group transition-all duration-200`}
-                               onClick={() => !message.isUser && handleTextToSpeech(message.content)}
+                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/15 cursor-pointer'} shadow-xl border border-white/20 group transition-all duration-200 ${currentlyPlaying === message.id ? 'ring-2 ring-purple-400' : ''}`}
+                               onClick={() => !message.isUser && handleTextToSpeech(message.content, message.id)}
                                title={!message.isUser ? 'Click to hear this message' : undefined}
                              >
                                <p className="text-lg leading-relaxed">{message.content}</p>
@@ -487,9 +516,9 @@ const Demo = () => {
                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                  </p>
                                  {!message.isUser && (
-                                   <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-purple-300">
-                                     <Volume2 className="h-3 w-3 inline mr-1" />
-                                     Click to speak
+                                   <div className={`transition-opacity text-xs ${currentlyPlaying === message.id ? 'opacity-100 text-purple-300' : 'opacity-0 group-hover:opacity-100 text-purple-300'}`}>
+                                     <Volume2 className={`h-3 w-3 inline mr-1 ${currentlyPlaying === message.id ? 'animate-pulse' : ''}`} />
+                                     {currentlyPlaying === message.id ? 'Playing...' : 'Click to speak'}
                                    </div>
                                  )}
                                </div>
@@ -722,6 +751,57 @@ const Demo = () => {
                     <div className="space-y-2">
                       <label className="text-white font-medium">Voice Assistant</label>
                       <div className="text-slate-300">Enabled with Natural Voice</div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                  <CardHeader>
+                    <CardTitle className="text-white">Voice Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-white font-medium">Test Voice</label>
+                      <p className="text-slate-300 text-sm mb-3">Click to test different AI voices</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => handleTextToSpeech("Hello! This is the Alloy voice. It's clear and friendly for learning.", "test-alloy")}
+                          disabled={isSpeaking}
+                          variant="outline"
+                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
+                        >
+                          {currentlyPlaying === "test-alloy" ? "Playing..." : "Test Alloy"}
+                        </Button>
+                        <Button
+                          onClick={() => handleTextToSpeech("Hi there! This is the Echo voice, great for explanations and tutorials.", "test-echo")}
+                          disabled={isSpeaking}
+                          variant="outline"
+                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
+                        >
+                          {currentlyPlaying === "test-echo" ? "Playing..." : "Test Echo"}
+                        </Button>
+                        <Button
+                          onClick={() => handleTextToSpeech("Welcome! I'm the Fable voice, perfect for storytelling and engaging content.", "test-fable")}
+                          disabled={isSpeaking}
+                          variant="outline"
+                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
+                        >
+                          {currentlyPlaying === "test-fable" ? "Playing..." : "Test Fable"}
+                        </Button>
+                        <Button
+                          onClick={() => handleTextToSpeech("Hello! I'm the Nova voice, energetic and great for younger learners.", "test-nova")}
+                          disabled={isSpeaking}
+                          variant="outline"
+                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
+                        >
+                          {currentlyPlaying === "test-nova" ? "Playing..." : "Test Nova"}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-3 bg-purple-500/20 rounded-xl border border-purple-500/30">
+                      <p className="text-purple-200 text-sm">
+                        💡 Voice works instantly in demo mode! Click any AI message or test button above.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
