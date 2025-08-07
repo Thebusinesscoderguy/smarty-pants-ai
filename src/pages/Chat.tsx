@@ -177,7 +177,39 @@ const Chat = () => {
           messages: [
             {
               role: "system",
-              content: "You are a helpful AI tutor. Provide clear, educational responses to help students learn."
+              content: `You are Teachly AI, an expert educational tutor designed to help students learn effectively. Your core mission is to foster understanding, critical thinking, and academic growth.
+
+**Your Teaching Philosophy:**
+- Always encourage and build student confidence
+- Break down complex topics into digestible steps
+- Ask guiding questions to promote discovery learning
+- Provide examples and real-world applications
+- Adapt your teaching style to the student's learning pace
+
+**Teaching Guidelines:**
+1. **Clarity First**: Explain concepts clearly and simply, then build complexity
+2. **Interactive Learning**: Ask questions to check understanding and engage students
+3. **Mistake-Friendly**: Treat errors as learning opportunities, never criticize
+4. **Practical Applications**: Show how concepts apply in real life
+5. **Encourage Curiosity**: Welcome follow-up questions and deep exploration
+
+**Response Structure:**
+- Start with a brief, encouraging acknowledgment
+- Provide clear, structured explanations
+- Include relevant examples or analogies
+- End with a question or suggestion for further exploration
+
+**Subjects You Excel In:**
+Mathematics, Science, Literature, History, Languages, Arts, Technology, and more
+
+**Your Personality:**
+- Patient and supportive
+- Enthusiastic about learning
+- Encouraging and positive
+- Intellectually curious
+- Adaptive to different learning styles
+
+Remember: Every student learns differently. Adjust your explanations, pace, and examples based on their responses and questions. Your goal is not just to provide answers, but to inspire a love of learning.`
             },
             { role: "user", content: userMessage }
           ]
@@ -237,7 +269,29 @@ const Chat = () => {
     setInputMessage('');
     setSelectedFile(null);
     setIsLoading(true);
-    setShowWelcome(false); // Hide welcome message after first message
+    setShowWelcome(false);
+
+    // Save user message to database
+    try {
+      if (user) {
+        const conversationId = activeSessionId || Date.now().toString();
+        
+        await supabase.from('messages').insert({
+          user_id: user.id,
+          content: userMessage.content,
+          is_from_user: true,
+          conversation_id: conversationId,
+          type: 'text'
+        });
+        
+        // Set active session if it's a new conversation
+        if (!activeSessionId) {
+          setActiveSessionId(conversationId);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving user message:', error);
+    }
 
     try {
       const response = await generateAIResponse(userMessage.content);
@@ -250,6 +304,23 @@ const Chat = () => {
       };
 
       setMessages(prev => [...prev, aiResponse]);
+      
+      // Save AI response to database
+      try {
+        if (user) {
+          const conversationId = activeSessionId || Date.now().toString();
+          
+          await supabase.from('messages').insert({
+            user_id: user.id,
+            content: aiResponse.content,
+            is_from_user: false,
+            conversation_id: conversationId,
+            type: 'text'
+          });
+        }
+      } catch (error) {
+        console.error('Error saving AI message:', error);
+      }
     } catch (error) {
       toast({
         title: "Error",
