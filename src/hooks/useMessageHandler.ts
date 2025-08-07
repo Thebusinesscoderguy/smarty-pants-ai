@@ -8,16 +8,7 @@ import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useMessageHandler = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome-message',
-      text: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
-      timestamp: new Date(),
-      isFromUser: false,
-      type: 'text',
-      tokenCount: 25
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [apiKeyError, setApiKeyError] = useState(false);
@@ -95,7 +86,7 @@ export const useMessageHandler = () => {
       try {
         // Get previous messages for context (limit to last 8 for token efficiency)
         const conversationHistory = messages
-          .filter(m => m.id !== 'welcome-message' && !m.id?.startsWith('processing-'))
+          .filter(m => !m.id?.startsWith('processing-'))
           .slice(-8)
           .map(m => ({
             role: m.isFromUser ? "user" : "assistant", 

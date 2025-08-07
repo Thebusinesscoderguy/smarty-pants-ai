@@ -313,7 +313,13 @@ const Chat = () => {
   };
 
   const handleNewChat = () => {
-    setMessages([]);
+    // Reset to welcome message for new chat
+    setMessages([{
+      id: 'welcome-message',
+      content: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
+      isUser: false,
+      timestamp: new Date()
+    }]);
     setActiveSessionId(null);
     setInputMessage('');
     setSelectedFile(null);
