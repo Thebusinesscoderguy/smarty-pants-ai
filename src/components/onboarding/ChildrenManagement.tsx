@@ -10,9 +10,10 @@ import { toast } from '@/hooks/use-toast';
 
 interface Child {
   id: string;
-  email: string;
   first_name: string;
   last_name: string;
+  grade_level: string;
+  subjects: string[];
 }
 
 interface ChildrenManagementProps {
@@ -22,8 +23,27 @@ interface ChildrenManagementProps {
 export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   const { user } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
-  const [newChild, setNewChild] = useState({ firstName: '', lastName: '', email: '' });
+  const [newChild, setNewChild] = useState({ 
+    firstName: '', 
+    lastName: '', 
+    gradeLevel: '', 
+    subjects: [] as string[] 
+  });
   const [loading, setLoading] = useState(false);
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
+
+  const gradeOptions = [
+    'Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade',
+    '5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade',
+    '11th Grade', '12th Grade'
+  ];
+
+  const subjectCategories = [
+    'Mathematics', 'Science', 'English Language Arts', 'Social Studies', 'History',
+    'Geography', 'Physics', 'Chemistry', 'Biology', 'Literature', 'Writing',
+    'Reading', 'Art', 'Music', 'Physical Education', 'Computer Science',
+    'Foreign Languages', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'
+  ];
 
   useEffect(() => {
     fetchChildren();
@@ -56,9 +76,10 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
 
       const childrenData = profiles?.map(profile => ({
         id: profile.id,
-        email: '',
         first_name: profile.display_name?.split(' ')[0] || 'Child',
-        last_name: profile.display_name?.split(' ')[1] || ''
+        last_name: profile.display_name?.split(' ')[1] || '',
+        grade_level: '',
+        subjects: []
       })) || [];
 
       setChildren(childrenData);
@@ -68,10 +89,10 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   };
 
   const addChild = async () => {
-    if (!user || !newChild.firstName || !newChild.lastName || !newChild.email) {
+    if (!user || !newChild.firstName || !newChild.lastName || !newChild.gradeLevel) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in name and grade level",
         variant: "destructive"
       });
       return;
@@ -79,33 +100,34 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
 
     setLoading(true);
     try {
-      // Create child profile
-      const { data: childData, error: signUpError } = await supabase.auth.signUp({
-        email: newChild.email,
-        password: 'temppassword123', // Temporary password - should be changed on first login
-        options: {
-          data: {
-            first_name: newChild.firstName,
-            last_name: newChild.lastName,
-            role: 'student'
-          }
-        }
-      });
+      // Create child profile directly (no auth signup needed)
+      const displayName = `${newChild.firstName} ${newChild.lastName}`;
+      const childId = crypto.randomUUID();
+      
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: childId,
+          display_name: displayName,
+          role: 'student'
+        })
+        .select()
+        .single();
 
-      if (signUpError) throw signUpError;
+      if (profileError) throw profileError;
 
-      if (childData.user) {
+      if (profileData) {
         // Create parent-child relationship
         const { error: relationError } = await supabase
           .from('parent_child_relationships')
           .insert({
             parent_id: user.id,
-            child_id: childData.user.id
+            child_id: profileData.id
           });
 
         if (relationError) throw relationError;
 
-        setNewChild({ firstName: '', lastName: '', email: '' });
+        setNewChild({ firstName: '', lastName: '', gradeLevel: '', subjects: [] });
         fetchChildren();
         toast({
           title: "Child Added",
@@ -122,6 +144,15 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSubject = (subject: string) => {
+    setNewChild(prev => ({
+      ...prev,
+      subjects: prev.subjects.includes(subject)
+        ? prev.subjects.filter(s => s !== subject)
+        : [...prev.subjects, subject]
+    }));
   };
 
   return (
@@ -167,15 +198,35 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                 />
               </div>
               <div>
-                <Label htmlFor="email" className="text-white">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newChild.email}
-                  onChange={(e) => setNewChild(prev => ({ ...prev, email: e.target.value }))}
-                  className="bg-white/10 border-white/20 text-white"
-                  placeholder="Enter email address"
-                />
+                <Label htmlFor="gradeLevel" className="text-white">Grade Level</Label>
+                <select
+                  id="gradeLevel"
+                  value={newChild.gradeLevel}
+                  onChange={(e) => setNewChild(prev => ({ ...prev, gradeLevel: e.target.value }))}
+                  className="w-full p-2 bg-white/10 border border-white/20 text-white rounded-md"
+                >
+                  <option value="" className="bg-gray-800">Select grade level</option>
+                  {gradeOptions.map(grade => (
+                    <option key={grade} value={grade} className="bg-gray-800">{grade}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label className="text-white">Subjects</Label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto mt-2">
+                  {subjectCategories.map(subject => (
+                    <div key={subject} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={subject}
+                        checked={newChild.subjects.includes(subject)}
+                        onChange={() => toggleSubject(subject)}
+                        className="rounded"
+                      />
+                      <label htmlFor={subject} className="text-white/80 text-sm">{subject}</label>
+                    </div>
+                  ))}
+                </div>
               </div>
               <Button 
                 onClick={addChild}
@@ -217,7 +268,14 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                           <p className="text-white font-medium">
                             {child.first_name} {child.last_name}
                           </p>
-                          <p className="text-white/60 text-sm">{child.email}</p>
+                          <p className="text-white/60 text-sm">
+                            {child.grade_level && `Grade: ${child.grade_level}`}
+                          </p>
+                          {child.subjects.length > 0 && (
+                            <p className="text-white/60 text-xs">
+                              Subjects: {child.subjects.join(', ')}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>

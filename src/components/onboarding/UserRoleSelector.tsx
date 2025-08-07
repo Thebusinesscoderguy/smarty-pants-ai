@@ -10,7 +10,6 @@ interface Child {
   id: string;
   first_name: string;
   last_name: string;
-  email: string;
 }
 
 interface UserRoleSelectorProps {
@@ -53,8 +52,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
         const childrenData = profiles?.map(profile => ({
           id: profile.id,
           first_name: profile.display_name?.split(' ')[0] || 'Child',
-          last_name: profile.display_name?.split(' ')[1] || '',
-          email: ''
+          last_name: profile.display_name?.split(' ')[1] || ''
         })) || [];
         setChildren(childrenData);
       }
