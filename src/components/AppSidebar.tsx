@@ -12,7 +12,9 @@ import {
   Settings,
   Users,
   BookOpen,
-  TestTube
+  TestTube,
+  Monitor,
+  Wrench
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,11 +38,18 @@ const navigationItems = [
   { title: "Home", icon: Home, url: "/" },
   { title: "Chat", icon: MessageSquare, url: "/chat" },
   { title: "Modules", icon: BookOpen, url: "/modules" },
-  { title: "Voice Chat", icon: Mic, url: "/voice" },
-  { title: "Math Solver", icon: Calculator, url: "/math-solver" },
-  { title: "Quiz Generator", icon: FileQuestion, url: "/quiz" },
   { title: "Progress", icon: TrendingUp, url: "/progress" },
-  
+];
+
+const toolsItems = [
+  { title: "Quiz Generator", icon: FileQuestion, url: "/quiz" },
+  { title: "Math Solver", icon: Calculator, url: "/math-solver" },
+  { title: "Voice Chat", icon: Mic, url: "/voice" },
+];
+
+const managementItems = [
+  { title: "Monitoring", icon: Monitor, url: "/monitoring" },
+  { title: "Settings", icon: Settings, url: "/settings" },
 ];
 
 const AppSidebar = () => {
@@ -91,9 +100,41 @@ const AppSidebar = () => {
           {user ? (
             <SidebarMenu>
               <SidebarGroup>
-                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+                <SidebarGroupLabel>Main</SidebarGroupLabel>
                 <SidebarGroupContent>
                   {navigationItems.map((item) => (
+                    <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
+                      <SidebarMenuButton asChild>
+                        <Link to={item.url}>
+                          <item.icon className="mr-2 h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarGroupContent>
+              </SidebarGroup>
+              
+              <SidebarGroup>
+                <SidebarGroupLabel>Tools</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  {toolsItems.map((item) => (
+                    <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
+                      <SidebarMenuButton asChild>
+                        <Link to={item.url}>
+                          <item.icon className="mr-2 h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarGroupContent>
+              </SidebarGroup>
+
+              <SidebarGroup>
+                <SidebarGroupLabel>Management</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  {managementItems.map((item) => (
                     <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
                       <SidebarMenuButton asChild>
                         <Link to={item.url}>

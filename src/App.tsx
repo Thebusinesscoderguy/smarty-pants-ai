@@ -8,6 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import Index from './pages/Index';
 import Chat from './pages/Chat';
+import Modules from './pages/Modules';
 
 import Progress from './pages/Progress';
 import Auth from './pages/Auth';
@@ -42,7 +43,8 @@ function App() {
               <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/chat" element={<Chat />} />
-              
+              <Route path="/modules" element={<Modules />} />
+              <Route path="/voice" element={<Chat />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/monitoring" element={<Monitoring />} />
               <Route path="/auth" element={<Auth />} />
