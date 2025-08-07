@@ -41,22 +41,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return;
       }
 
-      // If user is a parent but has no children, show children management
-      if (userRole === 'parent') {
-        try {
-          const { data: childrenData } = await supabase
-            .from('parent_child_relationships')
-            .select('child_id')
-            .eq('parent_id', user.id);
-
-          if (!childrenData || childrenData.length === 0) {
-            setNeedsChildSetup(true);
-            setShowChildrenManagement(true);
-          }
-        } catch (error) {
-          console.error('Error checking children:', error);
-        }
-      }
+      // Reset other states if role is set
+      setShowRoleSelector(false);
+      setShowChildrenManagement(false);
+      setNeedsChildSetup(false);
     };
 
     checkUserSetup();
@@ -97,11 +85,22 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     console.log('ProtectedRoute: Showing role selector');
     return (
       <UserRoleSelector 
-        onRoleSelected={(role, childId) => {
+        onRoleSelected={async (role, childId) => {
           setShowRoleSelector(false);
-          // If parent role selected and no children setup, show children management
-          if (role === 'parent' && needsChildSetup) {
-            setShowChildrenManagement(true);
+          // If parent role selected, check if they need to add children (new user)
+          if (role === 'parent') {
+            try {
+              const { data: childrenData } = await supabase
+                .from('parent_child_relationships')
+                .select('child_id')
+                .eq('parent_id', user.id);
+
+              if (!childrenData || childrenData.length === 0) {
+                setShowChildrenManagement(true);
+              }
+            } catch (error) {
+              console.error('Error checking children:', error);
+            }
           }
         }} 
       />
