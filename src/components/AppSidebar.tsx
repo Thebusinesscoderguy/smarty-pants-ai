@@ -143,65 +143,26 @@ const AppSidebar = () => {
                   </SidebarGroupContent>
                 </SidebarGroup>
               )}
-              {/* Only show Account section for parents */}
-              {userRole !== 'student' && (
-                <SidebarGroup>
-                  <SidebarGroupLabel>Account</SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link to="/onboarding">
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Profile</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link to="/pricing">
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          <span>Subscription</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Button 
-                          variant="ghost" 
-                          onClick={handleSignOut} 
-                          className="justify-start w-full"
-                          disabled={isSigningOut}
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
-                        </Button>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              )}
               
-              {/* Simple logout for students */}
-              {userRole === 'student' && (
-                <SidebarGroup>
-                  <SidebarGroupLabel>Account</SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Button 
-                          variant="ghost" 
-                          onClick={handleSignOut} 
-                          className="justify-start w-full"
-                          disabled={isSigningOut}
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
-                        </Button>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              )}
+              {/* Simple logout for everyone */}
+              <SidebarGroup>
+                <SidebarGroupLabel>Account</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Button 
+                        variant="ghost" 
+                        onClick={handleSignOut} 
+                        className="justify-start w-full"
+                        disabled={isSigningOut}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
+                      </Button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarGroupContent>
+              </SidebarGroup>
             </SidebarMenu>
           ) : (
             <SidebarMenu>
