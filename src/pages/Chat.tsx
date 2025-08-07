@@ -320,10 +320,46 @@ const Chat = () => {
     setShowWelcome(true);
   };
 
-  const handleSelectSession = (sessionId: string) => {
+  const handleSelectSession = async (sessionId: string) => {
     setActiveSessionId(sessionId);
-    // TODO: Load actual session messages from database
     setShowWelcome(false);
+    
+    try {
+      const { data: messagesData, error } = await supabase
+        .from('messages')
+        .select('id, content, is_from_user, created_at')
+        .eq('user_id', user?.id)
+        .eq('conversation_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading session messages:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load chat session",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (messagesData) {
+        const formattedMessages = messagesData.map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          isUser: msg.is_from_user,
+          timestamp: new Date(msg.created_at)
+        }));
+        
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error in handleSelectSession:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat session",
+        variant: "destructive"
+      });
+    }
   };
 
   const deleteSession = (sessionId: string, e: React.MouseEvent) => {
