@@ -592,7 +592,7 @@ const Chat = () => {
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Ask me anything about learning..."
-                    className="w-full px-6 py-4 pr-40 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
+                    className="w-full px-6 py-4 pr-28 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
                   />
                   
                   <input
@@ -603,29 +603,29 @@ const Chat = () => {
                     accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                   />
                   
-                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-1">
                      <Button
                        onClick={handleVoiceToggle}
                        variant="ghost"
                        size="sm"
-                       className={`p-2 h-10 w-10 transition-all duration-200 rounded-xl ${
+                       className={`p-2 h-8 w-8 transition-all duration-200 rounded-lg ${
                          isRecording 
                            ? 'text-red-400 bg-red-400/20 hover:bg-red-400/30' 
                            : 'text-white/70 hover:text-white hover:bg-white/10'
                        }`}
                        title={isRecording ? "Stop recording" : "Record voice message"}
                      >
-                       {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                       {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                      </Button>
                      
                      <Button
                        onClick={handleFileUpload}
                        variant="ghost"
                        size="sm"
-                       className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                       className="p-2 h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
                        title="Upload file"
                      >
-                       <Upload className="h-5 w-5" />
+                       <Upload className="h-4 w-4" />
                      </Button>
                    </div>
                 </div>
