@@ -33,29 +33,34 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         .eq('id', user.id)
         .single();
 
-      if (profile?.role) {
-        // User has a role, navigate accordingly without page reload
-        if (profile.role === 'parent') {
-          const { data: childrenData } = await supabase
-            .from('children')
-            .select('id')
-            .eq('parent_id', user.id);
-
-          if (!childrenData || childrenData.length === 0) {
-            setShowChildrenManagement(true);
-            return;
-          }
-        }
-        // For users with roles, don't show role selector again
-        return;
-      } else {
+      if (!profile?.role) {
         // No role found, show role selector
         setShowRoleSelector(true);
+        return;
+      }
+
+      // User has a role, check if they need additional setup
+      if (profile.role === 'parent') {
+        const { data: childrenData } = await supabase
+          .from('children')
+          .select('id')
+          .eq('parent_id', user.id);
+
+        if (!childrenData || childrenData.length === 0) {
+          setShowChildrenManagement(true);
+          return;
+        }
+      }
+
+      // User has role and setup is complete, redirect to appropriate page
+      const targetPath = profile.role === 'parent' ? '/monitoring' : '/chat';
+      if (location.pathname !== targetPath) {
+        window.location.replace(targetPath);
       }
     };
 
     checkUserSetup();
-  }, [user, loading, roleLoading]);
+  }, [user, loading, roleLoading, location.pathname]);
 
   // Show loading only when absolutely necessary
   if (loading) {
