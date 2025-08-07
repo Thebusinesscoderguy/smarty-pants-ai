@@ -45,13 +45,14 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Initialize with demo chat sessions
-    setChatSessions([
-      { id: '1', title: 'Math Help Session', created_at: new Date().toISOString(), message_count: 5 },
-      { id: '2', title: 'Science Questions', created_at: new Date().toISOString(), message_count: 3 },
-      { id: '3', title: 'History Discussion', created_at: new Date().toISOString(), message_count: 8 },
-    ]);
-  }, []);
+    // Only fetch real chat sessions if user is authenticated
+    if (user) {
+      // TODO: Implement real chat session fetching
+      setChatSessions([]);
+    } else {
+      setChatSessions([]);
+    }
+  }, [user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -259,11 +260,7 @@ const Chat = () => {
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
-    // Load messages for selected session (demo data)
-    setMessages([
-      { id: '1', content: 'Hello! How can I help you today?', isUser: false, timestamp: new Date() },
-      { id: '2', content: 'I need help with mathematics', isUser: true, timestamp: new Date() },
-    ]);
+    // TODO: Load actual session messages from database
     setShowWelcome(false);
   };
 
