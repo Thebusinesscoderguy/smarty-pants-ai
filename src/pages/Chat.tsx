@@ -23,6 +23,12 @@ const Chat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+
+  // Use session role override if present (set by UserRoleSelector)
+  const sessionRole = typeof window !== 'undefined'
+    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
+    : null;
+  const effectiveRole = sessionRole ?? userRole;
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date, audioUrl?: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -136,7 +142,7 @@ const Chat = () => {
   const renderNavigation = () => (
     <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
       {/* Always show Chat for students */}
-      {userRole === 'student' && (
+      {effectiveRole === 'student' && (
         <Button
           variant={currentPage === 'chat' ? 'default' : 'ghost'}
           size="sm"
@@ -148,21 +154,21 @@ const Chat = () => {
         </Button>
       )}
       
-      {/* Always show Quiz Tools for students */}
-      {userRole === 'student' && (
+      {/* Study Tools for students */}
+      {effectiveRole === 'student' && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/quiz')}
+          onClick={() => navigate('/modules')}
           className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
         >
           <BarChart3 className="h-4 w-4 mr-2" />
-          Quiz Tools
+          Study Tools
         </Button>
       )}
       
       {/* Only show Monitoring for parents */}
-      {userRole !== 'student' && (
+      {effectiveRole !== 'student' && (
         <Button
           variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
           size="sm"
