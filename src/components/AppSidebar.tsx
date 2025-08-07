@@ -34,10 +34,10 @@ import {
 } from "@/components/ui/sidebar";
 import { toast } from "@/hooks/use-toast";
 
-const familyItems = [
-  { title: "Family Hub", icon: Home, url: "/family-hub" },
-  { title: "AI Tutor", icon: MessageSquare, url: "/chat" },
-  { title: "Learning Path", icon: BookOpen, url: "/modules" },
+const navigationItems = [
+  { title: "Home", icon: Home, url: "/" },
+  { title: "Chat", icon: MessageSquare, url: "/chat" },
+  { title: "Modules", icon: BookOpen, url: "/modules" },
   { title: "Progress", icon: TrendingUp, url: "/progress" },
 ];
 
@@ -105,9 +105,9 @@ const AppSidebar = () => {
           {user ? (
             <SidebarMenu>
               <SidebarGroup>
-                <SidebarGroupLabel>Family Learning</SidebarGroupLabel>
+                <SidebarGroupLabel>Main</SidebarGroupLabel>
                 <SidebarGroupContent>
-                  {familyItems.map((item) => (
+                  {navigationItems.map((item) => (
                     <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
                       <SidebarMenuButton asChild>
                         <Link to={item.url}>

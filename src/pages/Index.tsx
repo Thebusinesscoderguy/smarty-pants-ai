@@ -50,10 +50,10 @@ const Index = () => {
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
-              Support Your Child's Learning Journey with AI
+              {t('hero.title')}
             </h1>
             <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Upload quiz results, get personalized study plans, and track your child's progress with our family-focused AI learning platform.
+              {t('hero.subtitle')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
@@ -62,7 +62,7 @@ const Index = () => {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
                 onClick={handleStartLearning}
               >
-                Start Your Family's Learning Journey
+                {t('cta.start')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
@@ -71,7 +71,7 @@ const Index = () => {
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
                 onClick={handleTryDemo}
               >
-                Try Family Demo
+                {t('cta.demo')}
                 <BookOpen className="ml-2 h-5 w-5" />
               </Button>
             </div>

@@ -310,23 +310,16 @@ const ParentOnboarding = () => {
         </div>
         
         <div>
-          <Label className="text-white mb-3 block">Daily Study Time Goal</Label>
-          <div className="flex gap-3">
-            {['15', '30', '45', '60'].map((minutes) => (
-              <Button
-                key={minutes}
-                variant={preferences.studyTimeGoals === minutes ? "default" : "outline"}
-                onClick={() => setPreferences({ ...preferences, studyTimeGoals: minutes })}
-                className={
-                  preferences.studyTimeGoals === minutes
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                    : 'border-white/30 text-white hover:bg-white/10'
-                }
-              >
-                {minutes} min
-              </Button>
-            ))}
-          </div>
+          <Label className="text-white mb-3 block">Daily Study Time Goal (minutes)</Label>
+          <Input
+            value={preferences.studyTimeGoals}
+            onChange={(e) => setPreferences({ ...preferences, studyTimeGoals: e.target.value })}
+            placeholder="Enter minutes (e.g., 30, 45, 60)"
+            className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+            type="number"
+            min="5"
+            max="180"
+          />
         </div>
       </CardContent>
     </Card>
