@@ -93,41 +93,17 @@ export const useMessageHandler = () => {
             content: m.text
           }));
         
-        // Check if this appears to be a quiz-related message
-        const isQuizRequest = userMessage.toLowerCase().includes('quiz') || 
-                             userMessage.toLowerCase().includes('test') || 
-                             userMessage.toLowerCase().includes('question');
-        
-        // If we're starting a quiz, enable quiz mode
-        if (isQuizRequest && !isQuizMode) {
-          setIsQuizMode(true);
-        }
-        
-        // Natural AI tutor system prompt
-        let systemPrompt = `You are a friendly and knowledgeable AI tutor. You help students learn by:
-
-- Being conversational and approachable
-- Explaining concepts clearly and at an appropriate level
-- Breaking down complex topics into understandable parts
-- Encouraging questions and curiosity
-- Providing examples and practical applications
-- Being patient and supportive
-
-Respond naturally to whatever the student asks about. Don't assume everything is curriculum-related unless explicitly mentioned.`;
+        // Natural AI tutor system prompt - simplified to prevent repetitive responses
+        let systemPrompt = `You are a helpful AI tutor. Answer questions naturally and conversationally. Vary your responses and don't repeat the same greeting.`;
 
         // Only add curriculum context if it's actually provided and relevant
         if (curriculumContext && curriculumContext.title) {
-          systemPrompt += `\n\nNote: The student is currently working with the "${curriculumContext.title}" curriculum, but respond naturally to their questions regardless of whether they're curriculum-specific.`;
+          systemPrompt += ` The student is working with the "${curriculumContext.title}" curriculum.`;
         }
 
         // Add quiz mode context if active
         if (isQuizMode) {
-          systemPrompt += `\n\nYou're currently in quiz mode! Ask thoughtful educational questions and provide encouraging feedback on answers. Make learning fun and interactive.`;
-        }
-
-        // Add performance context if available
-        if (responseTimes.length > 0) {
-          systemPrompt += `\n\nBased on previous interactions, the student seems to be strong in: ${userStrengths.join(', ') || 'various areas'} and could use more practice with: ${userWeaknesses.join(', ') || 'some topics'}. Tailor your help accordingly.`;
+          systemPrompt += ` You're in quiz mode - ask educational questions and provide feedback.`;
         }
 
         // Create a placeholder message for streaming
@@ -200,7 +176,17 @@ Respond naturally to whatever the student asks about. Don't assume everything is
           }
         } else {
           // Fallback for non-streaming response
-          aiResponseText = completionResponse.data.content || completionResponse.data;
+          console.log('Non-streaming response received:', completionResponse.data);
+          
+          if (typeof completionResponse.data === 'string') {
+            aiResponseText = completionResponse.data;
+          } else if (completionResponse.data.content) {
+            aiResponseText = completionResponse.data.content;
+          } else {
+            console.error('Unexpected response format:', completionResponse.data);
+            aiResponseText = "I'm sorry, I encountered an issue processing your request.";
+          }
+          
           setMessages(prev => prev.map(msg => 
             msg.id === aiMessageId 
               ? { ...msg, text: aiResponseText }
