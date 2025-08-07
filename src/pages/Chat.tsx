@@ -24,6 +24,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   
   const [chatSessions, setChatSessions] = useState<Array<{id: string, title: string, created_at: string, message_count: number}>>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -273,22 +274,91 @@ const Chat = () => {
 
   const handleVoiceToggle = async () => {
     if (isRecording) {
+      // Stop recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
       setIsRecording(false);
-      // Stop recording logic would go here
     } else {
+      // Start recording
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        setIsRecording(true);
-        // Start recording logic would go here
-        // For now, just simulate recording for 3 seconds
-        setTimeout(() => {
-          setIsRecording(false);
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true
+          }
+        });
+        
+        const mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'audio/webm;codecs=opus'
+        });
+        
+        const audioChunks: BlobPart[] = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+        
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          
+          // Convert to base64
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64Audio = (reader.result as string).split(',')[1];
+            
+            try {
+              // Send to voice-to-text edge function
+              const { data, error } = await supabase.functions.invoke('voice-to-text', {
+                body: { audio: base64Audio }
+              });
+              
+              if (error) {
+                throw error;
+              }
+              
+              if (data?.text) {
+                // Add transcribed text to input
+                setInputMessage(prev => prev + (prev ? ' ' : '') + data.text);
+                toast({
+                  title: "Voice transcribed",
+                  description: "Audio converted to text successfully"
+                });
+              }
+            } catch (error) {
+              console.error('Voice transcription error:', error);
+              toast({
+                title: "Transcription failed",
+                description: "Could not convert voice to text. Please try again.",
+                variant: "destructive"
+              });
+            }
+          };
+          
+          reader.readAsDataURL(audioBlob);
+          
+          // Clean up
           stream.getTracks().forEach(track => track.stop());
-        }, 3000);
-      } catch (error) {
+        };
+        
+        mediaRecorderRef.current = mediaRecorder;
+        mediaRecorder.start();
+        setIsRecording(true);
+        
         toast({
-          title: "Error",
-          description: "Could not access microphone",
+          title: "Recording started",
+          description: "Speak now... Click the microphone again to stop."
+        });
+        
+      } catch (error) {
+        console.error('Microphone access error:', error);
+        toast({
+          title: "Microphone Error",
+          description: "Could not access microphone. Please check permissions.",
           variant: "destructive"
         });
       }
@@ -533,18 +603,31 @@ const Chat = () => {
                     accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                   />
                   
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
-                    <Button
-                      onClick={handleFileUpload}
-                      variant="ghost"
-                      size="sm"
-                      className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
-                      title="Upload file"
-                    >
-                      <Upload className="h-5 w-5" />
-                    </Button>
-                    
-                  </div>
+                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                     <Button
+                       onClick={handleVoiceToggle}
+                       variant="ghost"
+                       size="sm"
+                       className={`p-2 h-10 w-10 transition-all duration-200 rounded-xl ${
+                         isRecording 
+                           ? 'text-red-400 bg-red-400/20 hover:bg-red-400/30' 
+                           : 'text-white/70 hover:text-white hover:bg-white/10'
+                       }`}
+                       title={isRecording ? "Stop recording" : "Record voice message"}
+                     >
+                       {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                     </Button>
+                     
+                     <Button
+                       onClick={handleFileUpload}
+                       variant="ghost"
+                       size="sm"
+                       className="p-2 h-10 w-10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                       title="Upload file"
+                     >
+                       <Upload className="h-5 w-5" />
+                     </Button>
+                   </div>
                 </div>
                 
                 <Button
