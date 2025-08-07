@@ -181,7 +181,10 @@ const Chat = () => {
         }
       });
 
+      console.log('Completion response:', completionResponse);
+
       if (completionResponse.error) {
+        console.error('Edge function error:', completionResponse.error);
         throw new Error(completionResponse.error.message || 'Failed to generate AI response');
       }
 
@@ -196,37 +199,47 @@ const Chat = () => {
         return { text: completionResponse.data.text };
       }
       
-      // If we have streaming data, handle it
-      if (completionResponse.data instanceof ReadableStream) {
+      // If we have streaming data, handle it properly
+      if (completionResponse.data) {
         let aiResponseText = '';
-        const reader = completionResponse.data.getReader();
-        const decoder = new TextDecoder();
         
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        // Handle direct string response
+        if (typeof completionResponse.data === 'string') {
+          aiResponseText = completionResponse.data;
+        }
+        // Handle streaming response
+        else if (completionResponse.data instanceof ReadableStream) {
+          const reader = completionResponse.data.getReader();
+          const decoder = new TextDecoder();
           
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                  aiResponseText += data.content;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.content) {
+                    aiResponseText += data.content;
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
                 }
-              } catch (e) {
-                // Skip invalid JSON
               }
             }
           }
         }
         
-        return { text: aiResponseText || "Error: No response received from AI" };
+        if (aiResponseText) {
+          return { text: aiResponseText };
+        }
       }
       
-      throw new Error("Invalid response format from AI service");
+      throw new Error("No valid response received from AI service");
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
