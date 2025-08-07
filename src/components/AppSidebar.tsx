@@ -38,7 +38,7 @@ import { toast } from "@/hooks/use-toast";
 // Child navigation - limited access
 const childNavigationItems = [
   { title: "Chat", icon: MessageSquare, url: "/chat" },
-  { title: "Quiz Tools", icon: FileQuestion, url: "/quiz" },
+  { title: "Study Tools", icon: BookOpen, url: "/modules" },
 ];
 
 // Parent navigation - monitoring only
