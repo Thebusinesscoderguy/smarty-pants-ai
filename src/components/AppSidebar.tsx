@@ -62,13 +62,18 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Prefer session role (chosen in Role Selector) over stored profile role
+  const sessionRole = typeof window !== 'undefined'
+    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
+    : null;
+  const effectiveRole = sessionRole ?? userRole;
+
   const isActive = (url: string) => {
     return location.pathname === url;
   };
 
-  // Get appropriate navigation items based on user role
   const getNavigationItems = () => {
-    return userRole === 'student' ? childNavigationItems : parentNavigationItems;
+    return effectiveRole === 'student' ? childNavigationItems : parentNavigationItems;
   };
 
   const handleSignOut = async () => {
@@ -81,6 +86,12 @@ const AppSidebar = () => {
       console.log('AppSidebar: Starting sign out process...');
       
       await signOut();
+
+      // Clear session role overrides
+      try {
+        localStorage.removeItem('sessionRole');
+        localStorage.removeItem('sessionChildId');
+      } catch {}
       
       console.log('AppSidebar: Sign out successful, navigating to home');
       navigate('/', { replace: true });
@@ -91,6 +102,12 @@ const AppSidebar = () => {
       });
     } catch (error) {
       console.error('AppSidebar: Sign out error:', error);
+      
+      // Clear session role overrides even on error
+      try {
+        localStorage.removeItem('sessionRole');
+        localStorage.removeItem('sessionChildId');
+      } catch {}
       
       // Even if sign out failed, navigate home since state was cleared
       navigate('/', { replace: true });
@@ -126,7 +143,7 @@ const AppSidebar = () => {
               </SidebarGroup>
               
               {/* Admin Section - Only show for school admins */}
-              {isSchoolAdmin && (
+              {isSchoolAdmin && effectiveRole !== 'student' && (
                 <SidebarGroup>
                   <SidebarGroupLabel>Administration</SidebarGroupLabel>
                   <SidebarGroupContent>

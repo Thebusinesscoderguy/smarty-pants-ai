@@ -83,6 +83,16 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
 
       if (error) throw error;
 
+      // Persist session role so UI reflects the chosen experience immediately
+      try {
+        localStorage.setItem('sessionRole', targetRole);
+        if (role === 'child') {
+          if (childId) localStorage.setItem('sessionChildId', childId);
+        } else {
+          localStorage.removeItem('sessionChildId');
+        }
+      } catch {}
+
       onRoleSelected(role, childId);
       toast({
         title: "Role Selected",
