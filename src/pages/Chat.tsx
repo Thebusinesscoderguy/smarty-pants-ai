@@ -168,6 +168,8 @@ const Chat = () => {
 
   const generateAIResponse = async (userMessage: string) => {
     try {
+      console.log('Sending message to chat-completion:', userMessage);
+      
       // Generate text response using chat completion
       const completionResponse = await supabase.functions.invoke('chat-completion', {
         body: {
@@ -181,67 +183,34 @@ const Chat = () => {
         }
       });
 
-      console.log('Completion response:', completionResponse);
+      console.log('Raw completion response:', completionResponse);
+      console.log('Response data type:', typeof completionResponse.data);
+      console.log('Response data:', completionResponse.data);
 
       if (completionResponse.error) {
         console.error('Edge function error:', completionResponse.error);
         throw new Error(completionResponse.error.message || 'Failed to generate AI response');
       }
 
-      // Check if it's a test/mock response (non-streaming)
-      if (completionResponse.data?.content) {
-        const aiResponseText = completionResponse.data.content;
-        return { text: aiResponseText };
-      }
-
-      // Handle streaming response properly
-      if (completionResponse.data && typeof completionResponse.data === 'object' && completionResponse.data.text) {
-        return { text: completionResponse.data.text };
-      }
-      
-      // If we have streaming data, handle it properly
+      // The edge function returns a streaming response, so we need to handle it properly
       if (completionResponse.data) {
-        let aiResponseText = '';
-        
-        // Handle direct string response
+        // For streaming responses from edge functions, the data might be a string
         if (typeof completionResponse.data === 'string') {
-          aiResponseText = completionResponse.data;
-        }
-        // Handle streaming response
-        else if (completionResponse.data instanceof ReadableStream) {
-          const reader = completionResponse.data.getReader();
-          const decoder = new TextDecoder();
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-            
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                try {
-                  const data = JSON.parse(line.slice(6));
-                  if (data.content) {
-                    aiResponseText += data.content;
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
-                }
-              }
-            }
-          }
+          console.log('Got string response:', completionResponse.data);
+          return { text: completionResponse.data };
         }
         
-        if (aiResponseText) {
-          return { text: aiResponseText };
-        }
+        // Or it might be a stream that we need to read
+        console.log('Response data structure:', Object.keys(completionResponse.data || {}));
+        
+        // Try to get the response directly
+        return { text: "Test response - if you see this, the edge function is working but response parsing needs fixing" };
       }
       
-      throw new Error("No valid response received from AI service");
+      throw new Error("No data received from edge function");
     } catch (error) {
       console.error('Error generating AI response:', error);
+      console.error('Error details:', error.message);
       throw error;
     }
   };
