@@ -1,5 +1,5 @@
 
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Loader2 } from 'lucide-react';
@@ -18,28 +18,23 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const { userRole, loading: roleLoading } = useUserRole();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [showChildrenManagement, setShowChildrenManagement] = useState(false);
-  const [needsChildSetup, setNeedsChildSetup] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
   useEffect(() => {
     const checkUserSetup = async () => {
-      if (!user || loading) return;
+      if (!user || loading || hasNavigated) return;
 
-      console.log('ProtectedRoute: Current state:', {
-        path: location.pathname,
-        loading,
-        hasUser: !!user,
-        userId: user?.id
-      });
-
-      // Always show role selector for authenticated users
-      // This allows them to choose between parent or children each session
-      setShowRoleSelector(true);
+      // Only show role selector on root paths
+      if (location.pathname === '/' || location.pathname === '/dashboard') {
+        setShowRoleSelector(true);
+      }
     };
 
     checkUserSetup();
-  }, [loading, user, location.pathname]);
+  }, [loading, user, location.pathname, hasNavigated]);
 
   // Show loading only while auth is being determined
   if (loading) {
@@ -65,7 +60,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       <ChildrenManagement 
         onComplete={() => {
           setShowChildrenManagement(false);
-          setNeedsChildSetup(false);
+          navigate('/monitoring', { replace: true });
         }} 
       />
     );
@@ -78,6 +73,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       <UserRoleSelector 
         onRoleSelected={async (role, childId) => {
           setShowRoleSelector(false);
+          setHasNavigated(true);
           
           // Navigate based on role selection
           if (role === 'parent') {
@@ -92,14 +88,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
                 setShowChildrenManagement(true);
               } else {
                 // Existing parent, go directly to monitoring
-                window.location.href = '/monitoring';
+                navigate('/monitoring', { replace: true });
               }
             } catch (error) {
               console.error('Error checking children:', error);
             }
           } else {
             // Child selected, go to chat
-            window.location.href = '/chat';
+            navigate('/chat', { replace: true });
           }
         }} 
       />
