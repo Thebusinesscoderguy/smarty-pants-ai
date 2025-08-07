@@ -184,33 +184,40 @@ const Chat = () => {
       });
 
       console.log('Raw completion response:', completionResponse);
-      console.log('Response data type:', typeof completionResponse.data);
-      console.log('Response data:', completionResponse.data);
 
       if (completionResponse.error) {
         console.error('Edge function error:', completionResponse.error);
         throw new Error(completionResponse.error.message || 'Failed to generate AI response');
       }
 
-      // The edge function returns a streaming response, so we need to handle it properly
-      if (completionResponse.data) {
-        // For streaming responses from edge functions, the data might be a string
-        if (typeof completionResponse.data === 'string') {
-          console.log('Got string response:', completionResponse.data);
-          return { text: completionResponse.data };
+      // The response is coming as streaming text format
+      if (completionResponse.data && typeof completionResponse.data === 'string') {
+        console.log('Processing streaming response:', completionResponse.data);
+        
+        let aiResponseText = '';
+        const lines = completionResponse.data.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const dataStr = line.slice(6); // Remove 'data: ' prefix
+              const data = JSON.parse(dataStr);
+              if (data.content) {
+                aiResponseText += data.content;
+              }
+            } catch (e) {
+              console.log('Skipping invalid JSON line:', line);
+            }
+          }
         }
         
-        // Or it might be a stream that we need to read
-        console.log('Response data structure:', Object.keys(completionResponse.data || {}));
-        
-        // Try to get the response directly
-        return { text: "Test response - if you see this, the edge function is working but response parsing needs fixing" };
+        console.log('Parsed AI response:', aiResponseText);
+        return { text: aiResponseText };
       }
       
-      throw new Error("No data received from edge function");
+      throw new Error("Unexpected response format from edge function");
     } catch (error) {
       console.error('Error generating AI response:', error);
-      console.error('Error details:', error.message);
       throw error;
     }
   };
