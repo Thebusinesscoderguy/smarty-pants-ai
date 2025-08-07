@@ -33,8 +33,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient();
 
-
-
 function App() {
   // Clean app without system tests
   return (
