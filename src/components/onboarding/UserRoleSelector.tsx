@@ -193,40 +193,13 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
             </div>
           )}
 
-          {/* If no children and user is not a child, show general student option */}
+          {/* If no children, show message that they need to add children first */}
           {children.length === 0 && (
-            <Card 
-              className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all cursor-pointer group backdrop-blur-sm"
-              onClick={() => handleRoleSelection('child')}
-            >
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-cyan-500/30 transition-colors">
-                  <Baby className="h-8 w-8 text-blue-400" />
-                </div>
-                <CardTitle className="text-white">I'm a Student</CardTitle>
-                <CardDescription className="text-white/70">
-                  Ready to learn and have fun with AI
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-white/60 mb-4">
-                  <li>• Interactive AI chat</li>
-                  <li>• Fun learning games</li>
-                  <li>• Earn achievements</li>
-                  <li>• Complete quests</li>
-                </ul>
-                <Button 
-                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRoleSelection('child');
-                  }}
-                  disabled={loading}
-                >
-                  Continue as Student
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="text-center py-8">
+              <p className="text-white/70 mb-4">
+                No children found in your account. Please add children first to access student features.
+              </p>
+            </div>
           )}
         </div>
       </div>
