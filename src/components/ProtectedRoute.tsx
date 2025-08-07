@@ -4,7 +4,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { RoleSelector } from '@/components/RoleSelector';
+import { supabase } from '@/integrations/supabase/client';
+import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
+import { UserRoleSelector } from '@/components/onboarding/UserRoleSelector';
 import { ParentDashboard } from '@/components/dashboards/ParentDashboard';
 import { StudentDashboard } from '@/components/dashboards/StudentDashboard';
 
@@ -17,23 +19,47 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { userRole, loading: roleLoading } = useUserRole();
   const location = useLocation();
   const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [showChildrenManagement, setShowChildrenManagement] = useState(false);
+  const [needsChildSetup, setNeedsChildSetup] = useState(false);
 
   useEffect(() => {
-    console.log('ProtectedRoute: Current state:', {
-      path: location.pathname,
-      loading,
-      hasUser: !!user,
-      userId: user?.id,
-      userRole,
-      roleLoading
-    });
+    const checkUserSetup = async () => {
+      if (!user || roleLoading) return;
 
-    // Show role selector if user is authenticated but no role is set
-    if (user && !roleLoading && !userRole) {
-      setShowRoleSelector(true);
-    } else {
-      setShowRoleSelector(false);
-    }
+      console.log('ProtectedRoute: Current state:', {
+        path: location.pathname,
+        loading,
+        hasUser: !!user,
+        userId: user?.id,
+        userRole,
+        roleLoading
+      });
+
+      // If no role set, show role selector
+      if (!userRole) {
+        setShowRoleSelector(true);
+        return;
+      }
+
+      // If user is a parent but has no children, show children management
+      if (userRole === 'parent') {
+        try {
+          const { data: childrenData } = await supabase
+            .from('parent_child_relationships')
+            .select('child_id')
+            .eq('parent_id', user.id);
+
+          if (!childrenData || childrenData.length === 0) {
+            setNeedsChildSetup(true);
+            setShowChildrenManagement(true);
+          }
+        } catch (error) {
+          console.error('Error checking children:', error);
+        }
+      }
+    };
+
+    checkUserSetup();
   }, [loading, user, location.pathname, userRole, roleLoading]);
 
   // Show loading only while auth is being determined
@@ -53,14 +79,30 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
+  // Show children management if parent needs to set up children
+  if (showChildrenManagement) {
+    console.log('ProtectedRoute: Showing children management');
+    return (
+      <ChildrenManagement 
+        onComplete={() => {
+          setShowChildrenManagement(false);
+          setNeedsChildSetup(false);
+        }} 
+      />
+    );
+  }
+
   // Show role selector if needed
   if (showRoleSelector) {
     console.log('ProtectedRoute: Showing role selector');
     return (
-      <RoleSelector 
-        onRoleSelected={(role) => {
+      <UserRoleSelector 
+        onRoleSelected={(role, childId) => {
           setShowRoleSelector(false);
-          // The role is already saved to the database by RoleSelector
+          // If parent role selected and no children setup, show children management
+          if (role === 'parent' && needsChildSetup) {
+            setShowChildrenManagement(true);
+          }
         }} 
       />
     );

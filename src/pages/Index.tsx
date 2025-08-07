@@ -21,7 +21,7 @@ const Index = () => {
   };
 
   const handleStartLearning = () => {
-    navigate('/parent-onboarding');
+    navigate('/auth');
   };
 
   const handleTryDemo = () => {
