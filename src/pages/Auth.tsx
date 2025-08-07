@@ -10,11 +10,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,7 +45,7 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please try again.');
+          setError(t('auth.error.invalid'));
         } else {
           setError(error.message);
         }
@@ -52,7 +54,7 @@ const Auth = () => {
 
       navigate('/chat');
     } catch (error: any) {
-      setError('An unexpected error occurred. Please try again.');
+      setError(t('auth.error.unexpected'));
     } finally {
       setLoading(false);
     }
@@ -64,13 +66,13 @@ const Auth = () => {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match. Please try again.');
+      setError(t('auth.error.passwordMismatch'));
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError(t('auth.error.passwordLength'));
       setLoading(false);
       return;
     }
@@ -86,7 +88,7 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes('already registered')) {
-          setError('This email is already registered. Please sign in instead.');
+          setError(t('auth.error.alreadyRegistered'));
         } else {
           setError(error.message);
         }
@@ -130,10 +132,10 @@ const Auth = () => {
           <Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
             <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
               <CardTitle className="text-2xl font-bold text-white mb-3">
-                Welcome to TeachlyAI
+                {t('auth.welcome')}
               </CardTitle>
               <p className="text-slate-300 text-sm leading-relaxed">
-                Your AI-powered learning companion
+                {t('auth.subtitle')}
               </p>
             </CardHeader>
           
@@ -144,23 +146,23 @@ const Auth = () => {
                   value="signin" 
                   className="data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg font-medium py-2 px-4 transition-all duration-200"
                 >
-                  Sign In
+                  {t('auth.signIn')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
                   className="data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg font-medium py-2 px-4 transition-all duration-200"
                 >
-                  Sign Up
+                  {t('auth.signUp')}
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">Email</label>
+                    <label className="text-sm font-medium text-slate-300">{t('auth.email')}</label>
                     <Input
                       type="email"
-                      placeholder="your.email@example.com"
+                      placeholder={t('auth.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -169,10 +171,10 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">Password</label>
+                    <label className="text-sm font-medium text-slate-300">{t('auth.password')}</label>
                     <Input
                       type="password"
-                      placeholder="Your password"
+                      placeholder={t('auth.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -191,7 +193,7 @@ const Auth = () => {
                     disabled={loading}
                     className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
-                    {loading ? 'Signing In...' : 'Sign In'}
+                    {loading ? t('auth.signingIn') : t('auth.signIn')}
                   </Button>
                 </form>
                 
@@ -200,7 +202,7 @@ const Auth = () => {
                     <span className="w-full border-t border-white/15" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-card px-3 text-white/50 font-medium">or</span>
+                    <span className="bg-card px-3 text-white/50 font-medium">{t('auth.or')}</span>
                   </div>
                 </div>
                 
@@ -228,17 +230,17 @@ const Auth = () => {
                       fill="#EA4335"
                     />
                   </svg>
-                  Continue with Google
+                  {t('auth.continueWithGoogle')}
                 </Button>
                 
                 <div className="text-center text-sm mt-4">
                   <p className="text-slate-400">
-                    Don't have an account?{' '}
+                    {t('auth.noAccount')}{' '}
                     <button
                       onClick={() => setActiveTab('signup')}
                       className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
                     >
-                      Sign up here
+                      {t('auth.signUpHere')}
                     </button>
                   </p>
                 </div>
@@ -247,10 +249,10 @@ const Auth = () => {
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">Email</label>
+                    <label className="text-sm font-medium text-slate-300">{t('auth.email')}</label>
                     <Input
                       type="email"
-                      placeholder="your.email@example.com"
+                      placeholder={t('auth.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -259,10 +261,10 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">Password</label>
+                    <label className="text-sm font-medium text-slate-300">{t('auth.password')}</label>
                     <Input
                       type="password"
-                      placeholder="Minimum 6 characters"
+                      placeholder={t('auth.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -271,10 +273,10 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">Confirm Password</label>
+                    <label className="text-sm font-medium text-slate-300">{t('auth.confirmPassword')}</label>
                     <Input
                       type="password"
-                      placeholder="Re-enter your password"
+                      placeholder={t('auth.confirmPasswordPlaceholder')}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
@@ -293,7 +295,7 @@ const Auth = () => {
                     disabled={loading}
                     className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
-                    {loading ? 'Creating Account...' : 'Create Account'}
+                    {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
                   </Button>
                 </form>
                 
@@ -330,17 +332,17 @@ const Auth = () => {
                       fill="#EA4335"
                     />
                   </svg>
-                  Continue with Google
+                  {t('auth.continueWithGoogle')}
                 </Button>
                 
                 <div className="text-center text-sm mt-4">
                   <p className="text-slate-400">
-                    Already have an account?{' '}
+                    {t('auth.hasAccount')}{' '}
                     <button
                       onClick={() => setActiveTab('signin')}
                       className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
                     >
-                      Sign in here
+                      {t('auth.signInHere')}
                     </button>
                   </p>
                 </div>
