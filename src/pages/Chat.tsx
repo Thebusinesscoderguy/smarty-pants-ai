@@ -13,12 +13,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Chat = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date, audioUrl?: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +107,7 @@ const Chat = () => {
   }, [user]);
 
   const generateTitleFromContent = (content: string): string => {
-    if (!content) return 'New Chat';
+    if (!content) return t('chat.newChat');
     
     // Remove any file prefixes like [File: filename.ext]
     const cleanContent = content.replace(/\[File:.*?\]\s*/, '').trim();
@@ -114,7 +116,7 @@ const Chat = () => {
     const title = cleanContent.length > 50 ? cleanContent.substring(0, 50) + '...' : cleanContent;
     
     // If still empty, return default
-    return title || 'New Chat';
+    return title || t('chat.newChat');
   };
 
   const scrollToBottom = () => {
@@ -138,7 +140,7 @@ const Chat = () => {
         className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
       >
         <MessageSquare className="h-4 w-4 mr-2" />
-        Chat
+        {t('chat.nav.chat')}
       </Button>
       <Button
         variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
@@ -150,7 +152,7 @@ const Chat = () => {
         className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
       >
         <BarChart3 className="h-4 w-4 mr-2" />
-        Monitoring
+        {t('chat.nav.monitoring')}
       </Button>
       <Button
         variant={currentPage === 'settings' ? 'default' : 'ghost'}
@@ -162,7 +164,7 @@ const Chat = () => {
         className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
       >
         <Settings className="h-4 w-4 mr-2" />
-        Settings
+        {t('chat.nav.settings')}
       </Button>
     </div>
   );
@@ -323,8 +325,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
+        title: t('common.error'),
+        description: t('chat.errorAiResponse'),
         variant: "destructive"
       });
     } finally {
@@ -396,15 +398,15 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                 // Add transcribed text to input
                 setInputMessage(prev => prev + (prev ? ' ' : '') + data.text);
                 toast({
-                  title: "Voice transcribed",
-                  description: "Audio converted to text successfully"
+                  title: t('chat.voiceTranscribed'),
+                  description: t('chat.audioConverted')
                 });
               }
             } catch (error) {
               console.error('Voice transcription error:', error);
               toast({
-                title: "Transcription failed",
-                description: "Could not convert voice to text. Please try again.",
+                title: t('chat.transcriptionFailed'),
+                description: t('chat.voiceToTextError'),
                 variant: "destructive"
               });
             }
@@ -421,15 +423,15 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
         setIsRecording(true);
         
         toast({
-          title: "Recording started",
-          description: "Speak now... Click the microphone again to stop."
+          title: t('chat.recordingStarted'),
+          description: t('chat.speakNow')
         });
         
       } catch (error) {
         console.error('Microphone access error:', error);
         toast({
-          title: "Microphone Error",
-          description: "Could not access microphone. Please check permissions.",
+          title: t('chat.microphoneError'),
+          description: t('chat.microphoneAccess'),
           variant: "destructive"
         });
       }
@@ -447,8 +449,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
 
       if (error) {
         toast({
-          title: "Speech Error",
-          description: "Failed to convert text to speech. Please try again.",
+          title: t('chat.speechError'),
+          description: t('chat.textToSpeechError'),
           variant: "destructive",
         });
         return;
@@ -469,8 +471,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       }
     } catch (error) {
       toast({
-        title: "Speech Error",
-        description: "Failed to convert text to speech. Please try again.",
+        title: t('chat.speechError'),
+        description: t('chat.textToSpeechError'),
         variant: "destructive",
       });
     }
@@ -480,7 +482,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
     // Reset to welcome message for new chat
     setMessages([{
       id: 'welcome-message',
-      content: "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
+      content: t('chat.welcomeMessage'),
       isUser: false,
       timestamp: new Date()
     }]);
@@ -505,8 +507,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       if (error) {
         console.error('Error loading session messages:', error);
         toast({
-          title: "Error",
-          description: "Failed to load chat session",
+          title: t('common.error'),
+          description: t('chat.loadSessionError'),
           variant: "destructive"
         });
         return;
@@ -525,8 +527,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
     } catch (error) {
       console.error('Error in handleSelectSession:', error);
       toast({
-        title: "Error",
-        description: "Failed to load chat session",
+        title: t('common.error'),
+        description: t('chat.loadSessionError'),
         variant: "destructive"
       });
     }
@@ -552,7 +554,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
               {renderNavigation()}
             </div>
             <div className="text-white/60 text-sm bg-white/10 px-4 py-2 rounded-xl">
-              {user ? `Welcome, ${user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}` : 'Demo Mode'}
+              {user ? `${t('chat.welcome')}, ${user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}` : t('chat.demoMode')}
             </div>
           </div>
         </div>
@@ -566,10 +568,10 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
             <div className="p-8">
               <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent flex items-center">
                 <MessageSquare className="mr-4 h-14 w-14 text-purple-400" />
-                AI Learning Assistant
+                {t('chat.title')}
               </h1>
               <p className="text-slate-300 text-xl">
-                Your personal AI tutor is ready to help you learn anything
+                {t('chat.subtitle')}
               </p>
             </div>
           )}
@@ -582,8 +584,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                 <div className="text-center py-16">
                   <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
                     <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                    <h3 className="text-3xl font-bold text-white mb-2">Ready to Learn?</h3>
-                    <p className="text-slate-300 text-xl">Start a conversation with your AI tutor</p>
+                    <h3 className="text-3xl font-bold text-white mb-2">{t('chat.readyToLearn')}</h3>
+                    <p className="text-slate-300 text-xl">{t('chat.startConversation')}</p>
                   </div>
                 </div>
               ) : (
@@ -605,7 +607,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                               variant="ghost"
                               size="sm"
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10"
-                              title="Read aloud"
+                              title={t('chat.readAloud')}
                             >
                               <Volume2 className="h-4 w-4" />
                             </Button>
@@ -662,7 +664,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Ask me anything about learning..."
+                    placeholder={t('chat.placeholder')}
                     className="w-full px-6 py-4 pr-28 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
                   />
                   
@@ -684,7 +686,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                            ? 'text-red-400 bg-red-400/20 hover:bg-red-400/30' 
                            : 'text-white/70 hover:text-white hover:bg-white/10'
                        }`}
-                       title={isRecording ? "Stop recording" : "Record voice message"}
+                       title={isRecording ? t('chat.stopRecording') : t('chat.recordVoice')}
                      >
                        {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                      </Button>
@@ -694,7 +696,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                        variant="ghost"
                        size="sm"
                        className="p-2 h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-                       title="Upload file"
+                       title={t('chat.uploadFile')}
                      >
                        <Upload className="h-4 w-4" />
                      </Button>
@@ -720,13 +722,13 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl"
           >
             <MessageSquarePlus className="h-4 w-4 mr-2" />
-            New Chat
+            {t('chat.newChat')}
           </Button>
 
           <Separator className="bg-white/20" />
 
           <div>
-            <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Previous Chats</h3>
+            <h3 className="text-sm font-medium text-white/70 mb-3 px-1">{t('chat.previousChats')}</h3>
             <ScrollArea className="h-[calc(100vh-300px)]">
               <div className="space-y-2">
                 {chatSessions.map((session) => (
@@ -744,7 +746,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-white truncate font-medium">{session.title}</p>
                         <p className="text-xs text-white/60">
-                          {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
+                          {new Date(session.created_at).toLocaleDateString()} • {session.message_count} {t('chat.messages')}
                         </p>
                       </div>
                     </div>
