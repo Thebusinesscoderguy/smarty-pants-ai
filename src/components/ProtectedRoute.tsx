@@ -22,28 +22,61 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [showChildrenManagement, setShowChildrenManagement] = useState(false);
   const [needsChildSetup, setNeedsChildSetup] = useState(false);
 
+  console.log('ProtectedRoute: userRole from hook:', userRole, 'roleLoading:', roleLoading);
+
   useEffect(() => {
     const checkUserSetup = async () => {
-      if (!user || loading) return;
+      if (!user || loading || roleLoading) return;
 
       console.log('ProtectedRoute: Current state:', {
         path: location.pathname,
         loading,
+        roleLoading,
         hasUser: !!user,
-        userId: user?.id
+        userId: user?.id,
+        userRole
       });
 
-      // Always show role selector for authenticated users
-      // This allows them to choose between parent or children each session
-      setShowRoleSelector(true);
+      // Check if user has a role in the database
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.role) {
+        // User has a role, navigate accordingly
+        console.log('ProtectedRoute: User has role:', profile.role);
+        if (profile.role === 'parent') {
+          // Check if they need to add children
+          const { data: childrenData } = await supabase
+            .from('children')
+            .select('id')
+            .eq('parent_id', user.id);
+
+          if (!childrenData || childrenData.length === 0) {
+            setShowChildrenManagement(true);
+          } else {
+            // Existing parent, go to monitoring
+            window.location.href = '/monitoring';
+          }
+        } else {
+          // Child/student, go to chat
+          window.location.href = '/chat';
+        }
+      } else {
+        // No role found, show role selector
+        console.log('ProtectedRoute: No role found, showing selector');
+        setShowRoleSelector(true);
+      }
     };
 
     checkUserSetup();
-  }, [loading, user, location.pathname]);
+  }, [loading, user, location.pathname, roleLoading, userRole]);
 
-  // Show loading only while auth is being determined
-  if (loading) {
-    console.log('ProtectedRoute: Auth loading, showing spinner');
+  // Show loading while auth or role is being determined
+  if (loading || roleLoading) {
+    console.log('ProtectedRoute: Loading state, showing spinner');
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -78,6 +111,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       <UserRoleSelector 
         onRoleSelected={async (role, childId) => {
           setShowRoleSelector(false);
+          
+          // Save the role to the database (convert 'child' to 'student')
+          const dbRole = role === 'child' ? 'student' : role;
+          await supabase
+            .from('profiles')
+            .upsert({ 
+              id: user.id, 
+              role: dbRole 
+            });
           
           // Navigate based on role selection
           if (role === 'parent') {
