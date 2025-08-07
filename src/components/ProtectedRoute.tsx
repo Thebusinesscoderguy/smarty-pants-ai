@@ -24,35 +24,26 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     const checkUserSetup = async () => {
-      if (!user || roleLoading) return;
+      if (!user || loading) return;
 
       console.log('ProtectedRoute: Current state:', {
         path: location.pathname,
         loading,
         hasUser: !!user,
-        userId: user?.id,
-        userRole,
-        roleLoading
+        userId: user?.id
       });
 
-      // If no role set, show role selector
-      if (!userRole) {
-        setShowRoleSelector(true);
-        return;
-      }
-
-      // Reset other states if role is set
-      setShowRoleSelector(false);
-      setShowChildrenManagement(false);
-      setNeedsChildSetup(false);
+      // Always show role selector for authenticated users
+      // This allows them to choose between parent or children each session
+      setShowRoleSelector(true);
     };
 
     checkUserSetup();
-  }, [loading, user, location.pathname, userRole, roleLoading]);
+  }, [loading, user, location.pathname]);
 
   // Show loading only while auth is being determined
-  if (loading || roleLoading) {
-    console.log('ProtectedRoute: Auth/Role loading, showing spinner');
+  if (loading) {
+    console.log('ProtectedRoute: Auth loading, showing spinner');
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -80,15 +71,17 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // Show role selector if needed
+  // Show role selector - always show this to let user choose their role for this session
   if (showRoleSelector) {
     console.log('ProtectedRoute: Showing role selector');
     return (
       <UserRoleSelector 
         onRoleSelected={async (role, childId) => {
           setShowRoleSelector(false);
-          // If parent role selected, check if they need to add children (new user)
+          
+          // Navigate based on role selection
           if (role === 'parent') {
+            // Check if they need to add children (new parent with no children)
             try {
               const { data: childrenData } = await supabase
                 .from('parent_child_relationships')
@@ -97,10 +90,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
               if (!childrenData || childrenData.length === 0) {
                 setShowChildrenManagement(true);
+              } else {
+                // Existing parent, go to monitoring
+                window.location.href = '/monitoring';
               }
             } catch (error) {
               console.error('Error checking children:', error);
             }
+          } else {
+            // Child selected, go to chat
+            window.location.href = '/chat';
           }
         }} 
       />
@@ -109,11 +108,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Check if we're on a dashboard route and should show role-specific dashboard
   if (location.pathname === '/dashboard' || location.pathname === '/') {
-    if (userRole === 'parent') {
-      return <ParentDashboard />;
-    } else if (userRole === 'student') {
-      return <StudentDashboard />;
-    }
+    // Don't auto-navigate here, let the role selector handle navigation
+    return null;
   }
 
   // User is authenticated, show protected content
