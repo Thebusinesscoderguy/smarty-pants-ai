@@ -45,14 +45,76 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Only fetch real chat sessions if user is authenticated
-    if (user) {
-      // TODO: Implement real chat session fetching
-      setChatSessions([]);
-    } else {
-      setChatSessions([]);
-    }
+    const fetchChatSessions = async () => {
+      if (!user) {
+        setChatSessions([]);
+        return;
+      }
+
+      try {
+        const { data: messagesData, error } = await supabase
+          .from('messages')
+          .select('conversation_id, content, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching chat sessions:', error);
+          return;
+        }
+
+        if (!messagesData) {
+          setChatSessions([]);
+          return;
+        }
+
+        // Group messages by conversation_id
+        const conversationMap = new Map();
+        messagesData.forEach(message => {
+          const convId = message.conversation_id || 'default';
+          if (!conversationMap.has(convId)) {
+            conversationMap.set(convId, {
+              id: convId,
+              messages: [],
+              firstMessage: message,
+              created_at: message.created_at
+            });
+          }
+          conversationMap.get(convId).messages.push(message);
+        });
+
+        // Convert to sessions with AI-generated titles
+        const sessions = Array.from(conversationMap.values()).map(conv => {
+          const title = generateTitleFromContent(conv.firstMessage.content);
+          return {
+            id: conv.id,
+            title,
+            created_at: conv.created_at,
+            message_count: conv.messages.length
+          };
+        });
+
+        setChatSessions(sessions);
+      } catch (error) {
+        console.error('Error in fetchChatSessions:', error);
+      }
+    };
+
+    fetchChatSessions();
   }, [user]);
+
+  const generateTitleFromContent = (content: string): string => {
+    if (!content) return 'New Chat';
+    
+    // Remove any file prefixes like [File: filename.ext]
+    const cleanContent = content.replace(/\[File:.*?\]\s*/, '').trim();
+    
+    // Take first 50 characters and add ellipsis if longer
+    const title = cleanContent.length > 50 ? cleanContent.substring(0, 50) + '...' : cleanContent;
+    
+    // If still empty, return default
+    return title || 'New Chat';
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
