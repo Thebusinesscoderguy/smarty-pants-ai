@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Menu } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatHeaderProps {
   activeCurriculum: any;
@@ -9,6 +10,8 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader = ({ activeCurriculum, onToggleSidebar }: ChatHeaderProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="bg-gray-800 border-b border-gray-700 p-4">
       <div className="flex items-center justify-between">
@@ -24,7 +27,7 @@ export const ChatHeader = ({ activeCurriculum, onToggleSidebar }: ChatHeaderProp
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">AI</span>
           </div>
-          <h1 className="text-lg font-semibold text-white">AI Learning Assistant</h1>
+          <h1 className="text-lg font-semibold text-white">{t('chatHeader.aiAssistant')}</h1>
         </div>
         {activeCurriculum && (
           <Badge className="bg-blue-100 text-blue-800 border-blue-200">

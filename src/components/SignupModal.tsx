@@ -12,6 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -24,14 +25,15 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
       toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
+        title: t('auth.passwordMismatch'),
+        description: t('auth.passwordMismatchDesc'),
         variant: "destructive",
       });
       return;
@@ -48,14 +50,14 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
       if (error) throw error;
 
       toast({
-        title: "Sign up successful",
-        description: "Check your email for a confirmation link.",
+        title: t('auth.signupSuccess'),
+        description: t('auth.checkEmail'),
       });
       
       onClose();
     } catch (error: any) {
       toast({
-        title: "Sign up failed",
+        title: t('auth.signupFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -73,16 +75,16 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-black border border-white/20 text-white sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">Sign Up</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-center">{t('auth.signupTitle')}</DialogTitle>
           <DialogDescription className="text-center text-white/70">
-            Create an account to get started
+            {t('auth.signupDesc')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Input
               type="email"
-              placeholder="Email"
+              placeholder={t('auth.email')}
               className="bg-transparent border-white/30 text-white"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -92,7 +94,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
           <div className="space-y-2">
             <Input
               type="password"
-              placeholder="Password"
+              placeholder={t('auth.password')}
               className="bg-transparent border-white/30 text-white"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -102,7 +104,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
           <div className="space-y-2">
             <Input
               type="password"
-              placeholder="Confirm Password"
+              placeholder={t('auth.confirmPassword')}
               className="bg-transparent border-white/30 text-white"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -114,7 +116,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
             className="w-full bg-white text-black hover:bg-gray-200"
             disabled={isLoading}
           >
-            {isLoading ? "Creating account..." : "Sign Up"}
+            {isLoading ? t('auth.creatingAccount') : t('auth.signup')}
           </Button>
           
           <div className="text-center">
@@ -124,7 +126,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
               className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
               onClick={handleUseAuthPage}
             >
-              More signup options
+              {t('auth.moreSignupOptions')}
             </Button>
           </div>
         </form>

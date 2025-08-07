@@ -12,6 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +39,15 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       if (error) throw error;
 
       toast({
-        title: "Login successful",
-        description: "Welcome back to Teachly!",
+        title: t('auth.loginSuccess'),
+        description: t('auth.welcomeBack'),
       });
 
       onClose();
       navigate('/features');
     } catch (error: any) {
       toast({
-        title: "Login failed",
+        title: t('auth.loginFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -63,16 +65,16 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-black border border-white/20 text-white sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">Log In</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-center">{t('auth.loginTitle')}</DialogTitle>
           <DialogDescription className="text-center text-white/70">
-            Enter your credentials to access your account
+            {t('auth.loginDesc')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Input
               type="email"
-              placeholder="Email"
+              placeholder={t('auth.email')}
               className="bg-transparent border-white/30 text-white"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -82,7 +84,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
           <div className="space-y-2">
             <Input
               type="password"
-              placeholder="Password"
+              placeholder={t('auth.password')}
               className="bg-transparent border-white/30 text-white"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -94,7 +96,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             className="w-full bg-white text-black hover:bg-gray-200"
             disabled={isLoading}
           >
-            {isLoading ? "Logging in..." : "Log In"}
+            {isLoading ? t('auth.loggingIn') : t('auth.login')}
           </Button>
           
           <div className="text-center">
@@ -104,7 +106,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               className="w-full border-white/30 bg-transparent text-white hover:bg-white/10"
               onClick={handleUseAuthPage}
             >
-              More login options
+              {t('auth.moreLoginOptions')}
             </Button>
           </div>
         </form>
