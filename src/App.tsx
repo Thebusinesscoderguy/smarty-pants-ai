@@ -9,6 +9,8 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import Index from './pages/Index';
 import Chat from './pages/Chat';
 import Modules from './pages/Modules';
+import FamilyHub from './pages/FamilyHub';
+import ParentOnboarding from './components/onboarding/ParentOnboarding';
 
 import Progress from './pages/Progress';
 import Auth from './pages/Auth';
@@ -42,6 +44,8 @@ function App() {
             <BrowserRouter>
               <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/family-hub" element={<FamilyHub />} />
+              <Route path="/parent-onboarding" element={<ParentOnboarding />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/modules" element={<Modules />} />
               <Route path="/voice" element={<Chat />} />

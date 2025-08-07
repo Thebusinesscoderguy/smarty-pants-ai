@@ -34,22 +34,27 @@ import {
 } from "@/components/ui/sidebar";
 import { toast } from "@/hooks/use-toast";
 
-const navigationItems = [
-  { title: "Home", icon: Home, url: "/" },
-  { title: "Chat", icon: MessageSquare, url: "/chat" },
-  { title: "Modules", icon: BookOpen, url: "/modules" },
+const familyItems = [
+  { title: "Family Hub", icon: Home, url: "/family-hub" },
+  { title: "AI Tutor", icon: MessageSquare, url: "/chat" },
+  { title: "Learning Path", icon: BookOpen, url: "/modules" },
   { title: "Progress", icon: TrendingUp, url: "/progress" },
 ];
 
 const toolsItems = [
-  { title: "Quiz Generator", icon: FileQuestion, url: "/quiz" },
+  { title: "Quiz Tools", icon: FileQuestion, url: "/quiz" },
+  { title: "Voice Learning", icon: Mic, url: "/voice" },
   { title: "Math Solver", icon: Calculator, url: "/math-solver" },
-  { title: "Voice Chat", icon: Mic, url: "/voice" },
 ];
 
 const managementItems = [
-  { title: "Monitoring", icon: Monitor, url: "/monitoring" },
   { title: "Settings", icon: Settings, url: "/settings" },
+];
+
+// Keep admin items separate (hidden by default)
+const adminItems = [
+  { title: "School Admin", icon: Users, url: "/school-admin" },
+  { title: "Monitoring", icon: Monitor, url: "/monitoring" },
 ];
 
 const AppSidebar = () => {
@@ -100,9 +105,9 @@ const AppSidebar = () => {
           {user ? (
             <SidebarMenu>
               <SidebarGroup>
-                <SidebarGroupLabel>Main</SidebarGroupLabel>
+                <SidebarGroupLabel>Family Learning</SidebarGroupLabel>
                 <SidebarGroupContent>
-                  {navigationItems.map((item) => (
+                  {familyItems.map((item) => (
                     <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
                       <SidebarMenuButton asChild>
                         <Link to={item.url}>
@@ -132,7 +137,7 @@ const AppSidebar = () => {
               </SidebarGroup>
 
               <SidebarGroup>
-                <SidebarGroupLabel>Management</SidebarGroupLabel>
+                <SidebarGroupLabel>Settings</SidebarGroupLabel>
                 <SidebarGroupContent>
                   {managementItems.map((item) => (
                     <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
@@ -146,6 +151,25 @@ const AppSidebar = () => {
                   ))}
                 </SidebarGroupContent>
               </SidebarGroup>
+              
+              {/* Admin Section - Only show for school admins */}
+              {isSchoolAdmin && (
+                <SidebarGroup>
+                  <SidebarGroupLabel>Administration</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    {adminItems.map((item) => (
+                      <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
+                        <SidebarMenuButton asChild>
+                          <Link to={item.url}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
               <SidebarGroup>
                 <SidebarGroupLabel>Account</SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -157,16 +181,6 @@ const AppSidebar = () => {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {isSchoolAdmin && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link to="/school-admin">
-                          <Users className="mr-2 h-4 w-4" />
-                          <span>School Admin</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <Link to="/pricing">
