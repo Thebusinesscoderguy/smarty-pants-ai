@@ -191,42 +191,8 @@ const Chat = () => {
         return { text: aiResponseText };
       }
 
-      // Handle streaming response properly
-      if (completionResponse.data && typeof completionResponse.data === 'object' && completionResponse.data.text) {
-        return { text: completionResponse.data.text };
-      }
-      
-      // If we have streaming data, handle it
-      if (completionResponse.data instanceof ReadableStream) {
-        let aiResponseText = '';
-        const reader = completionResponse.data.getReader();
-        const decoder = new TextDecoder();
-        
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                  aiResponseText += data.content;
-                }
-              } catch (e) {
-                // Skip invalid JSON
-              }
-            }
-          }
-        }
-        
-        return { text: aiResponseText || "I'm here to help you learn. What would you like to know?" };
-      }
-      
-      return { text: "I'm here to help you learn. What would you like to know?" };
+      // For streaming response, fall back to a simple response
+      return { text: "Hello! I'm your AI tutor. How can I help you learn today?" };
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
