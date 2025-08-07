@@ -27,14 +27,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const checkUserSetup = async () => {
       if (!user || loading || hasNavigated) return;
 
-      // Only show role selector on root paths
-      if (location.pathname === '/' || location.pathname === '/dashboard') {
-        setShowRoleSelector(true);
-      }
+      // Show role selector for authenticated users on initial access
+      setShowRoleSelector(true);
     };
 
     checkUserSetup();
-  }, [loading, user, location.pathname, hasNavigated]);
+  }, [loading, user, hasNavigated]);
 
   // Show loading only while auth is being determined
   if (loading) {
