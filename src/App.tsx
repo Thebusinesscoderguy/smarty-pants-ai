@@ -29,8 +29,11 @@ import QuizGenerator from './pages/QuizGenerator';
 import Monitoring from './pages/Monitoring';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient();
+
+
 
 function App() {
   // Clean app without system tests
@@ -44,10 +47,11 @@ function App() {
             <BrowserRouter>
               <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<ProtectedRoute><div /></ProtectedRoute>} />
               <Route path="/family-hub" element={<FamilyHub />} />
               <Route path="/parent-onboarding" element={<ParentOnboarding />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/modules" element={<Modules />} />
+              <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+              <Route path="/modules" element={<ProtectedRoute><Modules /></ProtectedRoute>} />
               <Route path="/voice" element={<Chat />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/monitoring" element={<Monitoring />} />
