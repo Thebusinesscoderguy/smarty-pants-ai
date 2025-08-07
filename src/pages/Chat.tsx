@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const Chat = () => {
   const { user } = useAuth();
+  const { userRole } = useUserRole();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -133,39 +135,47 @@ const Chat = () => {
 
   const renderNavigation = () => (
     <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
-      <Button
-        variant={currentPage === 'chat' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setCurrentPage('chat')}
-        className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-      >
-        <MessageSquare className="h-4 w-4 mr-2" />
-        {t('chat.nav.chat')}
-      </Button>
-      <Button
-        variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => {
-          setCurrentPage('monitoring');
-          navigate('/monitoring');
-        }}
-        className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-      >
-        <BarChart3 className="h-4 w-4 mr-2" />
-        {t('chat.nav.monitoring')}
-      </Button>
-      <Button
-        variant={currentPage === 'settings' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => {
-          setCurrentPage('settings');
-          navigate('/settings');
-        }}
-        className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-      >
-        <Settings className="h-4 w-4 mr-2" />
-        {t('chat.nav.settings')}
-      </Button>
+      {/* Always show Chat for students */}
+      {userRole === 'student' && (
+        <Button
+          variant={currentPage === 'chat' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setCurrentPage('chat')}
+          className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+        >
+          <MessageSquare className="h-4 w-4 mr-2" />
+          {t('chat.nav.chat')}
+        </Button>
+      )}
+      
+      {/* Always show Quiz Tools for students */}
+      {userRole === 'student' && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/quiz')}
+          className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+        >
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Quiz Tools
+        </Button>
+      )}
+      
+      {/* Only show Monitoring for parents */}
+      {userRole !== 'student' && (
+        <Button
+          variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => {
+            setCurrentPage('monitoring');
+            navigate('/monitoring');
+          }}
+          className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+        >
+          <BarChart3 className="h-4 w-4 mr-2" />
+          {t('chat.nav.monitoring')}
+        </Button>
+      )}
     </div>
   );
 

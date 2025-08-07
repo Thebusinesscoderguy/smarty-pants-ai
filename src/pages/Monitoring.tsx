@@ -100,18 +100,6 @@ const Monitoring = () => {
   const renderNavigation = () => (
     <div className="flex items-center justify-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10 mb-8">
       <Button
-        variant={currentPage === 'chat' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => {
-          setCurrentPage('chat');
-          navigate('/chat');
-        }}
-        className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
-      >
-        <MessageSquare className="h-4 w-4 mr-2" />
-        Chat
-      </Button>
-      <Button
         variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setCurrentPage('monitoring')}
@@ -119,18 +107,6 @@ const Monitoring = () => {
       >
         <BarChart3 className="h-4 w-4 mr-2" />
         Monitoring
-      </Button>
-      <Button
-        variant={currentPage === 'settings' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => {
-          setCurrentPage('settings');
-          navigate('/settings');
-        }}
-        className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
-      >
-        <Settings className="h-4 w-4 mr-2" />
-        Settings
       </Button>
     </div>
   );
