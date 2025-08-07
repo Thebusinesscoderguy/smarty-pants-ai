@@ -47,7 +47,7 @@ export const useTranslation = () => {
 
     setTranslatingKeys(prev => new Set(prev).add(cacheKey));
     
-    translationService.translateText(translation, language, 'en')
+    translationService.translateText(translation, 'en', language)
       .then(autoTranslated => {
         if (autoTranslated && autoTranslated !== translation) {
           const newCache = {

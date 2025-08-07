@@ -46,7 +46,7 @@ class TranslationService {
     return `${sourceLang}-${targetLang}:${text.toLowerCase().trim()}`;
   }
 
-  async translateText(text: string, targetLang: string, sourceLang: string = 'en', retryCount: number = 0): Promise<string> {
+  async translateText(text: string, sourceLang: string = 'en', targetLang: string, retryCount: number = 0): Promise<string> {
     // Skip translation if same language or empty text
     if (sourceLang === targetLang || !text || text.trim() === '') {
       return text;
