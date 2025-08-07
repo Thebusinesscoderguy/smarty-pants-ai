@@ -162,7 +162,7 @@ const Chat = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/modules')}
+          onClick={() => navigate('/quiz')}
           className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
         >
           <BarChart3 className="h-4 w-4 mr-2" />
