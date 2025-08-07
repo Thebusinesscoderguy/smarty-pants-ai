@@ -223,10 +223,10 @@ const Chat = () => {
           }
         }
         
-        return { text: aiResponseText || "I'm here to help you learn. What would you like to know?" };
+        return { text: aiResponseText || "Error: No response received from AI" };
       }
       
-      return { text: "I'm here to help you learn. What would you like to know?" };
+      throw new Error("Invalid response format from AI service");
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
