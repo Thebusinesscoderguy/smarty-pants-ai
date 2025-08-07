@@ -22,20 +22,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [showChildrenManagement, setShowChildrenManagement] = useState(false);
   const [needsChildSetup, setNeedsChildSetup] = useState(false);
 
-  console.log('ProtectedRoute: userRole from hook:', userRole, 'roleLoading:', roleLoading);
-
   useEffect(() => {
     const checkUserSetup = async () => {
       if (!user || loading || roleLoading) return;
-
-      console.log('ProtectedRoute: Current state:', {
-        path: location.pathname,
-        loading,
-        roleLoading,
-        hasUser: !!user,
-        userId: user?.id,
-        userRole
-      });
 
       // Check if user has a role in the database
       const { data: profile } = await supabase
@@ -45,10 +34,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         .single();
 
       if (profile?.role) {
-        // User has a role, navigate accordingly
-        console.log('ProtectedRoute: User has role:', profile.role);
+        // User has a role, navigate accordingly without page reload
         if (profile.role === 'parent') {
-          // Check if they need to add children
           const { data: childrenData } = await supabase
             .from('children')
             .select('id')
@@ -56,31 +43,26 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
           if (!childrenData || childrenData.length === 0) {
             setShowChildrenManagement(true);
-          } else {
-            // Existing parent, go to monitoring
-            window.location.href = '/monitoring';
+            return;
           }
-        } else {
-          // Child/student, go to chat
-          window.location.href = '/chat';
         }
+        // For users with roles, don't show role selector again
+        return;
       } else {
         // No role found, show role selector
-        console.log('ProtectedRoute: No role found, showing selector');
         setShowRoleSelector(true);
       }
     };
 
     checkUserSetup();
-  }, [loading, user, location.pathname, roleLoading, userRole]);
+  }, [user, loading, roleLoading]);
 
-  // Show loading while auth or role is being determined
-  if (loading || roleLoading) {
-    console.log('ProtectedRoute: Loading state, showing spinner');
+  // Show loading only when absolutely necessary
+  if (loading) {
     return (
       <div className="flex min-h-screen bg-black text-white items-center justify-center flex-col">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Verifying your session...</p>
+        <p>Loading...</p>
       </div>
     );
   }
@@ -121,9 +103,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
               role: dbRole 
             });
           
-          // Navigate based on role selection
+          // Navigate based on role selection without full page reload
           if (role === 'parent') {
-            // Check if they need to add children (new parent with no children)
             try {
               const { data: childrenData } = await supabase
                 .from('children')
@@ -133,15 +114,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
               if (!childrenData || childrenData.length === 0) {
                 setShowChildrenManagement(true);
               } else {
-                // Existing parent, go directly to monitoring
-                window.location.href = '/monitoring';
+                // Use React Router navigation instead of window.location
+                window.location.replace('/monitoring');
               }
             } catch (error) {
               console.error('Error checking children:', error);
             }
           } else {
-            // Child selected, go to chat
-            window.location.href = '/chat';
+            // Use React Router navigation instead of window.location
+            window.location.replace('/chat');
           }
         }} 
       />
