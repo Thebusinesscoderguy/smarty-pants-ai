@@ -23,6 +23,7 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
+  isDemoMode?: boolean;
 }
 
 export const ChatSidebar = ({
@@ -31,23 +32,24 @@ export const ChatSidebar = ({
   onSelectCurriculum,
   onNewChat,
   activeSessionId,
-  onSelectSession
+  onSelectSession,
+  isDemoMode = false
 }: ChatSidebarProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !isDemoMode) {
       fetchChatSessions();
     } else {
-      // Clear sessions for unauthenticated users
+      // Clear sessions for unauthenticated users or demo mode
       setChatSessions([]);
     }
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const fetchChatSessions = async () => {
-    if (!user) return;
+    if (!user || isDemoMode) return;
 
     try {
       const { data: messagesData, error: messagesError } = await supabase

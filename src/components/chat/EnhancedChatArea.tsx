@@ -235,6 +235,8 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         setDemoMessages(session.messages);
       }
     }
+    // For real mode, load actual chat sessions from database
+    // This functionality should be implemented when needed
   };
 
   const displayMessages = (isDemoMode && !user) ? demoMessages : messages;
@@ -250,6 +252,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
           onNewChat={handleNewChat}
           activeSessionId={activeSessionId}
           onSelectSession={handleSelectSession}
+          isDemoMode={isDemoMode}
         />
       </div>
 
