@@ -38,25 +38,12 @@ import { toast } from "@/hooks/use-toast";
 // Child navigation - limited access
 const childNavigationItems = [
   { title: "Chat", icon: MessageSquare, url: "/chat" },
-];
-
-const childToolsItems = [
   { title: "Quiz Tools", icon: FileQuestion, url: "/quiz" },
-  { title: "Math Solver", icon: Calculator, url: "/math-solver" },
 ];
 
-// Parent/Admin navigation - full access
+// Parent navigation - monitoring only
 const parentNavigationItems = [
-  { title: "Home", icon: Home, url: "/" },
-  { title: "Chat", icon: MessageSquare, url: "/chat" },
-  { title: "Modules", icon: BookOpen, url: "/modules" },
-  { title: "Progress", icon: TrendingUp, url: "/progress" },
-];
-
-const parentToolsItems = [
-  { title: "Quiz Tools", icon: FileQuestion, url: "/quiz" },
-  { title: "Voice Learning", icon: Mic, url: "/voice" },
-  { title: "Math Solver", icon: Calculator, url: "/math-solver" },
+  { title: "Monitoring", icon: Monitor, url: "/monitoring" },
 ];
 
 const managementItems = [
@@ -82,10 +69,6 @@ const AppSidebar = () => {
   // Get appropriate navigation items based on user role
   const getNavigationItems = () => {
     return userRole === 'student' ? childNavigationItems : parentNavigationItems;
-  };
-
-  const getToolsItems = () => {
-    return userRole === 'student' ? childToolsItems : parentToolsItems;
   };
 
   const handleSignOut = async () => {
@@ -141,41 +124,6 @@ const AppSidebar = () => {
                   ))}
                 </SidebarGroupContent>
               </SidebarGroup>
-              
-              <SidebarGroup>
-                <SidebarGroupLabel>Tools</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  {getToolsItems().map((item) => (
-                    <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
-                      <SidebarMenuButton asChild>
-                        <Link to={item.url}>
-                          <item.icon className="mr-2 h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarGroupContent>
-              </SidebarGroup>
-
-              {/* Only show Settings for parents */}
-              {userRole !== 'student' && (
-                <SidebarGroup>
-                  <SidebarGroupLabel>Settings</SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    {managementItems.map((item) => (
-                      <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
-                        <SidebarMenuButton asChild>
-                          <Link to={item.url}>
-                            <item.icon className="mr-2 h-4 w-4" />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              )}
               
               {/* Admin Section - Only show for school admins */}
               {isSchoolAdmin && (

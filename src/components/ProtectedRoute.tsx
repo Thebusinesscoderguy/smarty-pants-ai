@@ -91,7 +91,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
               if (!childrenData || childrenData.length === 0) {
                 setShowChildrenManagement(true);
               } else {
-                // Existing parent, go to monitoring
+                // Existing parent, go directly to monitoring
                 window.location.href = '/monitoring';
               }
             } catch (error) {
