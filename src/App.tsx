@@ -33,38 +33,36 @@ function App() {
   // Clean app without system tests
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/chat" element={<Chat />} />
-                
-                <Route path="/progress" element={<Progress />} />
-                <Route path="/monitoring" element={<Monitoring />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/features" element={<Features />} />
-                <Route path="/how-it-works" element={<HowItWorks />} />
-                <Route path="/pricing" element={<PublicPricing />} />
-                <Route path="/pricing-checkout" element={<PricingCheckout />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/school-admin" element={<SchoolAdmin />} />
-                <Route path="/accept-invitation" element={<AcceptInvitation />} />
-                
-                
-                <Route path="/math-solver" element={<MathSolver />} />
-                <Route path="/quiz" element={<QuizGenerator />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </LanguageProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/chat" element={<Chat />} />
+              
+              <Route path="/progress" element={<Progress />} />
+              <Route path="/monitoring" element={<Monitoring />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/features" element={<Features />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/pricing" element={<PublicPricing />} />
+              <Route path="/pricing-checkout" element={<PricingCheckout />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/school-admin" element={<SchoolAdmin />} />
+              <Route path="/accept-invitation" element={<AcceptInvitation />} />
+              
+              
+              <Route path="/math-solver" element={<MathSolver />} />
+              <Route path="/quiz" element={<QuizGenerator />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
