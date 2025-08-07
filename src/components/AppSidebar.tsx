@@ -67,6 +67,7 @@ const AppSidebar = () => {
     ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
     : null;
   const effectiveRole = sessionRole ?? userRole;
+  console.log('AppSidebar role state', { userRole, sessionRole, effectiveRole });
 
   const isActive = (url: string) => {
     return location.pathname === url;

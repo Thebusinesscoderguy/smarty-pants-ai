@@ -29,6 +29,9 @@ const Chat = () => {
     ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
     : null;
   const effectiveRole = sessionRole ?? userRole;
+  useEffect(() => {
+    console.log('Chat role state', { userRole, sessionRole, effectiveRole });
+  }, [userRole, sessionRole]);
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date, audioUrl?: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
