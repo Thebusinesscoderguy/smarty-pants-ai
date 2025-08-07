@@ -65,7 +65,7 @@ function App() {
               
               
               <Route path="/math-solver" element={<MathSolver />} />
-              <Route path="/quiz" element={<QuizGenerator />} />
+              <Route path="/quiz" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
               </Routes>
