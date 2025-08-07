@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 import { 
   Sidebar, 
@@ -34,14 +35,25 @@ import {
 } from "@/components/ui/sidebar";
 import { toast } from "@/hooks/use-toast";
 
-const navigationItems = [
+// Child navigation - limited access
+const childNavigationItems = [
+  { title: "Chat", icon: MessageSquare, url: "/chat" },
+];
+
+const childToolsItems = [
+  { title: "Quiz Tools", icon: FileQuestion, url: "/quiz" },
+  { title: "Math Solver", icon: Calculator, url: "/math-solver" },
+];
+
+// Parent/Admin navigation - full access
+const parentNavigationItems = [
   { title: "Home", icon: Home, url: "/" },
   { title: "Chat", icon: MessageSquare, url: "/chat" },
   { title: "Modules", icon: BookOpen, url: "/modules" },
   { title: "Progress", icon: TrendingUp, url: "/progress" },
 ];
 
-const toolsItems = [
+const parentToolsItems = [
   { title: "Quiz Tools", icon: FileQuestion, url: "/quiz" },
   { title: "Voice Learning", icon: Mic, url: "/voice" },
   { title: "Math Solver", icon: Calculator, url: "/math-solver" },
@@ -59,11 +71,21 @@ const adminItems = [
 
 const AppSidebar = () => {
   const { user, signOut, isSchoolAdmin, isSigningOut } = useAuth();
+  const { userRole } = useUserRole();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isActive = (url: string) => {
     return location.pathname === url;
+  };
+
+  // Get appropriate navigation items based on user role
+  const getNavigationItems = () => {
+    return userRole === 'student' ? childNavigationItems : parentNavigationItems;
+  };
+
+  const getToolsItems = () => {
+    return userRole === 'student' ? childToolsItems : parentToolsItems;
   };
 
   const handleSignOut = async () => {
@@ -107,7 +129,7 @@ const AppSidebar = () => {
               <SidebarGroup>
                 <SidebarGroupLabel>Main</SidebarGroupLabel>
                 <SidebarGroupContent>
-                  {navigationItems.map((item) => (
+                  {getNavigationItems().map((item) => (
                     <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
                       <SidebarMenuButton asChild>
                         <Link to={item.url}>
@@ -123,7 +145,7 @@ const AppSidebar = () => {
               <SidebarGroup>
                 <SidebarGroupLabel>Tools</SidebarGroupLabel>
                 <SidebarGroupContent>
-                  {toolsItems.map((item) => (
+                  {getToolsItems().map((item) => (
                     <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
                       <SidebarMenuButton asChild>
                         <Link to={item.url}>
@@ -136,21 +158,24 @@ const AppSidebar = () => {
                 </SidebarGroupContent>
               </SidebarGroup>
 
-              <SidebarGroup>
-                <SidebarGroupLabel>Settings</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  {managementItems.map((item) => (
-                    <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
-                      <SidebarMenuButton asChild>
-                        <Link to={item.url}>
-                          <item.icon className="mr-2 h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarGroupContent>
-              </SidebarGroup>
+              {/* Only show Settings for parents */}
+              {userRole !== 'student' && (
+                <SidebarGroup>
+                  <SidebarGroupLabel>Settings</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    {managementItems.map((item) => (
+                      <SidebarMenuItem key={item.title} className={isActive(item.url) ? "active" : ""}>
+                        <SidebarMenuButton asChild>
+                          <Link to={item.url}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
               
               {/* Admin Section - Only show for school admins */}
               {isSchoolAdmin && (
@@ -170,40 +195,65 @@ const AppSidebar = () => {
                   </SidebarGroupContent>
                 </SidebarGroup>
               )}
-              <SidebarGroup>
-                <SidebarGroupLabel>Account</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/onboarding">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/pricing">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        <span>Subscription</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Button 
-                        variant="ghost" 
-                        onClick={handleSignOut} 
-                        className="justify-start w-full"
-                        disabled={isSigningOut}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
-                      </Button>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              {/* Only show Account section for parents */}
+              {userRole !== 'student' && (
+                <SidebarGroup>
+                  <SidebarGroupLabel>Account</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/onboarding">
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/pricing">
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          <span>Subscription</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Button 
+                          variant="ghost" 
+                          onClick={handleSignOut} 
+                          className="justify-start w-full"
+                          disabled={isSigningOut}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
+                        </Button>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
+              
+              {/* Simple logout for students */}
+              {userRole === 'student' && (
+                <SidebarGroup>
+                  <SidebarGroupLabel>Account</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Button 
+                          variant="ghost" 
+                          onClick={handleSignOut} 
+                          className="justify-start w-full"
+                          disabled={isSigningOut}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>{isSigningOut ? 'Signing out...' : 'Logout'}</span>
+                        </Button>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
             </SidebarMenu>
           ) : (
             <SidebarMenu>
