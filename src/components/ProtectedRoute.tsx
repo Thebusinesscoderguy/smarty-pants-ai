@@ -84,8 +84,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
             // Check if they need to add children (new parent with no children)
             try {
               const { data: childrenData } = await supabase
-                .from('parent_child_relationships')
-                .select('child_id')
+                .from('children')
+                .select('id')
                 .eq('parent_id', user.id);
 
               if (!childrenData || childrenData.length === 0) {

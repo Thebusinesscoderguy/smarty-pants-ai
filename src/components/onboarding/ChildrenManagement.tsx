@@ -53,33 +53,19 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
     if (!user) return;
 
     try {
-      const { data: relationships, error } = await supabase
-        .from('parent_child_relationships')
-        .select('child_id')
+      const { data: children, error } = await supabase
+        .from('children')
+        .select('*')
         .eq('parent_id', user.id);
 
       if (error) throw error;
 
-      if (!relationships || relationships.length === 0) {
-        setChildren([]);
-        return;
-      }
-
-      // Get profiles for children
-      const childIds = relationships.map(rel => rel.child_id);
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, display_name')
-        .in('id', childIds);
-
-      if (profileError) throw profileError;
-
-      const childrenData = profiles?.map(profile => ({
-        id: profile.id,
-        first_name: profile.display_name?.split(' ')[0] || 'Child',
-        last_name: profile.display_name?.split(' ')[1] || '',
-        grade_level: '',
-        subjects: []
+      const childrenData = children?.map(child => ({
+        id: child.id,
+        first_name: child.first_name,
+        last_name: child.last_name,
+        grade_level: child.grade_level || '',
+        subjects: child.subjects || []
       })) || [];
 
       setChildren(childrenData);
@@ -100,40 +86,27 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
 
     setLoading(true);
     try {
-      // Create child profile directly (no auth signup needed)
-      const displayName = `${newChild.firstName} ${newChild.lastName}`;
-      const childId = crypto.randomUUID();
-      
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+      // Insert directly into children table
+      const { data: childData, error: childError } = await supabase
+        .from('children')
         .insert({
-          id: childId,
-          display_name: displayName,
-          role: 'student'
+          parent_id: user.id,
+          first_name: newChild.firstName,
+          last_name: newChild.lastName,
+          grade_level: newChild.gradeLevel,
+          subjects: newChild.subjects
         })
         .select()
         .single();
 
-      if (profileError) throw profileError;
+      if (childError) throw childError;
 
-      if (profileData) {
-        // Create parent-child relationship
-        const { error: relationError } = await supabase
-          .from('parent_child_relationships')
-          .insert({
-            parent_id: user.id,
-            child_id: profileData.id
-          });
-
-        if (relationError) throw relationError;
-
-        setNewChild({ firstName: '', lastName: '', gradeLevel: '', subjects: [] });
-        fetchChildren();
-        toast({
-          title: "Child Added",
-          description: `${newChild.firstName} has been added to your family account.`
-        });
-      }
+      setNewChild({ firstName: '', lastName: '', gradeLevel: '', subjects: [] });
+      fetchChildren();
+      toast({
+        title: "Child Added",
+        description: `${newChild.firstName} has been added to your family account.`
+      });
     } catch (error: any) {
       console.error('Error adding child:', error);
       toast({

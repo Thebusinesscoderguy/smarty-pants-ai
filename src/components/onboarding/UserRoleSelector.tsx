@@ -29,33 +29,26 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
     if (!user) return;
 
     try {
-      // Check if this user is a parent
-      const { data: relationships } = await supabase
-        .from('parent_child_relationships')
-        .select('child_id')
+      // Get children from the children table
+      const { data: childrenData } = await supabase
+        .from('children')
+        .select('*')
         .eq('parent_id', user.id);
 
-      // Check if this user is a child
+      if (childrenData && childrenData.length > 0) {
+        const children = childrenData.map(child => ({
+          id: child.id,
+          first_name: child.first_name,
+          last_name: child.last_name
+        }));
+        setChildren(children);
+      }
+
+      // Check if this user is a child in parent_child_relationships (for backward compatibility)
       const { data: childData } = await supabase
         .from('parent_child_relationships')
         .select('parent_id')
         .eq('child_id', user.id);
-
-      if (relationships && relationships.length > 0) {
-        // Get profiles for children
-        const childIds = relationships.map(rel => rel.child_id);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name')
-          .in('id', childIds);
-
-        const childrenData = profiles?.map(profile => ({
-          id: profile.id,
-          first_name: profile.display_name?.split(' ')[0] || 'Child',
-          last_name: profile.display_name?.split(' ')[1] || ''
-        })) || [];
-        setChildren(childrenData);
-      }
 
       // If user is a child, they don't need to select a role
       if (childData && childData.length > 0) {

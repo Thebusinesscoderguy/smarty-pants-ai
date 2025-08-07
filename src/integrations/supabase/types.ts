@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      children: {
+        Row: {
+          created_at: string
+          first_name: string
+          grade_level: string | null
+          id: string
+          last_name: string
+          parent_id: string
+          subjects: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          grade_level?: string | null
+          id?: string
+          last_name: string
+          parent_id: string
+          subjects?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          grade_level?: string | null
+          id?: string
+          last_name?: string
+          parent_id?: string
+          subjects?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_assignments: {
         Row: {
           assigned_by: string
