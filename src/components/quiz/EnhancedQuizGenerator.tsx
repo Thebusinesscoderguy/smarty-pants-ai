@@ -20,6 +20,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState(5);
+  const [gradeLevel, setGradeLevel] = useState<string>('');
   const [customInstructions, setCustomInstructions] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
@@ -57,7 +58,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
         break;
     }
 
-    const quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory);
+    const quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
     if (quiz) {
       setGeneratedQuiz(quiz);
     }
@@ -85,18 +86,22 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   };
 
   const canGenerate = () => {
+    let base = false;
     switch (inputMethod) {
       case 'manual':
-        return topic.trim().length > 0;
+        base = topic.trim().length > 0;
+        break;
       case 'file':
-        return uploadedFile !== null;
+        base = uploadedFile !== null;
+        break;
       case 'ai':
-        return customInstructions.trim().length > 0;
+        base = customInstructions.trim().length > 0;
+        break;
       default:
-        return false;
+        base = false;
     }
+    return base && gradeLevel.trim().length > 0;
   };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -227,6 +232,30 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
               </div>
             </TabsContent>
           </Tabs>
+
+          <div className="space-y-2">
+            <Label htmlFor="gradeLevel">Grade Level</Label>
+            <Select value={gradeLevel} onValueChange={setGradeLevel}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select grade level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Grade 1">Grade 1</SelectItem>
+                <SelectItem value="Grade 2">Grade 2</SelectItem>
+                <SelectItem value="Grade 3">Grade 3</SelectItem>
+                <SelectItem value="Grade 4">Grade 4</SelectItem>
+                <SelectItem value="Grade 5">Grade 5</SelectItem>
+                <SelectItem value="Grade 6">Grade 6</SelectItem>
+                <SelectItem value="Grade 7">Grade 7</SelectItem>
+                <SelectItem value="Grade 8">Grade 8</SelectItem>
+                <SelectItem value="Grade 9">Grade 9</SelectItem>
+                <SelectItem value="Grade 10">Grade 10</SelectItem>
+                <SelectItem value="Grade 11">Grade 11</SelectItem>
+                <SelectItem value="Grade 12">Grade 12</SelectItem>
+                <SelectItem value="College">College</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="questionCount">Number of Questions</Label>

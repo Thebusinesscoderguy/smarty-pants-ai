@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { inputData, inputType } = await req.json();
+    const { inputData, inputType, gradeLevel, region } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -36,9 +36,11 @@ serve(async (req) => {
         prompt = `Create a study plan based on: "${inputData}".`;
     }
 
-    const fullPrompt = `${prompt}
+    const contextLine = `${gradeLevel ? `Grade level: ${gradeLevel}. ` : ''}${region ? `Curriculum/Country: ${region}. ` : ''}`;
 
-    Generate a detailed study plan in this exact JSON format:
+    const fullPrompt = `${contextLine}${prompt}
+
+    Generate a detailed study plan in this exact JSON format only (no markdown, no extra text):
     {
       "id": "unique-study-plan-id",
       "title": "Personalized Study Plan for [Subject/Topic]",
@@ -57,7 +59,6 @@ serve(async (req) => {
         }
       ]
     }
-    
     Requirements:
     - Identify 3-5 specific weak areas that need improvement
     - Create 7-14 daily lessons depending on complexity
@@ -67,31 +68,43 @@ serve(async (req) => {
     - Focus on progressive difficulty and skill building
     - Make activities specific and actionable`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert educational consultant creating personalized study plans. Always respond with valid JSON only.' 
+    async function callOpenAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
           },
-          { role: 'user', content: fullPrompt }
-        ],
-        temperature: 0.7,
-      }),
-    });
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: 'You are an expert educational consultant creating personalized study plans. Always respond with valid JSON only.' },
+              { role: 'user', content: fullPrompt }
+            ],
+            temperature: 0.5,
+          }),
+        });
+        if (resp.ok) return resp;
+        if (resp.status === 429 && attempt < retries) {
+          await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
+          continue;
+        }
+        return resp;
+      }
+      return new Response(null, { status: 500 });
+    }
+
+    const response = await callOpenAIWithRetry();
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const text = await response.text();
+      throw new Error(`OpenAI API error (${response.status}): ${text}`);
     }
 
     const data = await response.json();
-    const planContent = data.choices[0].message.content;
+    let planContent = data.choices?.[0]?.message?.content ?? '';
+    planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
     
     let studyPlan;
     try {
@@ -108,7 +121,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-study-plan function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

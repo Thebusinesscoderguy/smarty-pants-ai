@@ -26,7 +26,8 @@ export const useStudyPlanGenerator = () => {
 
   const generateStudyPlan = async (
     inputData: string,
-    inputType: 'file' | 'chat' | 'topic'
+    inputType: 'file' | 'chat' | 'topic',
+    opts?: { gradeLevel?: string; region?: string }
   ): Promise<StudyPlan | null> => {
     setIsGenerating(true);
     
@@ -34,7 +35,9 @@ export const useStudyPlanGenerator = () => {
       const { data, error } = await supabase.functions.invoke('generate-study-plan', {
         body: {
           inputData,
-          inputType
+          inputType,
+          gradeLevel: opts?.gradeLevel,
+          region: opts?.region
         }
       });
 

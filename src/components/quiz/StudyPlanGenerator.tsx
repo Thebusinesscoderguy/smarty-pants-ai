@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { FileUploadZone } from './FileUploadZone';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 
 interface StudyPlan {
@@ -34,15 +35,15 @@ export const StudyPlanGenerator = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
+  const [gradeLevel, setGradeLevel] = useState<string>('');
+  const [region, setRegion] = useState<string>('');
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
-  
+
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
   };
-
-  const handleFileRemove = () => {
     setUploadedFile(null);
   };
 
@@ -65,7 +66,7 @@ export const StudyPlanGenerator = () => {
         break;
     }
 
-    const plan = await generateStudyPlan(inputData, inputType);
+    const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region });
     if (plan) {
       setGeneratedPlan(plan);
     }
@@ -81,8 +82,9 @@ export const StudyPlanGenerator = () => {
   };
 
   const popularTopics = [
-    'Algebra', 'Geometry', 'Calculus', 'Physics', 'Chemistry', 'Biology',
-    'World History', 'Literature', 'Grammar', 'Spanish', 'French', 'Computer Science'
+    'Algebra 1', 'Algebra 2', 'Geometry', 'Precalculus', 'Calculus AB', 'Calculus BC',
+    'Physics', 'Chemistry', 'Biology', 'US History', 'World History', 'Civics/Government',
+    'English Grammar', 'Literature', 'Spanish I', 'Spanish II', 'Computer Science', 'SAT Math', 'SAT Reading'
   ];
 
   return (
@@ -150,12 +152,43 @@ export const StudyPlanGenerator = () => {
                 </div>
               </div>
             </TabsContent>
-          </Tabs>
+            </Tabs>
 
+            {/* Grade level and region */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="gradeLevel">Grade Level</Label>
+                <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grade level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
+                      <SelectItem key={gl} value={gl}>{gl}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="region">Curriculum/Country</Label>
+                <Select value={region} onValueChange={setRegion}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select curriculum/country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['USA','United Kingdom','International Baccalaureate','Cambridge International','Australia','France'].map(r => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           <Button 
             onClick={handleGeneratePlan}
             disabled={
-              isGenerating || 
+              isGenerating ||
+              !gradeLevel.trim() ||
+              !region.trim() ||
               (inputMethod === 'file' && !uploadedFile) ||
               (inputMethod === 'chat' && !chatInput.trim()) ||
               (inputMethod === 'topic' && !selectedTopic.trim())

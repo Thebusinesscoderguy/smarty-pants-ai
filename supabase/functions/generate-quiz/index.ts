@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, difficulty = 'medium', questionCount = 5, conversationHistory } = await req.json();
+    const { topic, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -28,10 +28,9 @@ serve(async (req) => {
         .join('\n');
     }
 
-    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}" with ${questionCount} questions.
+    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}" for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.
     ${context ? `Base the questions on this conversation context:\n${context}\n\n` : ''}
-    
-    Generate questions in this exact JSON format:
+    Generate questions in this exact JSON format only (no markdown, no extra text):
     {
       "title": "Quiz about [topic]",
       "description": "Brief description of the quiz",
@@ -45,37 +44,47 @@ serve(async (req) => {
         }
       ]
     }
-    
-    Mix question types: multiple_choice, true_false, and short_answer.
-    For true_false questions, options should be ["True", "False"].
-    For short_answer questions, omit the options field.
-    Make sure all questions are educational and test understanding of the topic.`;
+    Mix question types: multiple_choice, true_false (options must be ["True","False"]) and short_answer (omit options). Ensure JSON is valid.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert educator creating quiz questions. Always respond with valid JSON only.' 
+    async function callOpenAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
           },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-      }),
-    });
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: 'You are an expert educator creating quiz questions. Always respond with valid JSON only.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.5,
+          }),
+        });
+        if (resp.ok) return resp;
+        if (resp.status === 429 && attempt < retries) {
+          await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
+          continue;
+        }
+        return resp;
+      }
+      // Should not reach here
+      return new Response(null, { status: 500 });
+    }
+
+    const response = await callOpenAIWithRetry();
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const text = await response.text();
+      throw new Error(`OpenAI API error (${response.status}): ${text}`);
     }
 
     const data = await response.json();
-    const quizContent = data.choices[0].message.content;
+    let quizContent = data.choices?.[0]?.message?.content ?? '';
+    // Strip markdown fences if any
+    quizContent = quizContent.trim().replace(/^```json\n?|\n?```$/g, '');
     
     let quizData;
     try {
@@ -92,7 +101,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-quiz function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

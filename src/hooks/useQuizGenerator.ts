@@ -33,7 +33,8 @@ export const useQuizGenerator = () => {
     topic: string, 
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     questionCount: number = 5,
-    conversationHistory?: any[]
+    conversationHistory?: any[],
+    gradeLevel?: string
   ): Promise<Quiz | null> => {
 
     setIsGenerating(true);
@@ -43,7 +44,8 @@ export const useQuizGenerator = () => {
           topic,
           difficulty,
           questionCount,
-          conversationHistory
+          conversationHistory,
+          gradeLevel
         }
       });
 
