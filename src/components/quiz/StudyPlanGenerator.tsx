@@ -44,6 +44,8 @@ export const StudyPlanGenerator = () => {
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
   };
+
+  const handleFileRemove = () => {
     setUploadedFile(null);
   };
 
