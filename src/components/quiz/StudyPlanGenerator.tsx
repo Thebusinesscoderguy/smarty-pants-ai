@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface StudyPlan {
   id: string;
@@ -39,6 +41,8 @@ export const StudyPlanGenerator = () => {
   const [region, setRegion] = useState<string>('');
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
 
+  const [saving, setSaving] = useState(false);
+  const [starting, setStarting] = useState(false);
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
 
   const handleFileUpload = (file: File) => {
@@ -71,6 +75,80 @@ export const StudyPlanGenerator = () => {
     const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region });
     if (plan) {
       setGeneratedPlan(plan);
+    }
+  };
+
+  const handleSavePlan = async () => {
+    if (!generatedPlan) return;
+    try {
+      setSaving(true);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      if (!userId) {
+        toast({ title: 'Sign in required', description: 'Please sign in to save your study plan.' });
+        return;
+      }
+      const { error } = await supabase.from('study_plans').insert([
+        {
+          user_id: userId as any,
+          title: generatedPlan.title,
+          description: generatedPlan.description,
+          weak_areas: generatedPlan.weakAreas,
+          daily_lessons: generatedPlan.dailyLessons as any,
+          estimated_duration: generatedPlan.estimatedDuration,
+          difficulty_level: generatedPlan.difficultyLevel,
+          grade_level: gradeLevel || null,
+          region: region || null,
+          status: 'saved'
+        } as any
+      ]);
+      if (error) throw error;
+      toast({ title: 'Saved', description: 'Your study plan has been saved.' });
+    } catch (e: any) {
+      toast({ title: 'Failed to save', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStartPlan = async () => {
+    if (!generatedPlan) return;
+    try {
+      setStarting(true);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      if (!userId) {
+        toast({ title: 'Sign in required', description: 'Please sign in to start your study plan.' });
+        return;
+      }
+      const { data, error } = await supabase
+        .from('study_plans')
+        .insert([
+          {
+            user_id: userId as any,
+            title: generatedPlan.title,
+            description: generatedPlan.description,
+            weak_areas: generatedPlan.weakAreas,
+            daily_lessons: generatedPlan.dailyLessons as any,
+            estimated_duration: generatedPlan.estimatedDuration,
+            difficulty_level: generatedPlan.difficultyLevel,
+            grade_level: gradeLevel || null,
+            region: region || null,
+            status: 'active',
+            started_at: new Date().toISOString()
+          } as any
+        ])
+        .select('id')
+        .maybeSingle();
+      if (error) throw error;
+      if (data?.id) {
+        try { localStorage.setItem('active_study_plan_id', data.id); } catch {}
+      }
+      toast({ title: 'Plan started', description: 'You can now follow your daily lessons.' });
+    } catch (e: any) {
+      toast({ title: 'Failed to start', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setStarting(false);
     }
   };
 
@@ -308,11 +386,11 @@ export const StudyPlanGenerator = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button className="flex-1">
-                Start Study Plan
+              <Button className="flex-1" onClick={handleStartPlan} disabled={starting}>
+                {starting ? 'Starting…' : 'Start Study Plan'}
               </Button>
-              <Button variant="outline" className="flex-1">
-                Save Plan
+              <Button variant="outline" className="flex-1" onClick={handleSavePlan} disabled={saving}>
+                {saving ? 'Saving…' : 'Save Plan'}
               </Button>
             </div>
           </CardContent>
