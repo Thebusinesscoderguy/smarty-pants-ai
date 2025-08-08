@@ -7,6 +7,7 @@ import { Trash2, Play, BookOpen } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import QuizTaker from './QuizTaker';
+import QuizResults from './QuizResults';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 export const QuizLibrary = () => {
@@ -14,7 +15,7 @@ export const QuizLibrary = () => {
   const [open, setOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [attempts, setAttempts] = useState<Record<string, { score: number; total: number }>>({});
-
+  const [mode, setMode] = useState<'take' | 'results'>('take');
   useEffect(() => {
     fetchQuizzes();
   }, []);
@@ -76,7 +77,7 @@ export const QuizLibrary = () => {
       
       <div className="grid gap-4">
         {quizzes.map((quiz) => (
-          <Card key={quiz.id}>
+          <Card key={quiz.id} onClick={() => { if (attempts[quiz.id!]) { setSelectedQuiz(quiz); setMode('results'); setOpen(true); } }} className="cursor-pointer">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
@@ -108,14 +109,19 @@ export const QuizLibrary = () => {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setOpen(true); }}>
+                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setSelectedQuiz(quiz); setMode('take'); setOpen(true); }}>
                     <Play className="h-4 w-4 mr-1" />
                     Take Quiz
                   </Button>
+                  {attempts[quiz.id!] && (
+                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setSelectedQuiz(quiz); setMode('results'); setOpen(true); }}>
+                      View Results
+                    </Button>
+                  )}
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={() => handleDelete(quiz.id!)}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(quiz.id!); }}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -130,21 +136,27 @@ export const QuizLibrary = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedQuiz?.title ?? 'Take Quiz'}</DialogTitle>
+            <DialogTitle>
+              {mode === 'take' ? (selectedQuiz?.title ?? 'Take Quiz') : (selectedQuiz?.title ? `${selectedQuiz.title} – Results` : 'Results')}
+            </DialogTitle>
           </DialogHeader>
           {selectedQuiz && (
-            <QuizTaker
-              quiz={selectedQuiz}
-              onComplete={(res) => {
-                setOpen(false);
-                if (selectedQuiz?.id) {
-                  setAttempts((prev) => ({
-                    ...prev,
-                    [selectedQuiz.id!]: { score: res.score, total: res.total },
-                  }));
-                }
-              }}
-            />
+            mode === 'take' ? (
+              <QuizTaker
+                quiz={selectedQuiz}
+                onComplete={(res) => {
+                  setOpen(false);
+                  if (selectedQuiz?.id) {
+                    setAttempts((prev) => ({
+                      ...prev,
+                      [selectedQuiz.id!]: { score: res.score, total: res.total },
+                    }));
+                  }
+                }}
+              />
+            ) : (
+              <QuizResults quiz={selectedQuiz} />
+            )
           )}
         </DialogContent>
       </Dialog>

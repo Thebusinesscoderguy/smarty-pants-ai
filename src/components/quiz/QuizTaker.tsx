@@ -64,6 +64,7 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
           correct,
           is_correct: correctBool,
           points: q.points ?? 1,
+          explanation: q.explanation ?? null,
         };
       });
 
