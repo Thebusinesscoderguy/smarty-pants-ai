@@ -28,7 +28,9 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const startTimeRef = useRef<number>(Date.now());
+const startTimeRef = useRef<number>(Date.now());
+  const questionStartRef = useRef<number>(Date.now());
+  const perQuestionMsRef = useRef<Record<string, number>>({});
 
   const questions = quiz.questions || [];
   const totalPoints = useMemo(
@@ -42,12 +44,34 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
     setAnswers((prev) => ({ ...prev, [qid]: value }));
   };
 
-  const goNext = () => setIndex((i) => Math.min(i + 1, questions.length - 1));
-  const goPrev = () => setIndex((i) => Math.max(i - 1, 0));
+  const commitTimeForCurrent = () => {
+    const now = Date.now();
+    const delta = now - questionStartRef.current;
+    const qid = current?.id ?? String(index);
+    if (qid != null) {
+      perQuestionMsRef.current[qid] = (perQuestionMsRef.current[qid] || 0) + Math.max(0, delta);
+    }
+    questionStartRef.current = now;
+  };
+
+  const goNext = () => {
+    if (index < questions.length - 1) {
+      commitTimeForCurrent();
+      setIndex((i) => i + 1);
+    }
+  };
+  const goPrev = () => {
+    if (index > 0) {
+      commitTimeForCurrent();
+      setIndex((i) => i - 1);
+    }
+  };
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
+      // Commit time for current question
+      commitTimeForCurrent();
       // Score
       let score = 0;
       const answerPayload = questions.map((q: any, i: number) => {
@@ -65,6 +89,7 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
           is_correct: correctBool,
           points: q.points ?? 1,
           explanation: q.explanation ?? null,
+          time_taken_ms: perQuestionMsRef.current[qid] || 0,
         };
       });
 

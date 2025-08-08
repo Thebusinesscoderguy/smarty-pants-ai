@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
 interface QuizResultsProps {
   quiz: Quiz;
@@ -30,6 +32,8 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [overrides, setOverrides] = useState<Record<number, string>>({});
+  const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -98,9 +102,32 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
           <div className="space-y-6">
             {answers.map((a, i) => {
               const q = quiz.questions?.[a.index];
-              const explanation = a.explanation ?? (q as any)?.explanation ?? null;
+              const baseExplanation = (a.explanation ?? (q as any)?.explanation ?? null) as string | null;
+              const explanation = overrides[i] ?? baseExplanation;
               const correctOpt = a.correct;
               const selected = a.selected;
+              const timeMs = (a as any)?.time_taken_ms as number | undefined;
+
+              const handleExplain = async (mode: 'summary' | 'detail') => {
+                if (!baseExplanation) return;
+                try {
+                  setLoadingIdx(i);
+                  const { data, error } = await supabase.functions.invoke('explain-text', {
+                    body: { text: baseExplanation, mode }
+                  });
+                  if (error) throw error;
+                  const newText = (data as any)?.text ?? (data as any)?.generatedText ?? null;
+                  if (newText) {
+                    setOverrides((prev) => ({ ...prev, [i]: newText }));
+                  }
+                } catch (e: any) {
+                  console.error(e);
+                  toast({ title: 'Failed to generate', description: e.message ?? 'Please try again.' });
+                } finally {
+                  setLoadingIdx(null);
+                }
+              };
+
               return (
                 <div key={i}>
                   <div className="flex items-start justify-between gap-3">
@@ -111,13 +138,26 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
                       <Badge className="bg-red-100 text-red-800">Incorrect</Badge>
                     )}
                   </div>
-                  <div className="mt-2 text-sm opacity-90">
+                  <div className="mt-2 text-sm opacity-90 space-y-1">
                     <div><span className="font-semibold">Your answer:</span> {String(selected)}</div>
                     {!a.is_correct && (
                       <div><span className="font-semibold">Correct answer:</span> {String(correctOpt)}</div>
                     )}
+                    {typeof timeMs === 'number' && timeMs > 0 && (
+                      <div><span className="font-semibold">Time spent:</span> {Math.round(timeMs / 1000)}s</div>
+                    )}
                     {explanation && (
-                      <div className="mt-2"><span className="font-semibold">Explanation:</span> {explanation}</div>
+                      <div className="mt-2 space-y-2">
+                        <div><span className="font-semibold">Explanation:</span> {explanation}</div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('summary')}>
+                            {loadingIdx === i ? 'Loading…' : 'Summarise'}
+                          </Button>
+                          <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('detail')}>
+                            {loadingIdx === i ? 'Loading…' : 'More detail'}
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                   {i < answers.length - 1 && <Separator className="mt-4" />}
