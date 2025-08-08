@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { FileUploadZone } from './FileUploadZone';
-import { Loader2, Plus, Save, Trash2, FileQuestion, Brain, Upload } from 'lucide-react';
+import { Loader2, Plus, Save, Trash2, FileQuestion, Brain } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 
 interface EnhancedQuizGeneratorProps {
@@ -36,28 +36,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   };
 
   const handleGenerateQuiz = async () => {
-    let quizData: any = {
-      topic,
-      difficulty,
-      questionCount,
-      conversationHistory
-    };
-
-    // Add specific data based on input method
-    switch (inputMethod) {
-      case 'file':
-        if (!uploadedFile) return;
-        quizData.sourceFile = uploadedFile.name; // In real implementation, would process file
-        break;
-      case 'ai':
-        if (!customInstructions.trim()) return;
-        quizData.customInstructions = customInstructions;
-        break;
-      case 'manual':
-        if (!topic.trim()) return;
-        break;
-    }
-
+    // Build base data (reserved for future use)
     const quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
     if (quiz) {
       setGeneratedQuiz(quiz);
@@ -102,6 +81,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
     }
     return base && gradeLevel.trim().length > 0;
   };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -276,7 +256,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
           {conversationHistory && conversationHistory.length > 0 && (
             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
               <p className="text-sm text-blue-600">
-                💡 This quiz will incorporate context from your recent conversation
+                 This quiz will incorporate context from your recent conversation
               </p>
             </div>
           )}
