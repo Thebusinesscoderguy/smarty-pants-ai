@@ -1,18 +1,45 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Play, BookOpen } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import QuizTaker from './QuizTaker';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 export const QuizLibrary = () => {
   const { quizzes, fetchQuizzes, deleteQuiz } = useQuizGenerator();
+  const [open, setOpen] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [attempts, setAttempts] = useState<Record<string, { score: number; total: number }>>({});
 
   useEffect(() => {
     fetchQuizzes();
   }, []);
 
+  useEffect(() => {
+    const loadAttempts = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user || quizzes.length === 0) return;
+      const ids = quizzes.map((q) => q.id).filter(Boolean) as string[];
+      const { data, error } = await supabase
+        .from('quiz_attempts')
+        .select('quiz_id, score, total_possible, completed_at')
+        .in('quiz_id', ids)
+        .order('completed_at', { ascending: false });
+      if (error || !data) return;
+      const map: Record<string, { score: number; total: number }> = {};
+      (data as any[]).forEach((row) => {
+        if (!map[row.quiz_id]) {
+          map[row.quiz_id] = { score: row.score, total: row.total_possible };
+        }
+      });
+      setAttempts(map);
+    };
+    loadAttempts();
+  }, [quizzes]);
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-100 text-green-800';
@@ -70,11 +97,18 @@ export const QuizLibrary = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Question types: {[...new Set(quiz.questions.map(q => q.type.replace('_', ' ')))].join(', ')}
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div>
+                    Question types: {[...new Set(quiz.questions.map(q => q.type.replace('_', ' ')))].join(', ')}
+                  </div>
+                  {attempts[quiz.id!] && (
+                    <div>
+                      Last score: {attempts[quiz.id!].score}/{attempts[quiz.id!].total}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={() => { setSelectedQuiz(quiz); setOpen(true); }}>
                     <Play className="h-4 w-4 mr-1" />
                     Take Quiz
                   </Button>
@@ -92,6 +126,28 @@ export const QuizLibrary = () => {
           </Card>
         ))}
       </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedQuiz?.title ?? 'Take Quiz'}</DialogTitle>
+          </DialogHeader>
+          {selectedQuiz && (
+            <QuizTaker
+              quiz={selectedQuiz}
+              onComplete={(res) => {
+                setOpen(false);
+                if (selectedQuiz?.id) {
+                  setAttempts((prev) => ({
+                    ...prev,
+                    [selectedQuiz.id!]: { score: res.score, total: res.total },
+                  }));
+                }
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
