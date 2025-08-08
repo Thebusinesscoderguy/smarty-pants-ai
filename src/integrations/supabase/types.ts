@@ -1241,6 +1241,57 @@ export type Database = {
         }
         Relationships: []
       }
+      study_plans: {
+        Row: {
+          created_at: string
+          daily_lessons: Json
+          description: string | null
+          difficulty_level: string
+          estimated_duration: number
+          grade_level: string | null
+          id: string
+          region: string | null
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          weak_areas: string[]
+        }
+        Insert: {
+          created_at?: string
+          daily_lessons?: Json
+          description?: string | null
+          difficulty_level?: string
+          estimated_duration?: number
+          grade_level?: string | null
+          id?: string
+          region?: string | null
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          weak_areas?: string[]
+        }
+        Update: {
+          created_at?: string
+          daily_lessons?: Json
+          description?: string | null
+          difficulty_level?: string
+          estimated_duration?: number
+          grade_level?: string | null
+          id?: string
+          region?: string | null
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          weak_areas?: string[]
+        }
+        Relationships: []
+      }
       subject_assignments: {
         Row: {
           assigned_by: string
