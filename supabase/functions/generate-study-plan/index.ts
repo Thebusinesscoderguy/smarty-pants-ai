@@ -77,7 +77,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
               { role: 'system', content: 'You are an expert educational consultant creating personalized study plans. Always respond with valid JSON only.' },
               { role: 'user', content: fullPrompt }
