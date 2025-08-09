@@ -30,21 +30,22 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    // Get and validate API key
-    const openAIKey = Deno.env.get('OPENAI_API_KEY');
-    console.log('OpenAI API key check:', {
-      hasKey: !!openAIKey,
-      keyLength: openAIKey?.length || 0,
-      keyPrefix: openAIKey?.substring(0, 7) || 'none'
+    // Get and validate API keys (prefer ElevenLabs if available)
+    const openAIKey = Deno.env.get('OPENAI_API_KEY') || '';
+    const xiApiKey = Deno.env.get('XI_API_KEY') || '';
+
+    console.log('API keys presence:', {
+      hasOpenAI: !!openAIKey,
+      hasElevenLabs: !!xiApiKey,
     });
-    
-    if (!openAIKey || openAIKey.trim() === '') {
-      console.error("CRITICAL ERROR: OPENAI_API_KEY not found or empty");
+
+    if ((!openAIKey || openAIKey.trim() === '') && (!xiApiKey || xiApiKey.trim() === '')) {
+      console.error("CRITICAL ERROR: No TTS provider keys configured");
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured on the server',
+          error: 'No TTS provider configured on the server',
           type: 'api_key_error',
-          details: 'The server administrator needs to set the OPENAI_API_KEY in Supabase secrets'
+          details: 'Set XI_API_KEY (preferred) or OPENAI_API_KEY in Supabase secrets'
         }),
         {
           status: 400,
@@ -68,6 +69,124 @@ serve(async (req) => {
       );
     }
 
+    // Prefer ElevenLabs if available for lower latency
+    if (xiApiKey && xiApiKey.trim() !== '') {
+      console.log('Using ElevenLabs TTS (Turbo v2.5)');
+
+      // Voice mapping (fallback to Aria if unknown)
+      const ELEVEN_VOICE_MAP: Record<string, string> = {
+        'aria': '9BWtsMINqrJLrRacOk9x',
+        'roger': 'CwhRBWXzGAHq8TQ4Fs17',
+        'sarah': 'EXAVITQu4vr4xnSDYk0k2',
+        'laura': 'FGY2WhTYpPnrIDTdsKH5',
+        'charlie': 'IKne3meq5aSn9XLyUdCD',
+        'george': 'JBFqnCBsd6RMkjVDRZzb',
+        'callum': 'N2lVS1w4EtoT3dr4eOWO',
+        'river': 'SAz9YHcvj6GT2YYXdXww',
+        'liam': 'TX3LPaxmHKxFdv7VOQHJ',
+        'charlotte': 'XB0fDUnXU5powFXDhCwa',
+        'alice': 'Xb7hH8MSUJpSbSDYk0k2',
+        'matilda': 'XrExE9yKIg1WjnnlVkGX',
+        'will': 'bIHbv24MWmeRgasZH58o',
+        'jessica': 'cgSgspJ2msm6clMCkdW9',
+        'eric': 'cjVigY5qzO86Huf0OWal',
+        'chris': 'iP95p4xoKVk53GoZ742B',
+        'brian': 'nPczCjzI2devNBz1zQrb',
+        'daniel': 'onwK4e9ZLuTAKqWW03F9',
+        'lily': 'pFZP5JQG7iQjIQuC4Bku',
+        'bill': 'pqHfZKP75CvOlQylNhV4',
+      };
+
+      const requested = (voice || '').toLowerCase();
+      const defaultVoiceId = ELEVEN_VOICE_MAP['aria'];
+      const voiceId = ELEVEN_VOICE_MAP[requested] || defaultVoiceId;
+
+      const timeoutMs = 12000;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const start = Date.now();
+        console.log('Calling ElevenLabs API with params:', {
+          voiceId,
+          model_id: 'eleven_turbo_v2_5',
+          optimize_streaming_latency: 4,
+          output_format: 'mp3_22050_32',
+          textLength: text.length,
+        });
+
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}` , {
+          method: 'POST',
+          headers: {
+            'xi-api-key': xiApiKey,
+            'Content-Type': 'application/json',
+            'accept': 'audio/mpeg',
+          },
+          body: JSON.stringify({
+            text,
+            model_id: 'eleven_turbo_v2_5',
+            optimize_streaming_latency: 4,
+            output_format: 'mp3_22050_32',
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        console.log('ElevenLabs status:', response.status, 'content-type:', response.headers.get('content-type'));
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('ElevenLabs error:', errText);
+          let message = 'Failed to generate speech via ElevenLabs';
+          try {
+            const parsed = JSON.parse(errText);
+            message = parsed?.detail || parsed?.message || message;
+          } catch (_) {}
+          return new Response(
+            JSON.stringify({ error: message, type: 'tts_provider_error', provider: 'elevenlabs' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength === 0) {
+          console.error('ElevenLabs returned empty audio');
+          return new Response(
+            JSON.stringify({ error: 'Empty audio from provider', type: 'empty_audio', provider: 'elevenlabs' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        console.log('ElevenLabs success. Duration(ms):', Date.now() - start, 'Base64 length:', base64Audio.length);
+
+        return new Response(
+          JSON.stringify({
+            audioContent: base64Audio,
+            metadata: {
+              provider: 'elevenlabs',
+              voice: voice || 'aria',
+              voiceId,
+              processingTimeMs: Date.now() - start,
+            }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (err) {
+        console.error('ElevenLabs request failed:', err);
+        const aborted = (err as any)?.name === 'AbortError';
+        return new Response(
+          JSON.stringify({
+            error: aborted ? `ElevenLabs request timed out after ${timeoutMs}ms` : (err as any)?.message || 'Unknown error',
+            type: aborted ? 'timeout_error' : 'api_request_error',
+            provider: 'elevenlabs'
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Fallback to OpenAI TTS if ElevenLabs is not configured
     console.log("PROCEEDING WITH REAL OPENAI API CALL");
     console.log("Request parameters:", {
       model: 'tts-1',
@@ -204,7 +323,8 @@ serve(async (req) => {
               originalSize: arrayBuffer.byteLength,
               base64Size: base64Audio.length,
               voice: voice || 'alloy',
-              processingTimeMs: Date.now() - requestStartTime
+              processingTimeMs: Date.now() - requestStartTime,
+              provider: 'openai'
             }
           }),
           {
@@ -214,18 +334,18 @@ serve(async (req) => {
       } catch (fetchError) {
         console.error("FETCH ERROR when calling OpenAI API:", fetchError);
         console.error("Fetch error details:", {
-          name: fetchError.name,
-          message: fetchError.message,
-          stack: fetchError.stack
+          name: (fetchError as any).name,
+          message: (fetchError as any).message,
+          stack: (fetchError as any).stack
         });
         
         let errorType = 'api_request_error';
-        let errorMessage = `API request failed: ${fetchError.message}`;
+        let errorMessage = `API request failed: ${(fetchError as any).message}`;
         
-        if (fetchError.name === 'TypeError' && fetchError.message.includes('network')) {
+        if ((fetchError as any).name === 'TypeError' && (fetchError as any).message.includes('network')) {
           errorType = 'network_error';
           errorMessage = 'Network error while connecting to OpenAI. Please check your internet connection.';
-        } else if (fetchError.name === 'AbortError') {
+        } else if ((fetchError as any).name === 'AbortError') {
           errorType = 'timeout_error';
           errorMessage = 'Request to OpenAI was aborted or timed out.';
         }
@@ -235,8 +355,8 @@ serve(async (req) => {
             error: errorMessage,
             type: errorType,
             details: {
-              name: fetchError.name,
-              message: fetchError.message
+              name: (fetchError as any).name,
+              message: (fetchError as any).message
             }
           }),
           {
