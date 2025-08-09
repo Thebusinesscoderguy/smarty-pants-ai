@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -511,10 +511,6 @@ const Index = () => {
 
       <Footer />
 
-      <RoleSelection 
-        isOpen={showRoleSelection} 
-        onClose={() => setShowRoleSelection(false)} 
-      />
     </div>
   );
 };
