@@ -1,22 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { EnhancedStudentDashboard } from '@/components/monitoring/EnhancedStudentDashboard';
-import { StudentManagement } from '@/components/admin/StudentManagement';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, FileText, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, BookOpen, Plus, MessageSquare, Settings } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Clock, Activity, Target, Book, Award, Brain, Shield, Zap, Calendar, Trophy, AlertCircle, Wifi, Database, Heart, GraduationCap, Plus, MessageSquare, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useMonitoringData } from '@/hooks/useMonitoringData';
-import { useTestManagement } from '@/hooks/useTestManagement';
-import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
-import { TestCreator } from '@/components/TestCreator';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,8 +28,6 @@ const Monitoring = () => {
   
   // Demo mode - no authentication restrictions for demonstration purposes
   const { studentProgress, overviewStats, loading: dataLoading } = useMonitoringData();
-  const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
-  const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
   const { quests, createQuest, deleteQuest } = useQuestManagement();
   const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
 
@@ -42,18 +36,10 @@ const Monitoring = () => {
   const achievementCompletions = getDemoAchievementCompletions();
 
   // Dialog states
-  const [showTestCreator, setShowTestCreator] = useState(false);
-  const [showCurriculumDialog, setShowCurriculumDialog] = useState(false);
   const [showQuestDialog, setShowQuestDialog] = useState(false);
   const [showAchievementDialog, setShowAchievementDialog] = useState(false);
 
   // Form states
-  const [curriculumForm, setCurriculumForm] = useState({
-    title: '',
-    description: '',
-    grade_level: '',
-    content: { sections: [] }
-  });
 
   const [questForm, setQuestForm] = useState({
     title: '',
@@ -73,13 +59,6 @@ const Monitoring = () => {
     criteria: { requirement: '' }
   });
 
-  const handleCreateCurriculum = async () => {
-    if (!curriculumForm.title) return;
-    
-    await createCurriculum(curriculumForm);
-    setShowCurriculumDialog(false);
-    setCurriculumForm({ title: '', description: '', grade_level: '', content: { sections: [] } });
-  };
 
   const handleCreateQuest = async () => {
     if (!questForm.title) return;
@@ -131,33 +110,7 @@ const Monitoring = () => {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/30 backdrop-blur-sm rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-200 text-sm font-medium">Active Students</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalStudents}</p>
-                </div>
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <Users className="h-6 w-6 text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-600/10 border-green-500/30 backdrop-blur-sm rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-200 text-sm font-medium">Total Tests</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalTests}</p>
-                </div>
-                <div className="p-3 bg-green-500/20 rounded-xl">
-                  <FileText className="h-6 w-6 text-green-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/30 backdrop-blur-sm rounded-2xl">
             <CardContent className="p-6">
@@ -187,19 +140,6 @@ const Monitoring = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-pink-500/10 to-pink-600/10 border-pink-500/30 backdrop-blur-sm rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-pink-200 text-sm font-medium">Curricula</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalCurricula}</p>
-                </div>
-                <div className="p-3 bg-pink-500/20 rounded-xl">
-                  <BookOpen className="h-6 w-6 text-pink-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border-yellow-500/30 backdrop-blur-sm rounded-2xl">
             <CardContent className="p-6">
@@ -246,27 +186,13 @@ const Monitoring = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="students" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Students
-            </TabsTrigger>
-            <TabsTrigger 
-              value="curriculums" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Curriculums
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
@@ -288,13 +214,6 @@ const Monitoring = () => {
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               Analytics
-            </TabsTrigger>
-            <TabsTrigger 
-              value="tests" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Tests
             </TabsTrigger>
           </TabsList>
 
@@ -344,110 +263,7 @@ const Monitoring = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="students" className="space-y-8">
-            <StudentManagement />
-            <EnhancedStudentDashboard />
-          </TabsContent>
 
-          <TabsContent value="curriculums" className="space-y-8">
-            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white flex items-center text-2xl">
-                  <BookOpen className="h-6 w-6 mr-3 text-purple-400" />
-                  Curriculum Management
-                </CardTitle>
-                <Dialog open={showCurriculumDialog} onOpenChange={setShowCurriculumDialog}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-purple-600 hover:bg-purple-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Curriculum
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-slate-900 border-white/20">
-                    <DialogHeader>
-                      <DialogTitle className="text-white">Create New Curriculum</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-white">Title</Label>
-                        <Input
-                          value={curriculumForm.title}
-                          onChange={(e) => setCurriculumForm(prev => ({ ...prev, title: e.target.value }))}
-                          className="bg-white/10 border-white/20 text-white"
-                          placeholder="Curriculum title"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-white">Description</Label>
-                        <Textarea
-                          value={curriculumForm.description}
-                          onChange={(e) => setCurriculumForm(prev => ({ ...prev, description: e.target.value }))}
-                          className="bg-white/10 border-white/20 text-white"
-                          placeholder="Curriculum description"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-white">Grade Level</Label>
-                        <Select value={curriculumForm.grade_level} onValueChange={(value) => setCurriculumForm(prev => ({ ...prev, grade_level: value }))}>
-                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                            <SelectValue placeholder="Select grade level" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => (
-                              <SelectItem key={i + 1} value={`Grade ${i + 1}`}>Grade {i + 1}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button onClick={handleCreateCurriculum} className="w-full bg-purple-600 hover:bg-purple-700">
-                        Create Curriculum
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                {curricula.length === 0 ? (
-                  <div className="text-center py-12">
-                    <BookOpen className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">No Curricula Yet</h3>
-                    <p className="text-white/60">Create your first curriculum to get started</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {curricula.map((curriculum) => (
-                      <Card key={curriculum.id} className="bg-white/5 border-white/10">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-white">{curriculum.title}</h3>
-                              <p className="text-white/60 text-sm">{curriculum.description}</p>
-                              {curriculum.grade_level && (
-                                <Badge variant="outline" className="mt-2">{curriculum.grade_level}</Badge>
-                              )}
-                            </div>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => deleteCurriculum(curriculum.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-white/60">Created: {new Date(curriculum.created_at).toLocaleDateString()}</span>
-                            <Badge variant={curriculum.is_active ? "default" : "secondary"}>
-                              {curriculum.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="quests" className="space-y-8">
             <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
@@ -794,80 +610,6 @@ const Monitoring = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="tests" className="space-y-8">
-            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white flex items-center text-2xl">
-                  <FileText className="h-6 w-6 mr-3 text-yellow-400" />
-                  Test Management
-                </CardTitle>
-                <Dialog open={showTestCreator} onOpenChange={setShowTestCreator}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-yellow-600 hover:bg-yellow-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Test
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-slate-900 border-white/20 max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="text-white">Create New Test</DialogTitle>
-                    </DialogHeader>
-                    <TestCreator onTestCreated={() => setShowTestCreator(false)} />
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                {tests.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FileText className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">No Tests Yet</h3>
-                    <p className="text-white/60">Create your first test to start assessing students</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {tests.map((test) => (
-                      <Card key={test.id} className="bg-white/5 border-white/10">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-white">{test.title}</h3>
-                              <p className="text-white/60 text-sm">{test.description}</p>
-                              <div className="flex gap-2 mt-2">
-                                {test.subject && <Badge variant="outline">{test.subject}</Badge>}
-                                {test.ai_generated && <Badge variant="secondary">AI Generated</Badge>}
-                                {test.is_mandatory && <Badge variant="destructive">Mandatory</Badge>}
-                              </div>
-                            </div>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => deleteTest(test.id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Time Limit:</span>
-                              <span className="text-white">{test.time_limit_minutes} minutes</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Total Points:</span>
-                              <span className="text-white">{test.total_points}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Created:</span>
-                              <span className="text-white">{new Date(test.created_at).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </main>
 

@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
+import { ArrowRight, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { RoleSelection } from '@/components/RoleSelection';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,14 +24,6 @@ const Index = () => {
     navigate('/auth');
   };
 
-  const handleTryDemo = () => {
-    const demoUsed = localStorage.getItem('demo_used');
-    if (demoUsed) {
-      navigate('/auth');
-    } else {
-      navigate('/demo');
-    }
-  };
 
 
   return (
@@ -64,15 +56,6 @@ const Index = () => {
               >
                 {t('cta.start')}
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                onClick={handleTryDemo}
-              >
-                {t('cta.demo')}
-                <BookOpen className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -519,14 +502,6 @@ const Index = () => {
                   onClick={handleStartLearning}
                 >
                   Start Learning
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm font-semibold px-8 py-4 text-lg"
-                  onClick={handleTryDemo}
-                >
-                  {t('final.cta.demo')}
                 </Button>
               </div>
             </div>

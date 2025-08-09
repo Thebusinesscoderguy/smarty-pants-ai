@@ -14,7 +14,7 @@ import ParentOnboarding from './components/onboarding/ParentOnboarding';
 
 import Progress from './pages/Progress';
 import Auth from './pages/Auth';
-import Demo from './pages/Demo';
+
 import Features from './pages/Features';
 import HowItWorks from './pages/HowItWorks';
 import PublicPricing from './pages/PublicPricing';
@@ -54,7 +54,7 @@ function App() {
               <Route path="/progress" element={<Progress />} />
               <Route path="/monitoring" element={<Monitoring />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/demo" element={<Demo />} />
+              
               <Route path="/features" element={<Features />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/pricing" element={<PublicPricing />} />
