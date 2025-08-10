@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
+import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
@@ -43,7 +44,51 @@ export const StudyPlanGenerator = () => {
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
-  const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
+const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
+const { isGenerating: isBuildingQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz } = useQuizGenerator();
+const [creatingPractice, setCreatingPractice] = useState(false);
+
+const handleCreateRetake = async () => {
+  setCreatingPractice(true);
+  try {
+    const quiz = await retakeLatestQuiz();
+    if (!quiz) return;
+    const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Retake)` });
+    if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+  } catch (e: any) {
+    toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+  } finally {
+    setCreatingPractice(false);
+  }
+};
+
+const handleCreateMistakes = async () => {
+  setCreatingPractice(true);
+  try {
+    const quiz = await quizFromLatestMistakes();
+    if (!quiz) return;
+    const savedId = await saveQuiz(quiz);
+    if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+  } catch (e: any) {
+    toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+  } finally {
+    setCreatingPractice(false);
+  }
+};
+
+const handleCreateMistakesSimilar = async () => {
+  setCreatingPractice(true);
+  try {
+    const quiz = await quizFromLatestMistakes({ targetCount: 10 });
+    if (!quiz) return;
+    const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
+    if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+  } catch (e: any) {
+    toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+  } finally {
+    setCreatingPractice(false);
+  }
+};
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
@@ -198,6 +243,24 @@ export const StudyPlanGenerator = () => {
                   disabled={isGenerating}
                 />
               </div>
+
+              {uploadedFile && (
+                <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+                  <div className="text-sm font-medium">Practice options from your last quiz</div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <Button onClick={handleCreateRetake} disabled={creatingPractice || isBuildingQuiz}>
+                      {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
+                    </Button>
+                    <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isBuildingQuiz}>
+                      {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
+                    </Button>
+                    <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz}>
+                      {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and can be taken like any normal quiz.</p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="chat" className="space-y-4">
