@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileUploadZone } from './FileUploadZone';
 import { Loader2, Plus, Save, Trash2, FileQuestion, Brain } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
+import { toast } from '@/components/ui/use-toast';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
@@ -25,7 +26,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   
-  const { isGenerating, generateQuiz, saveQuiz } = useQuizGenerator();
+  const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes } = useQuizGenerator();
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
@@ -45,13 +46,56 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
 
   const handleSaveQuiz = async () => {
     if (!generatedQuiz) return;
-    
     const quizId = await saveQuiz(generatedQuiz);
     if (quizId) {
       setGeneratedQuiz(null);
       setTopic('');
       setCustomInstructions('');
       setUploadedFile(null);
+    }
+  };
+
+  const [creatingPractice, setCreatingPractice] = useState(false);
+
+  const handleCreateRetake = async () => {
+    setCreatingPractice(true);
+    try {
+      const quiz = await retakeLatestQuiz();
+      if (!quiz) return;
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Retake)` });
+      if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(false);
+    }
+  };
+
+  const handleCreateMistakes = async () => {
+    setCreatingPractice(true);
+    try {
+      const quiz = await quizFromLatestMistakes();
+      if (!quiz) return;
+      const savedId = await saveQuiz(quiz);
+      if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(false);
+    }
+  };
+
+  const handleCreateMistakesSimilar = async () => {
+    setCreatingPractice(true);
+    try {
+      const quiz = await quizFromLatestMistakes({ targetCount: 10 });
+      if (!quiz) return;
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
+      if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(false);
     }
   };
 
@@ -143,32 +187,50 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                 />
               </div>
               {uploadedFile && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fileTopic">Topic (Optional)</Label>
-                    <Input
-                      id="fileTopic"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="Override detected topic..."
-                      disabled={isGenerating}
-                    />
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fileTopic">Topic (Optional)</Label>
+                      <Input
+                        id="fileTopic"
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                        placeholder="Override detected topic..."
+                        disabled={isGenerating}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="fileDifficulty">Difficulty Level</Label>
+                      <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select difficulty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="easy">Easy</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="hard">Hard</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="fileDifficulty">Difficulty Level</Label>
-                    <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="easy">Easy</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                  <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+                    <div className="text-sm font-medium">Practice options from your last quiz</div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating}>
+                        {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
+                      </Button>
+                      <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating}>
+                        {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
+                      </Button>
+                      <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating}>
+                        {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and can be taken like any normal quiz.</p>
                   </div>
-                </div>
+                </>
               )}
             </TabsContent>
 
