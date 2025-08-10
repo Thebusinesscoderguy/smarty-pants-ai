@@ -11,7 +11,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Volume2, UserX, CreditCard, Users, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
-
+import VoiceTester from '@/components/voice/VoiceTester';
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -202,12 +202,7 @@ const Settings = () => {
                 </div>
               </div>
               
-              <Button 
-                onClick={testVoice}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-10 py-4 rounded-2xl font-semibold text-lg"
-              >
-                Test Voice
-              </Button>
+              <VoiceTester />
             </CardContent>
           </Card>
 
