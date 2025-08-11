@@ -204,34 +204,47 @@ export const useMessageHandler = () => {
         
         // Check if voice is enabled before generating speech
         if (isVoiceEnabled) {
-          console.log('Generating voice response with voice:', selectedVoice);
-          const voiceResponse = await supabase.functions.invoke('text-to-voice', {
-            body: { 
-              text: aiResponseText,
-              voice: selectedVoice || 'alloy'
-            }
-          });
+          try {
+            // Limit text length for voice generation
+            const textForVoice = aiResponseText.length > 500 ? aiResponseText.substring(0, 500) + "..." : aiResponseText;
+            
+            console.log('Generating voice response with voice:', selectedVoice);
+            const voiceResponse = await supabase.functions.invoke('text-to-voice', {
+              body: { 
+                text: textForVoice,
+                voice: selectedVoice || 'alloy'
+              }
+            });
 
-          if (voiceResponse.error) {
-            console.error('Voice generation error:', voiceResponse.error);
-            if (voiceResponse.error.message && voiceResponse.error.message.includes('API key')) {
-              setApiKeyError(true);
-            }
-            // Don't throw error, just log it and continue without voice
-            console.warn('Continuing without voice due to error:', voiceResponse.error.message);
-          } else {
-            const base64Audio = voiceResponse.data.audioContent;
+            if (voiceResponse.error) {
+              console.error('Voice generation error:', voiceResponse.error);
+              if (voiceResponse.error.message && voiceResponse.error.message.includes('API key')) {
+                setApiKeyError(true);
+              }
+              // Don't throw error, just log it and continue without voice
+              console.warn('Continuing without voice due to error:', voiceResponse.error.message);
+            } else if (voiceResponse.data?.audioContent) {
+              try {
+                const base64Audio = voiceResponse.data.audioContent;
 
-            const byteCharacters = atob(base64Audio);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+                const byteCharacters = atob(base64Audio);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
 
-            audioUrl = URL.createObjectURL(audioBlob);
-            console.log('Voice response generated successfully');
+                audioUrl = URL.createObjectURL(audioBlob);
+                console.log('Voice response generated successfully');
+              } catch (audioProcessingError) {
+                console.error('Audio processing error:', audioProcessingError);
+                // Continue without voice
+              }
+            }
+          } catch (voiceError) {
+            console.error('Voice generation failed:', voiceError);
+            // Continue without voice - don't break the chat flow
           }
         }
 

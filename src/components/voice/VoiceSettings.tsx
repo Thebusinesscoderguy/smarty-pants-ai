@@ -94,20 +94,12 @@ const VoiceSettings = ({
     try {
       console.log('🌐 Making request to text-to-voice function...');
       
-      const testText = `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice. How do I sound?`;
+      const testText = `Hello! This is the ${OPENAI_VOICES.find(v => v.value === voice)?.label} voice.`;
       console.log('🎵 Test text being sent:', testText);
       console.log('🎵 Voice parameter:', voice);
       
       // Get current session info for debugging
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('🔐 Current session:', { 
-        hasSession: !!session, 
-        sessionError,
-        userId: session?.user?.id 
-      });
-
-      const startTime = performance.now();
-      
       const response = await supabase.functions.invoke('text-to-voice', {
         body: {
           text: testText,
@@ -123,7 +115,20 @@ const VoiceSettings = ({
       
       if (response.error) {
         console.error('❌ Supabase Function Error:', response.error);
-        throw new Error(`Voice test failed: ${JSON.stringify(response.error)}`);
+        
+        // Handle different error types
+        let errorMessage = 'Voice test failed';
+        if (response.error.type === 'api_key_error') {
+          errorMessage = 'OpenAI API key not configured properly';
+        } else if (response.error.type === 'rate_limit_error') {
+          errorMessage = 'Rate limit exceeded. Please try again later';
+        } else if (response.error.type === 'timeout_error') {
+          errorMessage = 'Request timed out. Please try again';
+        } else if (response.error.message) {
+          errorMessage = response.error.message;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = response.data;
@@ -143,45 +148,46 @@ const VoiceSettings = ({
       const audio = new Audio();
       
       // Set up comprehensive event listeners for debugging
-      audio.addEventListener('loadstart', () => console.log('🎵 Audio loading started'));
-      audio.addEventListener('loadeddata', () => console.log('🎵 Audio data loaded'));
-      audio.addEventListener('canplay', () => console.log('🎵 Audio can play'));
-      audio.addEventListener('canplaythrough', () => console.log('🎵 Audio can play through'));
-      audio.addEventListener('playing', () => console.log('🎵 Audio is playing'));
-      audio.addEventListener('ended', () => console.log('🎵 Audio ended'));
-      audio.addEventListener('pause', () => console.log('🎵 Audio paused'));
-      audio.addEventListener('error', (e) => {
-        console.error('🎵 Audio error event:', e);
-        console.error('🎵 Audio error details:', {
-          error: audio.error,
-          networkState: audio.networkState,
-          readyState: audio.readyState
-        });
-      });
-
-      // Set audio source
-      const audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
-      console.log('🎵 Setting audio source, first 100 chars:', audioSrc.substring(0, 100));
-      audio.src = audioSrc;
-
-      // Try to play with explicit user interaction handling
       try {
-        console.log('🎵 Attempting to play audio...');
-        const playPromise = audio.play();
-        
-        if (playPromise !== undefined) {
-          await playPromise;
-          console.log('🎵 Audio playback started successfully');
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
         }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const audio = new Audio(audioUrl);
+        audio.volume = 0.8;
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          console.log('🎵 Audio playback completed');
+        };
+        
+        audio.onerror = (e) => {
+          console.error('🎵 Audio playback error:', e);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        await audio.play();
+        console.log('🎵 Audio playback started successfully');
+        
+        if (showToast) {
+          toast({
+            title: "Voice Test Successful",
+            description: `${OPENAI_VOICES.find(v => v.value === voice)?.label} voice is working perfectly!`,
+          });
+        }
+        
       } catch (playError) {
         console.error('🎵 Audio play error:', playError);
         
-        // If autoplay fails, offer manual download/play option
         if (playError.name === 'NotAllowedError') {
           toast({
             title: "Audio Test Complete",
-            description: "Browser blocked auto-play. Audio was generated successfully. Click the audio controls to play manually.",
-          });
+              title: "Audio Blocked",
+              description: "Browser blocked audio playback. Voice generation works, but playback was blocked.",
           
           // Create a temporary audio element that user can interact with
           const audioElement = document.createElement('audio');
@@ -190,41 +196,12 @@ const VoiceSettings = ({
           audioElement.style.position = 'fixed';
           audioElement.style.top = '20px';
           audioElement.style.right = '20px';
-          audioElement.style.zIndex = '9999';
-          audioElement.style.backgroundColor = 'white';
-          audioElement.style.border = '2px solid #333';
-          audioElement.style.borderRadius = '8px';
-          audioElement.style.padding = '10px';
-          
-          document.body.appendChild(audioElement);
-          
-          // Remove after 10 seconds
-          setTimeout(() => {
-            if (document.body.contains(audioElement)) {
-              document.body.removeChild(audioElement);
-            }
-          }, 10000);
-          
-          setVoiceTestStatus(prev => ({ ...prev, [voice]: 'success' }));
-          return;
-        } else {
-          throw playError;
-        }
-      }
-
-      setVoiceTestStatus(prev => ({ ...prev, [voice]: 'success' }));
       
       if (showToast) {
         toast({
           title: "Voice Test Successful",
           description: `${OPENAI_VOICES.find(v => v.value === voice)?.label} voice is working perfectly!`,
         });
-      }
-
-    } catch (error: any) {
-      console.error('❌ Voice test failed with error:', error);
-      console.error('❌ Error stack:', error.stack);
-      setVoiceTestStatus(prev => ({ ...prev, [voice]: 'error' }));
       
       let errorMessage = 'Unknown error occurred';
       let errorTitle = 'Voice Test Failed';
@@ -255,11 +232,13 @@ const VoiceSettings = ({
         errorMessage = error.message || 'Voice test failed. Please check console for details.';
       }
 
-      toast({
-        title: errorTitle,
-        description: errorMessage,
-        variant: "destructive",
-      });
+      if (showToast) {
+        toast({
+          title: errorTitle,
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsTestingVoice(false);
       setTestingVoice(null);

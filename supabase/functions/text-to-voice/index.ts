@@ -29,6 +29,18 @@ serve(async (req) => {
       console.error("ERROR: No text provided in request");
       throw new Error('Text is required');
     }
+    
+    // Validate and clean text input
+    const cleanText = text.trim();
+    if (cleanText.length === 0) {
+      console.error("ERROR: Empty text provided");
+      throw new Error('Text cannot be empty');
+    }
+    
+    if (cleanText.length > 4000) {
+      console.warn("WARNING: Text too long, truncating to 4000 characters");
+      cleanText = cleanText.substring(0, 4000);
+    }
 
     // Get and validate API keys (prefer ElevenLabs if available)
     const openAIKey = Deno.env.get('OPENAI_API_KEY') || '';
@@ -43,8 +55,8 @@ serve(async (req) => {
       console.error("CRITICAL ERROR: No TTS provider keys configured");
       return new Response(
         JSON.stringify({ 
-          error: 'No TTS provider configured on the server',
-          type: 'api_key_error',
+          input: cleanText,
+          voice: selectedVoice,
           details: 'Set XI_API_KEY (preferred) or OPENAI_API_KEY in Supabase secrets'
         }),
         {
@@ -68,6 +80,11 @@ serve(async (req) => {
         },
       );
     }
+    
+    // Validate voice parameter
+    const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
+    const selectedVoice = validVoices.includes(voice) ? voice : 'alloy';
+    console.log('Using voice:', selectedVoice);
 
     // Prefer ElevenLabs if available for lower latency
     if (xiApiKey && xiApiKey.trim() !== '') {
@@ -322,7 +339,7 @@ serve(async (req) => {
             metadata: {
               originalSize: arrayBuffer.byteLength,
               base64Size: base64Audio.length,
-              voice: voice || 'alloy',
+              voice: selectedVoice,
               processingTimeMs: Date.now() - requestStartTime,
               provider: 'openai'
             }

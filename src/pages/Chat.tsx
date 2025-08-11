@@ -459,39 +459,81 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
 
   const handleTextToSpeech = async (text: string) => {
     try {
+      // Limit text length and clean it
+      const cleanText = text.replace(/[^\w\s.,!?-]/g, '').trim();
+      const textToSpeak = cleanText.length > 300 ? cleanText.substring(0, 300) + "..." : cleanText;
+      
+      if (!textToSpeak) {
+        toast({
+          title: "Speech Error",
+          description: "No valid text to convert to speech.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const { data, error } = await supabase.functions.invoke('text-to-voice', {
         body: {
-          text: text,
+          text: textToSpeak,
           voice: selectedVoice
         }
       });
 
       if (error) {
+        console.error('Text-to-speech error:', error);
+        
+        let errorMessage = "Failed to convert text to speech.";
+        if (error.message?.includes('API key')) {
+          errorMessage = "Speech service not configured. Please contact support.";
+        } else if (error.message?.includes('rate limit')) {
+          errorMessage = "Too many requests. Please wait and try again.";
+        } else if (error.message?.includes('timeout')) {
+          errorMessage = "Speech service timeout. Please try again.";
+        }
+        
         toast({
           title: t('chat.speechError'),
-          description: t('chat.textToSpeechError'),
+          description: errorMessage,
           variant: "destructive",
         });
         return;
       }
 
       if (data && data.audioContent) {
-        const binaryString = atob(data.audioContent);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
+        try {
+          const binaryString = atob(data.audioContent);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          const audio = new Audio(audioUrl);
+          audio.volume = 0.8;
+          audio.onended = () => URL.revokeObjectURL(audioUrl);
+          
+          await audio.play();
+        } catch (audioError) {
+          console.error('Audio processing error:', audioError);
+          toast({
+            title: t('chat.speechError'),
+            description: "Failed to play the generated audio.",
+            variant: "destructive",
+          });
         }
-        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        const audio = new Audio(audioUrl);
-        audio.onended = () => URL.revokeObjectURL(audioUrl);
-        await audio.play();
+      } else {
+        toast({
+          title: t('chat.speechError'),
+          description: "No audio content received from server.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error('Text-to-speech error:', error);
       toast({
         title: t('chat.speechError'),
-        description: t('chat.textToSpeechError'),
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }

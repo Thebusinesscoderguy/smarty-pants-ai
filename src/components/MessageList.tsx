@@ -33,8 +33,9 @@ const MessageList: React.FC<MessageListProps> = ({
   };
 
   const handleTextToSpeech = async (messageId: string, text: string) => {
+    // If already speaking this message, stop it
     if (speakingMessages.has(messageId)) {
-      // Stop current playback
+      window.speechSynthesis.cancel();
       setSpeakingMessages(prev => {
         const newSet = new Set(prev);
         newSet.delete(messageId);
@@ -46,70 +47,116 @@ const MessageList: React.FC<MessageListProps> = ({
     setLoadingTTS(prev => new Set(prev).add(messageId));
 
     try {
-      console.log('Converting text to speech:', text.substring(0, 50) + '...');
+      // Limit text length to prevent API issues
+      const textToSpeak = text.length > 500 ? text.substring(0, 500) + "..." : text;
+      console.log('Converting text to speech:', textToSpeak.substring(0, 50) + '...');
       
       const { data, error } = await supabase.functions.invoke('text-to-voice', {
         body: {
-          text: text,
+          text: textToSpeak,
           voice: 'alloy' // You can make this configurable later
         }
       });
 
       if (error) {
         console.error('Text-to-speech error:', error);
+        
+        // Provide more specific error messages
+        let errorMessage = "Failed to convert text to speech. Please try again.";
+        if (error.message?.includes('API key')) {
+          errorMessage = "Speech service not configured. Please contact support.";
+        } else if (error.message?.includes('rate limit')) {
+          errorMessage = "Too many speech requests. Please wait a moment and try again.";
+        } else if (error.message?.includes('timeout')) {
+          errorMessage = "Speech service is slow. Please try again.";
+        }
+        
         toast({
           title: "Speech Error",
-          description: "Failed to convert text to speech. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
         return;
       }
 
       if (data && data.audioContent) {
-        // Convert base64 to audio blob
-        const binaryString = atob(data.audioContent);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        // Play the audio
-        const audio = new Audio(audioUrl);
-        
-        setSpeakingMessages(prev => new Set(prev).add(messageId));
-        
-        audio.onended = () => {
-          setSpeakingMessages(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(messageId);
-            return newSet;
-          });
-          URL.revokeObjectURL(audioUrl);
-        };
-        
-        audio.onerror = () => {
-          setSpeakingMessages(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(messageId);
-            return newSet;
-          });
-          URL.revokeObjectURL(audioUrl);
+        try {
+          // Convert base64 to audio blob with better error handling
+          const binaryString = atob(data.audioContent);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          // Create and configure audio element
+          const audio = new Audio(audioUrl);
+          audio.volume = 0.8; // Set reasonable volume
+          
+          setSpeakingMessages(prev => new Set(prev).add(messageId));
+          
+          audio.onended = () => {
+            setSpeakingMessages(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(messageId);
+              return newSet;
+            });
+            URL.revokeObjectURL(audioUrl);
+          };
+          
+          audio.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            setSpeakingMessages(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(messageId);
+              return newSet;
+            });
+            URL.revokeObjectURL(audioUrl);
+            toast({
+              title: "Playback Error",
+              description: "Failed to play the generated speech.",
+              variant: "destructive",
+            });
+          };
+          
+          // Try to play with user interaction handling
+          try {
+            await audio.play();
+          } catch (playError) {
+            console.error('Audio play error:', playError);
+            if (playError.name === 'NotAllowedError') {
+              toast({
+                title: "Audio Blocked",
+                description: "Browser blocked audio playback. Please click the speaker icon to enable audio.",
+                variant: "destructive",
+              });
+            } else {
+              throw playError;
+            }
+          }
+        } catch (audioError) {
+          console.error('Audio processing error:', audioError);
           toast({
-            title: "Playback Error",
-            description: "Failed to play the generated speech.",
+            title: "Audio Error",
+            description: "Failed to process the generated audio.",
             variant: "destructive",
           });
-        };
-        
-        await audio.play();
+        }
+      } else {
+        throw new Error('No audio content received from server');
       }
     } catch (error) {
       console.error('Text-to-speech error:', error);
+      
+      let errorMessage = "Failed to convert text to speech. Please try again.";
+      if (error.message?.includes('No audio content')) {
+        errorMessage = "Speech service returned empty response. Please try again.";
+      }
+      
       toast({
         title: "Speech Error",
-        description: "Failed to convert text to speech. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

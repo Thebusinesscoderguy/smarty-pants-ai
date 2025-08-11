@@ -21,10 +21,10 @@ const OpenAIKeyForm = () => {
       setIsLoading(true);
       console.log("Checking OpenAI API key...");
       
-      // More comprehensive test request
+      // Simple test request to check if API key is working
       const response = await supabase.functions.invoke('text-to-voice', {
         body: { 
-          text: "System check for OpenAI API key functionality", 
+          text: "API key test", 
           voice: 'alloy' 
         }
       });
@@ -34,12 +34,23 @@ const OpenAIKeyForm = () => {
       if (response.error) {
         console.error("OpenAI API key check failed:", response.error);
         
-        if (response.error.message && response.error.message.includes('API key')) {
+        if (response.error.message && (
+          response.error.message.includes('API key') || 
+          response.error.message.includes('api_key_error') ||
+          response.error.type === 'api_key_error'
+        )) {
           setKeyExists(false);
           toast({
             title: "API Key Error",
             description: "OpenAI API key is not properly configured.",
             variant: "destructive"
+          });
+        } else {
+          // Other errors might not be API key related
+          setKeyExists(true);
+          toast({
+            title: "API Key Status",
+            description: "API key appears to be configured, but there may be other issues.",
           });
         }
       } else {
@@ -54,7 +65,7 @@ const OpenAIKeyForm = () => {
       setKeyExists(false);
       toast({
         title: "Error",
-        description: "Failed to verify OpenAI API key. " + error.message,
+        description: "Failed to verify OpenAI API key: " + (error.message || 'Unknown error'),
         variant: "destructive"
       });
     } finally {
