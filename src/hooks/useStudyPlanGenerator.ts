@@ -27,7 +27,7 @@ export const useStudyPlanGenerator = () => {
   const generateStudyPlan = async (
     inputData: string,
     inputType: 'file' | 'chat' | 'topic',
-    opts?: { gradeLevel?: string; region?: string }
+    opts?: { gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number }
   ): Promise<StudyPlan | null> => {
     setIsGenerating(true);
     
@@ -37,7 +37,9 @@ export const useStudyPlanGenerator = () => {
           inputData,
           inputType,
           gradeLevel: opts?.gradeLevel,
-          region: opts?.region
+          region: opts?.region,
+          days: opts?.days,
+          maxDailyMinutes: opts?.maxDailyMinutes
         }
       });
 

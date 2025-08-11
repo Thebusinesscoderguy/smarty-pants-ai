@@ -12,7 +12,10 @@ serve(async (req) => {
   }
 
   try {
-    const { inputData, inputType, gradeLevel, region } = await req.json();
+    const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes } = await req.json();
+    
+    const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
+    const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -38,6 +41,13 @@ serve(async (req) => {
 
     const contextLine = `${gradeLevel ? `Grade level: ${gradeLevel}. ` : ''}${region ? `Curriculum/Country: ${region}. ` : ''}`;
 
+    const constraints = [
+      planDays ? `Create exactly ${planDays} daily lessons.` : 'Create 7-14 daily lessons depending on complexity.',
+      perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
+      'Each lesson must include an explanation step written in kid-friendly language.',
+      'Include a mini-quiz each day; set practiceQuestions to match the mini-quiz size.'
+    ].join('\n- ');
+
     const fullPrompt = `${contextLine}${prompt}
 
     Generate a detailed study plan in this exact JSON format only (no markdown, no extra text):
@@ -46,25 +56,22 @@ serve(async (req) => {
       "title": "Personalized Study Plan for [Subject/Topic]",
       "description": "Brief description of what this plan will help achieve",
       "weakAreas": ["Area 1", "Area 2", "Area 3"],
-      "estimatedDuration": 14,
+      "estimatedDuration": ${planDays ?? 14},
       "difficultyLevel": "medium",
       "dailyLessons": [
         {
           "day": 1,
           "topic": "Foundation Building",
-          "description": "Start with basic concepts",
-          "activities": ["Read chapter 1", "Watch intro video", "Complete practice problems"],
-          "estimatedTime": 45,
+          "description": "Start with basic concepts and include a short friendly explanation of the key idea.",
+          "activities": ["Explanation: simple breakdown of the concept", "Guided example(s)", "Practice problems", "Mini-quiz"],
+          "estimatedTime": ${perDayLimit ?? 45},
           "practiceQuestions": 5
         }
       ]
     }
     Requirements:
     - Identify 3-5 specific weak areas that need improvement
-    - Create 7-14 daily lessons depending on complexity
-    - Each lesson should have 3-5 specific activities
-    - Estimate realistic time commitments (30-60 minutes per day)
-    - Include practice questions for each day
+    - ${constraints}
     - Focus on progressive difficulty and skill building
     - Make activities specific and actionable`;
 
@@ -106,9 +113,12 @@ serve(async (req) => {
     let planContent = data.choices?.[0]?.message?.content ?? '';
     planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
     
-    let studyPlan;
+    let studyPlan: any;
     try {
       studyPlan = JSON.parse(planContent);
+      if (!studyPlan.id) {
+        studyPlan.id = crypto.randomUUID();
+      }
     } catch (parseError) {
       console.error('Failed to parse study plan JSON:', planContent);
       throw new Error('Failed to generate valid study plan format');

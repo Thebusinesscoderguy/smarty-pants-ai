@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
@@ -40,12 +41,14 @@ export const StudyPlanGenerator = () => {
   const [selectedTopic, setSelectedTopic] = useState('');
   const [gradeLevel, setGradeLevel] = useState<string>('');
   const [region, setRegion] = useState<string>('');
+  const [planDays, setPlanDays] = useState<number>(7);
+  const [maxDailyMinutes, setMaxDailyMinutes] = useState<number>(45);
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
 const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
-const { isGenerating: isBuildingQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz } = useQuizGenerator();
+const { isGenerating: isBuildingQuiz, generateQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz } = useQuizGenerator();
 const [creatingPractice, setCreatingPractice] = useState(false);
 
 const handleCreateRetake = async () => {
@@ -117,7 +120,7 @@ const handleCreateMistakesSimilar = async () => {
         break;
     }
 
-    const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region });
+    const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region, days: planDays, maxDailyMinutes });
     if (plan) {
       setGeneratedPlan(plan);
     }
@@ -297,7 +300,7 @@ const handleCreateMistakesSimilar = async () => {
             </TabsContent>
           </Tabs>
 
-          {/* Grade level and region */}
+          {/* Grade level, region, plan constraints */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="gradeLevel">Grade Level</Label>
@@ -324,6 +327,31 @@ const handleCreateMistakesSimilar = async () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="planDays">Plan length (days)</Label>
+              <Input
+                id="planDays"
+                type="number"
+                min={1}
+                max={30}
+                value={planDays}
+                onChange={(e) => setPlanDays(Math.max(1, Math.min(30, parseInt(e.target.value || '0', 10))))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maxDailyMinutes">Max study time per day (minutes)</Label>
+              <Input
+                id="maxDailyMinutes"
+                type="number"
+                min={10}
+                max={180}
+                value={maxDailyMinutes}
+                onChange={(e) => setMaxDailyMinutes(Math.max(10, Math.min(180, parseInt(e.target.value || '0', 10))))}
+              />
             </div>
           </div>
 
@@ -397,7 +425,7 @@ const handleCreateMistakesSimilar = async () => {
               <div className="space-y-3">
                 {generatedPlan.dailyLessons.map((lesson, index) => (
                   <Card key={index} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-2">
@@ -422,6 +450,34 @@ const handleCreateMistakesSimilar = async () => {
                             {lesson.practiceQuestions} questions
                           </Badge>
                         </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const quiz = await generateQuiz(
+                                lesson.topic,
+                                'medium',
+                                lesson.practiceQuestions,
+                                undefined,
+                                gradeLevel
+                              );
+                              if (!quiz) return;
+                              const savedId = await saveQuiz({ ...quiz, title: `${lesson.topic} - Day ${lesson.day} Practice` });
+                              if (savedId) {
+                                toast({ title: 'Quiz ready', description: 'Saved to your Library. You can take it now.' });
+                              }
+                            } catch (e: any) {
+                              toast({ title: 'Failed to create quiz', description: e?.message || 'Please try again.', variant: 'destructive' });
+                            }
+                          }}
+                          className="w-full md:w-auto"
+                          variant="outline"
+                        >
+                          Create Lesson Quiz and Save to Library
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>

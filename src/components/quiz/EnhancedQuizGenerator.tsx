@@ -301,18 +301,15 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
 
           <div className="space-y-2">
             <Label htmlFor="questionCount">Number of Questions</Label>
-            <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="15">15</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="questionCount"
+              type="number"
+              min={1}
+              max={50}
+              value={questionCount}
+              onChange={(e) => setQuestionCount(Math.max(1, Math.min(50, parseInt(e.target.value || '0', 10))))}
+              className="w-32"
+            />
           </div>
 
           {conversationHistory && conversationHistory.length > 0 && (
