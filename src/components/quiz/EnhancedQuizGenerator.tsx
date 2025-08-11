@@ -303,11 +303,15 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
             <Label htmlFor="questionCount">Number of Questions</Label>
             <Input
               id="questionCount"
-              type="number"
-              min={1}
-              max={50}
-              value={questionCount}
-              onChange={(e) => setQuestionCount(Math.max(1, Math.min(50, parseInt(e.target.value || '0', 10))))}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={String(questionCount)}
+              onChange={(e) => {
+                const v = e.target.value.replace(/[^0-9]/g, '');
+                const num = Math.max(1, Math.min(50, parseInt(v || '0', 10)));
+                setQuestionCount(num);
+              }}
               className="w-32"
             />
           </div>

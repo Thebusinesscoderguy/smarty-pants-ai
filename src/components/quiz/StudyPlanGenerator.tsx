@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
@@ -42,7 +43,9 @@ export const StudyPlanGenerator = () => {
   const [gradeLevel, setGradeLevel] = useState<string>('');
   const [region, setRegion] = useState<string>('');
   const [planDays, setPlanDays] = useState<number>(7);
+  const [aiChooseDays, setAiChooseDays] = useState<boolean>(false);
   const [maxDailyMinutes, setMaxDailyMinutes] = useState<number>(45);
+  const [aiChooseDailyMinutes, setAiChooseDailyMinutes] = useState<boolean>(false);
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
 
   const [saving, setSaving] = useState(false);
@@ -120,7 +123,7 @@ const handleCreateMistakesSimilar = async () => {
         break;
     }
 
-    const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region, days: planDays, maxDailyMinutes });
+    const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes });
     if (plan) {
       setGeneratedPlan(plan);
     }
@@ -332,25 +335,45 @@ const handleCreateMistakesSimilar = async () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="planDays">Plan length (days)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="planDays">Plan length (days)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">AI decide</span>
+                  <Switch checked={aiChooseDays} onCheckedChange={setAiChooseDays} />
+                </div>
+              </div>
               <Input
                 id="planDays"
-                type="number"
-                min={1}
-                max={30}
-                value={planDays}
-                onChange={(e) => setPlanDays(Math.max(1, Math.min(30, parseInt(e.target.value || '0', 10))))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={String(planDays)}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9]/g, '');
+                  setPlanDays(Math.max(1, Math.min(30, parseInt(v || '0', 10))));
+                }}
+                disabled={aiChooseDays}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxDailyMinutes">Max study time per day (minutes)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="maxDailyMinutes">Max study time per day (minutes)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">AI decide</span>
+                  <Switch checked={aiChooseDailyMinutes} onCheckedChange={setAiChooseDailyMinutes} />
+                </div>
+              </div>
               <Input
                 id="maxDailyMinutes"
-                type="number"
-                min={10}
-                max={180}
-                value={maxDailyMinutes}
-                onChange={(e) => setMaxDailyMinutes(Math.max(10, Math.min(180, parseInt(e.target.value || '0', 10))))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={String(maxDailyMinutes)}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9]/g, '');
+                  setMaxDailyMinutes(Math.max(10, Math.min(180, parseInt(v || '0', 10))));
+                }}
+                disabled={aiChooseDailyMinutes}
               />
             </div>
           </div>
@@ -390,13 +413,23 @@ const handleCreateMistakesSimilar = async () => {
                 <CardTitle>{generatedPlan.title}</CardTitle>
                 <CardDescription>{generatedPlan.description}</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className={getDifficultyColor(generatedPlan.difficultyLevel)}>
-                  {generatedPlan.difficultyLevel}
-                </Badge>
-                <Badge variant="outline">
-                  {generatedPlan.estimatedDuration} days
-                </Badge>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge className={getDifficultyColor(generatedPlan.difficultyLevel)}>
+                    {generatedPlan.difficultyLevel}
+                  </Badge>
+                  <Badge variant="outline">
+                    {generatedPlan.estimatedDuration} days
+                  </Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button className="flex-1 md:flex-none" onClick={handleStartPlan} disabled={starting}>
+                    {starting ? 'Starting…' : 'Start Study Plan'}
+                  </Button>
+                  <Button variant="outline" className="flex-1 md:flex-none" onClick={handleSavePlan} disabled={saving}>
+                    {saving ? 'Saving…' : 'Save Plan'}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -457,15 +490,16 @@ const handleCreateMistakesSimilar = async () => {
                           size="sm"
                           onClick={async () => {
                             try {
+                              const subjectContext = `${generatedPlan.title} - ${lesson.topic}`;
                               const quiz = await generateQuiz(
-                                lesson.topic,
+                                subjectContext,
                                 'medium',
                                 lesson.practiceQuestions,
                                 undefined,
                                 gradeLevel
                               );
                               if (!quiz) return;
-                              const savedId = await saveQuiz({ ...quiz, title: `${lesson.topic} - Day ${lesson.day} Practice` });
+                              const savedId = await saveQuiz({ ...quiz, title: `${generatedPlan.title} - ${lesson.topic} (Day ${lesson.day} Practice)` });
                               if (savedId) {
                                 toast({ title: 'Quiz ready', description: 'Saved to your Library. You can take it now.' });
                               }
@@ -504,14 +538,6 @@ const handleCreateMistakesSimilar = async () => {
               </Card>
             </div>
 
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={handleStartPlan} disabled={starting}>
-                {starting ? 'Starting…' : 'Start Study Plan'}
-              </Button>
-              <Button variant="outline" className="flex-1" onClick={handleSavePlan} disabled={saving}>
-                {saving ? 'Saving…' : 'Save Plan'}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       )}
