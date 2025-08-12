@@ -7,6 +7,7 @@ import { Volume2, VolumeX, User, Bot, FileText, Image, Play, Pause, File, Downlo
 import { Message } from '@/types/message';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 
 interface MessageListProps {
   messages: Message[];
@@ -24,6 +25,7 @@ const MessageList: React.FC<MessageListProps> = ({
   const [speakingMessages, setSpeakingMessages] = useState<Set<string>>(new Set());
   const [loadingTTS, setLoadingTTS] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { selectedVoice } = useVoiceSettings();
   const formatTime = (date: Date) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
@@ -54,7 +56,7 @@ const MessageList: React.FC<MessageListProps> = ({
       const { data, error } = await supabase.functions.invoke('text-to-voice', {
         body: {
           text: textToSpeak,
-          voice: 'alloy' // You can make this configurable later
+          voice: selectedVoice,
         }
       });
 
