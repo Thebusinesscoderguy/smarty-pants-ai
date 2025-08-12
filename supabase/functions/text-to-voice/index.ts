@@ -68,7 +68,14 @@ serve(async (req) => {
       )
     }
 
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    // Safer base64 encoding to avoid stack overflows on large buffers
+    const uint8 = new Uint8Array(buffer)
+    let binary = ''
+    const chunkSize = 0x8000
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+      binary += String.fromCharCode(...uint8.subarray(i, i + chunkSize))
+    }
+    const base64Audio = btoa(binary)
 
     return new Response(
       JSON.stringify({ audioContent: base64Audio, provider: 'openai', voice: selectedVoice }),
