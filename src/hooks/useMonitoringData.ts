@@ -96,46 +96,30 @@ export const useMonitoringData = () => {
       }
 
       if (studentIds.length === 0) {
-        setStudentProgress([]);
-        setLoading(false);
-        return;
+        // No relationships found; assume this user is a student and show their own data
+        studentIds = [user.id];
       }
 
-      // Get student profiles
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name')
-        .in('id', studentIds);
+      // Fetch core datasets in parallel for speed
+      const [profilesRes, progressRes, testAttemptsRes, userAchievementsRes] = await Promise.all([
+        supabase.from('profiles').select('id, display_name').in('id', studentIds),
+        supabase.from('user_progress').select('*').in('user_id', studentIds),
+        supabase.from('test_attempts').select(`*, tests(title)`).in('student_id', studentIds),
+        supabase.from('user_achievements').select(`*, achievements(name, points)`).in('user_id', studentIds),
+      ]);
 
-      // Get user progress data
-      const { data: progressData } = await supabase
-        .from('user_progress')
-        .select('*')
-        .in('user_id', studentIds);
+      const profiles = profilesRes?.data || [];
+      const progressData = progressRes?.data || [];
+      const testAttempts = testAttemptsRes?.data || [];
+      const userAchievements = userAchievementsRes?.data || [];
 
-      // Get test attempts
-      const { data: testAttempts } = await supabase
-        .from('test_attempts')
-        .select(`
-          *,
-          tests(title)
-        `)
-        .in('student_id', studentIds);
+      // Fallback if profiles table is empty or not accessible
+      const safeProfiles = (profiles.length ? profiles : studentIds.map(id => ({ id, display_name: 'Student' }))) as Array<{ id: string; display_name: string | null }>;
 
-      // Get user achievements
-      const { data: userAchievements } = await supabase
-        .from('user_achievements')
-        .select(`
-          *,
-          achievements(name, points)
-        `)
-        .in('user_id', studentIds);
-
-      // Process data for each student
-      const studentProgressData: StudentProgress[] = (profiles || []).map(profile => {
-        const studentProgress = progressData?.filter(p => p.user_id === profile.id) || [];
-        const studentTests = testAttempts?.filter(t => t.student_id === profile.id) || [];
-        const studentAchievements = userAchievements?.filter(a => a.user_id === profile.id) || [];
+      const studentProgressData: StudentProgress[] = (safeProfiles || []).map(profile => {
+        const studentProgress = (progressData || []).filter(p => p.user_id === profile.id);
+        const studentTests = (testAttempts || []).filter(t => t.student_id === profile.id);
+        const studentAchievementsForUser = (userAchievements || []).filter(a => a.user_id === profile.id);
 
         const totalTime = studentProgress.reduce((sum, p) => sum + (p.time_spent || 0), 0);
         const completedLessons = studentProgress.filter(p => p.status === 'completed').length;
@@ -148,23 +132,23 @@ export const useMonitoringData = () => {
 
         return {
           student_id: profile.id,
-          student_name: profile.display_name || 'Unknown Student',
-          email: '', // Would need to get from auth if needed
+          student_name: profile.display_name || 'Student',
+          email: '',
           completion_percentage: completionPercentage,
           total_time_spent: totalTime,
           completed_lessons: completedLessons,
           total_lessons: totalLessons,
           last_activity: lastActivity,
-          subjects: [], // Would need to aggregate by subject
-          strengths: [], // Would come from analytics
-          weak_areas: [], // Would come from analytics  
+          subjects: [],
+          strengths: [],
+          weak_areas: [],  
           test_scores: studentTests.map(test => ({
             test_name: test.tests?.title || 'Unknown Test',
             score: test.score || 0,
             percentage: test.percentage || 0,
             completed_at: test.completed_at || ''
           })),
-          achievements: studentAchievements.map(achievement => ({
+          achievements: studentAchievementsForUser.map(achievement => ({
             name: achievement.achievements?.name || 'Unknown Achievement',
             earned_at: achievement.earned_at || '',
             points: achievement.achievements?.points || 0
@@ -182,7 +166,6 @@ export const useMonitoringData = () => {
       const totalStudyTime = Math.round(studentProgressData.reduce((sum, s) => sum + s.total_time_spent, 0) / 60);
       const totalLessonsCompleted = studentProgressData.reduce((sum, s) => sum + s.completed_lessons, 0);
 
-      // Get counts for other entities
       const [testsData, curriculaData, questsData, achievementsData] = await Promise.all([
         supabase.from('tests').select('id', { count: 'exact' }).eq('creator_id', user.id),
         supabase.from('curricula').select('id', { count: 'exact' }),
