@@ -52,6 +52,27 @@ const Chat = () => {
     if (location.state?.message) {
       setInputMessage(location.state.message);
     }
+    
+    // Handle auto-titled chat with initial context
+    if (location.state?.autoTitle && location.state?.initialContext) {
+      const autoTitle = location.state.autoTitle;
+      const initialContext = location.state.initialContext;
+      
+      // Create a new session with auto title and send initial message
+      const newSessionId = `study-plan-${Date.now()}`;
+      setActiveSessionId(newSessionId);
+      setInputMessage(initialContext);
+      
+      // Add the session to the list with the auto title
+      setChatSessions(prev => [{
+        id: newSessionId,
+        title: autoTitle,
+        created_at: new Date().toISOString(),
+        message_count: 0
+      }, ...prev]);
+      
+      setShowWelcome(false);
+    }
   }, [location.state]);
 
   useEffect(() => {

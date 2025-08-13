@@ -44,6 +44,16 @@ serve(async (req) => {
         }
       ]
     }
+    
+    For short_answer questions, ALWAYS include a sample correct answer in correct_answer field. Example:
+    {
+      "question": "Explain photosynthesis in your own words.",
+      "type": "short_answer",
+      "correct_answer": "Sample: Plants use sunlight, water and CO2 to make glucose and oxygen",
+      "explanation": "Good answers should mention sunlight, water, carbon dioxide, glucose, and oxygen"
+    }
+      ]
+    }
     Mix question types: multiple_choice, true_false (options must be ["True","False"]) and short_answer (omit options). Ensure JSON is valid.`;
 
     async function callOpenAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {

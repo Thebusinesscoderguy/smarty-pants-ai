@@ -37,7 +37,7 @@ export const useQuizGenerator = () => {
       question: q.question,
       type: q.type,
       options: Array.isArray(q.options) ? q.options : undefined,
-      correct_answer: q.correct_answer,
+      correct_answer: q.correct_answer || 'Sample answer not provided',
       explanation: q.explanation,
       points: q.points ?? 1,
       order_index: index,

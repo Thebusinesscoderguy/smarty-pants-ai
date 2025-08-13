@@ -15,6 +15,7 @@ import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface StudyPlan {
   id: string;
@@ -50,6 +51,7 @@ export const StudyPlanGenerator = () => {
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
+  const navigate = useNavigate();
 const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
 const { isGenerating: isBuildingQuiz, generateQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz } = useQuizGenerator();
 const [creatingPractice, setCreatingPractice] = useState(false);
@@ -485,7 +487,7 @@ const handleCreateMistakesSimilar = async () => {
                         </div>
                       </div>
 
-                      <div className="pt-2">
+                      <div className="pt-2 flex gap-2 flex-col sm:flex-row">
                         <Button
                           size="sm"
                           onClick={async () => {
@@ -507,10 +509,35 @@ const handleCreateMistakesSimilar = async () => {
                               toast({ title: 'Failed to create quiz', description: e?.message || 'Please try again.', variant: 'destructive' });
                             }
                           }}
-                          className="w-full md:w-auto"
+                          className="flex-1"
                           variant="outline"
                         >
-                          Create Lesson Quiz and Save to Library
+                          Create Quiz
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const chatTitle = `Study Plan ${generatedPlan.title} Day ${lesson.day}`;
+                            const studyContext = `I'm working on Day ${lesson.day} of my study plan for ${generatedPlan.title}. Today's topic is: ${lesson.topic}. 
+
+Description: ${lesson.description}
+
+Activities to focus on:
+${lesson.activities.map(activity => `• ${activity}`).join('\n')}
+
+Please help me learn this topic and answer any questions I have about it.`;
+                            
+                            // Navigate to chat with context
+                            navigate('/chat', { 
+                              state: { 
+                                autoTitle: chatTitle,
+                                initialContext: studyContext
+                              } 
+                            });
+                          }}
+                          className="flex-1"
+                        >
+                          Continue in Chat
                         </Button>
                       </div>
                     </CardContent>
