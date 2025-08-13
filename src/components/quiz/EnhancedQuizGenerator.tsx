@@ -186,7 +186,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                   disabled={isGenerating}
                 />
               </div>
-              {uploadedFile && (
+              {uploadedFile && !generatedQuiz && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -405,6 +405,23 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                 </div>
               ))}
             </div>
+
+            {inputMethod === 'file' && (
+              <div className="space-y-3 pt-4">
+                <div className="text-sm font-medium">Practice options from your last quiz</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
+                  </Button>
+                  <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
+                  </Button>
+                  <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSaveQuiz} className="flex-1">
