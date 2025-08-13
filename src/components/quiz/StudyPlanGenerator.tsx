@@ -227,7 +227,7 @@ const handleCreateMistakesSimilar = async () => {
             Study Plan Generator
           </CardTitle>
           <CardDescription>
-            Upload your quiz results or describe your weak areas to get a personalized study plan
+            Upload a graded quiz/test or describe your weak areas to get a personalized study plan
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -240,7 +240,7 @@ const handleCreateMistakesSimilar = async () => {
 
             <TabsContent value="file" className="space-y-4">
               <div className="space-y-2">
-                <Label>Upload Quiz Results or Graded Test</Label>
+                <Label>Upload Graded Quiz/Test</Label>
                 <FileUploadZone
                   onFileUpload={handleFileUpload}
                   onFileRemove={handleFileRemove}
@@ -325,7 +325,7 @@ const handleCreateMistakesSimilar = async () => {
                   <SelectValue placeholder="Select curriculum/country" />
                 </SelectTrigger>
                 <SelectContent>
-                  {['USA','United Kingdom','International Baccalaureate','Cambridge International','Australia','France'].map(r => (
+                  {['International','United States','United Kingdom','International Baccalaureate','Cambridge International','Australia','France'].map(r => (
                     <SelectItem key={r} value={r}>{r}</SelectItem>
                   ))}
                 </SelectContent>

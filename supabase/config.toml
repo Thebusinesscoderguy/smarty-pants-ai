@@ -28,6 +28,9 @@ verify_jwt = false
 [functions.generate-quiz]
 verify_jwt = false
 
+[functions.generate-study-plan]
+verify_jwt = false
+
 [functions.voice-to-text]
 verify_jwt = false
 
