@@ -49,6 +49,8 @@ export const StudyPlanGenerator = () => {
   const [maxDailyMinutes, setMaxDailyMinutes] = useState<number>(45);
   const [aiChooseDailyMinutes, setAiChooseDailyMinutes] = useState<boolean>(false);
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
+  const [mistakeBasedMode, setMistakeBasedMode] = useState(false);
+  const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -77,7 +79,19 @@ const handleCreateMistakes = async () => {
     const quiz = await quizFromLatestMistakes();
     if (!quiz) return;
     const savedId = await saveQuiz(quiz);
-    if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+    if (savedId) {
+      toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+      // Generate study plan from mistakes
+      const mistakePlan = await generateStudyPlan(
+        `Focus on practicing these mistake areas: ${quiz.questions.map(q => q.question).join(', ')}`,
+        'chat',
+        { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes }
+      );
+      if (mistakePlan) {
+        setGeneratedPlan(mistakePlan);
+        setMistakeBasedMode(true);
+      }
+    }
   } catch (e: any) {
     toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
   } finally {
@@ -91,7 +105,19 @@ const handleCreateMistakesSimilar = async () => {
     const quiz = await quizFromLatestMistakes({ targetCount: 10 });
     if (!quiz) return;
     const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
-    if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+    if (savedId) {
+      toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+      // Generate study plan from similar mistakes
+      const similarPlan = await generateStudyPlan(
+        `Create practice plan for topics similar to these mistakes: ${quiz.questions.map(q => q.question).join(', ')}`,
+        'chat',
+        { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes }
+      );
+      if (similarPlan) {
+        setGeneratedPlan(similarPlan);
+        setMistakeBasedMode(true);
+      }
+    }
   } catch (e: any) {
     toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
   } finally {
@@ -283,21 +309,54 @@ const handleCreateMistakesSimilar = async () => {
                 {uploadedFile && uploadType === 'graded_quiz' && (
                   <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
                     <div className="text-sm font-medium">Quiz Generation Options</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <Button onClick={handleCreateRetake} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                        {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
-                      </Button>
-                      <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                        {creatingPractice ? 'Working…' : 'Test From Mistakes'}
-                      </Button>
-                      <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                        {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
-                      </Button>
-                      <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                        {creatingPractice ? 'Working…' : 'Similar Quiz'}
-                      </Button>
+                    
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>Quiz Difficulty Relative to Original</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            variant={quizDifficulty === 'easier' ? "default" : "outline"}
+                            onClick={() => setQuizDifficulty('easier')}
+                            disabled={creatingPractice || isBuildingQuiz}
+                            size="sm"
+                          >
+                            Easier
+                          </Button>
+                          <Button
+                            variant={quizDifficulty === 'same' ? "default" : "outline"}
+                            onClick={() => setQuizDifficulty('same')}
+                            disabled={creatingPractice || isBuildingQuiz}
+                            size="sm"
+                          >
+                            Same Level
+                          </Button>
+                          <Button
+                            variant={quizDifficulty === 'harder' ? "default" : "outline"}
+                            onClick={() => setQuizDifficulty('harder')}
+                            disabled={creatingPractice || isBuildingQuiz}
+                            size="sm"
+                          >
+                            Harder
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <Button onClick={handleCreateRetake} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                          {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
+                        </Button>
+                        <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                          {creatingPractice ? 'Working…' : 'Test From Mistakes'}
+                        </Button>
+                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                          {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
+                        </Button>
+                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                          {creatingPractice ? 'Working…' : 'Similar Quiz'}
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and can be taken like any normal quiz.</p>
+                    <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and generate a study plan focused on your weak areas.</p>
                   </div>
                 )}
               </div>
@@ -449,9 +508,11 @@ const handleCreateMistakesSimilar = async () => {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  <Badge className={getDifficultyColor(generatedPlan.difficultyLevel)}>
-                    {generatedPlan.difficultyLevel}
-                  </Badge>
+                  {!mistakeBasedMode && (
+                    <Badge className={getDifficultyColor(generatedPlan.difficultyLevel)}>
+                      {generatedPlan.difficultyLevel}
+                    </Badge>
+                  )}
                   <Badge variant="outline">
                     {generatedPlan.estimatedDuration} days
                   </Badge>
