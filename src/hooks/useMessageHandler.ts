@@ -93,18 +93,7 @@ export const useMessageHandler = () => {
             content: m.text
           }));
         
-        // Natural AI tutor system prompt - simplified to prevent repetitive responses
-        let systemPrompt = `You are a helpful AI tutor. Answer questions naturally and conversationally. Vary your responses and don't repeat the same greeting.`;
-
-        // Only add curriculum context if it's actually provided and relevant
-        if (curriculumContext && curriculumContext.title) {
-          systemPrompt += ` The student is working with the "${curriculumContext.title}" curriculum.`;
-        }
-
-        // Add quiz mode context if active
-        if (isQuizMode) {
-          systemPrompt += ` You're in quiz mode - ask educational questions and provide feedback.`;
-        }
+        // No system prompt - let AI respond naturally without instructions
 
         // Create a placeholder message for streaming
         const streamingMessage: Message = {
@@ -123,10 +112,6 @@ export const useMessageHandler = () => {
         const completionResponse = await supabase.functions.invoke('chat-completion', {
           body: {
             messages: [
-              {
-                role: "system",
-                content: systemPrompt
-              },
               ...conversationHistory,
               { role: "user", content: userMessage }
             ]

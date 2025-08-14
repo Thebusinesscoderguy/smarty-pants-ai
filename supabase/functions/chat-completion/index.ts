@@ -45,7 +45,6 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'gpt-4.1-2025-04-14',
           messages: messages || [
-            { role: 'system', content: 'You are a helpful AI tutor.' },
             { role: 'user', content: 'Hello' }
           ],
           temperature: 0.7,
