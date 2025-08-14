@@ -7,25 +7,101 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Save, Trash2, FileQuestion } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Plus, Save, Trash2, FileQuestion, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
+import { FileUploadZone } from './FileUploadZone';
+import { toast } from '@/components/ui/use-toast';
 
 interface QuizGeneratorProps {
   conversationHistory?: any[];
 }
 
 export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
+  const [inputMethod, setInputMethod] = useState<'topic' | 'file'>('topic');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState(5);
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
+  const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
+  const [gradeLevel, setGradeLevel] = useState<string>('');
+  const [creatingPractice, setCreatingPractice] = useState(false);
   
-  const { isGenerating, generateQuiz, saveQuiz } = useQuizGenerator();
+  const { isGenerating, generateQuiz, saveQuiz, extractQuizFromFile, retakeLatestQuiz, quizFromLatestMistakes } = useQuizGenerator();
+
+  const handleFileUpload = (file: File) => {
+    setUploadedFile(file);
+  };
+
+  const handleFileRemove = () => {
+    setUploadedFile(null);
+  };
+
+  const handleCreateRetake = async () => {
+    setCreatingPractice(true);
+    try {
+      if (!uploadedFile) return;
+      
+      const quiz = await extractQuizFromFile(uploadedFile, {
+        difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+        questionCount: 5,
+        gradeLevel
+      });
+      if (!quiz) return;
+      const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
+      if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(false);
+    }
+  };
+
+  const handleCreateMistakes = async () => {
+    setCreatingPractice(true);
+    try {
+      const quiz = await quizFromLatestMistakes();
+      if (!quiz) return;
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Mistakes Only)` });
+      if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(false);
+    }
+  };
+
+  const handleCreateMistakesSimilar = async () => {
+    setCreatingPractice(true);
+    try {
+      const quiz = await quizFromLatestMistakes({ targetCount: 10 });
+      if (!quiz) return;
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
+      if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(false);
+    }
+  };
 
   const handleGenerateQuiz = async () => {
-    if (!topic.trim()) return;
+    if (inputMethod === 'topic' && !topic.trim()) return;
+    if (inputMethod === 'file' && !uploadedFile) return;
 
-    const quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory);
+    let quiz;
+    if (inputMethod === 'file') {
+      quiz = await extractQuizFromFile(uploadedFile, {
+        difficulty,
+        questionCount,
+        gradeLevel
+      });
+    } else {
+      quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory);
+    }
+    
     if (quiz) {
       setGeneratedQuiz(quiz);
     }
@@ -62,61 +138,215 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
             Create a quiz based on any topic or your recent conversations
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="topic">Quiz Topic</Label>
-              <Input
-                id="topic"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g., Photosynthesis, World War II, Algebra..."
-                disabled={isGenerating}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="difficulty">Difficulty Level</Label>
-              <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <CardContent className="space-y-6">
+          <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as 'topic' | 'file')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="topic">Enter Topic</TabsTrigger>
+              <TabsTrigger value="file">Upload Material</TabsTrigger>
+            </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="questionCount">Number of Questions</Label>
-            <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="15">15</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <TabsContent value="topic" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="topic">Quiz Topic</Label>
+                  <Input
+                    id="topic"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="e.g., Photosynthesis, World War II, Algebra..."
+                    disabled={isGenerating}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          {conversationHistory && conversationHistory.length > 0 && (
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700">
-                💡 This quiz will be based on your recent conversation about this topic
-              </p>
-            </div>
-          )}
+              <div className="space-y-2">
+                <Label htmlFor="questionCount">Number of Questions</Label>
+                <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="15">15</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {conversationHistory && conversationHistory.length > 0 && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    💡 This quiz will be based on your recent conversation about this topic
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="file" className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label>Upload Material Type</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant={uploadType === 'study_material' ? "default" : "outline"}
+                      onClick={() => setUploadType('study_material')}
+                      disabled={isGenerating}
+                      className="justify-start"
+                    >
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Study Material
+                    </Button>
+                    <Button
+                      variant={uploadType === 'graded_quiz' ? "default" : "outline"}
+                      onClick={() => setUploadType('graded_quiz')}
+                      disabled={isGenerating}
+                      className="justify-start"
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Graded Quiz
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {uploadType === 'study_material' ? 'Upload Study Material' : 'Upload Graded Quiz/Test'}
+                  </Label>
+                  <FileUploadZone
+                    onFileUpload={handleFileUpload}
+                    onFileRemove={handleFileRemove}
+                    uploadedFile={uploadedFile}
+                    acceptedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png']}
+                    disabled={isGenerating}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="gradeLevel">Grade Level</Label>
+                    <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select grade level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
+                          <SelectItem key={gl} value={gl}>{gl}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="difficulty">Difficulty Level</Label>
+                    <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="questionCount">Number of Questions</Label>
+                  <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {uploadedFile && uploadType === 'graded_quiz' && (
+                  <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+                    <div className="text-sm font-medium">Quiz Generation Options</div>
+                    
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>Quiz Difficulty Relative to Original</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            variant={quizDifficulty === 'easier' ? "default" : "outline"}
+                            onClick={() => setQuizDifficulty('easier')}
+                            disabled={creatingPractice || isGenerating}
+                            size="sm"
+                          >
+                            Easier
+                          </Button>
+                          <Button
+                            variant={quizDifficulty === 'same' ? "default" : "outline"}
+                            onClick={() => setQuizDifficulty('same')}
+                            disabled={creatingPractice || isGenerating}
+                            size="sm"
+                          >
+                            Same as Test
+                          </Button>
+                          <Button
+                            variant={quizDifficulty === 'harder' ? "default" : "outline"}
+                            onClick={() => setQuizDifficulty('harder')}
+                            disabled={creatingPractice || isGenerating}
+                            size="sm"
+                          >
+                            Harder
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating} size="sm">
+                          {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
+                        </Button>
+                        <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating} size="sm">
+                          {creatingPractice ? 'Working…' : 'Test From Mistakes'}
+                        </Button>
+                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating} size="sm">
+                          {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
+                        </Button>
+                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating} size="sm">
+                          {creatingPractice ? 'Working…' : 'Similar Quiz'}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <Button 
             onClick={handleGenerateQuiz} 
-            disabled={!topic.trim() || isGenerating}
+            disabled={
+              isGenerating ||
+              (inputMethod === 'topic' && !topic.trim()) ||
+              (inputMethod === 'file' && !uploadedFile)
+            }
             className="w-full"
           >
             {isGenerating ? (
