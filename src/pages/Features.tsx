@@ -85,7 +85,7 @@ const Features = () => {
         if (msg.conversation_id && !conversationMap.has(msg.conversation_id)) {
           conversationMap.set(msg.conversation_id, {
             id: msg.conversation_id,
-            title: `Chat ${msg.conversation_id.slice(0, 8)}`,
+            title: `Chat ${msg.conversation_id.slice(0, 8)}`, // Temporary title, will be updated
             updated_at: msg.created_at,
             message_count: 1
           });
@@ -95,9 +95,65 @@ const Features = () => {
         }
       });
 
-      setConversations(Array.from(conversationMap.values()));
+      const conversations = Array.from(conversationMap.values());
+      
+      // Generate AI titles for conversations
+      for (const conv of conversations) {
+        try {
+          await generateConversationTitle(conv.id);
+        } catch (error) {
+          console.warn('Failed to generate title for conversation:', conv.id, error);
+        }
+      }
+
+      setConversations(conversations);
     } catch (error) {
       console.error('Error loading conversations:', error);
+    }
+  };
+
+  const generateConversationTitle = async (conversationId: string) => {
+    if (!user) return;
+
+    try {
+      // Get messages for this conversation
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('content, is_from_user')
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(6); // First 6 messages for context
+
+      if (error || !messages || messages.length === 0) return;
+
+      // Format messages for AI title generation
+      const formattedMessages = messages.map(msg => ({
+        role: msg.is_from_user ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
+      // Call AI function to generate title
+      const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-conversation-title', {
+        body: { messages: formattedMessages }
+      });
+
+      if (titleError || !titleData?.title) {
+        console.warn('Failed to generate AI title:', titleError);
+        return;
+      }
+
+      // Update conversation title in state
+      setConversations(prev => 
+        prev.map(conv => 
+          conv.id === conversationId 
+            ? { ...conv, title: titleData.title }
+            : conv
+        )
+      );
+
+    } catch (error) {
+      console.error('Error generating conversation title:', error);
     }
   };
 
@@ -227,6 +283,11 @@ const Features = () => {
       if (user) {
         await saveMessage(aiMessage, conversationId);
         await loadConversations(); // Refresh conversations list
+        
+        // Generate a meaningful title if this is a new conversation
+        if (messages.length === 2) { // First user message + first AI response
+          setTimeout(() => generateConversationTitle(conversationId), 1000);
+        }
       }
 
     } catch (error: any) {
