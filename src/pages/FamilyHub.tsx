@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudentOverview {
   id: string;
@@ -52,6 +53,7 @@ interface QuickAction {
 const FamilyHub = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [students, setStudents] = useState<StudentOverview[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
 

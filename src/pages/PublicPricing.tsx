@@ -5,8 +5,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { CheckCircle, Users, User, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const PublicPricing = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="flex flex-col min-h-screen bg-black text-white">
       <Header />
@@ -14,9 +17,9 @@ const PublicPricing = () => {
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">Choose Your Plan</h1>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">{t('publicPricing.title')}</h1>
             <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto">
-              Select the plan that best fits your learning needs and experience the future of personalized education.
+              {t('publicPricing.subtitle')}
             </p>
           </div>
           
@@ -24,16 +27,16 @@ const PublicPricing = () => {
             {/* Individual Plan */}
             <Card className="w-full bg-black border border-white/20 text-white relative hover:border-purple-500/50 transition-all duration-300">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-bold">
-                RECOMMENDED
+                {t('publicPricing.recommended')}
               </div>
               <CardHeader className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <User className="h-6 w-6" />
-                  <span className="text-lg font-semibold">Individual</span>
+                  <span className="text-lg font-semibold">{t('publicPricing.individual')}</span>
                 </div>
-                <CardTitle className="text-4xl font-bold">$16/month</CardTitle>
+                <CardTitle className="text-4xl font-bold">{t('publicPricing.individualPrice')}</CardTitle>
                 <CardDescription className="text-white/70">
-                  Perfect for individual learners
+                  {t('publicPricing.individualDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 text-center">

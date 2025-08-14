@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   UserPlus, 
   Target, 
@@ -15,48 +16,50 @@ import {
 } from 'lucide-react';
 
 const HowItWorks = () => {
+  const { t } = useLanguage();
+  
   const steps = [
     {
       number: 1,
-      title: "Sign Up in Seconds",
-      description: "Create your account and tell us about your learning goals. No complicated setup required.",
+      title: t('howItWorks.step1.title'),
+      description: t('howItWorks.step1.desc'),
       icon: UserPlus,
-      details: ["Quick registration process", "Personalized setup", "Choose your subjects"]
+      details: [t('howItWorks.step1.detail1'), t('howItWorks.step1.detail2'), t('howItWorks.step1.detail3')]
     },
     {
       number: 2,
-      title: "Set Your Learning Goals",
-      description: "Tell our AI what you want to learn and how you prefer to study. We'll customize everything for you.",
+      title: t('howItWorks.step2.title'),
+      description: t('howItWorks.step2.desc'),
       icon: Target,
-      details: ["Define learning objectives", "Set study preferences", "Choose difficulty level"]
+      details: [t('howItWorks.step2.detail1'), t('howItWorks.step2.detail2'), t('howItWorks.step2.detail3')]
     },
     {
       number: 3,
-      title: "Start Learning with AI",
-      description: "Begin chatting with your personal AI tutor. Ask questions, upload materials, and get instant help.",
+      title: t('howItWorks.step3.title'),
+      description: t('howItWorks.step3.desc'),
       icon: MessageSquare,
-      details: ["Interactive AI conversations", "Upload study materials", "Real-time assistance"]
+      details: [t('howItWorks.step3.detail1'), t('howItWorks.step3.detail2'), t('howItWorks.step3.detail3')]
     },
     {
       number: 4,
-      title: "AI Adapts to Your Style",
-      description: "Our AI learns how you study best and adapts its teaching style to maximize your learning efficiency.",
+      title: t('howItWorks.step4.title'),
+      description: t('howItWorks.step4.desc'),
       icon: Mic,
-      details: ["Personalized teaching approach", "Voice interactions available", "Adaptive difficulty"]
+      details: [t('howItWorks.step4.detail1'), t('howItWorks.step4.detail2'), t('howItWorks.step4.detail3')]
     },
     {
       number: 5,
-      title: "Track Your Progress",
-      description: "Monitor your learning journey with detailed analytics, achievements, and progress tracking.",
+      title: t('howItWorks.step5.title'),
+      description: t('howItWorks.step5.desc'),
       icon: TrendingUp,
-      details: ["Detailed analytics dashboard", "Achievement system", "Progress visualization"]
+      details: [t('howItWorks.step5.detail1'), t('howItWorks.step5.detail2'), t('howItWorks.step5.detail3')]
     },
     {
       number: 6,
-      title: "Achieve Your Goals",
-      description: "Reach your learning objectives faster with personalized guidance and continuous improvement.",
+      title: t('howItWorks.step6.title'),
+      description: t('howItWorks.step6.desc'),
       icon: Trophy,
-      details: ["Goal completion tracking", "Continuous improvement", "Success celebration"]
+      details: [t('howItWorks.step6.detail1'), t('howItWorks.step6.detail2'), t('howItWorks.step6.detail3')]
     }
   ];
 
@@ -68,14 +71,13 @@ const HowItWorks = () => {
         {/* Hero Section */}
         <div className="max-w-7xl mx-auto text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            How TeachlyAI Works
+            {t('howItWorks.title')}
           </h1>
           <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-8">
-            Experience the future of personalized education with our AI-powered learning platform. 
-            Here's how we transform your learning journey in 6 simple steps.
+            {t('howItWorks.subtitle')}
           </p>
           <Button className="bg-white text-black hover:bg-gray-200" size="lg" asChild>
-            <Link to="/auth">Get Started Free</Link>
+            <Link to="/auth">{t('howItWorks.getStartedFree')}</Link>
           </Button>
         </div>
 
@@ -128,17 +130,17 @@ const HowItWorks = () => {
         {/* CTA Section */}
         <div className="max-w-4xl mx-auto text-center mt-20 p-8 bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl border border-white/10">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Transform Your Learning?
+            {t('howItWorks.cta.title')}
           </h2>
           <p className="text-xl text-white/80 mb-8">
-            Join thousands of students who are already learning faster and smarter with TeachlyAI's AI-powered platform.
+            {t('howItWorks.cta.desc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="bg-white text-black hover:bg-gray-200" size="lg" asChild>
-              <Link to="/auth">Start Learning Now</Link>
+              <Link to="/auth">{t('howItWorks.startNow')}</Link>
             </Button>
             <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" size="lg" asChild>
-              <Link to="/pricing">View Pricing</Link>
+              <Link to="/pricing">{t('howItWorks.viewPricing')}</Link>
             </Button>
           </div>
         </div>

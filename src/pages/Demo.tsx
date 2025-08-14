@@ -21,8 +21,10 @@ import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Demo = () => {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,8 +72,8 @@ const Demo = () => {
     if (demoUsed) {
       navigate('/auth');
       toast({
-        title: "Demo Already Used",
-        description: "You've already tried our demo. Please sign up for full access!",
+        title: t('demo.timeWarning'),
+        description: t('demo.timeWarningDesc'),
         variant: "destructive"
       });
     }
@@ -351,10 +353,10 @@ const Demo = () => {
           <div className="text-center max-w-4xl">
             <div className="mb-12">
               <h1 className="text-7xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
-                Experience TeachlyAI Demo
+                {t('demo.title')}
               </h1>
               <p className="text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
-                Choose your perspective to get a personalized demo experience. You'll have 15 minutes to explore our full platform.
+                {t('demo.subtitle')}
               </p>
             </div>
             
@@ -364,7 +366,7 @@ const Demo = () => {
                 size="lg" 
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-12 py-6 rounded-2xl text-xl font-semibold shadow-xl"
               >
-                Choose Your Role
+                {t('demo.chooseRole')}
               </Button>
             </div>
           </div>

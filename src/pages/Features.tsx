@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { QuizFromConversation } from '@/components/quiz/QuizFromConversation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -32,6 +33,7 @@ interface UploadedFile {
 
 const Features = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -51,7 +53,7 @@ const Features = () => {
       setMessages([{
         id: 'welcome',
         role: 'assistant',
-        content: 'Hello! I\'m your AI learning assistant. Sign in to save your conversations and get personalized help.',
+        content: t('featuresPage.welcomeMessage'),
         timestamp: new Date(),
       }]);
     }
@@ -136,7 +138,7 @@ const Features = () => {
     setMessages([{
       id: 'welcome',
       role: 'assistant',
-      content: 'Hello! How can I help you learn today?',
+      content: t('chat.welcomeMessage'),
       timestamp: new Date(),
     }]);
     setCurrentConversationId(null);
