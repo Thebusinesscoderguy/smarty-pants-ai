@@ -39,8 +39,38 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   };
 
   const handleGenerateQuiz = async () => {
-    // Build base data (reserved for future use)
-    const quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
+    let quiz: Quiz | null = null;
+
+    switch (inputMethod) {
+      case 'manual':
+        quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
+        break;
+      
+      case 'file':
+        if (!uploadedFile) {
+          toast({ title: 'Error', description: 'Please upload a file first.', variant: 'destructive' });
+          return;
+        }
+        quiz = await extractQuizFromFile(uploadedFile, {
+          difficulty,
+          questionCount,
+          gradeLevel
+        });
+        break;
+      
+      case 'ai':
+        if (!customInstructions.trim()) {
+          toast({ title: 'Error', description: 'Please provide AI instructions.', variant: 'destructive' });
+          return;
+        }
+        quiz = await generateQuiz(customInstructions, difficulty, questionCount, conversationHistory, gradeLevel);
+        break;
+      
+      default:
+        toast({ title: 'Error', description: 'Invalid input method selected.', variant: 'destructive' });
+        return;
+    }
+
     if (quiz) {
       setGeneratedQuiz(quiz);
     }
