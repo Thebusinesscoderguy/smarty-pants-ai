@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Plus, Save, Trash2, FileQuestion, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { FileUploadZone } from './FileUploadZone';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface QuizGeneratorProps {
   conversationHistory?: any[];

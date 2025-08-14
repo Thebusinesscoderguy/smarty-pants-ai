@@ -14,7 +14,7 @@ import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface StudyPlan {
