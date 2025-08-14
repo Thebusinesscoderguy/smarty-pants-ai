@@ -183,7 +183,10 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant={uploadType === 'study_material' ? "default" : "outline"}
-                    onClick={() => setUploadType('study_material')}
+                    onClick={() => {
+                      console.log('Setting uploadType to study_material');
+                      setUploadType('study_material');
+                    }}
                     disabled={isGenerating}
                     className="justify-start"
                   >
@@ -192,7 +195,10 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                   </Button>
                   <Button
                     variant={uploadType === 'graded_quiz' ? "default" : "outline"}
-                    onClick={() => setUploadType('graded_quiz')}
+                    onClick={() => {
+                      console.log('Setting uploadType to graded_quiz');
+                      setUploadType('graded_quiz');
+                    }}
                     disabled={isGenerating}
                     className="justify-start"
                   >
@@ -231,7 +237,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                     
                     {uploadType === 'study_material' && (
                       <div className="space-y-2">
-                        <Label htmlFor="fileDifficulty">Difficulty Level</Label>
+                        <Label htmlFor="fileDifficulty">Difficulty Level (Upload Type: {uploadType})</Label>
                         <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select difficulty" />
@@ -248,7 +254,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
 
                   {uploadType === 'graded_quiz' && (
                     <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
-                      <div className="text-sm font-medium">Quiz Generation Options</div>
+                      <div className="text-sm font-medium">Quiz Generation Options (Upload Type: {uploadType})</div>
                       
                       <div className="space-y-3">
                         <div className="space-y-2">
