@@ -9,7 +9,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useMonitoringData } from '@/hooks/useMonitoringData';
+import { useUnifiedMonitoring } from '@/hooks/useUnifiedMonitoring';
+import { ComprehensiveMonitoringDashboard } from '@/components/monitoring/ComprehensiveMonitoringDashboard';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
 
@@ -27,7 +28,7 @@ const Monitoring = () => {
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('monitoring');
   
   // Demo mode - no authentication restrictions for demonstration purposes
-  const { studentProgress, overviewStats, loading: dataLoading } = useMonitoringData();
+  const { studentProgress, overviewStats, loading: dataLoading } = useUnifiedMonitoring();
   const { quests, createQuest, deleteQuest } = useQuestManagement();
   const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
 
