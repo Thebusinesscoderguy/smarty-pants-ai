@@ -39,6 +39,7 @@ interface DailyLesson {
 export const StudyPlanGenerator = () => {
   const [inputMethod, setInputMethod] = useState<'file' | 'chat' | 'topic'>('file');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
   const [chatInput, setChatInput] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [gradeLevel, setGradeLevel] = useState<string>('');
@@ -229,46 +230,77 @@ const handleCreateMistakesSimilar = async () => {
             Study Plan Generator
           </CardTitle>
           <CardDescription>
-            Upload a graded quiz/test or describe your weak areas to get a personalized study plan
+            Upload study material or graded quiz/test, or describe your weak areas to get a personalized study plan
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as 'file' | 'chat' | 'topic')}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="file">Upload Quiz</TabsTrigger>
+              <TabsTrigger value="file">Upload Material</TabsTrigger>
               <TabsTrigger value="chat">Describe Issues</TabsTrigger>
               <TabsTrigger value="topic">Select Topic</TabsTrigger>
             </TabsList>
 
             <TabsContent value="file" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Upload Graded Quiz/Test</Label>
-                <FileUploadZone
-                  onFileUpload={handleFileUpload}
-                  onFileRemove={handleFileRemove}
-                  uploadedFile={uploadedFile}
-                  acceptedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png']}
-                  disabled={isGenerating}
-                />
-              </div>
-
-              {uploadedFile && (
-                <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
-                  <div className="text-sm font-medium">Practice options from your last quiz</div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <Button onClick={handleCreateRetake} disabled={creatingPractice || isBuildingQuiz}>
-                      {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label>Upload Material Type</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant={uploadType === 'study_material' ? "default" : "outline"}
+                      onClick={() => setUploadType('study_material')}
+                      disabled={isGenerating}
+                      className="justify-start"
+                    >
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Study Material
                     </Button>
-                    <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isBuildingQuiz}>
-                      {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
-                    </Button>
-                    <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz}>
-                      {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
+                    <Button
+                      variant={uploadType === 'graded_quiz' ? "default" : "outline"}
+                      onClick={() => setUploadType('graded_quiz')}
+                      disabled={isGenerating}
+                      className="justify-start"
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Graded Quiz
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and can be taken like any normal quiz.</p>
                 </div>
-              )}
+
+                <div className="space-y-2">
+                  <Label>
+                    {uploadType === 'study_material' ? 'Upload Study Material' : 'Upload Graded Quiz/Test'}
+                  </Label>
+                  <FileUploadZone
+                    onFileUpload={handleFileUpload}
+                    onFileRemove={handleFileRemove}
+                    uploadedFile={uploadedFile}
+                    acceptedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png']}
+                    disabled={isGenerating}
+                  />
+                </div>
+
+                {uploadedFile && uploadType === 'graded_quiz' && (
+                  <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+                    <div className="text-sm font-medium">Quiz Generation Options</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Button onClick={handleCreateRetake} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                        {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
+                      </Button>
+                      <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                        {creatingPractice ? 'Working…' : 'Test From Mistakes'}
+                      </Button>
+                      <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                        {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
+                      </Button>
+                      <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
+                        {creatingPractice ? 'Working…' : 'Similar Quiz'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and can be taken like any normal quiz.</p>
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="chat" className="space-y-4">
