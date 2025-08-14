@@ -229,121 +229,125 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="fileDifficulty">Difficulty Level</Label>
-                      <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select difficulty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="easy">Easy</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="hard">Hard</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {uploadType === 'study_material' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="fileDifficulty">Difficulty Level</Label>
+                        <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select difficulty" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="easy">Easy</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="hard">Hard</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
-                    <div className="text-sm font-medium">Quiz Generation Options</div>
-                    
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label>Quiz Difficulty Relative to Original</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Button
-                            variant={quizDifficulty === 'easier' ? "default" : "outline"}
-                            onClick={() => setQuizDifficulty('easier')}
-                            disabled={creatingPractice || isGenerating}
-                            size="sm"
-                          >
-                            Easier
+                  {uploadType === 'graded_quiz' && (
+                    <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+                      <div className="text-sm font-medium">Quiz Generation Options</div>
+                      
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label>Quiz Difficulty Relative to Original</Label>
+                          <div className="grid grid-cols-3 gap-2">
+                            <Button
+                              variant={quizDifficulty === 'easier' ? "default" : "outline"}
+                              onClick={() => setQuizDifficulty('easier')}
+                              disabled={creatingPractice || isGenerating}
+                              size="sm"
+                            >
+                              Easier
+                            </Button>
+                            <Button
+                              variant={quizDifficulty === 'same' ? "default" : "outline"}
+                              onClick={() => setQuizDifficulty('same')}
+                              disabled={creatingPractice || isGenerating}
+                              size="sm"
+                            >
+                              Same as Test
+                            </Button>
+                            <Button
+                              variant={quizDifficulty === 'harder' ? "default" : "outline"}
+                              onClick={() => setQuizDifficulty('harder')}
+                              disabled={creatingPractice || isGenerating}
+                              size="sm"
+                            >
+                              Harder
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <Button onClick={async () => {
+                            setCreatingPractice(true);
+                            try {
+                              if (!uploadedFile) return;
+                              const quiz = await extractQuizFromFile(uploadedFile, {
+                                difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                                questionCount: 5,
+                                gradeLevel
+                              });
+                              if (!quiz) return;
+                              const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
+                              if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+                            } catch (e: any) {
+                              toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+                            } finally {
+                              setCreatingPractice(false);
+                            }
+                          }} disabled={creatingPractice || isGenerating} size="sm">
+                            {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
                           </Button>
-                          <Button
-                            variant={quizDifficulty === 'same' ? "default" : "outline"}
-                            onClick={() => setQuizDifficulty('same')}
-                            disabled={creatingPractice || isGenerating}
-                            size="sm"
-                          >
-                            Same as Test
+                          <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating} size="sm">
+                            {creatingPractice ? 'Working…' : 'Test From Mistakes'}
                           </Button>
-                          <Button
-                            variant={quizDifficulty === 'harder' ? "default" : "outline"}
-                            onClick={() => setQuizDifficulty('harder')}
-                            disabled={creatingPractice || isGenerating}
-                            size="sm"
-                          >
-                            Harder
+                          <Button variant="outline" onClick={async () => {
+                            setCreatingPractice(true);
+                            try {
+                              const quiz = await quizFromLatestMistakes({ targetCount: 10 });
+                              if (!quiz) return;
+                              const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Questions Like Mistakes)` });
+                              if (savedId) toast({ title: 'Saved', description: 'Questions like mistakes quiz saved to your Library.' });
+                            } catch (e: any) {
+                              toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+                            } finally {
+                              setCreatingPractice(false);
+                            }
+                          }} disabled={creatingPractice || isGenerating} size="sm">
+                            {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
+                          </Button>
+                          <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating} size="sm">
+                            {creatingPractice ? 'Working…' : 'Mistakes + Similar'}
+                          </Button>
+                          <Button variant="outline" onClick={async () => {
+                            setCreatingPractice(true);
+                            try {
+                              if (!uploadedFile) return;
+                              const quiz = await extractQuizFromFile(uploadedFile, {
+                                difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                                questionCount: 10,
+                                gradeLevel
+                              });
+                              if (!quiz) return;
+                              const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Similar Quiz)` });
+                              if (savedId) toast({ title: 'Saved', description: 'Similar quiz saved to your Library.' });
+                            } catch (e: any) {
+                              toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+                            } finally {
+                              setCreatingPractice(false);
+                            }
+                          }} disabled={creatingPractice || isGenerating} size="sm">
+                            {creatingPractice ? 'Working…' : 'Similar Quiz'}
                           </Button>
                         </div>
                       </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <Button onClick={async () => {
-                          setCreatingPractice(true);
-                          try {
-                            if (!uploadedFile) return;
-                            const quiz = await extractQuizFromFile(uploadedFile, {
-                              difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                              questionCount: 5,
-                              gradeLevel
-                            });
-                            if (!quiz) return;
-                            const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
-                            if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
-                          } catch (e: any) {
-                            toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-                          } finally {
-                            setCreatingPractice(false);
-                          }
-                        }} disabled={creatingPractice || isGenerating} size="sm">
-                          {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
-                        </Button>
-                        <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating} size="sm">
-                          {creatingPractice ? 'Working…' : 'Test From Mistakes'}
-                        </Button>
-                        <Button variant="outline" onClick={async () => {
-                          setCreatingPractice(true);
-                          try {
-                            const quiz = await quizFromLatestMistakes({ targetCount: 10 });
-                            if (!quiz) return;
-                            const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Questions Like Mistakes)` });
-                            if (savedId) toast({ title: 'Saved', description: 'Questions like mistakes quiz saved to your Library.' });
-                          } catch (e: any) {
-                            toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-                          } finally {
-                            setCreatingPractice(false);
-                          }
-                        }} disabled={creatingPractice || isGenerating} size="sm">
-                          {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
-                        </Button>
-                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating} size="sm">
-                          {creatingPractice ? 'Working…' : 'Mistakes + Similar'}
-                        </Button>
-                        <Button variant="outline" onClick={async () => {
-                          setCreatingPractice(true);
-                          try {
-                            if (!uploadedFile) return;
-                            const quiz = await extractQuizFromFile(uploadedFile, {
-                              difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                              questionCount: 10,
-                              gradeLevel
-                            });
-                            if (!quiz) return;
-                            const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Similar Quiz)` });
-                            if (savedId) toast({ title: 'Saved', description: 'Similar quiz saved to your Library.' });
-                          } catch (e: any) {
-                            toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-                          } finally {
-                            setCreatingPractice(false);
-                          }
-                        }} disabled={creatingPractice || isGenerating} size="sm">
-                          {creatingPractice ? 'Working…' : 'Similar Quiz'}
-                        </Button>
-                      </div>
+                      <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
-                  </div>
+                  )}
                 </>
               )}
             </TabsContent>
