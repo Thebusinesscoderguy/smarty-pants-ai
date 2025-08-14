@@ -283,7 +283,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                   </Select>
                 </div>
 
-                {uploadedFile && uploadType === 'graded_quiz' && (
+                {uploadedFile && (
                   <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
                     <div className="text-sm font-medium">Quiz Generation Options</div>
                     
@@ -318,7 +318,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating} size="sm">
                           {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
                         </Button>
@@ -329,6 +329,26 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                           {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
                         </Button>
                         <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating} size="sm">
+                          {creatingPractice ? 'Working…' : 'Mistakes + Similar'}
+                        </Button>
+                        <Button variant="outline" onClick={async () => {
+                          setCreatingPractice(true);
+                          try {
+                            if (!uploadedFile) return;
+                            const quiz = await extractQuizFromFile(uploadedFile, {
+                              difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                              questionCount: 10,
+                              gradeLevel
+                            });
+                            if (!quiz) return;
+                            const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Similar Quiz)` });
+                            if (savedId) toast({ title: 'Saved', description: 'Similar quiz saved to your Library.' });
+                          } catch (e: any) {
+                            toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+                          } finally {
+                            setCreatingPractice(false);
+                          }
+                        }} disabled={creatingPractice || isGenerating} size="sm">
                           {creatingPractice ? 'Working…' : 'Similar Quiz'}
                         </Button>
                       </div>
