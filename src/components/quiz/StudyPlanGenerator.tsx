@@ -56,15 +56,22 @@ export const StudyPlanGenerator = () => {
   const [starting, setStarting] = useState(false);
   const navigate = useNavigate();
 const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
-const { isGenerating: isBuildingQuiz, generateQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz } = useQuizGenerator();
+const { isGenerating: isBuildingQuiz, generateQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz, extractQuizFromFile } = useQuizGenerator();
 const [creatingPractice, setCreatingPractice] = useState(false);
 
 const handleCreateRetake = async () => {
   setCreatingPractice(true);
   try {
-    const quiz = await retakeLatestQuiz();
+    if (!uploadedFile) return;
+    
+    // Use file extraction to generate quiz with specified difficulty
+    const quiz = await extractQuizFromFile(uploadedFile, {
+      difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+      questionCount: 5,
+      gradeLevel
+    });
     if (!quiz) return;
-    const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Retake)` });
+    const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
     if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
   } catch (e: any) {
     toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
@@ -78,20 +85,8 @@ const handleCreateMistakes = async () => {
   try {
     const quiz = await quizFromLatestMistakes();
     if (!quiz) return;
-    const savedId = await saveQuiz(quiz);
-    if (savedId) {
-      toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
-      // Generate study plan from mistakes
-      const mistakePlan = await generateStudyPlan(
-        `Focus on practicing these mistake areas: ${quiz.questions.map(q => q.question).join(', ')}`,
-        'chat',
-        { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes }
-      );
-      if (mistakePlan) {
-        setGeneratedPlan(mistakePlan);
-        setMistakeBasedMode(true);
-      }
-    }
+    const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Mistakes Only)` });
+    if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
   } catch (e: any) {
     toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
   } finally {
@@ -105,19 +100,7 @@ const handleCreateMistakesSimilar = async () => {
     const quiz = await quizFromLatestMistakes({ targetCount: 10 });
     if (!quiz) return;
     const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
-    if (savedId) {
-      toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
-      // Generate study plan from similar mistakes
-      const similarPlan = await generateStudyPlan(
-        `Create practice plan for topics similar to these mistakes: ${quiz.questions.map(q => q.question).join(', ')}`,
-        'chat',
-        { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes }
-      );
-      if (similarPlan) {
-        setGeneratedPlan(similarPlan);
-        setMistakeBasedMode(true);
-      }
-    }
+    if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
   } catch (e: any) {
     toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
   } finally {
@@ -328,7 +311,7 @@ const handleCreateMistakesSimilar = async () => {
                             disabled={creatingPractice || isBuildingQuiz}
                             size="sm"
                           >
-                            Same Level
+                            Same as Test
                           </Button>
                           <Button
                             variant={quizDifficulty === 'harder' ? "default" : "outline"}
@@ -356,7 +339,7 @@ const handleCreateMistakesSimilar = async () => {
                         </Button>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">These will be saved in your Quiz Library and generate a study plan focused on your weak areas.</p>
+                    <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
                   </div>
                 )}
               </div>
