@@ -21,7 +21,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { curricula } from '@/utils/curriculaData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Lesson {
   id: string;
@@ -69,107 +69,69 @@ const LearningModule = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Find the module from curricula or create a detailed module structure
-    const curriculumModule = curricula.find(c => c.id === moduleId);
-    if (curriculumModule) {
-      // Transform curriculum into detailed learning module
-      const detailedModule: Module = {
-        id: curriculumModule.id,
-        title: curriculumModule.title,
-        description: curriculumModule.description,
-        progress: 0,
-        estimatedTime: 120, // minutes
-        lessons: [
-          {
-            id: '1',
-            title: 'Introduction to ' + curriculumModule.title,
-            content: `Welcome to ${curriculumModule.title}. This comprehensive module will guide you through the key concepts and skills you need to master.`,
-            duration: 15,
-            type: 'reading',
-            completed: false
-          },
-          {
-            id: '2',
-            title: 'Core Concepts',
-            content: 'Deep dive into the fundamental concepts that form the foundation of this subject area.',
-            duration: 30,
-            type: 'interactive',
-            completed: false
-          },
-          {
-            id: '3',
-            title: 'Practical Applications',
-            content: 'Learn how to apply these concepts in real-world scenarios and problem-solving contexts.',
-            duration: 25,
-            type: 'video',
-            completed: false
-          },
-          {
-            id: '4',
-            title: 'Advanced Topics',
-            content: 'Explore more complex aspects and advanced techniques in this subject area.',
-            duration: 35,
-            type: 'reading',
-            completed: false
-          }
-        ],
-        quizzes: [
-          {
-            id: 'quiz-1',
-            title: 'Knowledge Check - Basics',
-            difficulty: 'easy',
-            timeLimit: 10,
-            questions: [
+    const loadStudyPlan = async () => {
+      if (!moduleId) return;
+      
+      try {
+        const { data: studyPlan, error } = await supabase
+          .from('study_plans')
+          .select('*')
+          .eq('id', moduleId)
+          .single();
+          
+        if (error) throw error;
+        
+        if (studyPlan) {
+          // Transform study plan into detailed learning module
+          const dailyLessons = studyPlan.daily_lessons as any[] || [];
+          
+          const detailedModule: Module = {
+            id: studyPlan.id,
+            title: studyPlan.title,
+            description: studyPlan.description || 'Your personalized learning journey',
+            progress: 0,
+            estimatedTime: studyPlan.estimated_duration * 45, // Convert days to minutes (45 min per day)
+            lessons: dailyLessons.map((lesson, index) => ({
+              id: `lesson-${index + 1}`,
+              title: `Day ${lesson.day}: ${lesson.topic}`,
+              content: lesson.description + '\n\nActivities:\n' + lesson.activities.join('\n• '),
+              duration: lesson.estimatedTime,
+              type: index % 3 === 0 ? 'reading' : index % 3 === 1 ? 'interactive' : 'video',
+              completed: false
+            })),
+            quizzes: [
               {
-                question: `What is the primary focus of ${curriculumModule.title}?`,
-                type: 'multiple_choice',
-                options: [
-                  'Understanding basic principles',
-                  'Memorizing facts',
-                  'Solving complex problems',
-                  'All of the above'
-                ],
-                correct_answer: 'All of the above',
-                explanation: 'This subject encompasses all aspects of learning including principles, facts, and problem-solving.'
-              },
-              {
-                question: 'Which learning approach is most effective for this subject?',
-                type: 'multiple_choice',
-                options: [
-                  'Passive reading',
-                  'Active practice and application',
-                  'Memorization only',
-                  'Watching videos only'
-                ],
-                correct_answer: 'Active practice and application',
-                explanation: 'Active practice and application help solidify understanding and build practical skills.'
+                id: 'quiz-1',
+                title: 'Knowledge Check',
+                difficulty: (['easy', 'medium', 'hard'] as const).includes(studyPlan.difficulty_level as any) 
+                  ? studyPlan.difficulty_level as 'easy' | 'medium' | 'hard'
+                  : 'medium',
+                timeLimit: 15,
+                questions: [
+                  {
+                    question: `What are the key concepts you need to focus on in ${studyPlan.title}?`,
+                    type: 'multiple_choice',
+                    options: [
+                      'Understanding basic principles',
+                      'Practice with real problems',
+                      'Reviewing weak areas',
+                      'All of the above'
+                    ],
+                    correct_answer: 'All of the above',
+                    explanation: 'A comprehensive approach covers all aspects of learning for maximum effectiveness.'
+                  }
+                ]
               }
             ]
-          },
-          {
-            id: 'quiz-2',
-            title: 'Comprehensive Assessment',
-            difficulty: 'medium',
-            timeLimit: 20,
-            questions: [
-              {
-                question: 'How do you apply the concepts learned in real-world situations?',
-                type: 'multiple_choice',
-                options: [
-                  'By following strict rules',
-                  'By adapting principles to specific contexts',
-                  'By ignoring theory',
-                  'By using only textbook examples'
-                ],
-                correct_answer: 'By adapting principles to specific contexts',
-                explanation: 'Real-world application requires adapting learned principles to specific situations and contexts.'
-              }
-            ]
-          }
-        ]
-      };
-      setSelectedModule(detailedModule);
-    }
+          };
+          setSelectedModule(detailedModule);
+        }
+      } catch (error) {
+        console.error('Error loading study plan:', error);
+      }
+    };
+    
+    loadStudyPlan();
   }, [moduleId]);
 
   const handleLessonComplete = (lessonId: string) => {
@@ -203,9 +165,9 @@ const LearningModule = () => {
           <BookOpen className="h-16 w-16 mx-auto mb-4 text-blue-400" />
           <h2 className="text-2xl font-bold mb-2">Module Not Found</h2>
           <p className="text-gray-400 mb-4">The requested learning module could not be found.</p>
-          <Button onClick={() => navigate('/modules')} variant="outline" className="border-white/30 text-white">
+          <Button onClick={() => navigate('/quiz-generator')} variant="outline" className="border-white/30 text-white">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Modules
+            Back to Study Plans
           </Button>
         </div>
       </div>
@@ -306,12 +268,12 @@ const LearningModule = () => {
       <main className="flex-1 p-6">
         <div className="max-w-6xl mx-auto">
           <Button
-            onClick={() => navigate('/modules')}
+            onClick={() => navigate('/quiz-generator')}
             variant="outline"
             className="mb-6 border-white/30 bg-white/10 hover:bg-white/20 text-white"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Modules
+            Back to Study Plans
           </Button>
 
           {/* Module Header */}
