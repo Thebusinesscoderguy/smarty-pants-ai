@@ -98,6 +98,22 @@ const generateDemoInsights = (student: any): string[] => {
   return insights;
 };
 
+const inferSubjectFromTestName = (testName: string): string => {
+  const lowerName = testName.toLowerCase();
+  
+  if (lowerName.includes('math') || lowerName.includes('algebra') || lowerName.includes('geometry') || lowerName.includes('calculus')) {
+    return 'Mathematics';
+  } else if (lowerName.includes('science') || lowerName.includes('physics') || lowerName.includes('chemistry') || lowerName.includes('biology')) {
+    return 'Science';
+  } else if (lowerName.includes('english') || lowerName.includes('reading') || lowerName.includes('writing') || lowerName.includes('language')) {
+    return 'English';
+  } else if (lowerName.includes('history') || lowerName.includes('social') || lowerName.includes('geography')) {
+    return 'Social Studies';
+  } else {
+    return 'General';
+  }
+};
+
 export const useUnifiedMonitoring = () => {
   const { user } = useAuth();
   const [studentProgress, setStudentProgress] = useState<UnifiedStudentProgress[]>([]);
@@ -131,6 +147,10 @@ export const useUnifiedMonitoring = () => {
           : 0,
         achievements_count: student.achievements?.length || 0,
         subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
+        test_scores: (student.test_scores || []).map(test => ({
+          ...test,
+          subject: inferSubjectFromTestName(test.test_name) // Infer subject from test name
+        })),
         response_analytics: {
           average_response_time: 3500,
           quiz_performance_trend: [75, 80, 85, 82, 88],
