@@ -624,16 +624,11 @@ ${lesson.activities.map(activity => `• ${activity}`).join('\n')}
 Please help me learn this topic and answer any questions I have about it.`;
                             
                             // Navigate to chat with context
-                            navigate('/chat', { 
-                              state: { 
-                                autoTitle: chatTitle,
-                                initialContext: studyContext
-                              } 
-                            });
+                            navigate('/modules');
                           }}
                           className="flex-1"
                         >
-                          Continue in Chat
+                          Begin Learning
                         </Button>
                       </div>
                     </CardContent>

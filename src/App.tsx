@@ -9,6 +9,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import Index from './pages/Index';
 import Chat from './pages/Chat';
 import Modules from './pages/Modules';
+import LearningModule from './pages/LearningModule';
 import FamilyHub from './pages/FamilyHub';
 import ParentOnboarding from './components/onboarding/ParentOnboarding';
 
@@ -49,8 +50,9 @@ function App() {
               <Route path="/family-hub" element={<FamilyHub />} />
               <Route path="/parent-onboarding" element={<ParentOnboarding />} />
               <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-              <Route path="/modules" element={<ProtectedRoute><Modules /></ProtectedRoute>} />
-              <Route path="/voice" element={<Chat />} />
+               <Route path="/modules" element={<ProtectedRoute><Modules /></ProtectedRoute>} />
+               <Route path="/learn/:moduleId" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
+               <Route path="/voice" element={<Chat />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/monitoring" element={<Monitoring />} />
               <Route path="/auth" element={<Auth />} />

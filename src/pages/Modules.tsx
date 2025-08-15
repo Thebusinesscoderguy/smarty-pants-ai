@@ -47,7 +47,7 @@ const Modules = () => {
 
   const startModule = (module: any) => {
     localStorage.setItem('selectedCurriculum', JSON.stringify(module));
-    navigate('/chat');
+    navigate(`/learn/${module.id}`);
   };
 
   const renderNavigation = () => (
