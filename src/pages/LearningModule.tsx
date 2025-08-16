@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { QuizTaker } from '@/components/quiz/QuizTaker';
+import TutorChat from '@/components/learning/TutorChat';
 import { 
   BookOpen, 
   Play, 
@@ -193,63 +194,11 @@ Remember to apply what you learn through practice problems and real-world exampl
 
   if (currentLesson) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
-            <Button
-              onClick={() => setCurrentLesson(null)}
-              variant="outline"
-              className="mb-6 border-white/30 bg-white/10 hover:bg-white/20 text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Module
-            </Button>
-            
-            <Card className="bg-white/10 border-white/30 backdrop-blur-sm">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl text-white">{currentLesson.title}</CardTitle>
-                  <Badge variant="outline" className="border-white/30 text-white">
-                    <Clock className="mr-1 h-3 w-3" />
-                    {currentLesson.duration} min
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="prose prose-invert max-w-none">
-                  <p className="text-white/90 text-lg leading-relaxed">
-                    {currentLesson.content}
-                  </p>
-                </div>
-                
-                <div className="bg-white/5 p-6 rounded-lg border border-white/20">
-                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                    <Lightbulb className="mr-2 h-5 w-5 text-yellow-400" />
-                    Key Learning Objectives
-                  </h3>
-                  <ul className="space-y-2 text-white/80">
-                    <li>• Understand core concepts and principles</li>
-                    <li>• Apply knowledge to practical scenarios</li>
-                    <li>• Develop critical thinking skills</li>
-                    <li>• Build foundation for advanced topics</li>
-                  </ul>
-                </div>
-                
-                <Button 
-                  onClick={() => handleLessonComplete(currentLesson.id)}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                  size="lg"
-                >
-                  <CheckCircle className="mr-2 h-5 w-5" />
-                  Complete Lesson
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-        <Footer />
-      </div>
+      <TutorChat 
+        lesson={currentLesson}
+        onBack={() => setCurrentLesson(null)}
+        onComplete={handleLessonComplete}
+      />
     );
   }
 
