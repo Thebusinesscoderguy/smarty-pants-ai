@@ -94,7 +94,24 @@ const LearningModule = () => {
             lessons: dailyLessons.map((lesson, index) => ({
               id: `lesson-${index + 1}`,
               title: `Day ${lesson.day}: ${lesson.topic}`,
-              content: lesson.description + '\n\nActivities:\n' + lesson.activities.join('\n• '),
+              content: `# ${lesson.topic}
+
+${lesson.description}
+
+## Key Concepts
+
+This lesson will help you understand the fundamental concepts of ${lesson.topic}. We'll explore the theory, practical applications, and provide examples to reinforce your learning.
+
+## Learning Objectives
+
+By the end of this lesson, you will be able to:
+${lesson.activities.map((activity: string) => `• ${activity}`).join('\n')}
+
+## Content Overview
+
+${lesson.topic} is an essential topic that builds upon previous knowledge and prepares you for more advanced concepts. Take your time to understand each section before moving forward.
+
+Remember to apply what you learn through practice problems and real-world examples.`,
               duration: lesson.estimatedTime,
               type: index % 3 === 0 ? 'reading' : index % 3 === 1 ? 'interactive' : 'video',
               completed: false
