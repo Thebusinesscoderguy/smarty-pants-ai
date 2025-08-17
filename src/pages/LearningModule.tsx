@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { QuizTaker } from '@/components/quiz/QuizTaker';
-import TutorChat from '@/components/learning/TutorChat';
+import LessonViewer from '@/components/learning/LessonViewer';
 import { 
   BookOpen, 
   Play, 
@@ -194,7 +194,7 @@ Remember to apply what you learn through practice problems and real-world exampl
 
   if (currentLesson) {
     return (
-      <TutorChat 
+      <LessonViewer 
         lesson={currentLesson}
         onBack={() => setCurrentLesson(null)}
         onComplete={handleLessonComplete}
