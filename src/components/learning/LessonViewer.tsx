@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
+import { Clock, ArrowLeft, BookOpen, CheckCircle, Info, FileText, HelpCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Lesson {
@@ -22,8 +22,29 @@ interface LessonViewerProps {
 }
 
 const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete }) => {
+  const [showingDetail, setShowingDetail] = useState(false);
+  const [showingSummary, setShowingSummary] = useState(false);
+  
   const handleCompleteLesson = () => {
     onComplete(lesson.id);
+  };
+
+  const handleMoreDetail = () => {
+    setShowingDetail(!showingDetail);
+    setShowingSummary(false);
+  };
+
+  const handleSummarize = () => {
+    setShowingSummary(!showingSummary);
+    setShowingDetail(false);
+  };
+
+  const handleAskQuestion = () => {
+    // Open a simple prompt for questions
+    const question = prompt("What would you like to know about this topic?");
+    if (question) {
+      alert(`Great question! "${question}" - This would normally connect to an AI tutor to answer your question.`);
+    }
   };
 
   return (
@@ -67,7 +88,7 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[60vh] pr-4">
+              <ScrollArea className="h-[50vh] pr-4">
                 <div className="prose prose-invert max-w-none text-white/90 leading-relaxed">
                   <ReactMarkdown 
                     components={{
@@ -88,10 +109,42 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                       ),
                     }}
                   >
-                    {lesson.content}
+                    {showingSummary ? `## Summary\n\nThis is a concise summary of "${lesson.title}". The main points covered include the core concepts and key takeaways that you should remember from this lesson.` :
+                     showingDetail ? `${lesson.content}\n\n## Additional Details\n\nHere are some additional insights and deeper explanations about the topics covered in this lesson. This expanded content provides more context and examples to help you better understand the material.` :
+                     lesson.content}
                   </ReactMarkdown>
                 </div>
               </ScrollArea>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-white/10">
+                <Button
+                  onClick={handleMoreDetail}
+                  variant="outline"
+                  className={`border-white/30 ${showingDetail ? 'bg-blue-600/30 text-blue-200' : 'bg-white/10 hover:bg-white/20'} text-white`}
+                >
+                  <Info className="mr-2 h-4 w-4" />
+                  {showingDetail ? 'Less Detail' : 'More Detail'}
+                </Button>
+                
+                <Button
+                  onClick={handleSummarize}
+                  variant="outline"
+                  className={`border-white/30 ${showingSummary ? 'bg-purple-600/30 text-purple-200' : 'bg-white/10 hover:bg-white/20'} text-white`}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {showingSummary ? 'Full Content' : 'Summarize'}
+                </Button>
+                
+                <Button
+                  onClick={handleAskQuestion}
+                  variant="outline"
+                  className="border-white/30 bg-white/10 hover:bg-white/20 text-white"
+                >
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Ask Question
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
