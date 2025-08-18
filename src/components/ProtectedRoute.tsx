@@ -73,7 +73,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           setShowRoleSelector(false);
           setHasNavigated(true);
           
-          // Navigate based on role selection
+          // Stay on current route if it's not dashboard/home, otherwise navigate based on role
+          if (location.pathname !== '/dashboard' && location.pathname !== '/') {
+            // Stay on the current route (like /modules)
+            return;
+          }
+          
+          // Navigate based on role selection for dashboard routes
           if (role === 'parent') {
             // Check if they need to add children (new parent with no children)
             try {
