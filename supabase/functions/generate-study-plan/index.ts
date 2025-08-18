@@ -33,7 +33,7 @@ serve(async (req) => {
         prompt = `Based on the student's described difficulties: "${inputData}", create a personalized study plan.`;
         break;
       case 'topic':
-        prompt = `Create a comprehensive study plan for mastering the subject: "${inputData}".`;
+        prompt = `Create a comprehensive study plan for mastering the advanced topic: "${inputData}".`;
         break;
       default:
         prompt = `Create a study plan based on: "${inputData}".`;
@@ -44,36 +44,40 @@ serve(async (req) => {
     const constraints = [
       planDays ? `Create exactly ${planDays} daily lessons.` : 'Create 7-14 daily lessons depending on complexity.',
       perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
-      'Each lesson must include an explanation step written in kid-friendly language.',
+      'Each lesson should be appropriate for the specified grade level - NO basic introductions like "what is math".',
+      'Focus on the SPECIFIC topic requested - dive deep into the subject matter immediately.',
       'Include a mini-quiz each day; set practiceQuestions to match the mini-quiz size.'
     ].join('\n- ');
 
-    const fullPrompt = `${contextLine}${prompt}
+    const gradeContext = gradeLevel ? `\n\nCRITICAL: This is for a ${gradeLevel} student. Content must be appropriate for this grade level. Do NOT include elementary concepts unless specifically relevant to building toward the advanced topic. Start with concepts appropriate for ${gradeLevel} level understanding.` : '';
+
+    const fullPrompt = `${contextLine}${prompt}${gradeContext}
 
     Generate a detailed study plan in this exact JSON format only (no markdown, no extra text):
     {
       "id": "unique-study-plan-id",
-      "title": "Personalized Study Plan for [Subject/Topic]",
-      "description": "Brief description of what this plan will help achieve",
-      "weakAreas": ["Area 1", "Area 2", "Area 3"],
+      "title": "Advanced Study Plan for ${inputData}",
+      "description": "Comprehensive ${gradeLevel || ''} level study plan for mastering ${inputData}",
+      "weakAreas": ["Specific Area 1", "Specific Area 2", "Specific Area 3"],
       "estimatedDuration": ${planDays ?? 14},
       "difficultyLevel": "medium",
       "dailyLessons": [
         {
           "day": 1,
-          "topic": "Foundation Building",
-          "description": "Start with basic concepts and include a short friendly explanation of the key idea.",
-          "activities": ["Explanation: simple breakdown of the concept", "Guided example(s)", "Practice problems", "Mini-quiz"],
+          "topic": "Core Concepts in ${inputData}",
+          "description": "Dive into the fundamental principles and theories specific to ${inputData}.",
+          "activities": ["Deep explanation of key concepts", "Real-world applications", "Practice problems", "Conceptual mini-quiz"],
           "estimatedTime": ${perDayLimit ?? 45},
           "practiceQuestions": 5
         }
       ]
     }
     Requirements:
-    - Identify 3-5 specific weak areas that need improvement
+    - Target the EXACT topic specified - no generic math introductions
     - ${constraints}
-    - Focus on progressive difficulty and skill building
-    - Make activities specific and actionable`;
+    - Each day should build progressively within the SPECIFIC subject area
+    - Make activities directly related to the advanced topic, not basic math concepts
+    - Use grade-appropriate language and examples throughout`;
 
     async function callOpenAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
@@ -84,12 +88,12 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'gpt-4.1-2025-04-14',
             messages: [
-              { role: 'system', content: 'You are an expert educational consultant creating personalized study plans. Always respond with valid JSON only.' },
+              { role: 'system', content: 'You are an expert educational consultant who specializes in creating advanced, grade-appropriate study plans. You focus on the SPECIFIC topic requested and avoid generic introductions. Create content that challenges students at their grade level. Always respond with valid JSON only.' },
               { role: 'user', content: fullPrompt }
             ],
-            temperature: 0.5,
+            max_completion_tokens: 2000,
           }),
         });
         if (resp.ok) return resp;

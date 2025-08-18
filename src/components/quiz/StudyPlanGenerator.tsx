@@ -145,15 +145,25 @@ const handleCreateMistakesSimilar = async () => {
     if (!generatedPlan) return;
     try {
       setSaving(true);
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-      if (!userId) {
-        toast({ title: 'Sign in required', description: 'Please sign in to save your study plan.' });
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Auth error:', authError);
+        toast({ title: 'Authentication error', description: 'Please sign in again.', variant: 'destructive' });
         return;
       }
-      const { error } = await supabase.from('study_plans').insert([
+      
+      const userId = userData?.user?.id;
+      if (!userId) {
+        toast({ title: 'Sign in required', description: 'Please sign in to save your study plan.', variant: 'destructive' });
+        return;
+      }
+
+      console.log('Attempting to save study plan for user:', userId);
+      
+      const { data, error } = await supabase.from('study_plans').insert([
         {
-          user_id: userId as any,
+          user_id: userId,
           title: generatedPlan.title,
           description: generatedPlan.description,
           weak_areas: generatedPlan.weakAreas,
@@ -163,12 +173,27 @@ const handleCreateMistakesSimilar = async () => {
           grade_level: gradeLevel || null,
           region: region || null,
           status: 'saved'
-        } as any
-      ]);
-      if (error) throw error;
-      toast({ title: 'Saved', description: 'Your study plan has been saved.' });
+        }
+      ]).select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Study plan saved successfully:', data);
+      toast({ 
+        title: 'Study Plan Saved!', 
+        description: 'Your personalized study plan has been saved successfully.',
+        className: "bg-green-50 border-green-200"
+      });
     } catch (e: any) {
-      toast({ title: 'Failed to save', description: e?.message || 'Please try again.', variant: 'destructive' });
+      console.error('Save error details:', e);
+      toast({ 
+        title: 'Failed to Save', 
+        description: e?.message || 'Unable to save study plan. Please check your connection and try again.', 
+        variant: 'destructive' 
+      });
     } finally {
       setSaving(false);
     }
