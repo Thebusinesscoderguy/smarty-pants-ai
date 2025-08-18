@@ -206,8 +206,8 @@ const handleCreateMistakesSimilar = async () => {
       if (error) throw error;
       if (data?.id) {
         try { localStorage.setItem('active_study_plan_id', data.id); } catch {}
-        // Navigate to the personalized learning module
-        navigate(`/learn/${data.id}`);
+        // Navigate to the learning module
+        navigate(`/modules`);
       }
       toast({ title: 'Plan started', description: 'Beginning your personalized learning journey!' });
     } catch (e: any) {
