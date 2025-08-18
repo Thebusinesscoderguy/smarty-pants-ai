@@ -40,10 +40,9 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
   };
 
   const handleAskQuestion = () => {
-    // Open a simple prompt for questions
     const question = prompt("What would you like to know about this topic?");
     if (question) {
-      alert(`Great question! "${question}" - This would normally connect to an AI tutor to answer your question.`);
+      alert(`I'd be happy to help you understand: "${question}". In a full version, this would connect to an AI tutor.`);
     }
   };
 
@@ -109,8 +108,8 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                       ),
                     }}
                   >
-                    {showingSummary ? `## Summary\n\nThis is a concise summary of "${lesson.title}". The main points covered include the core concepts and key takeaways that you should remember from this lesson.` :
-                     showingDetail ? `${lesson.content}\n\n## Additional Details\n\nHere are some additional insights and deeper explanations about the topics covered in this lesson. This expanded content provides more context and examples to help you better understand the material.` :
+                    {showingSummary ? `## Key Points Summary\n\n**Numbers and Operations**: Understanding different types of numbers and operations.\n\n**Algebra Basics**: Working with variables, equations, and functions.\n\n**Geometry Principles**: Dealing with shapes, angles, and spatial relationships.\n\n**Practical Applications**: Mathematics in daily life including finance, construction, and technology.\n\n**Problem-Solving**: Systematic approach to understanding and solving mathematical problems.` :
+                     showingDetail ? `${lesson.content}\n\n## Study Tips\n\n- Practice regularly with different types of problems\n- Connect mathematical concepts to real-world examples\n- Work step-by-step through complex problems\n- Review and understand your mistakes` :
                      lesson.content}
                   </ReactMarkdown>
                 </div>
