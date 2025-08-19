@@ -25,6 +25,7 @@ const LearningModule = () => {
   const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(null);
   const [currentDay, setCurrentDay] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [lessonContent, setLessonContent] = useState<string>('');
 
   useEffect(() => {
     const loadStudyPlan = async () => {
@@ -64,6 +65,26 @@ const LearningModule = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const day = parseInt(urlParams.get('day') || '1');
         setCurrentDay(day);
+
+        // Generate actual lesson content for the current lesson
+        const currentLesson = parsedPlan.daily_lessons.find(lesson => lesson.day === day) || parsedPlan.daily_lessons[0];
+        if (currentLesson) {
+          const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
+            body: {
+              topic: currentLesson.topic,
+              description: currentLesson.description,
+              gradeLevel: data.grade_level || 'high school',
+              activities: currentLesson.activities
+            }
+          });
+
+          if (contentError) {
+            console.error('Error generating lesson content:', contentError);
+            setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nFailed to load detailed lesson content. Please try again later.`);
+          } else {
+            setLessonContent(contentData.content || `# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}`);
+          }
+        }
         
       } catch (error: any) {
         console.error('Error loading study plan:', error);
@@ -112,23 +133,7 @@ const LearningModule = () => {
   const lesson = {
     id: `${studyPlan.id}-day-${currentLesson.day}`,
     title: currentLesson.topic,
-    content: `# ${currentLesson.topic}
-
-## Overview
-${currentLesson.description}
-
-## Learning Activities
-
-${currentLesson.activities.map((activity, index) => `${index + 1}. ${activity}`).join('\n\n')}
-
-## Practice Questions
-This lesson includes ${currentLesson.practiceQuestions} practice questions to test your understanding.
-
-## Study Tips
-- Take your time to understand each concept thoroughly
-- Practice the activities step by step  
-- Don't hesitate to ask questions if you need clarification
-- Review previous lessons if needed to reinforce connections`,
+    content: lessonContent || `# ${currentLesson.topic}\n\n## Loading...\n\nGenerating lesson content...`,
     duration: currentLesson.estimatedTime,
     type: 'reading' as const,
     completed: false
