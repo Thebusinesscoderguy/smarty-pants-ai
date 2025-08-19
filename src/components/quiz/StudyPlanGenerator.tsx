@@ -650,8 +650,8 @@ ${lesson.activities.map(activity => `• ${activity}`).join('\n')}
 
 Please help me learn this topic and answer any questions I have about it.`;
                             
-                            // Navigate to chat with context
-                            navigate('/modules');
+                            // Navigate to learning module with specific day
+                            navigate(`/modules?day=${lesson.day}`);
                           }}
                           className="flex-1"
                         >
