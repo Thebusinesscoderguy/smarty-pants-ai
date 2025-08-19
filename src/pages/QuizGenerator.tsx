@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { EnhancedQuizGenerator } from '@/components/quiz/EnhancedQuizGenerator';
 import { StudyPlanGenerator } from '@/components/quiz/StudyPlanGenerator';
+import { StudyPlanLibrary } from '@/components/quiz/StudyPlanLibrary';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, BookOpen } from 'lucide-react';
@@ -63,10 +64,11 @@ const QuizGeneratorPage = () => {
           <p className="text-white/80 mb-6">Generate quizzes from text/image/voice and build study plans from previous grades.</p>
 
           <Tabs defaultValue="generate" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-white/10 border border-white/20">
+            <TabsList className="grid w-full grid-cols-4 bg-white/10 border border-white/20">
               <TabsTrigger value="generate">Generate Quiz</TabsTrigger>
               <TabsTrigger value="study-plan">Study Plan</TabsTrigger>
-              <TabsTrigger value="library">Quiz Library</TabsTrigger>
+              <TabsTrigger value="quiz-library">Quiz Library</TabsTrigger>
+              <TabsTrigger value="study-library">Study Plans</TabsTrigger>
             </TabsList>
 
             <TabsContent value="generate" className="mt-6">
@@ -77,8 +79,12 @@ const QuizGeneratorPage = () => {
               <StudyPlanGenerator />
             </TabsContent>
 
-            <TabsContent value="library" className="mt-6">
+            <TabsContent value="quiz-library" className="mt-6">
               <QuizLibrary />
+            </TabsContent>
+
+            <TabsContent value="study-library" className="mt-6">
+              <StudyPlanLibrary />
             </TabsContent>
           </Tabs>
         </div>
