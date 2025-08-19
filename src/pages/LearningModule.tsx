@@ -56,8 +56,8 @@ Effective mathematical problem-solving involves:
   return (
     <LessonViewer 
       lesson={lesson}
-      onBack={() => navigate('/quiz-generator')}
-      onComplete={() => navigate('/quiz-generator')}
+      onBack={() => navigate('/quiz')}
+      onComplete={() => navigate('/quiz')}
     />
   );
 };
