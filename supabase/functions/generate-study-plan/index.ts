@@ -44,8 +44,10 @@ serve(async (req) => {
     const constraints = [
       planDays ? `Create exactly ${planDays} daily lessons.` : 'Create 7-14 daily lessons depending on complexity.',
       perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
-      'Each lesson should be appropriate for the specified grade level - NO basic introductions like "what is math".',
-      'Focus on the SPECIFIC topic requested - dive deep into the subject matter immediately.',
+      'ABSOLUTELY NO basic math introductions, definitions of what math is, or elementary concepts.',
+      'SKIP ALL foundational explanations - assume advanced mathematical knowledge for the grade level.',
+      'Focus EXCLUSIVELY on the specific advanced topic - no broad overviews or general introductions.',
+      'Start immediately with complex concepts, theorems, and applications relevant to the topic.',
       'Include a mini-quiz each day; set practiceQuestions to match the mini-quiz size.'
     ].join('\n- ');
 
