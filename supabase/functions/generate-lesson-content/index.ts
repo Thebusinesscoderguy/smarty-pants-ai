@@ -32,11 +32,15 @@ Generate detailed educational content that actually teaches the subject matter. 
 1. Clear explanations of key concepts
 2. Step-by-step breakdowns of important processes
 3. Real examples with worked solutions
-4. Important formulas, definitions, or principles
+4. Important formulas, definitions, or principles (use LaTeX math notation: $$formula$$ for display math, $formula$ for inline math)
 5. Common misconceptions and how to avoid them
 6. Visual descriptions where helpful (describe diagrams, graphs, etc.)
 
 Make this a complete lesson that a student can learn from, not just instructions or activities. Write in clear, educational prose that explains the concepts thoroughly. Use headings and subheadings to organize the content well.
+
+For mathematical expressions, use proper LaTeX notation:
+- For display math (centered): $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+- For inline math: $x^2 + y^2 = r^2$
 
 Format as markdown. Focus on teaching the actual subject matter with detailed explanations and examples.
 

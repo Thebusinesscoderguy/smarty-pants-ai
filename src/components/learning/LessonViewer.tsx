@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, ArrowLeft, BookOpen, CheckCircle, Info, FileText, HelpCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 interface Lesson {
   id: string;
@@ -90,6 +93,8 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
               <ScrollArea className="h-[50vh] pr-4">
                 <div className="prose prose-invert max-w-none text-white/90 leading-relaxed">
                   <ReactMarkdown 
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
                     components={{
                       h1: ({ children }) => <h1 className="text-3xl font-bold text-white mb-4 mt-8 first:mt-0">{children}</h1>,
                       h2: ({ children }) => <h2 className="text-2xl font-semibold text-blue-300 mb-3 mt-6">{children}</h2>,

@@ -69,6 +69,8 @@ const LearningModule = () => {
         // Generate actual lesson content for the current lesson
         const currentLesson = parsedPlan.daily_lessons.find(lesson => lesson.day === day) || parsedPlan.daily_lessons[0];
         if (currentLesson) {
+          console.log('Generating lesson content for:', currentLesson.topic);
+          
           const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
             body: {
               topic: currentLesson.topic,
@@ -78,11 +80,18 @@ const LearningModule = () => {
             }
           });
 
+          console.log('Content generation result:', { contentData, contentError });
+
           if (contentError) {
             console.error('Error generating lesson content:', contentError);
-            setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nFailed to load detailed lesson content. Please try again later.`);
+            toast({
+              title: "Content generation failed",
+              description: "Using basic content. Please check your OpenAI API key.",
+              variant: "destructive"
+            });
+            setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nDetailed lesson content could not be generated. Please ensure your OpenAI API key is configured properly.`);
           } else {
-            setLessonContent(contentData.content || `# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}`);
+            setLessonContent(contentData?.content || `# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}`);
           }
         }
         
