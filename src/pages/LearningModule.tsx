@@ -32,7 +32,10 @@ const LearningModule = () => {
       try {
         // Get active study plan ID from localStorage
         const planId = localStorage.getItem('active_study_plan_id');
+        console.log('Loading study plan with ID:', planId);
+        
         if (!planId) {
+          console.error('No active study plan ID found in localStorage');
           toast({
             title: "No active study plan",
             description: "Please create a study plan first",
@@ -43,13 +46,30 @@ const LearningModule = () => {
         }
 
         // Fetch study plan from Supabase
+        console.log('Fetching study plan from database...');
         const { data, error } = await supabase
           .from('study_plans')
           .select('*')
           .eq('id', planId)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
+        console.log('Study plan fetch result:', { data, error });
+
+        if (error) {
+          console.error('Error fetching study plan:', error);
+          throw error;
+        }
+
+        if (!data) {
+          console.error('No study plan found with ID:', planId);
+          toast({
+            title: "Study plan not found",
+            description: "The study plan may have been deleted",
+            variant: "destructive"
+          });
+          navigate('/quiz');
+          return;
+        }
         
         // Parse the daily_lessons JSON field
         const parsedPlan: StudyPlan = {
@@ -71,28 +91,44 @@ const LearningModule = () => {
         if (currentLesson) {
           console.log('Generating lesson content for:', currentLesson.topic);
           
-          const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
-            body: {
-              topic: currentLesson.topic,
-              description: currentLesson.description,
-              gradeLevel: data.grade_level || 'high school',
-              activities: currentLesson.activities
+          // Set a basic lesson content first to avoid infinite loading
+          setLessonContent(`# ${currentLesson.topic}\n\n## Loading Content...\n\nGenerating detailed lesson content...`);
+          
+          try {
+            const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
+              body: {
+                topic: currentLesson.topic,
+                description: currentLesson.description,
+                gradeLevel: data.grade_level || 'high school',
+                activities: currentLesson.activities
+              }
+            });
+
+            console.log('Content generation result:', { contentData, contentError });
+
+            if (contentError) {
+              console.error('Error generating lesson content:', contentError);
+              toast({
+                title: "Content generation failed",
+                description: "Using basic content. Please check your OpenAI API key.",
+                variant: "destructive"
+              });
+              setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nDetailed lesson content could not be generated. Please ensure your OpenAI API key is configured properly.`);
+            } else {
+              setLessonContent(contentData?.content || `# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}`);
             }
-          });
-
-          console.log('Content generation result:', { contentData, contentError });
-
-          if (contentError) {
-            console.error('Error generating lesson content:', contentError);
+          } catch (edgeFunctionError: any) {
+            console.error('Edge function call failed:', edgeFunctionError);
             toast({
-              title: "Content generation failed",
-              description: "Using basic content. Please check your OpenAI API key.",
+              title: "Failed to generate lesson",
+              description: "Using basic lesson content",
               variant: "destructive"
             });
-            setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nDetailed lesson content could not be generated. Please ensure your OpenAI API key is configured properly.`);
-          } else {
-            setLessonContent(contentData?.content || `# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}`);
+            setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\n**Activities:**\n${currentLesson.activities ? currentLesson.activities.map((activity: string) => `- ${activity}`).join('\n') : 'No specific activities defined.'}`);
           }
+        } else {
+          console.error('No lesson found for day:', day);
+          setLessonContent(`# No Lesson Found\n\nCould not find lesson content for day ${day}.`);
         }
         
       } catch (error: any) {
