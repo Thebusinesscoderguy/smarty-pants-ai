@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, language = 'en' } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -29,7 +29,16 @@ serve(async (req) => {
       );
     }
 
-    console.log('Chat completion request:', { hasMessages: !!messages, messageCount: messages?.length || 0 });
+    console.log('Chat completion request:', { hasMessages: !!messages, messageCount: messages?.length || 0, language });
+
+    // Add language instruction to system message if not English
+    const languageInstruction = language !== 'en' ? `Always respond in ${getLanguageName(language)}. ` : '';
+    const systemMessage = {
+      role: 'system',
+      content: `${languageInstruction}You are a helpful AI tutor designed to assist students with their learning. You can help with homework, explain concepts, answer questions, and provide educational guidance across all subjects. Be encouraging, patient, and thorough in your explanations. Adapt your teaching style to the student's level and needs.`
+    };
+
+    const messagesWithSystem = [systemMessage, ...(messages || [{ role: 'user', content: 'Hello' }])];
 
     // Set a timeout for the fetch operation
     const controller = new AbortController();
@@ -44,9 +53,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: 'gpt-4.1-2025-04-14',
-          messages: messages || [
-            { role: 'user', content: 'Hello' }
-          ],
+          messages: messagesWithSystem,
           temperature: 0.7,
           stream: true,
         }),
@@ -150,3 +157,24 @@ serve(async (req) => {
     );
   }
 });
+
+function getLanguageName(code: string): string {
+  const languages: Record<string, string> = {
+    'en': 'English',
+    'es': 'Spanish', 
+    'fr': 'French',
+    'de': 'German',
+    'it': 'Italian',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
+    'ja': 'Japanese',
+    'ko': 'Korean',
+    'zh': 'Chinese',
+    'ar': 'Arabic',
+    'hi': 'Hindi',
+    'tr': 'Turkish',
+    'pl': 'Polish',
+    'nl': 'Dutch'
+  };
+  return languages[code] || 'English';
+}

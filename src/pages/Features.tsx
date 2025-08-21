@@ -1,522 +1,354 @@
-import { useState, useEffect, useRef } from 'react';
-import { AppSidebar } from '@/components/AppSidebar';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Send, FileUp, X, MessageSquare, Plus } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/components/ui/use-toast';
-import { QuizFromConversation } from '@/components/quiz/QuizFromConversation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { 
+  Brain, MessageSquare, BookOpen, Gamepad2, BarChart, Users, 
+  Globe, Lightbulb, Target, CheckCircle, Star, Zap, Shield, 
+  Clock, Mic, Upload, Camera, PlayCircle, Trophy, TrendingUp,
+  FileText, Settings, Monitor, Smartphone, Tablet, Headphones,
+  PenTool, Calculator, Languages, GraduationCap, Award,
+  ChevronRight, ArrowRight, Play
+} from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  conversation_id?: string;
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  updated_at: string;
-  message_count: number;
-}
-
-interface UploadedFile {
-  name: string;
-  size: number;
-  type: string;
-}
+import { useNavigate } from 'react-router-dom';
 
 const Features = () => {
-  const { user } = useAuth();
   const { t } = useLanguage();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [showUploadSection, setShowUploadSection] = useState(false);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (user) {
-      loadConversations();
-    } else {
-      // Load default welcome message for non-authenticated users
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        content: t('featuresPage.welcomeMessage'),
-        timestamp: new Date(),
-      }]);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const loadConversations = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          conversation_id,
-          created_at
-        `)
-        .eq('user_id', user.id)
-        .not('conversation_id', 'is', null)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Group messages by conversation and get conversation info
-      const conversationMap = new Map();
-      data?.forEach(msg => {
-        if (msg.conversation_id && !conversationMap.has(msg.conversation_id)) {
-          conversationMap.set(msg.conversation_id, {
-            id: msg.conversation_id,
-            title: `Chat ${msg.conversation_id.slice(0, 8)}`, // Temporary title, will be updated
-            updated_at: msg.created_at,
-            message_count: 1
-          });
-        } else if (msg.conversation_id) {
-          const conv = conversationMap.get(msg.conversation_id);
-          conv.message_count += 1;
-        }
-      });
-
-      const conversations = Array.from(conversationMap.values());
-      
-      // Generate AI titles for conversations
-      for (const conv of conversations) {
-        try {
-          await generateConversationTitle(conv.id);
-        } catch (error) {
-          console.warn('Failed to generate title for conversation:', conv.id, error);
-        }
-      }
-
-      setConversations(conversations);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    }
-  };
-
-  const generateConversationTitle = async (conversationId: string) => {
-    if (!user) return;
-
-    try {
-      // Get messages for this conversation
-      const { data: messages, error } = await supabase
-        .from('messages')
-        .select('content, is_from_user')
-        .eq('conversation_id', conversationId)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true })
-        .limit(6); // First 6 messages for context
-
-      if (error || !messages || messages.length === 0) return;
-
-      // Format messages for AI title generation
-      const formattedMessages = messages.map(msg => ({
-        role: msg.is_from_user ? 'user' : 'assistant',
-        content: msg.content
-      }));
-
-      // Call AI function to generate title
-      const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-conversation-title', {
-        body: { messages: formattedMessages }
-      });
-
-      if (titleError || !titleData?.title) {
-        console.warn('Failed to generate AI title:', titleError);
-        return;
-      }
-
-      // Update conversation title in state
-      setConversations(prev => 
-        prev.map(conv => 
-          conv.id === conversationId 
-            ? { ...conv, title: titleData.title }
-            : conv
-        )
-      );
-
-    } catch (error) {
-      console.error('Error generating conversation title:', error);
-    }
-  };
-
-  const loadConversation = async (conversationId: string) => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const formattedMessages = data.map(msg => ({
-        id: msg.id,
-        role: msg.is_from_user ? 'user' : 'assistant',
-        content: msg.content,
-        timestamp: new Date(msg.created_at),
-        conversation_id: msg.conversation_id
-      })) as Message[];
-
-      setMessages(formattedMessages);
-      setCurrentConversationId(conversationId);
-    } catch (error) {
-      console.error('Error loading conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversation",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const startNewConversation = () => {
-    setMessages([{
-      id: 'welcome',
-      role: 'assistant',
-      content: t('chat.welcomeMessage'),
-      timestamp: new Date(),
-    }]);
-    setCurrentConversationId(null);
-  };
-
-  const saveMessage = async (message: Message, conversationId: string) => {
-    if (!user) return;
-
-    try {
-      await supabase
-        .from('messages')
-        .insert({
-          user_id: user.id,
-          content: message.content,
-          is_from_user: message.role === 'user',
-          conversation_id: conversationId,
-          type: 'text'
-        });
-    } catch (error) {
-      console.error('Error saving message:', error);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!input.trim() && uploadedFiles.length === 0) return;
-
-    const fileInfo = uploadedFiles.length > 0 
-      ? `\n\nUploaded: ${uploadedFiles.map(f => f.name).join(', ')}`
-      : '';
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: input + fileInfo,
-      timestamp: new Date(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-    setUploadedFiles([]);
-    setShowUploadSection(false);
-
-    // Create conversation ID if this is a new conversation
-    let conversationId = currentConversationId;
-    if (!conversationId) {
-      conversationId = `conv-${Date.now()}`;
-      setCurrentConversationId(conversationId);
-    }
-
-    // Save user message if authenticated
-    if (user) {
-      await saveMessage(userMessage, conversationId);
-    }
-
-    try {
-      // Get AI response
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            {
-              role: "system",
-              content: "You are a helpful AI learning assistant. Provide clear, educational responses to help students learn."
-            },
-            ...messages.slice(-5).map(m => ({
-              role: m.role,
-              content: m.content
-            })),
-            { role: "user", content: userMessage.content }
-          ]
-        }
-      });
-
-      if (error) throw error;
-
-      const aiMessage: Message = {
-        id: `ai-${Date.now()}`,
-        role: 'assistant',
-        content: data.text,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-
-      // Save AI message if authenticated
-      if (user) {
-        await saveMessage(aiMessage, conversationId);
-        await loadConversations(); // Refresh conversations list
-        
-        // Generate a meaningful title if this is a new conversation
-        if (messages.length === 2) { // First user message + first AI response
-          setTimeout(() => generateConversationTitle(conversationId), 1000);
-        }
-      }
-
-    } catch (error: any) {
-      console.error('Error getting AI response:', error);
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map(file => ({
-        name: file.name,
-        size: file.size,
-        type: file.type
-      }));
-      
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-    }
-  };
-
-  const removeFile = (fileName: string) => {
-    setUploadedFiles(files => files.filter(file => file.name !== fileName));
-  };
-
-  const toggleUploadSection = () => {
-    setShowUploadSection(prev => !prev);
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
-      <AppSidebar />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
+      <Header />
       
-      <div className="flex-1 flex max-h-screen">
-        {/* Conversations Sidebar */}
-        {user && (
-          <div className="w-80 bg-gray-900/30 border-r border-white/20 p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Previous Chats</h2>
-              <Button
-                size="sm"
-                onClick={startNewConversation}
-                className="bg-white/10 hover:bg-white/20"
+      <main className="px-4 py-12 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Complete Learning Platform Features
+            </h1>
+            <p className="text-xl text-white/80 max-w-4xl mx-auto mb-8 leading-relaxed">
+              Discover our comprehensive suite of AI-powered tools designed to revolutionize education. 
+              From intelligent tutoring to advanced analytics, we provide everything needed for personalized learning success.
+            </p>
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              onClick={() => navigate('/auth')}
+            >
+              Start Learning Today
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Feature Categories */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-white/10 border border-white/20 mb-12">
+              <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="ai-tutoring" className="text-xs md:text-sm">AI Tutoring</TabsTrigger>
+              <TabsTrigger value="tools" className="text-xs md:text-sm">Study Tools</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs md:text-sm">Analytics</TabsTrigger>
+            </TabsList>
+
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="mt-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300">
+                  <CardHeader>
+                    <Brain className="h-12 w-12 text-blue-400 mb-4" />
+                    <CardTitle>Advanced AI Tutoring</CardTitle>
+                    <CardDescription className="text-white/70">
+                      Personalized learning with GPT-5 powered AI that adapts to your learning style, provides instant feedback, and guides you through complex concepts step-by-step in 15+ languages.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Natural language conversations
+                      </div>
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Multi-language support (15+ languages)
+                      </div>
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Socratic method teaching
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300">
+                  <CardHeader>
+                    <BookOpen className="h-12 w-12 text-purple-400 mb-4" />
+                    <CardTitle>Smart Study Tools</CardTitle>
+                    <CardDescription className="text-white/70">
+                      AI-generated quizzes, personalized study plans, interactive lessons, and adaptive learning paths tailored to your progress with multilingual support.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Auto-generated quizzes
+                      </div>
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Personalized study plans
+                      </div>
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Interactive learning modules
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300">
+                  <CardHeader>
+                    <Languages className="h-12 w-12 text-green-400 mb-4" />
+                    <CardTitle>Global Language Support</CardTitle>
+                    <CardDescription className="text-white/70">
+                      Complete platform localization with AI responses, study materials, quizzes, and learning content available in 15+ languages including Spanish, French, German, Chinese, and more.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        AI responses in your language
+                      </div>
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Localized study materials
+                      </div>
+                      <div className="flex items-center text-sm text-white/80">
+                        <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
+                        Cultural context awareness
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* AI Tutoring Tab */}
+            <TabsContent value="ai-tutoring" className="mt-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <Languages className="h-8 w-8 text-purple-400 mb-2" />
+                    <CardTitle>Multi-Language AI Tutoring</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 mb-4">
+                      Our AI tutor communicates fluently in 15+ languages, providing culturally appropriate responses and educational content in your native language.
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <Badge variant="outline">🇺🇸 English</Badge>
+                      <Badge variant="outline">🇪🇸 Spanish</Badge>
+                      <Badge variant="outline">🇫🇷 French</Badge>
+                      <Badge variant="outline">🇩🇪 German</Badge>
+                      <Badge variant="outline">🇮🇹 Italian</Badge>
+                      <Badge variant="outline">🇯🇵 Japanese</Badge>
+                      <Badge variant="outline">🇰🇷 Korean</Badge>
+                      <Badge variant="outline">🇨🇳 Chinese</Badge>
+                      <Badge variant="outline">🇷🇺 Russian</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <Brain className="h-8 w-8 text-blue-400 mb-2" />
+                    <CardTitle>Advanced AI Intelligence</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 mb-4">
+                      Powered by GPT-5 technology for human-like conversations, deep subject understanding, and personalized teaching approaches that adapt to your learning style.
+                    </p>
+                    <div className="space-y-2">
+                      <Badge variant="outline" className="mr-2">Socratic Method</Badge>
+                      <Badge variant="outline" className="mr-2">Adaptive Learning</Badge>
+                      <Badge variant="outline">Instant Feedback</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Study Tools Tab */}
+            <TabsContent value="tools" className="mt-8">
+              <div className="grid lg:grid-cols-3 gap-8">
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <FileText className="h-8 w-8 text-blue-400 mb-2" />
+                    <CardTitle>AI Quiz Generator</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 text-sm mb-4">
+                      Generate personalized quizzes in any language from uploaded content, voice input, or topic descriptions.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Multilingual quiz generation
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Difficulty adaptation
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Instant grading & feedback
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <Mic className="h-8 w-8 text-pink-400 mb-2" />
+                    <CardTitle>Voice Learning</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 text-sm mb-4">
+                      Natural voice conversations with AI tutors in multiple languages, speech-to-text input, and text-to-speech responses.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Multilingual voice support
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Accent recognition
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Audio lesson content
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <BookOpen className="h-8 w-8 text-purple-400 mb-2" />
+                    <CardTitle>Localized Study Plans</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 text-sm mb-4">
+                      Create comprehensive study plans with daily lessons in your preferred language, adapted to local educational standards.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Regional curriculum alignment
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Cultural context integration
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Native language content
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="mt-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <BarChart className="h-8 w-8 text-teal-400 mb-2" />
+                    <CardTitle>Comprehensive Analytics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 mb-4">
+                      Track learning progress with detailed analytics, performance insights, and personalized recommendations available in your preferred language.
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-2 bg-gradient-to-r from-green-400 to-blue-400 rounded-full"></div>
+                        <span className="text-sm text-white/80">Mathematics: 87% Mastery</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full"></div>
+                        <span className="text-sm text-white/80">Science: 65% Progress</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 border border-white/10">
+                  <CardHeader>
+                    <Users className="h-8 w-8 text-indigo-400 mb-2" />
+                    <CardTitle>Multi-User Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-white/80 mb-4">
+                      Family and school management with parent dashboards, teacher controls, and student monitoring in multiple languages.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Multilingual parent dashboard
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Localized reports
+                      </div>
+                      <div className="flex items-center text-sm text-white/70">
+                        <CheckCircle className="h-3 w-3 text-green-400 mr-2" />
+                        Cultural preferences
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Call to Action */}
+          <div className="text-center mt-16 p-8 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl border border-white/10">
+            <h2 className="text-3xl font-bold mb-4">Ready to Experience Next-Gen Learning?</h2>
+            <p className="text-white/80 mb-6 max-w-2xl mx-auto">
+              Join thousands of students, families, and schools already transforming their educational journey with our AI-powered platform available in 15+ languages.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                onClick={() => navigate('/auth')}
               >
-                <Plus className="h-4 w-4" />
+                Start Free Trial
+                <Play className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => navigate('/demo')}
+              >
+                Try Demo First
+                <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto space-y-2">
-              {conversations.map((conv) => (
-                <Card 
-                  key={conv.id} 
-                  className={`bg-white/10 border-white/20 cursor-pointer hover:bg-white/15 transition-colors p-3 ${
-                    currentConversationId === conv.id ? 'bg-white/20' : ''
-                  }`}
-                  onClick={() => loadConversation(conv.id)}
-                >
-                  <div className="flex items-start gap-3">
-                    <MessageSquare className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-white text-sm truncate">{conv.title}</h3>
-                      <p className="text-xs text-gray-400">{conv.message_count} messages</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(conv.updated_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-              
-              {conversations.length === 0 && (
-                <p className="text-gray-400 text-sm text-center py-8">
-                  No previous conversations yet. Start chatting to see them here!
-                </p>
-              )}
-            </div>
           </div>
-        )}
-        
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          <header className="p-4 border-b border-white/20 flex justify-between items-center">
-            <h1 className="text-xl font-bold">
-              {currentConversationId ? 'Conversation' : 'Chat with AI Learning Assistant'}
-            </h1>
-            <div className="flex items-center gap-2">
-              {messages.length > 2 && (
-                <QuizFromConversation messages={messages} />
-              )}
-              {!user && (
-                <p className="text-sm text-gray-400">Sign in to save conversations</p>
-              )}
-            </div>
-          </header>
-          
-          <main className="flex-1 overflow-hidden flex flex-col">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message, index) => (
-                <div 
-                  key={message.id || index}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <Card 
-                    className={`max-w-[80%] p-3 ${
-                      message.role === 'user' 
-                        ? 'bg-blue-600/20 text-white border-blue-600/30' 
-                        : 'bg-white/5 text-white border-white/20'
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
-                    <div className="text-xs text-white/50 mt-1">
-                      {message.timestamp.toLocaleTimeString()}
-                    </div>
-                  </Card>
-                </div>
-              ))}
-              
-              {isLoading && (
-                <div className="flex justify-start">
-                  <Card className="bg-white/5 text-white border-white/20 p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </Card>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-            
-            {/* File Upload Section */}
-            {showUploadSection && (
-              <div className="p-4 border-t border-white/10 bg-white/5">
-                <div className="mb-2 flex justify-between items-center">
-                  <h3 className="font-medium">Upload Files</h3>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={toggleUploadSection}
-                    className="h-6 w-6 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="bg-white/10 text-sm rounded px-2 py-1 flex items-center gap-1">
-                      <span className="truncate max-w-[150px]">{file.name}</span>
-                      <button 
-                        onClick={() => removeFile(file.name)}
-                        className="text-white/70 hover:text-white"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                
-                <Button 
-                  onClick={triggerFileInput} 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full border-dashed border-white/30"
-                >
-                  Select files to upload
-                </Button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  multiple
-                />
-              </div>
-            )}
-            
-            {/* Input Area */}
-            <div className="p-4 border-t border-white/20">
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border border-white/30 flex-shrink-0"
-                  onClick={toggleUploadSection}
-                >
-                  <FileUp className="h-5 w-5" />
-                </Button>
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="flex-1 bg-transparent border-white/30 focus-visible:ring-white"
-                  disabled={isLoading}
-                />
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="bg-white text-black hover:bg-gray-200 flex-shrink-0"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </main>
         </div>
-      </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };

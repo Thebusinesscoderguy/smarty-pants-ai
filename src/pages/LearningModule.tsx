@@ -95,14 +95,15 @@ const LearningModule = () => {
           setLessonContent(`# ${currentLesson.topic}\n\n## Loading Content...\n\nGenerating detailed lesson content...`);
           
           try {
-            const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
-              body: {
-                topic: currentLesson.topic,
-                description: currentLesson.description,
-                gradeLevel: data.grade_level || 'high school',
-                activities: currentLesson.activities
-              }
-            });
+          const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
+            body: {
+              topic: currentLesson.topic,
+              description: currentLesson.description,
+              gradeLevel: data.grade_level || 'high school',
+              activities: currentLesson.activities,
+              language: localStorage.getItem('selectedLanguage') || 'en'
+            }
+          });
 
             console.log('Content generation result:', { contentData, contentError });
 

@@ -114,7 +114,8 @@ export const useMessageHandler = () => {
             messages: [
               ...conversationHistory,
               { role: "user", content: userMessage }
-            ]
+            ],
+            language: localStorage.getItem('selectedLanguage') || 'en'
           }
         });
 
