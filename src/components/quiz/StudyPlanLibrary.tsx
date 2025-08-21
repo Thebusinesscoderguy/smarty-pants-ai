@@ -90,6 +90,18 @@ export const StudyPlanLibrary = () => {
 
   const handleStartStudyPlan = async (studyPlan: StudyPlan) => {
     try {
+      // Check authentication first
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to start your study plan",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
+      }
+
       // Update study plan status to active and set started_at
       const { error } = await supabase
         .from('study_plans')
@@ -151,9 +163,30 @@ export const StudyPlanLibrary = () => {
     }
   };
 
-  const handleContinueStudyPlan = (studyPlan: StudyPlan) => {
-    localStorage.setItem('active_study_plan_id', studyPlan.id);
-    navigate('/modules');
+  const handleContinueStudyPlan = async (studyPlan: StudyPlan) => {
+    try {
+      // Check authentication first
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to continue your study plan",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
+      }
+
+      localStorage.setItem('active_study_plan_id', studyPlan.id);
+      navigate('/modules');
+    } catch (error: any) {
+      console.error('Error continuing study plan:', error);
+      toast({
+        title: "Failed to continue study plan",
+        description: "Please try logging in again",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
