@@ -27,24 +27,48 @@ serve(async (req) => {
 
 Description: ${description}
 
-Generate detailed educational content that actually teaches the subject matter. Include:
+Generate detailed educational content that actually teaches the subject matter. Structure the lesson with these sections:
 
-1. Clear explanations of key concepts
-2. Step-by-step breakdowns of important processes
-3. Real examples with worked solutions
-4. Important formulas, definitions, or principles (use LaTeX math notation: $$formula$$ for display math, $formula$ for inline math)
-5. Common misconceptions and how to avoid them
-6. Visual descriptions where helpful (describe diagrams, graphs, etc.)
+## 1. Introduction and Learning Objectives
+- Brief overview of what students will learn
+- Clear learning objectives for the lesson
 
-Make this a complete lesson that a student can learn from, not just instructions or activities. Write in clear, educational prose that explains the concepts thoroughly. Use headings and subheadings to organize the content well.
+## 2. Core Content
+Include:
+- Clear explanations of key concepts
+- Step-by-step breakdowns of important processes
+- Real examples with worked solutions
+- Important formulas, definitions, or principles (use LaTeX math notation: $$formula$$ for display math, $formula$ for inline math)
+- Common misconceptions and how to avoid them
+- Visual descriptions where helpful (describe diagrams, graphs, etc.)
+
+## 3. Study Tips
+Always include a "Study Tips" section with these specific points:
+- Practice regularly with different types of problems
+- Connect mathematical concepts to real-world examples
+- Work step-by-step through complex problems
+- Review and understand your mistakes
+
+## 4. Key Points Summary
+Always include a "Key Points Summary" section covering these areas where relevant to the topic:
+- Numbers and Operations: Understanding different types of numbers and operations
+- Algebra Basics: Working with variables, equations, and functions
+- Geometry Principles: Dealing with shapes, angles, and spatial relationships
+- Practical Applications: Mathematics in daily life including finance, construction, and technology
+- Problem-Solving: Systematic approach to understanding and solving mathematical problems
+
+## 5. Practice Problems (Optional)
+If appropriate, include 2-3 practice problems with step-by-step solutions.
+
+Make this a complete lesson that a student can learn from, not just instructions or activities. Write in clear, educational prose that explains the concepts thoroughly.
 
 For mathematical expressions, use proper LaTeX notation:
 - For display math (centered): $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 - For inline math: $x^2 + y^2 = r^2$
 
-Format as markdown. Focus on teaching the actual subject matter with detailed explanations and examples.
+Format as markdown with proper headings and subheadings. Focus on teaching the actual subject matter with detailed explanations and examples.
 
-Length: Aim for 800-1200 words of substantial educational content.`;
+Length: Aim for 1000-1500 words of substantial educational content.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
