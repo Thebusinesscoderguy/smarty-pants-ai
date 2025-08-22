@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Play, BookOpen, Calendar, Clock, Target } from 'lucide-react';
+import { Trash2, Play, BookOpen, Calendar, Clock, Target, List } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import StudyPlanDaySelector from './StudyPlanDaySelector';
 
 interface StudyPlan {
   id: string;
@@ -24,6 +25,8 @@ interface StudyPlan {
 export const StudyPlanLibrary = () => {
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedStudyPlan, setSelectedStudyPlan] = useState<StudyPlan | null>(null);
+  const [showDaySelector, setShowDaySelector] = useState(false);
   const navigate = useNavigate();
 
   const fetchStudyPlans = async () => {
@@ -163,6 +166,52 @@ export const StudyPlanLibrary = () => {
     }
   };
 
+  const handleOpenDaySelector = (studyPlan: StudyPlan) => {
+    setSelectedStudyPlan(studyPlan);
+    setShowDaySelector(true);
+  };
+
+  const handleSelectDay = async (day: number) => {
+    if (!selectedStudyPlan) return;
+    
+    try {
+      // Check authentication first
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to start your study plan",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
+      }
+
+      // Update study plan status to active if not already
+      if (selectedStudyPlan.status !== 'active') {
+        const { error } = await supabase
+          .from('study_plans')
+          .update({ 
+            status: 'active', 
+            started_at: new Date().toISOString() 
+          })
+          .eq('id', selectedStudyPlan.id);
+
+        if (error) throw error;
+      }
+
+      localStorage.setItem('active_study_plan_id', selectedStudyPlan.id);
+      navigate(`/modules?day=${day}`);
+    } catch (error: any) {
+      console.error('Error starting study plan:', error);
+      toast({
+        title: "Failed to start study plan",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleContinueStudyPlan = async (studyPlan: StudyPlan) => {
     try {
       // Check authentication first
@@ -268,21 +317,39 @@ export const StudyPlanLibrary = () => {
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 pt-2">
                     {isStarted ? (
-                      <Button
-                        onClick={() => handleContinueStudyPlan(plan)}
-                        className="flex-1"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Continue Learning
-                      </Button>
+                      <>
+                        <Button
+                          onClick={() => handleContinueStudyPlan(plan)}
+                          className="flex-1"
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          Continue Learning
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenDaySelector(plan)}
+                        >
+                          <List className="mr-2 h-4 w-4" />
+                          View Index
+                        </Button>
+                      </>
                     ) : (
-                      <Button
-                        onClick={() => handleStartStudyPlan(plan)}
-                        className="flex-1"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Start Plan
-                      </Button>
+                      <>
+                        <Button
+                          onClick={() => handleStartStudyPlan(plan)}
+                          className="flex-1"
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          Start Plan
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenDaySelector(plan)}
+                        >
+                          <List className="mr-2 h-4 w-4" />
+                          View Index
+                        </Button>
+                      </>
                     )}
                     
                     <Button
@@ -316,6 +383,13 @@ export const StudyPlanLibrary = () => {
           );
         })}
       </div>
+      
+      <StudyPlanDaySelector
+        studyPlan={selectedStudyPlan}
+        isOpen={showDaySelector}
+        onClose={() => setShowDaySelector(false)}
+        onSelectDay={handleSelectDay}
+      />
     </div>
   );
 };
