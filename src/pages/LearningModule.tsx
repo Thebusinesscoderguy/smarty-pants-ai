@@ -30,12 +30,13 @@ const LearningModule = () => {
   useEffect(() => {
     const loadStudyPlan = async () => {
       try {
+        console.log('=== LearningModule: Starting to load study plan ===');
         // Get active study plan ID from localStorage
         const planId = localStorage.getItem('active_study_plan_id');
-        console.log('Loading study plan with ID:', planId);
+        console.log('Active study plan ID from localStorage:', planId);
         
         if (!planId) {
-          console.error('No active study plan ID found in localStorage');
+          console.error('=== ERROR: No active study plan ID found in localStorage ===');
           toast({
             title: "No active study plan",
             description: "Please create a study plan first",
@@ -45,26 +46,42 @@ const LearningModule = () => {
           return;
         }
 
+        // Check authentication
+        const { data: userData, error: authError } = await supabase.auth.getUser();
+        console.log('Auth check result:', { user: !!userData?.user, authError });
+        
+        if (authError || !userData?.user) {
+          console.error('=== ERROR: Authentication failed ===', authError);
+          toast({
+            title: "Authentication required",
+            description: "Please log in to access lessons",
+            variant: "destructive"
+          });
+          navigate('/auth');
+          return;
+        }
+
         // Fetch study plan from Supabase
-        console.log('Fetching study plan from database...');
+        console.log('=== Fetching study plan from database ===');
         const { data, error } = await supabase
           .from('study_plans')
           .select('*')
           .eq('id', planId)
+          .eq('user_id', userData.user.id)
           .maybeSingle();
 
-        console.log('Study plan fetch result:', { data, error });
+        console.log('Study plan fetch result:', { data, error, planId });
 
         if (error) {
-          console.error('Error fetching study plan:', error);
+          console.error('=== ERROR: Failed to fetch study plan ===', error);
           throw error;
         }
 
         if (!data) {
-          console.error('No study plan found with ID:', planId);
+          console.error('=== ERROR: No study plan found with ID:', planId, '===');
           toast({
             title: "Study plan not found",
-            description: "The study plan may have been deleted",
+            description: "The study plan may have been deleted or doesn't belong to you",
             variant: "destructive"
           });
           navigate('/quiz');
@@ -88,8 +105,9 @@ const LearningModule = () => {
 
         // Generate actual lesson content for the current lesson
         const currentLesson = parsedPlan.daily_lessons.find(lesson => lesson.day === day) || parsedPlan.daily_lessons[0];
+        console.log('=== Current lesson lookup ===', { day, currentLesson, totalLessons: parsedPlan.daily_lessons.length });
         if (currentLesson) {
-          console.log('Generating lesson content for:', currentLesson.topic);
+          console.log('=== Generating lesson content for topic:', currentLesson.topic, '===');
           
           // Set a basic lesson content first to avoid infinite loading
           setLessonContent(`# ${currentLesson.topic}\n\n## Loading Content...\n\nGenerating detailed lesson content...`);
@@ -119,7 +137,7 @@ const LearningModule = () => {
               setLessonContent(contentData?.content || `# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}`);
             }
           } catch (edgeFunctionError: any) {
-            console.error('Edge function call failed:', edgeFunctionError);
+            console.error('=== ERROR: Edge function call failed ===', edgeFunctionError);
             toast({
               title: "Failed to generate lesson",
               description: "Using basic lesson content",
@@ -128,12 +146,12 @@ const LearningModule = () => {
             setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\n**Activities:**\n${currentLesson.activities ? currentLesson.activities.map((activity: string) => `- ${activity}`).join('\n') : 'No specific activities defined.'}`);
           }
         } else {
-          console.error('No lesson found for day:', day);
-          setLessonContent(`# No Lesson Found\n\nCould not find lesson content for day ${day}.`);
+          console.error('=== ERROR: No lesson found for day:', day, 'Available lessons:', parsedPlan.daily_lessons.map(l => l.day), '===');
+          setLessonContent(`# No Lesson Found\n\nCould not find lesson content for day ${day}.\n\nAvailable days: ${parsedPlan.daily_lessons.map(l => l.day).join(', ')}`);
         }
         
       } catch (error: any) {
-        console.error('Error loading study plan:', error);
+        console.error('=== FATAL ERROR: Failed to load study plan ===', error);
         toast({
           title: "Failed to load study plan",
           description: error.message || "Please try again",
@@ -141,6 +159,7 @@ const LearningModule = () => {
         });
         navigate('/quiz');
       } finally {
+        console.log('=== LearningModule: Loading complete, setting loading to false ===');
         setLoading(false);
       }
     };
