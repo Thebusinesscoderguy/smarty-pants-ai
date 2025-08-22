@@ -25,8 +25,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     const checkUserSetup = async () => {
-      if (!user || loading || hasNavigated) return;
+      // Only proceed if we have a user and auth is not loading
+      if (!user || loading || hasNavigated) {
+        console.log('ProtectedRoute: Skipping setup check', { hasUser: !!user, loading, hasNavigated });
+        return;
+      }
 
+      console.log('ProtectedRoute: User authenticated, showing role selector');
       // Show role selector for authenticated users on initial access
       setShowRoleSelector(true);
     };
@@ -47,7 +52,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // If not loading and no user, redirect to auth
   if (!user) {
-    console.log('ProtectedRoute: No user found, redirecting to auth');
+    console.log('ProtectedRoute: No user found, redirecting to auth. Current path:', location.pathname);
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
