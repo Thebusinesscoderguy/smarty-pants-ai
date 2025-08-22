@@ -328,6 +328,7 @@ export const StudyPlanLibrary = () => {
                         <Button
                           variant="outline"
                           onClick={() => handleOpenDaySelector(plan)}
+                          className="px-3"
                         >
                           <List className="mr-2 h-4 w-4" />
                           View Index
@@ -345,6 +346,7 @@ export const StudyPlanLibrary = () => {
                         <Button
                           variant="outline"
                           onClick={() => handleOpenDaySelector(plan)}
+                          className="px-3"
                         >
                           <List className="mr-2 h-4 w-4" />
                           View Index
