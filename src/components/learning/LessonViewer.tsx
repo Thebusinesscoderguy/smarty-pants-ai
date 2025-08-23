@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Lesson {
   id: string;
@@ -27,14 +28,42 @@ interface LessonViewerProps {
 const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete }) => {
   const [showingDetail, setShowingDetail] = useState(false);
   const [showingSummary, setShowingSummary] = useState(false);
+  const [expandedContent, setExpandedContent] = useState<string>('');
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   
   const handleCompleteLesson = () => {
     onComplete(lesson.id);
   };
 
-  const handleMoreDetail = () => {
-    setShowingDetail(!showingDetail);
-    setShowingSummary(false);
+  const handleMoreDetail = async () => {
+    if (showingDetail) {
+      setShowingDetail(false);
+      setShowingSummary(false);
+      return;
+    }
+
+    if (expandedContent) {
+      setShowingDetail(true);
+      setShowingSummary(false);
+      return;
+    }
+
+    setIsLoadingDetail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('expand-lesson-detail', {
+        body: { content: lesson.content }
+      });
+
+      if (error) throw error;
+      
+      setExpandedContent(data.expandedContent);
+      setShowingDetail(true);
+      setShowingSummary(false);
+    } catch (error) {
+      console.error('Error expanding lesson detail:', error);
+    } finally {
+      setIsLoadingDetail(false);
+    }
   };
 
   const handleSummarize = () => {
@@ -114,7 +143,7 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                     }}
                   >
                     {showingSummary ? `## Key Points Summary\n\n**Numbers and Operations**: Understanding different types of numbers and operations.\n\n**Algebra Basics**: Working with variables, equations, and functions.\n\n**Geometry Principles**: Dealing with shapes, angles, and spatial relationships.\n\n**Practical Applications**: Mathematics in daily life including finance, construction, and technology.\n\n**Problem-Solving**: Systematic approach to understanding and solving mathematical problems.` :
-                     showingDetail ? `${lesson.content}\n\n## Study Tips\n\n- Practice regularly with different types of problems\n- Connect mathematical concepts to real-world examples\n- Work step-by-step through complex problems\n- Review and understand your mistakes` :
+                     showingDetail ? expandedContent || lesson.content :
                      lesson.content}
                   </ReactMarkdown>
                 </div>
@@ -125,10 +154,11 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                 <Button
                   onClick={handleMoreDetail}
                   variant="outline"
+                  disabled={isLoadingDetail}
                   className={`border-white/30 ${showingDetail ? 'bg-blue-600/30 text-blue-200' : 'bg-white/10 hover:bg-white/20'} text-white`}
                 >
                   <Info className="mr-2 h-4 w-4" />
-                  {showingDetail ? 'Less Detail' : 'More Detail'}
+                  {isLoadingDetail ? 'Loading...' : showingDetail ? 'Less Detail' : 'More Detail'}
                 </Button>
                 
                 <Button
