@@ -137,21 +137,7 @@ export const QuizPerformanceAnalytics = () => {
                   if (!quiz) return null;
 
                   return (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Performance Trends */}
-                      <div>
-                        <h4 className="font-medium mb-3">Completion Time Trend</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                          <LineChart data={quiz.completion_time_trend.map((time, i) => ({ attempt: i + 1, time }))}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="attempt" />
-                            <YAxis />
-                            <Tooltip formatter={(value) => [`${value} min`, 'Time']} />
-                            <Line type="monotone" dataKey="time" stroke="#8884d8" />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-
+                    <div>
                       {/* Mistake Categories */}
                       <div>
                         <h4 className="font-medium mb-3">Common Mistake Types</h4>
@@ -326,72 +312,108 @@ export const QuizPerformanceAnalytics = () => {
 
         <TabsContent value="recommendations" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Retake Recommendations */}
+            {/* All Quizzes */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <RotateCcw className="h-5 w-5" />
-                  Recommended Retakes
+                  <BookOpen className="h-5 w-5" />
+                  All Quizzes
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {quizPerformance
-                    .filter(quiz => quiz.recommended_retake)
-                    .map(quiz => (
-                      <div key={quiz.quiz_id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{quiz.quiz_title}</h4>
-                          <Badge className={getScoreBadgeColor(quiz.average_score)}>
-                            {Math.round(quiz.average_score)}%
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {quizPerformance.map(quiz => (
+                    <div key={quiz.quiz_id} className="p-3 border rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">{quiz.quiz_title}</h4>
+                        <div className="flex gap-2">
+                          <Badge className={getScoreBadgeColor(quiz.best_score)}>
+                            Best: {Math.round(quiz.best_score)}%
                           </Badge>
+                          {quiz.recommended_retake && (
+                            <Badge variant="destructive">Retake</Badge>
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Focus on {quiz.question_analytics.filter(q => q.accuracy_rate < 70).length} challenging questions
-                        </p>
-                        <Button 
-                          size="sm" 
-                          onClick={() => retakeQuizWithMistakeFocus(quiz.quiz_id)}
-                          className="w-full"
-                        >
-                          Start Focused Retake
-                        </Button>
                       </div>
-                    ))}
+                      <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-2">
+                        <span>Avg: {Math.round(quiz.average_score)}%</span>
+                        <span>{quiz.total_attempts} attempts</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1">
+                          View Details
+                        </Button>
+                        {quiz.recommended_retake && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => retakeQuizWithMistakeFocus(quiz.quiz_id)}
+                            className="flex-1"
+                          >
+                            Retake
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                   
-                  {quizPerformance.filter(quiz => quiz.recommended_retake).length === 0 && (
+                  {quizPerformance.length === 0 && (
                     <div className="text-center py-8">
-                      <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                      <p className="text-muted-foreground">Great job! No retakes needed right now.</p>
+                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">No quizzes completed yet.</p>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Similar Quiz Suggestions */}
+            {/* Study Plan Progress */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  Practice Suggestions
+                  <Target className="h-5 w-5" />
+                  Study Plan Progress
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {subjectImprovements
-                    .filter(subject => subject.topics_struggling.length > 0)
-                    .map(subject => (
-                      <div key={subject.subject} className="p-3 border rounded-lg">
-                        <h4 className="font-medium mb-2">{subject.subject}</h4>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Practice needed: {subject.topics_struggling.join(', ')}
-                        </p>
-                        <Button size="sm" variant="outline" className="w-full">
-                          Find Practice Quizzes
-                        </Button>
+                <div className="space-y-4">
+                  {subjectImprovements.map(subject => (
+                    <div key={subject.subject} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium">{subject.subject}</h4>
+                        <span className="text-sm font-medium">
+                          {Math.round((subject.topics_mastered.length / (subject.topics_mastered.length + subject.topics_struggling.length)) * 100)}%
+                        </span>
                       </div>
-                    ))}
+                      <Progress 
+                        value={(subject.topics_mastered.length / (subject.topics_mastered.length + subject.topics_struggling.length)) * 100} 
+                        className="h-2" 
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{subject.topics_mastered.length} mastered</span>
+                        <span>{subject.topics_struggling.length} to practice</span>
+                      </div>
+                      
+                      {subject.topics_struggling.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-sm text-orange-600 mb-1">Next to practice:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {subject.topics_struggling.slice(0, 3).map((topic, i) => (
+                              <Badge key={i} variant="outline" className="bg-orange-50 text-orange-700 text-xs">
+                                {topic}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {subjectImprovements.length === 0 && (
+                    <div className="text-center py-8">
+                      <Target className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">No study plan data available.</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
