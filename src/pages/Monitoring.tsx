@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { getDemoQuestCompletions, getDemoAchievementCompletions } from '@/utils/demoData';
+import { QuizPerformanceAnalytics } from '@/components/monitoring/QuizPerformanceAnalytics';
 
 const Monitoring = () => {
   const navigate = useNavigate();
@@ -577,38 +578,7 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <TrendingUp className="h-6 w-6 mr-3 text-green-400" />
-                    Performance Analytics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <TrendingUp className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Learning Trends</h3>
-                    <p className="text-white/60">Comprehensive analytics and performance insights</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Brain className="h-6 w-6 mr-3 text-purple-400" />
-                    AI Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <Brain className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">AI Analytics</h3>
-                    <p className="text-white/60">Machine learning insights and predictive analytics</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <QuizPerformanceAnalytics />
           </TabsContent>
 
         </Tabs>

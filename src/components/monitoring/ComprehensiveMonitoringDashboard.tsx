@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { QuizPerformanceAnalytics } from './QuizPerformanceAnalytics';
 
 export const ComprehensiveMonitoringDashboard = () => {
   const { 
