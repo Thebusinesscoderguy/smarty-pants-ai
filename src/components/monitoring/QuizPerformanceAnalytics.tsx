@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuizAnalytics } from '@/hooks/useQuizAnalytics';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   BarChart3, 
   Clock, 
@@ -35,6 +36,68 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
   
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [studyPlans, setStudyPlans] = useState<any[]>([]);
+  const [loadingStudyPlans, setLoadingStudyPlans] = useState(true);
+
+  // Fetch real study plan data from database
+  useEffect(() => {
+    const fetchStudyPlans = async () => {
+      try {
+        setLoadingStudyPlans(true);
+        
+        // Fetch study plans
+        const { data: studyPlansData, error: studyPlansError } = await supabase
+          .from('study_plans')
+          .select('*')
+          .eq('status', 'active');
+
+        if (studyPlansError) {
+          console.error('Error fetching study plans:', studyPlansError);
+          return;
+        }
+
+        // Fetch student learning paths  
+        const { data: learningPathsData, error: learningPathsError } = await supabase
+          .from('student_learning_paths')
+          .select('*');
+
+        if (learningPathsError) {
+          console.error('Error fetching learning paths:', learningPathsError);
+          return;
+        }
+
+        // Combine and format the data
+        const formattedStudyPlans = [
+          ...(studyPlansData || []).map(plan => ({
+            id: plan.id,
+            title: plan.title,
+            progress: 0, // Will be calculated from user progress
+            totalLessons: Math.floor(plan.estimated_duration / 30), // Estimate lessons from duration
+            completedLessons: 0, // Will be calculated
+            subject: plan.weak_areas?.[0] || 'General Studies',
+            type: 'study_plan'
+          })),
+          ...(learningPathsData || []).map(path => ({
+            id: path.id,
+            title: path.path_name,
+            progress: Math.round((path.current_step / path.total_steps) * 100) || 0,
+            totalLessons: path.total_steps || 0,
+            completedLessons: path.current_step || 0,
+            subject: path.topics_completed?.[0] || 'General Studies',
+            type: 'learning_path'
+          }))
+        ];
+
+        setStudyPlans(formattedStudyPlans);
+      } catch (error) {
+        console.error('Error fetching study plan data:', error);
+      } finally {
+        setLoadingStudyPlans(false);
+      }
+    };
+
+    fetchStudyPlans();
+  }, []);
 
   const getScoreBadgeColor = (score: number) => {
     if (score >= 80) return 'bg-green-100 text-green-800';
@@ -47,16 +110,6 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
     if (improvement < -5) return <TrendingDown className="h-4 w-4 text-red-600" />;
     return <Target className="h-4 w-4 text-gray-600" />;
   };
-
-  // Get real study plan data from student progress
-  const studyPlanData = (studentProgress || []).map(student => ({
-    id: student.student_id,
-    title: `${student.student_name}'s Learning Journey`,
-    progress: student.completion_percentage,
-    totalLessons: student.total_lessons,
-    completedLessons: student.completed_lessons,
-    subject: student.strengths?.[0] || 'General Studies'
-  }));
 
   const goodQuizzes = quizPerformance.filter(quiz => quiz.best_score >= 80);
   const strugglingQuizzes = quizPerformance.filter(quiz => quiz.best_score < 60);
@@ -337,13 +390,24 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {studyPlanData.map((plan) => (
+                  {loadingStudyPlans ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                      <p className="text-muted-foreground mt-2">Loading study plans...</p>
+                    </div>
+                  ) : studyPlans.length > 0 ? (
+                    studyPlans.map((plan) => (
                     <div key={plan.id} className="p-4 bg-white/10 rounded-lg border border-white/10">
                       <div className="flex justify-between items-center mb-2">
                         <h4 className="font-medium text-sm">{plan.title}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          {plan.subject}
-                        </Badge>
+                        <div className="flex gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {plan.subject}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {plan.type}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground mb-2">
                         <span>{plan.completedLessons}/{plan.totalLessons} lessons</span>
@@ -351,7 +415,13 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                       </div>
                       <Progress value={plan.progress} className="h-2" />
                     </div>
-                  ))}
+                  ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">No active study plans found</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
