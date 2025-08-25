@@ -17,7 +17,9 @@ import {
   Brain,
   Zap,
   BookOpen,
-  RotateCcw
+  RotateCcw,
+  FileText,
+  Calendar
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -45,6 +47,16 @@ export const QuizPerformanceAnalytics = () => {
     if (improvement < -5) return <TrendingDown className="h-4 w-4 text-red-600" />;
     return <Target className="h-4 w-4 text-gray-600" />;
   };
+
+  // Mock data for study plans
+  const mockStudyPlans = [
+    { id: '1', title: 'Mathematics Mastery', progress: 75, totalLessons: 20, completedLessons: 15, subject: 'Mathematics' },
+    { id: '2', title: 'Science Explorer', progress: 60, totalLessons: 15, completedLessons: 9, subject: 'Science' },
+    { id: '3', title: 'Language Arts Journey', progress: 85, totalLessons: 12, completedLessons: 10, subject: 'English' }
+  ];
+
+  const goodQuizzes = quizPerformance.filter(quiz => quiz.best_score >= 80);
+  const strugglingQuizzes = quizPerformance.filter(quiz => quiz.best_score < 60);
 
   if (loading) {
     return (
@@ -311,43 +323,104 @@ export const QuizPerformanceAnalytics = () => {
         </TabsContent>
 
         <TabsContent value="recommendations" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* All Quizzes */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Study Plan Progress */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  All Quizzes
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Calendar className="h-5 w-5 text-purple-400" />
+                  Study Plan Progress
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-4">
+                  {mockStudyPlans.map((plan) => (
+                    <div key={plan.id} className="p-4 bg-white/10 rounded-lg border border-white/10">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-medium text-sm">{plan.title}</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {plan.subject}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                        <span>{plan.completedLessons}/{plan.totalLessons} lessons</span>
+                        <span>{plan.progress}%</span>
+                      </div>
+                      <Progress value={plan.progress} className="h-2" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Excellent Performance Quizzes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <CheckCircle className="h-5 w-5 text-green-400" />
+                  Excellent Quizzes (80%+)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {goodQuizzes.length > 0 ? goodQuizzes.map((quiz) => (
+                    <div key={quiz.quiz_id} className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium text-sm">{quiz.quiz_title}</h4>
+                          <p className="text-green-300 text-xs">Best: {Math.round(quiz.best_score)}%</p>
+                        </div>
+                        <Badge className="bg-green-600 text-white text-xs">
+                          {Math.round(quiz.average_score)}% avg
+                        </Badge>
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="text-muted-foreground text-center py-8 text-sm">No quizzes with 80%+ scores yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* All Quizzes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <FileText className="h-5 w-5 text-blue-400" />
+                  All Quizzes ({quizPerformance.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
                   {quizPerformance.map(quiz => (
-                    <div key={quiz.quiz_id} className="p-3 border rounded-lg">
+                    <div key={quiz.quiz_id} className="p-4 bg-white/10 rounded-lg border border-white/10">
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{quiz.quiz_title}</h4>
+                        <h4 className="font-medium text-sm">{quiz.quiz_title}</h4>
                         <div className="flex gap-2">
-                          <Badge className={getScoreBadgeColor(quiz.best_score)}>
+                          <Badge className={`${getScoreBadgeColor(quiz.best_score)} text-xs`}>
                             Best: {Math.round(quiz.best_score)}%
                           </Badge>
                           {quiz.recommended_retake && (
-                            <Badge variant="destructive">Retake</Badge>
+                            <Badge variant="destructive" className="text-xs">Retake</Badge>
                           )}
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-2">
+                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-2">
                         <span>Avg: {Math.round(quiz.average_score)}%</span>
                         <span>{quiz.total_attempts} attempts</span>
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1">
+                      <div className="mt-2">
+                        <Progress value={quiz.average_score} className="h-2" />
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <Button size="sm" variant="outline" className="flex-1 text-xs">
                           View Details
                         </Button>
                         {quiz.recommended_retake && (
                           <Button 
                             size="sm" 
                             onClick={() => retakeQuizWithMistakeFocus(quiz.quiz_id)}
-                            className="flex-1"
+                            className="flex-1 text-xs"
                           >
                             Retake
                           </Button>
@@ -360,58 +433,6 @@ export const QuizPerformanceAnalytics = () => {
                     <div className="text-center py-8">
                       <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
                       <p className="text-muted-foreground">No quizzes completed yet.</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Study Plan Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Study Plan Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {subjectImprovements.map(subject => (
-                    <div key={subject.subject} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-medium">{subject.subject}</h4>
-                        <span className="text-sm font-medium">
-                          {Math.round((subject.topics_mastered.length / (subject.topics_mastered.length + subject.topics_struggling.length)) * 100)}%
-                        </span>
-                      </div>
-                      <Progress 
-                        value={(subject.topics_mastered.length / (subject.topics_mastered.length + subject.topics_struggling.length)) * 100} 
-                        className="h-2" 
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{subject.topics_mastered.length} mastered</span>
-                        <span>{subject.topics_struggling.length} to practice</span>
-                      </div>
-                      
-                      {subject.topics_struggling.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-sm text-orange-600 mb-1">Next to practice:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {subject.topics_struggling.slice(0, 3).map((topic, i) => (
-                              <Badge key={i} variant="outline" className="bg-orange-50 text-orange-700 text-xs">
-                                {topic}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {subjectImprovements.length === 0 && (
-                    <div className="text-center py-8">
-                      <Target className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No study plan data available.</p>
                     </div>
                   )}
                 </div>

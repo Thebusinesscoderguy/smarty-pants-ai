@@ -220,49 +220,8 @@ const Monitoring = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Recent Activity */}
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <Activity className="h-6 w-6 mr-3 text-blue-400" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {studentProgress.slice(0, 4).map((student) => (
-                    <div key={student.student_id} className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-white font-semibold">{student.student_name}</h4>
-                        <span className="text-white/60 text-sm">{student.last_activity ? new Date(student.last_activity).toLocaleDateString() : 'No activity'}</span>
-                      </div>
-                      <p className="text-white/80 mb-2">Progress: {student.completion_percentage}%</p>
-                      <div className="flex items-center space-x-3">
-                        <Progress value={student.completion_percentage} className="flex-1 h-2" />
-                        <span className="text-white/90 text-sm font-medium">{student.completion_percentage}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Subject Progress */}
-              <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center text-2xl">
-                    <TrendingUp className="h-6 w-6 mr-3 text-green-400" />
-                    Subject Performance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center py-12">
-                    <TrendingUp className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Subject Analytics</h3>
-                    <p className="text-white/60">Subject-specific performance data will appear here</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Quiz Performance Analytics */}
+            <QuizPerformanceAnalytics />
           </TabsContent>
 
 
