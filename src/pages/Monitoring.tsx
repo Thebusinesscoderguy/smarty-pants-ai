@@ -188,7 +188,7 @@ const Monitoring = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
@@ -210,18 +210,11 @@ const Monitoring = () => {
               <Trophy className="h-4 w-4 mr-2" />
               Achievements
             </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
             {/* Quiz Performance Analytics */}
-            <QuizPerformanceAnalytics />
+            <QuizPerformanceAnalytics studentProgress={studentProgress} />
           </TabsContent>
 
 
@@ -534,10 +527,6 @@ const Monitoring = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-8">
-            <QuizPerformanceAnalytics />
           </TabsContent>
 
         </Tabs>

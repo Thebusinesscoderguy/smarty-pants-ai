@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-export const QuizPerformanceAnalytics = () => {
+export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?: any[] }) => {
   const { 
     loading, 
     quizPerformance, 
@@ -48,12 +48,15 @@ export const QuizPerformanceAnalytics = () => {
     return <Target className="h-4 w-4 text-gray-600" />;
   };
 
-  // Mock data for study plans
-  const mockStudyPlans = [
-    { id: '1', title: 'Mathematics Mastery', progress: 75, totalLessons: 20, completedLessons: 15, subject: 'Mathematics' },
-    { id: '2', title: 'Science Explorer', progress: 60, totalLessons: 15, completedLessons: 9, subject: 'Science' },
-    { id: '3', title: 'Language Arts Journey', progress: 85, totalLessons: 12, completedLessons: 10, subject: 'English' }
-  ];
+  // Get real study plan data from student progress
+  const studyPlanData = (studentProgress || []).map(student => ({
+    id: student.student_id,
+    title: `${student.student_name}'s Learning Journey`,
+    progress: student.completion_percentage,
+    totalLessons: student.total_lessons,
+    completedLessons: student.completed_lessons,
+    subject: student.strengths?.[0] || 'General Studies'
+  }));
 
   const goodQuizzes = quizPerformance.filter(quiz => quiz.best_score >= 80);
   const strugglingQuizzes = quizPerformance.filter(quiz => quiz.best_score < 60);
@@ -334,7 +337,7 @@ export const QuizPerformanceAnalytics = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStudyPlans.map((plan) => (
+                  {studyPlanData.map((plan) => (
                     <div key={plan.id} className="p-4 bg-white/10 rounded-lg border border-white/10">
                       <div className="flex justify-between items-center mb-2">
                         <h4 className="font-medium text-sm">{plan.title}</h4>
