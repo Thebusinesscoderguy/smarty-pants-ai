@@ -69,7 +69,6 @@ export const StudentQuestDisplay = () => {
           user_quest_progress!left (
             current_value,
             completed,
-            completed_at,
             created_at
           )
         `)
@@ -87,7 +86,7 @@ export const StudentQuestDisplay = () => {
       if (error) throw error;
 
       // Process quests with progress
-      const questsWithProgress: Quest[] = (questsData || []).map(quest => {
+      const questsWithProgress: Quest[] = questsData.map(quest => {
         const progress = quest.user_quest_progress?.[0];
         return {
           id: quest.id,
@@ -99,7 +98,6 @@ export const StudentQuestDisplay = () => {
           current_value: progress?.current_value || 0,
           expires_at: quest.expires_at,
           completed: progress?.completed || false,
-          completed_at: progress?.completed_at,
           subjects: quest.subjects
         };
       });

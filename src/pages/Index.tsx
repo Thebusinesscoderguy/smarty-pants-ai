@@ -7,28 +7,11 @@ import { Footer } from '@/components/layout/Footer';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUserRole } from '@/hooks/useUserRole';
-import { useEffect } from 'react';
 
 const Index = () => {
+  
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { userRole, loading } = useUserRole();
-
-  // Redirect authenticated users based on their role
-  useEffect(() => {
-    if (!loading && user) {
-      if (userRole === 'parent') {
-        navigate('/parent-monitoring');
-      } else if (userRole === 'student') {
-        navigate('/chat');
-      } else {
-        navigate('/chat'); // Default to chat for teachers and others
-      }
-    }
-  }, [userRole, loading, user, navigate]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);

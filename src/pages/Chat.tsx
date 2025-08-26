@@ -15,10 +15,6 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
-import { StudentAchievements } from '@/components/student/StudentAchievements';
-import { SampleDataButton } from '@/components/demo/SampleDataButton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -202,7 +198,7 @@ const Chat = () => {
           size="sm"
           onClick={() => {
             setCurrentPage('monitoring');
-            navigate('/parent-monitoring');
+            navigate('/monitoring');
           }}
           className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
         >
@@ -301,25 +297,6 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
     }
   };
 
-  const logStudentInteraction = async (content: string) => {
-    if (!user || effectiveRole !== 'student') return;
-    
-    try {
-      // Log the interaction to trigger quest progress
-      await supabase.from('student_interactions').insert({
-        student_id: user.id,
-        session_id: activeSessionId || 'default',
-        interaction_type: 'chat_message',
-        question_text: content.substring(0, 500), // Limit length
-        student_response: content.substring(0, 500),
-        topic_identified: 'general_learning', // AI could improve this
-        understanding_score: 0.8 // Default good score for chat interactions
-      });
-    } catch (error) {
-      console.error('Error logging student interaction:', error);
-    }
-  };
-
   const handleSendMessage = async () => {
     if (!inputMessage.trim() && !selectedFile) return;
 
@@ -335,9 +312,6 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
     setSelectedFile(null);
     setIsLoading(true);
     setShowWelcome(false);
-
-    // Log student interaction for quest progress
-    await logStudentInteraction(userMessage.content);
 
     // Save user message to database
     try {
@@ -823,7 +797,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
           </div>
         </div>
 
-        {/* Sidebar for Chat History & Progress (Students) or Previous Chats (Others) */}
+        {/* Sidebar for Previous Chats */}
         <div className="w-80 bg-white/5 border-l border-white/10 p-4 space-y-4">
           <Button
             onClick={handleNewChat}
@@ -835,106 +809,42 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
 
           <Separator className="bg-white/20" />
 
-          {effectiveRole === 'student' ? (
-            /* Student Sidebar with Quests & Achievements */
-            <Tabs defaultValue="history" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-white/10 rounded-lg p-1 mb-4">
-                <TabsTrigger value="history" className="text-xs">History</TabsTrigger>
-                <TabsTrigger value="quests" className="text-xs">Quests</TabsTrigger>
-                <TabsTrigger value="achievements" className="text-xs">Rewards</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="history" className="space-y-2">
-                <h3 className="text-sm font-medium text-white/70 mb-3 px-1">{t('chat.previousChats')}</h3>
-                <ScrollArea className="h-[calc(100vh-400px)]">
-                  <div className="space-y-2">
-                    {chatSessions.map((session) => (
-                      <div
-                        key={session.id}
-                        onClick={() => handleSelectSession(session.id)}
-                        className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
-                          activeSessionId === session.id
-                            ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
-                            : 'bg-white/5 hover:bg-white/10 border border-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm text-white truncate font-medium">{session.title}</p>
-                            <p className="text-xs text-white/60">
-                              {new Date(session.created_at).toLocaleDateString()} • {session.message_count} {t('chat.messages')}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => deleteSession(session.id, e)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
-                        >
-                          <Trash2 className="h-3 w-3 text-red-400" />
-                        </Button>
+          <div>
+            <h3 className="text-sm font-medium text-white/70 mb-3 px-1">{t('chat.previousChats')}</h3>
+            <ScrollArea className="h-[calc(100vh-300px)]">
+              <div className="space-y-2">
+                {chatSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    onClick={() => handleSelectSession(session.id)}
+                    className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                      activeSessionId === session.id
+                        ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
+                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-white truncate font-medium">{session.title}</p>
+                        <p className="text-xs text-white/60">
+                          {new Date(session.created_at).toLocaleDateString()} • {session.message_count} {t('chat.messages')}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="quests" className="space-y-2">
-                <div className="mb-3">
-                  <SampleDataButton />
-                </div>
-                <ScrollArea className="h-[calc(100vh-450px)]">
-                  <StudentQuestDisplay />
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="achievements" className="space-y-2">
-                <ScrollArea className="h-[calc(100vh-400px)]">
-                  <StudentAchievements />
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          ) : (
-            /* Non-student sidebar with just chat history */
-            <div>
-              <h3 className="text-sm font-medium text-white/70 mb-3 px-1">{t('chat.previousChats')}</h3>
-              <ScrollArea className="h-[calc(100vh-300px)]">
-                <div className="space-y-2">
-                  {chatSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      onClick={() => handleSelectSession(session.id)}
-                      className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
-                        activeSessionId === session.id
-                          ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
-                          : 'bg-white/5 hover:bg-white/10 border border-white/10'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm text-white truncate font-medium">{session.title}</p>
-                          <p className="text-xs text-white/60">
-                            {new Date(session.created_at).toLocaleDateString()} • {session.message_count} {t('chat.messages')}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => deleteSession(session.id, e)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
-                      >
-                        <Trash2 className="h-3 w-3 text-red-400" />
-                      </Button>
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => deleteSession(session.id, e)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
+                    >
+                      <Trash2 className="h-3 w-3 text-red-400" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </main>
 
