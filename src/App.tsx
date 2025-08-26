@@ -27,6 +27,7 @@ import AcceptInvitation from './pages/AcceptInvitation';
 import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
 import Monitoring from './pages/Monitoring';
+import ParentMonitoring from './pages/ParentMonitoring';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -51,9 +52,10 @@ function App() {
               <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
                <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
                <Route path="/voice" element={<Chat />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/monitoring" element={<Monitoring />} />
-              <Route path="/auth" element={<Auth />} />
+               <Route path="/progress" element={<Progress />} />
+               <Route path="/monitoring" element={<Monitoring />} />
+               <Route path="/parent-monitoring" element={<ParentMonitoring />} />
+               <Route path="/auth" element={<Auth />} />
               
               <Route path="/features" element={<Features />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
