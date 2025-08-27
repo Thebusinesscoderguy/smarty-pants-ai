@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { UserRoleSelector } from '@/components/onboarding/UserRoleSelector';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -25,12 +26,21 @@ const Auth = () => {
   
   const isSignup = searchParams.get('signup') === 'true';
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && !showRoleSelector) {
+      setShowRoleSelector(true);
+    }
+  }, [user, showRoleSelector]);
+
+  const handleRoleSelected = (role: 'parent' | 'child', childId?: string) => {
+    if (role === 'parent') {
+      navigate('/monitoring');
+    } else {
       navigate('/chat');
     }
-  }, [user, navigate]);
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +62,8 @@ const Auth = () => {
         return;
       }
 
-      navigate('/chat');
+      // Don't auto-navigate, let role selector handle it
+      setShowRoleSelector(true);
     } catch (error: any) {
       setError(t('auth.error.unexpected'));
     } finally {
@@ -82,7 +93,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/chat`,
+          emailRedirectTo: `${window.location.origin}/auth`,
         }
       });
 
@@ -95,7 +106,8 @@ const Auth = () => {
         return;
       }
 
-      navigate('/chat');
+      // Don't auto-navigate, let role selector handle it
+      setShowRoleSelector(true);
     } catch (error: any) {
       setError('An unexpected error occurred. Please try again.');
     } finally {
@@ -109,7 +121,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/chat`
+          redirectTo: `${window.location.origin}/auth`
         }
       });
       
@@ -127,19 +139,23 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <Header />
       
-      <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
-        <div className="w-full max-w-md mx-auto">
-          <Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
-            <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
-              <CardTitle className="text-2xl font-bold text-white mb-3">
-                {t('auth.welcome')}
-              </CardTitle>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                {t('auth.subtitle')}
-              </p>
-            </CardHeader>
-          
-          <CardContent className="p-6">
+      {/* Show role selector if user is authenticated */}
+      {user && showRoleSelector ? (
+        <UserRoleSelector onRoleSelected={handleRoleSelected} />
+      ) : (
+        <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
+          <div className="w-full max-w-md mx-auto">
+            <Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
+              <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
+                <CardTitle className="text-2xl font-bold text-white mb-3">
+                  {t('auth.welcome')}
+                </CardTitle>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  {t('auth.subtitle')}
+                </p>
+              </CardHeader>
+            
+            <CardContent className="p-6">{/* ... rest of authentication form */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-white/10 rounded-xl p-1 mb-6">
                 <TabsTrigger 
@@ -348,10 +364,11 @@ const Auth = () => {
                 </div>
               </TabsContent>
             </Tabs>
-          </CardContent>
-        </Card>
-        </div>
-      </main>
+            </CardContent>
+          </Card>
+          </div>
+        </main>
+      )}
       
       <Footer />
     </div>

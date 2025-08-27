@@ -30,19 +30,6 @@ const Chat = () => {
     : null;
   const effectiveRole = sessionRole ?? userRole;
   
-  // Redirect parents to monitoring immediately
-  useEffect(() => {
-    if (effectiveRole === 'parent') {
-      navigate('/monitoring', { replace: true });
-      return;
-    }
-  }, [effectiveRole, navigate]);
-
-  // Don't render chat interface for parents
-  if (effectiveRole === 'parent') {
-    return null;
-  }
-  
   useEffect(() => {
     console.log('Chat role state', { userRole, sessionRole, effectiveRole });
   }, [userRole, sessionRole]);
@@ -218,20 +205,11 @@ const Chat = () => {
         </Button>
       )}
       
-      {/* Only show Monitoring for parents */}
-      {effectiveRole !== 'student' && (
-        <Button
-          variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => {
-            setCurrentPage('monitoring');
-            navigate('/monitoring');
-          }}
-          className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-        >
-          <BarChart3 className="h-4 w-4 mr-2" />
-          {t('chat.nav.monitoring')}
-        </Button>
+      {/* Show role selection prompt for parents or undefined roles */}
+      {(effectiveRole === 'parent' || !effectiveRole) && (
+        <div className="text-white/70 text-sm bg-white/10 px-4 py-2 rounded-xl">
+          Please select your role to continue
+        </div>
       )}
     </div>
   );
