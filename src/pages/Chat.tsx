@@ -37,6 +37,11 @@ const Chat = () => {
       return;
     }
   }, [effectiveRole, navigate]);
+
+  // Don't render chat interface for parents
+  if (effectiveRole === 'parent') {
+    return null;
+  }
   
   useEffect(() => {
     console.log('Chat role state', { userRole, sessionRole, effectiveRole });
