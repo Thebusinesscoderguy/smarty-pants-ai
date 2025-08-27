@@ -29,6 +29,15 @@ const Chat = () => {
     ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
     : null;
   const effectiveRole = sessionRole ?? userRole;
+  
+  // Redirect parents to monitoring immediately
+  useEffect(() => {
+    if (effectiveRole === 'parent') {
+      navigate('/monitoring', { replace: true });
+      return;
+    }
+  }, [effectiveRole, navigate]);
+  
   useEffect(() => {
     console.log('Chat role state', { userRole, sessionRole, effectiveRole });
   }, [userRole, sessionRole]);
