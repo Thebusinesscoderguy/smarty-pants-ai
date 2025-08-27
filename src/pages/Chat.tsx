@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX } from 'lucide-react';
+import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX, Trophy } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -202,6 +202,19 @@ const Chat = () => {
         >
           <BarChart3 className="h-4 w-4 mr-2" />
           Study Tools
+        </Button>
+      )}
+
+      {/* Quests & Achievements for students */}
+      {effectiveRole === 'student' && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/quests')}
+          className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+        >
+          <Trophy className="h-4 w-4 mr-2" />
+          Quests & Achievements
         </Button>
       )}
       

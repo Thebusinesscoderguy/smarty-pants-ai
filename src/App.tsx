@@ -26,6 +26,7 @@ import AcceptInvitation from './pages/AcceptInvitation';
 
 import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
+import QuestsAchievements from './pages/QuestsAchievements';
 import Monitoring from './pages/Monitoring';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
@@ -64,9 +65,10 @@ function App() {
               <Route path="/accept-invitation" element={<AcceptInvitation />} />
               
               
-              <Route path="/math-solver" element={<MathSolver />} />
-              <Route path="/quiz" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
-              <Route path="/settings" element={<Settings />} />
+               <Route path="/math-solver" element={<MathSolver />} />
+               <Route path="/quiz" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
+               <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
+               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

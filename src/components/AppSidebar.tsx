@@ -14,7 +14,8 @@ import {
   BookOpen,
   TestTube,
   Monitor,
-  Wrench
+  Wrench,
+  Trophy
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,6 +40,7 @@ import { toast } from "@/hooks/use-toast";
 const childNavigationItems = [
   { title: "Chat", icon: MessageSquare, url: "/chat" },
   { title: "Study Tools", icon: BookOpen, url: "/quiz" },
+  { title: "Quests & Achievements", icon: Trophy, url: "/quests" },
 ];
 
 // Parent navigation - monitoring only
