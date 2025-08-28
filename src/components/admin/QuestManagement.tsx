@@ -195,7 +195,8 @@ export const QuestManagement = () => {
           difficulty: newQuest.difficulty,
           target_value: newQuest.target_value,
           subject_id: newQuest.subject_id || null,
-          created_by_id: user?.id
+          created_by_id: user?.id,
+          created_by: 'school'
         })
         .select(`
           *,
