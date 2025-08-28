@@ -47,7 +47,7 @@ const Monitoring = () => {
     title: '',
     description: '',
     type: 'daily',
-    difficulty: 'medium',
+    difficulty: 'basic',
     target_value: 1,
     rewards: { points: 10 },
     requirements: {}
@@ -67,7 +67,7 @@ const Monitoring = () => {
     
     await createQuest(questForm);
     setShowQuestDialog(false);
-    setQuestForm({ title: '', description: '', type: 'daily', difficulty: 'medium', target_value: 1, rewards: { points: 10 }, requirements: {} });
+    setQuestForm({ title: '', description: '', type: 'daily', difficulty: 'basic', target_value: 1, rewards: { points: 10 }, requirements: {} });
   };
 
   const handleCreateAchievement = async () => {
@@ -266,7 +266,6 @@ const Monitoring = () => {
                             <SelectContent>
                               <SelectItem value="daily">Daily</SelectItem>
                               <SelectItem value="weekly">Weekly</SelectItem>
-                              <SelectItem value="milestone">Milestone</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -277,8 +276,8 @@ const Monitoring = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="easy">Easy</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="basic">Basic</SelectItem>
+                              <SelectItem value="intermediate">Intermediate</SelectItem>
                               <SelectItem value="hard">Hard</SelectItem>
                             </SelectContent>
                           </Select>
