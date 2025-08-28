@@ -85,8 +85,7 @@ export const useQuestManagement = () => {
         .from('quests')
         .insert({
           ...questData,
-          created_by_id: user.id,
-          created_by: 'teacher'
+          created_by_id: user.id
         })
         .select()
         .single();
