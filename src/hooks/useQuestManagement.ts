@@ -81,13 +81,17 @@ export const useQuestManagement = () => {
     if (!user) return null;
 
     try {
+      const questDataToInsert = {
+        ...questData,
+        created_by_id: user.id,
+        created_by: 'parent'
+      };
+      
+      console.log('Creating quest with data:', questDataToInsert);
+      
       const { data, error } = await supabase
         .from('quests')
-        .insert({
-          ...questData,
-          created_by_id: user.id,
-          created_by: 'parent'
-        })
+        .insert(questDataToInsert)
         .select()
         .single();
 

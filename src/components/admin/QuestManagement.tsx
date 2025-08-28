@@ -186,18 +186,23 @@ export const QuestManagement = () => {
 
     try {
       setIsCreating(true);
+      
+      const questData = {
+        title: newQuest.title,
+        description: newQuest.description,
+        type: newQuest.type,
+        difficulty: newQuest.difficulty,
+        target_value: newQuest.target_value,
+        subject_id: newQuest.subject_id || null,
+        created_by_id: user?.id,
+        created_by: 'school'
+      };
+      
+      console.log('Creating quest with data:', questData);
+      
       const { data, error } = await supabase
         .from('quests')
-        .insert({
-          title: newQuest.title,
-          description: newQuest.description,
-          type: newQuest.type,
-          difficulty: newQuest.difficulty,
-          target_value: newQuest.target_value,
-          subject_id: newQuest.subject_id || null,
-          created_by_id: user?.id,
-          created_by: 'school'
-        })
+        .insert(questData)
         .select(`
           *,
           subjects (name)
