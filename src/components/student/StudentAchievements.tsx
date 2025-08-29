@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +52,7 @@ export const StudentAchievements = () => {
     try {
       setIsLoading(true);
       
-      // Get user's school
+      // Get user's school relationship
       const { data: schoolRelation } = await supabase
         .from('school_student_relationships')
         .select('school_id')
@@ -61,13 +60,49 @@ export const StudentAchievements = () => {
         .eq('is_active', true)
         .single();
 
-      // Fetch all achievements
-      const { data: allAchievements, error: achievementsError } = await supabase
+      // Get user's parent relationship
+      const { data: parentRelation } = await supabase
+        .from('parent_child_relationships')
+        .select('parent_id')
+        .eq('child_id', user.id)
+        .single();
+
+      console.log('Student relationships for achievements:', { schoolRelation, parentRelation });
+
+      // Fetch all achievements that are accessible to this user
+      let achievementsQuery = supabase
         .from('achievements')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (achievementsError) throw achievementsError;
+      // Build conditions for accessible achievements
+      const conditions = [];
+      
+      // Include achievements created by the user's school
+      if (schoolRelation) {
+        conditions.push(`school_id.eq.${schoolRelation.school_id}`);
+      }
+      
+      // Include achievements created by the user's parent
+      if (parentRelation) {
+        conditions.push(`creator_id.eq.${parentRelation.parent_id}`);
+      }
+      
+      // Include global achievements (no school_id and no creator_id)
+      conditions.push('and(school_id.is.null,creator_id.is.null)');
+
+      if (conditions.length > 0) {
+        achievementsQuery = achievementsQuery.or(conditions.join(','));
+      }
+
+      const { data: allAchievements, error: achievementsError } = await achievementsQuery;
+
+      if (achievementsError) {
+        console.error('Error fetching achievements:', achievementsError);
+        throw achievementsError;
+      }
+
+      console.log('Fetched achievements:', allAchievements);
 
       // Fetch user's earned achievements
       let userAchievementsQuery = supabase
@@ -81,7 +116,12 @@ export const StudentAchievements = () => {
 
       const { data: userAchievements, error: userError } = await userAchievementsQuery;
       
-      if (userError) throw userError;
+      if (userError) {
+        console.error('Error fetching user achievements:', userError);
+        throw userError;
+      }
+
+      console.log('User earned achievements:', userAchievements);
 
       // Combine data
       const earnedAchievementIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
@@ -89,7 +129,7 @@ export const StudentAchievements = () => {
         userAchievements?.map(ua => [ua.achievement_id, ua.earned_at]) || []
       );
 
-      const achievementsWithStatus: Achievement[] = allAchievements.map(achievement => ({
+      const achievementsWithStatus: Achievement[] = (allAchievements || []).map(achievement => ({
         id: achievement.id,
         name: achievement.name,
         description: achievement.description || '',

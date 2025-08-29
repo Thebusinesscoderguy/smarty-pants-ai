@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -53,13 +52,22 @@ export const StudentQuestDisplay = () => {
     try {
       setIsLoading(true);
       
-      // Get user's school
+      // Get user's school relationship
       const { data: schoolRelation } = await supabase
         .from('school_student_relationships')
         .select('school_id')
         .eq('student_id', user.id)
         .eq('is_active', true)
         .single();
+
+      // Get user's parent relationship
+      const { data: parentRelation } = await supabase
+        .from('parent_child_relationships')
+        .select('parent_id')
+        .eq('child_id', user.id)
+        .single();
+
+      console.log('Student relationships:', { schoolRelation, parentRelation });
 
       let questsQuery = supabase
         .from('quests')
@@ -74,19 +82,34 @@ export const StudentQuestDisplay = () => {
         `)
         .eq('is_active', true);
 
-      // If user is part of a school, also get school quests
+      // Build conditions for accessible quests
+      const conditions = ['created_by.eq.system'];
+      
       if (schoolRelation) {
-        questsQuery = questsQuery.or(`created_by.eq.system,created_by.eq.school`);
+        conditions.push('created_by.eq.school');
+      }
+      
+      if (parentRelation) {
+        conditions.push(`created_by_id.eq.${parentRelation.parent_id}`);
+      }
+
+      if (conditions.length > 1) {
+        questsQuery = questsQuery.or(conditions.join(','));
       } else {
         questsQuery = questsQuery.eq('created_by', 'system');
       }
 
       const { data: questsData, error } = await questsQuery;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching quests:', error);
+        throw error;
+      }
+
+      console.log('Fetched quests:', questsData);
 
       // Process quests with progress
-      const questsWithProgress: Quest[] = questsData.map(quest => {
+      const questsWithProgress: Quest[] = (questsData || []).map(quest => {
         const progress = quest.user_quest_progress?.[0];
         return {
           id: quest.id,
