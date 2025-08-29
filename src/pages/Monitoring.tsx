@@ -213,7 +213,6 @@ const Monitoring = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
-            {/* Quiz Performance Analytics */}
             <QuizPerformanceAnalytics studentProgress={studentProgress} />
           </TabsContent>
 

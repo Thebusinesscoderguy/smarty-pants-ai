@@ -1,519 +1,296 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuizAnalytics } from '@/hooks/useQuizAnalytics';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
-  BarChart3, 
-  Clock, 
-  Target, 
-  TrendingUp, 
-  TrendingDown, 
-  RefreshCw,
-  CheckCircle,
-  AlertTriangle,
-  Brain,
-  Zap,
-  BookOpen,
-  RotateCcw,
   FileText,
-  Calendar
+  Calendar,
+  CheckCircle,
+  Clock,
+  Target,
+  TrendingUp,
+  AlertTriangle
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?: any[] }) => {
-  const { 
-    loading, 
-    quizPerformance, 
-    subjectImprovements, 
-    refreshAnalytics,
-    retakeQuizWithMistakeFocus,
-    getRecommendedSimilarQuizzes
-  } = useQuizAnalytics();
-  
-  const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [tests, setTests] = useState<any[]>([]);
   const [studyPlans, setStudyPlans] = useState<any[]>([]);
-  const [loadingStudyPlans, setLoadingStudyPlans] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch real study plan data from database
   useEffect(() => {
-    const fetchStudyPlans = async () => {
+    const fetchData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        setLoadingStudyPlans(true);
+        setLoading(true);
         
-        // Fetch study plans
-        const { data: studyPlansData, error: studyPlansError } = await supabase
-          .from('study_plans')
-          .select('*')
-          .eq('status', 'active');
+        // Fetch quiz attempts and test attempts
+        const [quizResponse, testResponse, studyPlansResponse] = await Promise.all([
+          supabase
+            .from('quiz_attempts')
+            .select(`
+              *,
+              quizzes (id, title, subject_id, difficulty)
+            `)
+            .eq('user_id', user.id)
+            .order('completed_at', { ascending: false }),
+            
+          supabase
+            .from('test_attempts')
+            .select(`
+              *,
+              tests (id, title, subject)
+            `)
+            .eq('student_id', user.id)
+            .order('completed_at', { ascending: false }),
+            
+          supabase
+            .from('study_plans')
+            .select('*')
+            .eq('user_id', user.id)
+        ]);
 
-        if (studyPlansError) {
-          console.error('Error fetching study plans:', studyPlansError);
-          return;
-        }
-
-        // Fetch student learning paths  
-        const { data: learningPathsData, error: learningPathsError } = await supabase
-          .from('student_learning_paths')
-          .select('*');
-
-        if (learningPathsError) {
-          console.error('Error fetching learning paths:', learningPathsError);
-          return;
-        }
-
-        // Combine and format the data
-        const formattedStudyPlans = [
-          ...(studyPlansData || []).map(plan => ({
-            id: plan.id,
-            title: plan.title,
-            progress: 0, // Will be calculated from user progress
-            totalLessons: Math.floor(plan.estimated_duration / 30), // Estimate lessons from duration
-            completedLessons: 0, // Will be calculated
-            subject: plan.weak_areas?.[0] || 'General Studies',
-            type: 'study_plan'
+        // Combine quiz and test data
+        const allTests = [
+          ...(quizResponse.data || []).map(attempt => ({
+            id: attempt.id,
+            title: attempt.quizzes?.title || 'Quiz',
+            type: 'quiz',
+            score: Math.round((attempt.score / attempt.total_possible) * 100),
+            completedAt: attempt.completed_at,
+            difficulty: attempt.quizzes?.difficulty || 'medium'
           })),
-          ...(learningPathsData || []).map(path => ({
-            id: path.id,
-            title: path.path_name,
-            progress: Math.round((path.current_step / path.total_steps) * 100) || 0,
-            totalLessons: path.total_steps || 0,
-            completedLessons: path.current_step || 0,
-            subject: path.topics_completed?.[0] || 'General Studies',
-            type: 'learning_path'
+          ...(testResponse.data || []).map(attempt => ({
+            id: attempt.id,
+            title: attempt.tests?.title || 'Test',
+            type: 'test',
+            score: attempt.percentage || 0,
+            completedAt: attempt.completed_at,
+            difficulty: 'medium'
           }))
-        ];
+        ].sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
 
-        setStudyPlans(formattedStudyPlans);
+        setTests(allTests);
+        setStudyPlans(studyPlansResponse.data || []);
       } catch (error) {
-        console.error('Error fetching study plan data:', error);
+        console.error('Error fetching data:', error);
       } finally {
-        setLoadingStudyPlans(false);
+        setLoading(false);
       }
     };
 
-    fetchStudyPlans();
-  }, []);
+    fetchData();
+  }, [user]);
 
-  const getScoreBadgeColor = (score: number) => {
-    if (score >= 80) return 'bg-green-100 text-green-800';
-    if (score >= 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-400';
+    if (score >= 60) return 'text-yellow-400';
+    return 'text-red-400';
   };
 
-  const getImprovementIcon = (improvement: number) => {
-    if (improvement > 5) return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (improvement < -5) return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <Target className="h-4 w-4 text-gray-600" />;
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': 
+      case 'basic': return 'bg-green-500/20 text-green-400';
+      case 'medium': 
+      case 'intermediate': return 'bg-yellow-500/20 text-yellow-400';
+      case 'hard': return 'bg-red-500/20 text-red-400';
+      default: return 'bg-gray-500/20 text-gray-400';
+    }
   };
-
-  const goodQuizzes = quizPerformance.filter(quiz => quiz.best_score >= 80);
-  const strugglingQuizzes = quizPerformance.filter(quiz => quiz.best_score < 60);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-2">Loading quiz analytics...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/20"></div>
+        <span className="ml-2 text-white">Loading progress data...</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Quiz Performance Analytics</h2>
-          <p className="text-muted-foreground">Detailed analysis of quiz performance, mistakes, and improvement areas</p>
-        </div>
-        <Button onClick={refreshAnalytics} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Test Progress */}
+        <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <FileText className="h-5 w-5 text-blue-400" />
+              Recent Tests & Quizzes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {tests.length > 0 ? (
+                tests.slice(0, 5).map((test) => (
+                  <div key={test.id} className="p-4 bg-white/10 rounded-lg border border-white/10">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-white">{test.title}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={getDifficultyColor(test.difficulty)}>
+                            {test.difficulty}
+                          </Badge>
+                          <span className="text-xs text-white/60">
+                            {new Date(test.completedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-xl font-bold ${getScoreColor(test.score)}`}>
+                          {test.score}%
+                        </div>
+                        <div className="text-xs text-white/60">{test.type}</div>
+                      </div>
+                    </div>
+                    <Progress value={test.score} className="h-2 mt-3" />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-white/40 mx-auto mb-4" />
+                  <p className="text-white/60">No tests completed yet</p>
+                  <p className="text-sm text-white/40 mt-1">
+                    Take some quizzes or tests to see your progress
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Study Plan Progress */}
+        <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Calendar className="h-5 w-5 text-purple-400" />
+              Study Plan Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {studyPlans.length > 0 ? (
+                studyPlans.map((plan) => (
+                  <div key={plan.id} className="p-4 bg-white/10 rounded-lg border border-white/10">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium text-white">{plan.title}</h4>
+                      <Badge variant="outline" className="text-purple-400 border-purple-400">
+                        {plan.status}
+                      </Badge>
+                    </div>
+                    <p className="text-white/60 text-sm mb-3">{plan.description}</p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/70">Progress</span>
+                        <span className="text-white font-medium">
+                          {Math.round((plan.estimated_duration / 100) * 60)}%
+                        </span>
+                      </div>
+                      <Progress value={Math.round((plan.estimated_duration / 100) * 60)} className="h-2" />
+                      
+                      <div className="flex justify-between text-xs text-white/60">
+                        <span>Grade Level: {plan.grade_level || 'General'}</span>
+                        <span>{plan.estimated_duration} mins estimated</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-white/40 mx-auto mb-4" />
+                  <p className="text-white/60">No active study plans</p>
+                  <p className="text-sm text-white/40 mt-1">
+                    Create a study plan from the Quiz Generator
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="question-level">Question Analysis</TabsTrigger>
-          <TabsTrigger value="subject-improvement">Subject Progress</TabsTrigger>
-          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* Quiz Performance Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quizPerformance.map((quiz) => (
-              <Card key={quiz.quiz_id} className="cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => setSelectedQuiz(selectedQuiz === quiz.quiz_id ? null : quiz.quiz_id)}>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{quiz.quiz_title}</CardTitle>
-                    <Badge className={getScoreBadgeColor(quiz.best_score)}>
-                      Best: {Math.round(quiz.best_score)}%
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Average Score</span>
-                      <span className="font-medium">{Math.round(quiz.average_score)}%</span>
-                    </div>
-                    <Progress value={quiz.average_score} className="h-2" />
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <RotateCcw className="h-3 w-3" />
-                        <span>{quiz.total_attempts} attempts</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{Math.round(quiz.completion_time_trend.reduce((a, b) => a + b, 0) / quiz.completion_time_trend.length || 0)}min avg</span>
-                      </div>
-                    </div>
-
-                    {quiz.recommended_retake && (
-                      <div className="flex items-center gap-2 p-2 bg-orange-50 rounded-lg">
-                        <AlertTriangle className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm text-orange-700">Retake recommended</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Detailed Quiz Analysis */}
-          {selectedQuiz && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Detailed Analysis: {quizPerformance.find(q => q.quiz_id === selectedQuiz)?.quiz_title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(() => {
-                  const quiz = quizPerformance.find(q => q.quiz_id === selectedQuiz);
-                  if (!quiz) return null;
-
-                  return (
-                    <div>
-                      {/* Mistake Categories */}
-                      <div>
-                        <h4 className="font-medium mb-3">Common Mistake Types</h4>
-                        <div className="space-y-2">
-                          {Object.entries(quiz.mistake_categories).map(([category, count]) => (
-                            <div key={category} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                              <span className="text-sm">{category}</span>
-                              <Badge variant="outline">{count}</Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="question-level" className="space-y-6">
-          {selectedQuiz ? (
-            (() => {
-              const quiz = quizPerformance.find(q => q.quiz_id === selectedQuiz);
-              if (!quiz) return <div>Select a quiz to view question analysis</div>;
-
-              return (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Question-Level Analysis: {quiz.quiz_title}</h3>
-                  
-                  {quiz.question_analytics.map((question) => (
-                    <Card key={question.question_id}>
-                      <CardContent className="p-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                          {/* Question Info */}
-                          <div className="lg:col-span-2">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-medium text-sm line-clamp-2">{question.question_text}</h4>
-                              <Badge className={getScoreBadgeColor(question.accuracy_rate)}>
-                                {Math.round(question.accuracy_rate)}%
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span>Type: {question.question_type}</span>
-                              <span>Topic: {question.topic}</span>
-                              <span>Attempts: {question.attempts}</span>
-                            </div>
-
-                            {question.mistake_patterns.length > 0 && (
-                              <div className="mt-2">
-                                <h5 className="text-xs font-medium text-red-600 mb-1">Common Mistakes:</h5>
-                                <div className="space-y-1">
-                                  {question.mistake_patterns.slice(0, 2).map((pattern, i) => (
-                                    <div key={i} className="text-xs text-red-700 bg-red-50 p-1 rounded">
-                                      {pattern}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Performance Stats */}
-                          <div className="space-y-3">
-                            <div>
-                              <div className="flex justify-between text-sm mb-1">
-                                <span>Accuracy</span>
-                                <span>{Math.round(question.accuracy_rate)}%</span>
-                              </div>
-                              <Progress value={question.accuracy_rate} className="h-2" />
-                            </div>
-                            
-                            <div className="text-sm">
-                              <div className="flex items-center gap-1 mb-1">
-                                <Clock className="h-3 w-3" />
-                                <span>Avg Response: {Math.round(question.average_response_time / 1000)}s</span>
-                              </div>
-                              
-                              <div className="flex items-center gap-1">
-                                <Target className="h-3 w-3" />
-                                <span>Difficulty: {question.difficulty_level}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+      {/* Performance Overview */}
+      {tests.length > 0 && (
+        <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <TrendingUp className="h-5 w-5 text-green-400" />
+              Performance Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">
+                  {Math.round(tests.reduce((sum, test) => sum + test.score, 0) / tests.length)}%
                 </div>
-              );
-            })()
-          ) : (
-            <div className="text-center py-12">
-              <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Select a Quiz</h3>
-              <p className="text-muted-foreground">Choose a quiz from the Overview tab to see detailed question analysis</p>
+                <div className="text-white/60">Average Score</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">
+                  {tests.length}
+                </div>
+                <div className="text-white/60">Tests Completed</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">
+                  {tests.filter(test => test.score >= 80).length}
+                </div>
+                <div className="text-white/60">High Scores (80%+)</div>
+              </div>
             </div>
-          )}
-        </TabsContent>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="subject-improvement" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {subjectImprovements.map((subject) => (
-              <Card key={subject.subject}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <BookOpen className="h-5 w-5" />
-                      {subject.subject}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {getImprovementIcon(subject.overall_improvement)}
-                      <span className="text-sm font-normal">
-                        {subject.overall_improvement > 0 ? '+' : ''}{Math.round(subject.overall_improvement)}%
-                      </span>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Score Progression Chart */}
-                    <div>
-                      <h4 className="font-medium mb-2">Score Progression</h4>
-                      <ResponsiveContainer width="100%" height={150}>
-                        <LineChart data={subject.score_progression.slice(-10)}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="quiz_title" tick={false} />
-                          <YAxis />
-                          <Tooltip formatter={(value, name) => [`${value}%`, 'Score']} />
-                          <Line type="monotone" dataKey="score" stroke="#10b981" strokeWidth={2} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Topics Status */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h5 className="text-sm font-medium text-green-600 mb-2 flex items-center gap-1">
-                          <CheckCircle className="h-3 w-3" />
-                          Mastered ({subject.topics_mastered.length})
-                        </h5>
-                        <div className="space-y-1">
-                          {subject.topics_mastered.slice(0, 3).map((topic, i) => (
-                            <Badge key={i} variant="outline" className="bg-green-50 text-green-700 text-xs">
-                              {topic}
-                            </Badge>
-                          ))}
-                        </div>
+      {/* All Tests List */}
+      {tests.length > 0 && (
+        <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Target className="h-5 w-5 text-blue-400" />
+              All Test Results ({tests.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+              {tests.map((test) => (
+                <div key={test.id} className="p-3 bg-white/10 rounded-lg border border-white/10">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-white text-sm">{test.title}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={`${getDifficultyColor(test.difficulty)} text-xs`}>
+                          {test.difficulty}
+                        </Badge>
+                        <span className="text-xs text-white/60">{test.type}</span>
                       </div>
-
-                      <div>
-                        <h5 className="text-sm font-medium text-orange-600 mb-2 flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Need Practice ({subject.topics_struggling.length})
-                        </h5>
-                        <div className="space-y-1">
-                          {subject.topics_struggling.slice(0, 3).map((topic, i) => (
-                            <Badge key={i} variant="outline" className="bg-orange-50 text-orange-700 text-xs">
-                              {topic}
-                            </Badge>
-                          ))}
-                        </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-lg font-bold ${getScoreColor(test.score)}`}>
+                        {test.score}%
+                      </div>
+                      <div className="text-xs text-white/60">
+                        {new Date(test.completedAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="recommendations" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Study Plan Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Calendar className="h-5 w-5 text-purple-400" />
-                  Study Plan Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {loadingStudyPlans ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                      <p className="text-muted-foreground mt-2">Loading study plans...</p>
-                    </div>
-                  ) : studyPlans.length > 0 ? (
-                    studyPlans.map((plan) => (
-                    <div key={plan.id} className="p-4 bg-white/10 rounded-lg border border-white/10">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-sm">{plan.title}</h4>
-                        <div className="flex gap-1">
-                          <Badge variant="outline" className="text-xs">
-                            {plan.subject}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            {plan.type}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                        <span>{plan.completedLessons}/{plan.totalLessons} lessons</span>
-                        <span>{plan.progress}%</span>
-                      </div>
-                      <Progress value={plan.progress} className="h-2" />
-                    </div>
-                  ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No active study plans found</p>
-                    </div>
-                  )}
+                  <Progress value={test.score} className="h-1" />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Excellent Performance Quizzes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  Excellent Quizzes (80%+)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {goodQuizzes.length > 0 ? goodQuizzes.map((quiz) => (
-                    <div key={quiz.quiz_id} className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="font-medium text-sm">{quiz.quiz_title}</h4>
-                          <p className="text-green-300 text-xs">Best: {Math.round(quiz.best_score)}%</p>
-                        </div>
-                        <Badge className="bg-green-600 text-white text-xs">
-                          {Math.round(quiz.average_score)}% avg
-                        </Badge>
-                      </div>
-                    </div>
-                  )) : (
-                    <p className="text-muted-foreground text-center py-8 text-sm">No quizzes with 80%+ scores yet</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* All Quizzes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <FileText className="h-5 w-5 text-blue-400" />
-                  All Quizzes ({quizPerformance.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {quizPerformance.map(quiz => (
-                    <div key={quiz.quiz_id} className="p-4 bg-white/10 rounded-lg border border-white/10">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-sm">{quiz.quiz_title}</h4>
-                        <div className="flex gap-2">
-                          <Badge className={`${getScoreBadgeColor(quiz.best_score)} text-xs`}>
-                            Best: {Math.round(quiz.best_score)}%
-                          </Badge>
-                          {quiz.recommended_retake && (
-                            <Badge variant="destructive" className="text-xs">Retake</Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-2">
-                        <span>Avg: {Math.round(quiz.average_score)}%</span>
-                        <span>{quiz.total_attempts} attempts</span>
-                      </div>
-                      <div className="mt-2">
-                        <Progress value={quiz.average_score} className="h-2" />
-                      </div>
-                      <div className="flex gap-2 mt-2">
-                        <Button size="sm" variant="outline" className="flex-1 text-xs">
-                          View Details
-                        </Button>
-                        {quiz.recommended_retake && (
-                          <Button 
-                            size="sm" 
-                            onClick={() => retakeQuizWithMistakeFocus(quiz.quiz_id)}
-                            className="flex-1 text-xs"
-                          >
-                            Retake
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {quizPerformance.length === 0 && (
-                    <div className="text-center py-8">
-                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No quizzes completed yet.</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
