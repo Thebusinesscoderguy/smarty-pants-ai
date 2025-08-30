@@ -52,22 +52,37 @@ export const StudentQuestDisplay = () => {
     try {
       setIsLoading(true);
       
+      console.log('DEBUG: Fetching quests for user:', user.id);
+      
       // Get user's school relationship
-      const { data: schoolRelation } = await supabase
+      const { data: schoolRelation, error: schoolError } = await supabase
         .from('school_student_relationships')
         .select('school_id')
         .eq('student_id', user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
+
+      console.log('DEBUG: School relationship query result:', { schoolRelation, schoolError });
 
       // Get user's parent relationship
-      const { data: parentRelation } = await supabase
+      const { data: parentRelation, error: parentError } = await supabase
         .from('parent_child_relationships')
         .select('parent_id')
         .eq('child_id', user.id)
-        .single();
+        .maybeSingle();
 
-      console.log('Student relationships:', { schoolRelation, parentRelation });
+      console.log('DEBUG: Parent relationship query result:', { parentRelation, parentError });
+
+      // First, let's fetch ALL active quests to see what exists
+      const { data: allQuests, error: allQuestsError } = await supabase
+        .from('quests')
+        .select(`
+          *,
+          subjects (name)
+        `)
+        .eq('is_active', true);
+      
+      console.log('DEBUG: All active quests in database:', allQuests);
 
       let questsQuery = supabase
         .from('quests')
@@ -83,19 +98,28 @@ export const StudentQuestDisplay = () => {
         .eq('is_active', true);
 
       // Build conditions for accessible quests
-      const conditions = ['created_by.eq.system'];
+      const conditions = [];
       
-      if (schoolRelation) {
+      // System quests (always accessible)
+      conditions.push('created_by.eq.system');
+      
+      // School quests (if user is in a school)
+      if (schoolRelation?.school_id) {
         conditions.push('created_by.eq.school');
+        console.log('DEBUG: Adding school condition for school_id:', schoolRelation.school_id);
       }
       
-      if (parentRelation) {
+      // Parent quests (if user has a parent relationship)
+      if (parentRelation?.parent_id) {
         conditions.push(`and(created_by.eq.parent,created_by_id.eq.${parentRelation.parent_id})`);
+        console.log('DEBUG: Adding parent condition for parent_id:', parentRelation.parent_id);
       }
+
+      console.log('DEBUG: Query conditions:', conditions);
 
       if (conditions.length > 1) {
         questsQuery = questsQuery.or(conditions.join(','));
-      } else {
+      } else if (conditions.length === 1) {
         questsQuery = questsQuery.eq('created_by', 'system');
       }
 
@@ -106,7 +130,7 @@ export const StudentQuestDisplay = () => {
         throw error;
       }
 
-      console.log('Fetched quests:', questsData);
+      console.log('DEBUG: Filtered quests result:', questsData);
 
       // Process quests with progress
       const questsWithProgress: Quest[] = (questsData || []).map(quest => {

@@ -14,6 +14,7 @@ import { ComprehensiveMonitoringDashboard } from '@/components/monitoring/Compre
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
 
+import { ParentChildManager } from '@/components/admin/ParentChildManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -188,13 +189,20 @@ const Monitoring = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="children" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Children
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
@@ -214,6 +222,10 @@ const Monitoring = () => {
 
           <TabsContent value="overview" className="space-y-8">
             <QuizPerformanceAnalytics studentProgress={studentProgress} />
+          </TabsContent>
+
+          <TabsContent value="children" className="space-y-6">
+            <ParentChildManager />
           </TabsContent>
 
 
