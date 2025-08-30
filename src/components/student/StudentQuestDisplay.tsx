@@ -90,7 +90,7 @@ export const StudentQuestDisplay = () => {
       }
       
       if (parentRelation) {
-        conditions.push(`created_by_id.eq.${parentRelation.parent_id}`);
+        conditions.push(`and(created_by.eq.parent,created_by_id.eq.${parentRelation.parent_id})`);
       }
 
       if (conditions.length > 1) {
