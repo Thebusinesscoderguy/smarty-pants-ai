@@ -23,6 +23,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [hasNavigated, setHasNavigated] = useState(false);
 
   useEffect(() => {
+    console.log('ProtectedRoute: Checking user setup', {
+      hasUser: !!user,
+      loading,
+      hasNavigated,
+      currentPath: location.pathname
+    });
+    
     const checkUserSetup = async () => {
       // Only proceed if we have a user and auth is not loading
       if (!user || loading || hasNavigated) {
@@ -36,7 +43,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     };
 
     checkUserSetup();
-  }, [loading, user, hasNavigated]);
+  }, [loading, user, hasNavigated, location.pathname]);
 
   // Show loading only while auth is being determined
   if (loading) {

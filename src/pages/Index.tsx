@@ -21,6 +21,7 @@ const Index = () => {
   };
 
   const handleStartLearning = () => {
+    console.log('Navigating to auth from Index page');
     navigate('/auth');
   };
 

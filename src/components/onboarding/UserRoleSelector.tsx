@@ -65,6 +65,8 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
   };
 
   const handleRoleSelection = async (role: 'parent' | 'child', childId?: string) => {
+    console.log('UserRoleSelector: Role selected', { role, childId, userId: user?.id });
+    
     if (!user) return;
     
     setLoading(true);
@@ -98,6 +100,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
         }
       } catch {}
 
+      console.log('UserRoleSelector: Calling onRoleSelected callback');
       onRoleSelected(role, childId);
     } catch (error) {
       console.error('Error setting role:', error);
