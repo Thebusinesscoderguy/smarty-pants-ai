@@ -26,24 +26,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     console.log('ProtectedRoute: Checking user setup', {
       hasUser: !!user,
       loading,
-      hasNavigated,
       currentPath: location.pathname
     });
     
-    const checkUserSetup = async () => {
-      // Only proceed if we have a user and auth is not loading
-      if (!user || loading || hasNavigated) {
-        console.log('ProtectedRoute: Skipping setup check', { hasUser: !!user, loading, hasNavigated });
-        return;
-      }
-
+    // Always show role selector for authenticated users on main routes
+    if (!loading && user && (location.pathname === '/' || location.pathname === '/dashboard')) {
       console.log('ProtectedRoute: User authenticated, showing role selector');
-      // Show role selector for authenticated users on initial access
       setShowRoleSelector(true);
-    };
-
-    checkUserSetup();
-  }, [loading, user, hasNavigated, location.pathname]);
+      setHasNavigated(false); // Reset navigation flag
+    }
+  }, [loading, user, location.pathname]);
 
   // Show loading only while auth is being determined
   if (loading) {
