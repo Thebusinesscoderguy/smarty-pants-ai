@@ -1,4 +1,3 @@
-
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -75,36 +74,34 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return (
       <UserRoleSelector 
         onRoleSelected={async (role, childId) => {
+          // Immediately navigate for child selection without any intermediate state
+          if (role === 'child') {
+            navigate('/chat', { replace: true });
+            return;
+          }
+          
           setShowRoleSelector(false);
           setHasNavigated(true);
           
           // Stay on current route if it's not dashboard/home, otherwise navigate based on role
           if (location.pathname !== '/dashboard' && location.pathname !== '/') {
-            // Stay on the current route (like /modules)
             return;
           }
           
-          // Navigate based on role selection for dashboard routes
-          if (role === 'parent') {
-            // Check if they need to add children (new parent with no children)
-            try {
-              const { data: childrenData } = await supabase
-                .from('children')
-                .select('id')
-                .eq('parent_id', user.id);
-
-              if (!childrenData || childrenData.length === 0) {
-                setShowChildrenManagement(true);
-              } else {
-                // Existing parent, go directly to monitoring
-                navigate('/monitoring', { replace: true });
-              }
-            } catch (error) {
-              console.error('Error checking children:', error);
+          // Handle parent role - check if they need to add children
+          try {
+            const { data: childrenData } = await supabase
+              .from('children')
+              .select('id')
+              .eq('parent_id', user.id);
+              
+            if (!childrenData || childrenData.length === 0) {
+              setShowChildrenManagement(true);
+            } else {
+              navigate('/monitoring', { replace: true });
             }
-          } else {
-            // Child selected, go to chat
-            navigate('/chat', { replace: true });
+          } catch (error) {
+            console.error('Error checking children:', error);
           }
         }} 
       />
