@@ -99,10 +99,6 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
       } catch {}
 
       onRoleSelected(role, childId);
-      toast({
-        title: "Role Selected",
-        description: `Welcome! You're now set up as a ${role}.`
-      });
     } catch (error) {
       console.error('Error setting role:', error);
       toast({
