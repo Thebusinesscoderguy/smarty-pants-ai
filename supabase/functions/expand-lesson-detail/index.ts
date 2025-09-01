@@ -49,7 +49,7 @@ The goal is to provide a much deeper, more thorough understanding of each topic 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -60,7 +60,8 @@ The goal is to provide a much deeper, more thorough understanding of each topic 
             content: prompt
           }
         ],
-        max_completion_tokens: 4000,
+        max_tokens: 3000,
+        temperature: 0.7,
       }),
     });
 

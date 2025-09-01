@@ -80,7 +80,7 @@ Length: Aim for 1500-2000 words of substantial, detailed educational content.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -91,7 +91,8 @@ Length: Aim for 1500-2000 words of substantial, detailed educational content.`;
             content: prompt
           }
         ],
-        max_completion_tokens: 3000,
+        max_tokens: 3000,
+        temperature: 0.7,
       }),
     });
 
