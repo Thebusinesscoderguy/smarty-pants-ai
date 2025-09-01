@@ -71,10 +71,13 @@ The goal is to provide a much deeper, more thorough understanding of each topic 
     }
 
     const data = await response.json();
+    console.log('OpenAI response data:', JSON.stringify(data, null, 2));
+    
     const expandedContent = data.choices?.[0]?.message?.content;
 
     if (!expandedContent) {
-      throw new Error('No expanded content generated from OpenAI');
+      console.error('No expanded content in response. Full response:', data);
+      throw new Error(`No expanded content generated from OpenAI. Response: ${JSON.stringify(data)}`);
     }
 
     return new Response(JSON.stringify({ expandedContent }), {

@@ -129,7 +129,7 @@ const LearningModule = () => {
               console.error('Error generating lesson content:', contentError);
               toast({
                 title: "Content generation failed",
-                description: "Using basic content. Please check your OpenAI API key.",
+                description: `Error: ${contentError.message || 'Please check your OpenAI API key.'}`,
                 variant: "destructive"
               });
               setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nDetailed lesson content could not be generated. Please ensure your OpenAI API key is configured properly.`);

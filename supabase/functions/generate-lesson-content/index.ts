@@ -102,10 +102,13 @@ Length: Aim for 1500-2000 words of substantial, detailed educational content.`;
     }
 
     const data = await response.json();
+    console.log('OpenAI response data:', JSON.stringify(data, null, 2));
+    
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      throw new Error('No content generated from OpenAI');
+      console.error('No content in response. Full response:', data);
+      throw new Error(`No content generated from OpenAI. Response: ${JSON.stringify(data)}`);
     }
 
     return new Response(JSON.stringify({ content }), {
