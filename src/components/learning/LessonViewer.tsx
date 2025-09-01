@@ -29,7 +29,12 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
   const [showingDetail, setShowingDetail] = useState(false);
   const [showingSummary, setShowingSummary] = useState(false);
   const [expandedContent, setExpandedContent] = useState<string>('');
+  const [summaryContent, setSummaryContent] = useState<string>('');
+  const [questionAnswer, setQuestionAnswer] = useState<string>('');
+  const [showingQuestion, setShowingQuestion] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   
   const handleCompleteLesson = () => {
     onComplete(lesson.id);
@@ -66,15 +71,68 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
     }
   };
 
-  const handleSummarize = () => {
-    setShowingSummary(!showingSummary);
-    setShowingDetail(false);
+  const handleSummarize = async () => {
+    if (showingSummary) {
+      setShowingSummary(false);
+      setShowingDetail(false);
+      setShowingQuestion(false);
+      return;
+    }
+
+    if (summaryContent) {
+      setShowingSummary(true);
+      setShowingDetail(false);
+      setShowingQuestion(false);
+      return;
+    }
+
+    setIsLoadingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('explain-text', {
+        body: { 
+          text: lesson.content,
+          mode: 'summary'
+        }
+      });
+
+      if (error) throw error;
+      
+      setSummaryContent(data.text);
+      setShowingSummary(true);
+      setShowingDetail(false);
+      setShowingQuestion(false);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+    } finally {
+      setIsLoadingSummary(false);
+    }
   };
 
-  const handleAskQuestion = () => {
+  const handleAskQuestion = async () => {
     const question = prompt("What would you like to know about this topic?");
-    if (question) {
-      alert(`I'd be happy to help you understand: "${question}". In a full version, this would connect to an AI tutor.`);
+    if (!question) return;
+
+    setIsLoadingQuestion(true);
+    setShowingQuestion(true);
+    setShowingDetail(false);
+    setShowingSummary(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('ask-question', {
+        body: { 
+          question,
+          lessonContent: lesson.content
+        }
+      });
+
+      if (error) throw error;
+      
+      setQuestionAnswer(data.answer);
+    } catch (error) {
+      console.error('Error getting answer:', error);
+      setQuestionAnswer('Sorry, I encountered an error while trying to answer your question. Please try again.');
+    } finally {
+      setIsLoadingQuestion(false);
     }
   };
 
@@ -142,8 +200,9 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                       ),
                     }}
                   >
-                    {showingSummary ? `## Key Points Summary\n\n**Numbers and Operations**: Understanding different types of numbers and operations.\n\n**Algebra Basics**: Working with variables, equations, and functions.\n\n**Geometry Principles**: Dealing with shapes, angles, and spatial relationships.\n\n**Practical Applications**: Mathematics in daily life including finance, construction, and technology.\n\n**Problem-Solving**: Systematic approach to understanding and solving mathematical problems.` :
+                    {showingSummary ? summaryContent || lesson.content :
                      showingDetail ? expandedContent || lesson.content :
+                     showingQuestion ? `## Your Question Answered\n\n${questionAnswer}` :
                      lesson.content}
                   </ReactMarkdown>
                 </div>
@@ -164,19 +223,21 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                 <Button
                   onClick={handleSummarize}
                   variant="outline"
+                  disabled={isLoadingSummary}
                   className={`border-white/30 ${showingSummary ? 'bg-purple-600/30 text-purple-200' : 'bg-white/10 hover:bg-white/20'} text-white`}
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  {showingSummary ? 'Full Content' : 'Summarize'}
+                  {isLoadingSummary ? 'Loading...' : showingSummary ? 'Full Content' : 'Summarize'}
                 </Button>
                 
                 <Button
                   onClick={handleAskQuestion}
                   variant="outline"
-                  className="border-white/30 bg-white/10 hover:bg-white/20 text-white"
+                  disabled={isLoadingQuestion}
+                  className={`border-white/30 ${showingQuestion ? 'bg-green-600/30 text-green-200' : 'bg-white/10 hover:bg-white/20'} text-white`}
                 >
                   <HelpCircle className="mr-2 h-4 w-4" />
-                  Ask Question
+                  {isLoadingQuestion ? 'Loading...' : 'Ask Question'}
                 </Button>
               </div>
             </CardContent>

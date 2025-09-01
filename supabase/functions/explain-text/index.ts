@@ -31,15 +31,17 @@ serve(async (req) => {
     }
 
     const prompt = mode === 'summary'
-      ? `You are an expert educator. Create a comprehensive, detailed summary that is 3-5 paragraphs long (approximately 300-500 words). This should be a thorough academic summary that covers:
+      ? `You are an expert educator. Create a comprehensive, detailed summary that is 5-7 paragraphs long (approximately 800-1200 words). This should be a thorough academic summary that covers:
 
 1. **Core Concepts**: Explain all the main ideas, definitions, and principles covered in the content
-2. **Key Methodologies**: Describe the important techniques, approaches, and problem-solving strategies
-3. **Practical Applications**: Discuss real-world applications and how the concepts connect to practical situations
-4. **Conceptual Understanding**: Explain why these concepts are important and how they fit into the broader subject area
-5. **Key Takeaways**: Highlight the most important insights and learning outcomes
+2. **Key Methodologies**: Describe the important techniques, approaches, and problem-solving strategies  
+3. **Mathematical Foundations**: Detail the underlying mathematical principles and formulas
+4. **Practical Applications**: Discuss real-world applications and how the concepts connect to practical situations
+5. **Conceptual Understanding**: Explain why these concepts are important and how they fit into the broader subject area
+6. **Learning Progression**: How this material builds on previous knowledge and prepares for advanced topics
+7. **Key Takeaways**: Highlight the most important insights and learning outcomes
 
-Write in clear, professional academic prose. Do NOT use markdown, bullet points, or special formatting. Write in flowing paragraphs with proper transitions. Be comprehensive and detailed while remaining accessible.
+Write in clear, professional academic prose. Use proper mathematical notation with LaTeX format ($$formula$$ for display math, $formula$ for inline math). Write in flowing paragraphs with proper transitions. Be comprehensive and detailed while remaining accessible. Make this a substantial academic summary that thoroughly covers the material.
 
 Content to Summarize:
 ${text}`
@@ -88,9 +90,15 @@ ${text}`;
       return words.slice(0, n).join(' ') + '…';
     };
 
-    generatedText = collapse(stripLead(stripMd(stripLists(generatedText)))).trim();
-    const maxWords = mode === 'summary' ? 500 : 250;
-    generatedText = limitWords(generatedText, maxWords);
+    // For summaries, preserve LaTeX and don't limit words as heavily
+    if (mode === 'summary') {
+      // Only clean up leading text and collapse whitespace, preserve LaTeX
+      generatedText = collapse(stripLead(generatedText)).trim();
+    } else {
+      generatedText = collapse(stripLead(stripMd(stripLists(generatedText)))).trim();
+      const maxWords = 250;
+      generatedText = limitWords(generatedText, maxWords);
+    }
 
     return new Response(JSON.stringify({ text: generatedText }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
