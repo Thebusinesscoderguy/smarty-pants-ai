@@ -25,22 +25,35 @@ serve(async (req) => {
     // Language instruction for AI
     const languageInstruction = language === 'en' ? '' : `Please provide all expanded content in ${getLanguageName(language)}. `;
 
-    const prompt = `${languageInstruction}Take this educational lesson content and significantly expand it with much more detailed explanations, examples, and depth. For each concept, definition, or section:
+    const prompt = `${languageInstruction}Take this educational lesson content and MASSIVELY expand it with extremely detailed explanations, extensive examples, and comprehensive depth. Transform this into a thorough, professional-level educational resource. For EVERY concept, definition, or section:
 
-1. Add comprehensive explanations with multiple examples
-2. Include step-by-step breakdowns where applicable
-3. Provide additional context and background information
-4. Add more worked examples with complete solutions
-5. Include visual descriptions and analogies
-6. Expand on connections between concepts
-7. Add more real-world applications and examples
+1. **Comprehensive Explanations**: Provide extensive, multi-paragraph explanations for each concept with detailed reasoning and context
+2. **Multiple Worked Examples**: Include at least 3-5 detailed worked examples for each major concept, showing every step with explanations
+3. **Step-by-Step Breakdowns**: Break down complex processes into detailed, numbered steps with explanations for why each step is necessary
+4. **Historical Context**: Add relevant historical background, development of concepts, and key contributors to the field
+5. **Visual Descriptions & Analogies**: Include detailed descriptions of diagrams, graphs, visual representations, and real-world analogies to help understanding
+6. **Connections & Applications**: Extensively explain how concepts connect to other areas of mathematics and provide numerous real-world applications
+7. **Common Misconceptions**: Address potential misunderstandings with detailed explanations of why they're wrong and how to correct them
+8. **Practice Problems**: Include additional practice problems with complete solutions and explanations
+9. **Advanced Extensions**: Add advanced applications, extensions, and connections to higher-level mathematics
+10. **Conceptual Understanding**: Explain not just HOW to do something, but WHY it works and the underlying principles
 
 Original Content:
 ${content}
 
-Expand this content to be much more detailed and comprehensive while maintaining the same structure and format. Make each section significantly longer with in-depth explanations. Use LaTeX notation for any mathematical expressions: $$formula$$ for display math, $formula$ for inline math.
+INSTRUCTIONS FOR EXPANSION:
+- Expand EVERY section to be at least 3-5 times longer than the original
+- Add extensive mathematical rigor and detailed explanations
+- Include comprehensive examples with full solutions and explanations
+- Provide detailed background context and motivation for each concept
+- Add numerous real-world applications and connections
+- Include detailed visual descriptions and analogies
+- Address common student difficulties and misconceptions
+- Use proper LaTeX notation: $$formula$$ for display math, $formula$ for inline math
+- Maintain clear structure with detailed headings and subheadings
+- Aim for university-level depth while remaining accessible
 
-The goal is to provide a much deeper, more thorough understanding of each topic covered.`;
+TARGET LENGTH: Transform this into a comprehensive 3000-4000 word educational resource that thoroughly teaches every aspect of the topic with extensive detail, examples, and explanations.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -60,7 +73,7 @@ The goal is to provide a much deeper, more thorough understanding of each topic 
             content: prompt
           }
         ],
-        max_tokens: 3000,
+        max_tokens: 4000,
         temperature: 0.7,
       }),
     });

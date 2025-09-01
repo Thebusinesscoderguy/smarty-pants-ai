@@ -31,8 +31,22 @@ serve(async (req) => {
     }
 
     const prompt = mode === 'summary'
-      ? `You are an educator. Write a clean, plain-text summary (2–3 sentences, max 70 words). Do NOT use markdown, lists, headings, or asterisks. Output ONLY the summary.\n\nExplanation:\n${text}`
-      : `You are an educator. Rewrite with a bit more detail (3–4 sentences, max 120 words). Keep it clear, focused, and plain text. NO markdown, lists, headings, or asterisks. Output ONLY the improved explanation.\n\nExplanation:\n${text}`;
+      ? `You are an expert educator. Create a comprehensive, detailed summary that is 3-5 paragraphs long (approximately 300-500 words). This should be a thorough academic summary that covers:
+
+1. **Core Concepts**: Explain all the main ideas, definitions, and principles covered in the content
+2. **Key Methodologies**: Describe the important techniques, approaches, and problem-solving strategies
+3. **Practical Applications**: Discuss real-world applications and how the concepts connect to practical situations
+4. **Conceptual Understanding**: Explain why these concepts are important and how they fit into the broader subject area
+5. **Key Takeaways**: Highlight the most important insights and learning outcomes
+
+Write in clear, professional academic prose. Do NOT use markdown, bullet points, or special formatting. Write in flowing paragraphs with proper transitions. Be comprehensive and detailed while remaining accessible.
+
+Content to Summarize:
+${text}`
+      : `You are an educator. Rewrite with significantly more detail and depth (approximately 150-250 words). Expand on key concepts, add examples where helpful, and provide more comprehensive explanations. Keep it clear, focused, and in plain text format. NO markdown, lists, headings, or asterisks. Output ONLY the improved explanation.
+
+Content to Expand:
+${text}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -46,6 +60,7 @@ serve(async (req) => {
           { role: 'system', content: 'You are a helpful educator assistant.' },
           { role: 'user', content: prompt }
         ],
+        max_tokens: 4000,
         temperature: 0.2,
       }),
     });
@@ -74,7 +89,7 @@ serve(async (req) => {
     };
 
     generatedText = collapse(stripLead(stripMd(stripLists(generatedText)))).trim();
-    const maxWords = mode === 'summary' ? 70 : 120;
+    const maxWords = mode === 'summary' ? 500 : 250;
     generatedText = limitWords(generatedText, maxWords);
 
     return new Response(JSON.stringify({ text: generatedText }), {
