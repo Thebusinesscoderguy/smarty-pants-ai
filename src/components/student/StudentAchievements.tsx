@@ -98,6 +98,11 @@ export const StudentAchievements = () => {
       // Include achievements created by the user's parent
       if (parentRelation?.parent_id) {
         conditions.push(`creator_id.eq.${parentRelation.parent_id}`);
+      } else {
+        // Fallback: include all parent-created achievements if no relationship exists
+        // This should be temporary until proper relationships are established
+        console.log('DEBUG: No parent relationship found, including all parent-created achievements as fallback');
+        conditions.push('creator_id.is.not.null');
       }
       
       // Include global achievements (no school_id and no creator_id)
