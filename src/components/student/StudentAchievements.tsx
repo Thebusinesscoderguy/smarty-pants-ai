@@ -91,13 +91,13 @@ export const StudentAchievements = () => {
       const conditions = [];
       
       // Include achievements created by the user's school
-      if (schoolRelation) {
+      if (schoolRelation?.school_id) {
         conditions.push(`school_id.eq.${schoolRelation.school_id}`);
       }
       
-      // Include achievements created by the user's parent (ensure no school_id set for parent-created)
-      if (parentRelation) {
-        conditions.push(`and(creator_id.eq.${parentRelation.parent_id},school_id.is.null)`);
+      // Include achievements created by the user's parent
+      if (parentRelation?.parent_id) {
+        conditions.push(`creator_id.eq.${parentRelation.parent_id}`);
       }
       
       // Include global achievements (no school_id and no creator_id)

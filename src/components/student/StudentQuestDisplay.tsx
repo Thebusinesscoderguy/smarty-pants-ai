@@ -95,7 +95,8 @@ export const StudentQuestDisplay = () => {
             created_at
           )
         `)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .eq('user_quest_progress.user_id', user.id);
 
       // Build conditions for accessible quests
       const conditions = [];
@@ -111,16 +112,14 @@ export const StudentQuestDisplay = () => {
       
       // Parent quests (if user has a parent relationship)
       if (parentRelation?.parent_id) {
-        conditions.push(`and(created_by.eq.parent,created_by_id.eq.${parentRelation.parent_id})`);
+        conditions.push(`created_by_id.eq.${parentRelation.parent_id}`);
         console.log('DEBUG: Adding parent condition for parent_id:', parentRelation.parent_id);
       }
 
       console.log('DEBUG: Query conditions:', conditions);
 
-      if (conditions.length > 1) {
+      if (conditions.length > 0) {
         questsQuery = questsQuery.or(conditions.join(','));
-      } else if (conditions.length === 1) {
-        questsQuery = questsQuery.eq('created_by', 'system');
       }
 
       const { data: questsData, error } = await questsQuery;
