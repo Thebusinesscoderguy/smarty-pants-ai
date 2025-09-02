@@ -53,91 +53,66 @@ export const StudentAchievements = () => {
       setIsLoading(true);
       
       console.log('DEBUG: Fetching achievements for user:', user.id);
-      
-      // Get user's school relationship
-      const { data: schoolRelation, error: schoolError } = await supabase
-        .from('school_student_relationships')
-        .select('school_id')
-        .eq('student_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
 
-      console.log('DEBUG: School relationship for achievements:', { schoolRelation, schoolError });
-
-      // Get user's parent relationship
-      const { data: parentRelation, error: parentError } = await supabase
-        .from('parent_child_relationships')
-        .select('parent_id')
-        .eq('child_id', user.id)
-        .maybeSingle();
-
-      console.log('DEBUG: Parent relationship for achievements:', { parentRelation, parentError });
-      
-      // First, let's fetch ALL achievements to see what exists
-      const { data: allAchievements, error: allAchievementsError } = await supabase
+      // Simplified approach: Just fetch ALL achievements and filter in memory
+      const { data: allAchievements, error: achievementsError } = await supabase
         .from('achievements')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      console.log('DEBUG: All achievements in database:', allAchievements);
-
-      // Fetch all achievements that are accessible to this user
-      let achievementsQuery = supabase
-        .from('achievements')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Build conditions for accessible achievements
-      const conditions = [];
-      
-      // Include achievements created by the user's school
-      if (schoolRelation?.school_id) {
-        conditions.push(`school_id.eq.${schoolRelation.school_id}`);
-        console.log('DEBUG: Added school condition:', `school_id.eq.${schoolRelation.school_id}`);
-      }
-      
-      // Include achievements created by the user's parent
-      if (parentRelation?.parent_id) {
-        conditions.push(`creator_id.eq.${parentRelation.parent_id}`);
-        console.log('DEBUG: Added parent condition:', `creator_id.eq.${parentRelation.parent_id}`);
-      }
-      
-      // Include global achievements (no school_id and no creator_id)
-      conditions.push('and(school_id.is.null,creator_id.is.null)');
-      
-      console.log('DEBUG: Final conditions array:', conditions);
-
-      if (conditions.length > 0) {
-        const orCondition = conditions.join(',');
-        console.log('DEBUG: Using OR condition:', orCondition);
-        achievementsQuery = achievementsQuery.or(orCondition);
-      }
-
-      const { data: filteredAchievements, error: achievementsError } = await achievementsQuery;
 
       if (achievementsError) {
         console.error('Error fetching achievements:', achievementsError);
         throw achievementsError;
       }
 
-      console.log('DEBUG: Filtered achievements result:', filteredAchievements);
+      console.log('DEBUG: All achievements from database:', allAchievements);
+
+      // Get user's parent relationship
+      const { data: parentRelation } = await supabase
+        .from('parent_child_relationships')
+        .select('parent_id')
+        .eq('child_id', user.id)
+        .maybeSingle();
+
+      console.log('DEBUG: Parent relationship:', parentRelation);
+
+      // Get user's school relationship
+      const { data: schoolRelation } = await supabase
+        .from('school_student_relationships')
+        .select('school_id')
+        .eq('student_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      console.log('DEBUG: School relationship:', schoolRelation);
+
+      // Filter achievements that user can see
+      const accessibleAchievements = allAchievements?.filter(achievement => {
+        // Global achievements (no creator and no school)
+        if (!achievement.creator_id && !achievement.school_id) {
+          return true;
+        }
+        
+        // Achievements created by user's parent
+        if (achievement.creator_id === parentRelation?.parent_id) {
+          return true;
+        }
+        
+        // Achievements from user's school
+        if (achievement.school_id === schoolRelation?.school_id) {
+          return true;
+        }
+        
+        return false;
+      }) || [];
+
+      console.log('DEBUG: Accessible achievements after filtering:', accessibleAchievements);
 
       // Fetch user's earned achievements
-      let userAchievementsQuery = supabase
+      const { data: userAchievements } = await supabase
         .from('user_achievements')
         .select('achievement_id, earned_at')
         .eq('user_id', user.id);
-
-      if (schoolRelation?.school_id) {
-        userAchievementsQuery = userAchievementsQuery.eq('school_id', schoolRelation.school_id);
-      }
-
-      const { data: userAchievements, error: userError } = await userAchievementsQuery;
-      
-      if (userError) {
-        console.error('Error fetching user achievements:', userError);
-        throw userError;
-      }
 
       console.log('DEBUG: User earned achievements:', userAchievements);
 
@@ -147,7 +122,7 @@ export const StudentAchievements = () => {
         userAchievements?.map(ua => [ua.achievement_id, ua.earned_at]) || []
       );
 
-      const achievementsWithStatus: Achievement[] = (filteredAchievements || []).map(achievement => ({
+      const achievementsWithStatus: Achievement[] = accessibleAchievements.map(achievement => ({
         id: achievement.id,
         name: achievement.name,
         description: achievement.description || '',
@@ -157,11 +132,13 @@ export const StudentAchievements = () => {
         earned_at: earnedAchievementsMap.get(achievement.id) || null
       }));
 
+      console.log('DEBUG: Final achievements with status:', achievementsWithStatus);
       setAchievements(achievementsWithStatus);
+      
     } catch (error: any) {
       console.error('Error fetching achievements:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to load achievements",
         variant: "destructive"
       });
