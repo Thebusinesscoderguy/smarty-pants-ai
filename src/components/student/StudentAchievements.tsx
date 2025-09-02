@@ -93,18 +93,24 @@ export const StudentAchievements = () => {
       // Include achievements created by the user's school
       if (schoolRelation?.school_id) {
         conditions.push(`school_id.eq.${schoolRelation.school_id}`);
+        console.log('DEBUG: Added school condition:', `school_id.eq.${schoolRelation.school_id}`);
       }
       
       // Include achievements created by the user's parent
       if (parentRelation?.parent_id) {
         conditions.push(`creator_id.eq.${parentRelation.parent_id}`);
+        console.log('DEBUG: Added parent condition:', `creator_id.eq.${parentRelation.parent_id}`);
       }
       
       // Include global achievements (no school_id and no creator_id)
       conditions.push('and(school_id.is.null,creator_id.is.null)');
+      
+      console.log('DEBUG: Final conditions array:', conditions);
 
       if (conditions.length > 0) {
-        achievementsQuery = achievementsQuery.or(conditions.join(','));
+        const orCondition = conditions.join(',');
+        console.log('DEBUG: Using OR condition:', orCondition);
+        achievementsQuery = achievementsQuery.or(orCondition);
       }
 
       const { data: filteredAchievements, error: achievementsError } = await achievementsQuery;
