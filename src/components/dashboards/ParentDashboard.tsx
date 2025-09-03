@@ -36,87 +36,30 @@ export const ParentDashboard = () => {
     if (!user) return;
     
     try {
-      // Fetch children relationships
-      const { data: relationships, error: relError } = await supabase
-        .from('parent_child_relationships')
-        .select('child_id')
+      // Fetch children from the simple children table
+      const { data: children, error: childrenError } = await supabase
+        .from('children')
+        .select('*')
         .eq('parent_id', user.id);
 
-      if (relError) throw relError;
+      if (childrenError) throw childrenError;
 
       const studentData: StudentProgress[] = [];
 
-      for (const rel of relationships || []) {
-        const childId = rel.child_id;
-        
-        // Get profile separately (using available columns)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', childId)
-          .single();
-        
-        // Get student analytics
-        const { data: analytics } = await supabase
-          .from('learning_analytics')
-          .select('*')
-          .eq('user_id', childId);
-
-        // Get quiz attempts
-        const { data: quizAttempts } = await supabase
-          .from('quiz_attempts')
-          .select('*')
-          .eq('user_id', childId);
-
-        // Get achievements
-        const { data: achievements } = await supabase
-          .from('user_achievements')
-          .select('*')
-          .eq('user_id', childId);
-
-        // Get recent activity
-        const { data: recentActivity } = await supabase
-          .from('student_interactions')
-          .select('created_at')
-          .eq('student_id', childId)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        // Calculate metrics
-        const totalQuizzes = quizAttempts?.length || 0;
-        const averageScore = totalQuizzes > 0 
-          ? Math.round((quizAttempts?.reduce((sum, quiz) => sum + (quiz.score / quiz.total_possible * 100), 0) || 0) / totalQuizzes)
-          : 0;
-
-        // Analyze strengths and weaknesses
-        const subjectPerformance = analytics?.reduce((acc, item) => {
-          const subject = item.topic_name;
-          if (!acc[subject]) acc[subject] = [];
-          acc[subject].push(item.strength_score || 0);
-          return acc;
-        }, {} as Record<string, number[]>) || {};
-
-        const strongAreas: string[] = [];
-        const weakAreas: string[] = [];
-        
-        Object.entries(subjectPerformance).forEach(([subject, scores]) => {
-          const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-          if (avgScore > 0.7) strongAreas.push(subject);
-          if (avgScore < 0.5) weakAreas.push(subject);
-        });
-
+      for (const child of children || []) {
+        // Each child is just a record with name and grade, no complex user relationships
         studentData.push({
-          id: childId,
-          name: profile ? `Student ${childId.slice(0, 8)}` : 'Student',
-          email: '', // We don't store child emails
-          totalStudyTime: analytics?.reduce((sum, item) => sum + (item.total_attempts * 2), 0) || 0, // Estimated minutes
-          averageScore,
-          completedQuizzes: totalQuizzes,
-          achievements: achievements?.length || 0,
-          currentSubjects: Object.keys(subjectPerformance),
-          weakAreas,
-          strongAreas,
-          lastActivity: recentActivity?.[0]?.created_at || 'No recent activity'
+          id: child.id,
+          name: `${child.first_name} ${child.last_name}`,
+          email: '',
+          totalStudyTime: 0, // Children records don't track activity yet
+          averageScore: 0,
+          completedQuizzes: 0,
+          achievements: 0,
+          currentSubjects: child.subjects || [],
+          weakAreas: [],
+          strongAreas: [],
+          lastActivity: child.grade_level || 'No grade set'
         });
       }
 
@@ -157,7 +100,7 @@ export const ParentDashboard = () => {
                 No Students Connected
               </CardTitle>
               <CardDescription className="text-white/70">
-                You don't have any students linked to your account yet. Contact support to connect your children's accounts.
+                You haven't added any children yet. Go to Settings to add your children by name and grade.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -168,7 +111,7 @@ export const ParentDashboard = () => {
                 <CardHeader>
                   <CardTitle className="text-white">{student.name}</CardTitle>
                   <CardDescription className="text-white/70">
-                    Last activity: {new Date(student.lastActivity).toLocaleDateString() || 'No recent activity'}
+                    Grade: {student.lastActivity}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
