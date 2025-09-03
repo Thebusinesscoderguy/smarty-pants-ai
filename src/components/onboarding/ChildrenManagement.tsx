@@ -26,23 +26,14 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   const [newChild, setNewChild] = useState({ 
     firstName: '', 
     lastName: '', 
-    gradeLevel: '', 
-    subjects: [] as string[] 
+    gradeLevel: ''
   });
   const [loading, setLoading] = useState(false);
-  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
 
   const gradeOptions = [
     'Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade',
     '5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade',
     '11th Grade', '12th Grade'
-  ];
-
-  const subjectCategories = [
-    'Mathematics', 'Science', 'English Language Arts', 'Social Studies', 'History',
-    'Geography', 'Physics', 'Chemistry', 'Biology', 'Literature', 'Writing',
-    'Reading', 'Art', 'Music', 'Physical Education', 'Computer Science',
-    'Foreign Languages', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'
   ];
 
   useEffect(() => {
@@ -94,14 +85,14 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
           first_name: newChild.firstName,
           last_name: newChild.lastName,
           grade_level: newChild.gradeLevel,
-          subjects: newChild.subjects
+          subjects: []
         })
         .select()
         .single();
 
       if (childError) throw childError;
 
-      setNewChild({ firstName: '', lastName: '', gradeLevel: '', subjects: [] });
+      setNewChild({ firstName: '', lastName: '', gradeLevel: '' });
       fetchChildren();
       toast({
         title: "Child Added",
@@ -117,15 +108,6 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleSubject = (subject: string) => {
-    setNewChild(prev => ({
-      ...prev,
-      subjects: prev.subjects.includes(subject)
-        ? prev.subjects.filter(s => s !== subject)
-        : [...prev.subjects, subject]
-    }));
   };
 
   return (
@@ -184,23 +166,6 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                   ))}
                 </select>
               </div>
-                <div>
-                  <Label className="text-white">Subjects</Label>
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto mt-2">
-                    {subjectCategories.map(subject => (
-                      <div key={subject} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={subject}
-                          checked={newChild.subjects.includes(subject)}
-                          onChange={() => toggleSubject(subject)}
-                          className="w-4 h-4 text-blue-600 bg-white/10 border-white/30 rounded focus:ring-blue-500 focus:ring-2"
-                        />
-                        <label htmlFor={subject} className="text-white/80 text-sm cursor-pointer">{subject}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               <Button 
                 onClick={addChild}
                 disabled={loading}
@@ -244,11 +209,6 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                           <p className="text-white/60 text-sm">
                             {child.grade_level && `Grade: ${child.grade_level}`}
                           </p>
-                          {child.subjects.length > 0 && (
-                            <p className="text-white/60 text-xs">
-                              Subjects: {child.subjects.join(', ')}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
