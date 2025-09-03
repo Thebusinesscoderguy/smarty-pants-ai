@@ -14,7 +14,7 @@ import { ComprehensiveMonitoringDashboard } from '@/components/monitoring/Compre
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
 
-import { ParentChildManager } from '@/components/admin/ParentChildManager';
+import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -225,7 +225,7 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="children" className="space-y-6">
-            <ParentChildManager />
+            <ChildrenManagement onComplete={() => {}} />
           </TabsContent>
 
 
