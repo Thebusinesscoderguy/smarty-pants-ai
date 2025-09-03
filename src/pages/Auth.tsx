@@ -48,7 +48,7 @@ const Auth = () => {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -56,14 +56,18 @@ const Auth = () => {
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           setError(t('auth.error.invalid'));
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.');
         } else {
           setError(error.message);
         }
         return;
       }
 
-      // Don't auto-navigate, let role selector handle it
-      setShowRoleSelector(true);
+      // If successful login, show role selector
+      if (data?.session) {
+        setShowRoleSelector(true);
+      }
     } catch (error: any) {
       setError(t('auth.error.unexpected'));
     } finally {
@@ -89,7 +93,7 @@ const Auth = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -100,14 +104,25 @@ const Auth = () => {
       if (error) {
         if (error.message.includes('already registered')) {
           setError(t('auth.error.alreadyRegistered'));
+        } else if (error.message.includes('rate limit')) {
+          setError('Too many signup attempts. Please wait a minute before trying again.');
         } else {
           setError(error.message);
         }
         return;
       }
 
-      // Don't auto-navigate, let role selector handle it
-      setShowRoleSelector(true);
+      // Check if user needs email confirmation
+      if (data?.user && !data?.session) {
+        toast.success('Please check your email and click the confirmation link to complete registration.');
+        setActiveTab('signin');
+        return;
+      }
+
+      // If we have a session, show role selector
+      if (data?.session) {
+        setShowRoleSelector(true);
+      }
     } catch (error: any) {
       setError('An unexpected error occurred. Please try again.');
     } finally {
