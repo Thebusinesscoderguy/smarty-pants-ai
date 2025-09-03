@@ -184,23 +184,23 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                   ))}
                 </select>
               </div>
-              <div>
-                <Label className="text-white">Subjects</Label>
-                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto mt-2">
-                  {subjectCategories.map(subject => (
-                    <div key={subject} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={subject}
-                        checked={newChild.subjects.includes(subject)}
-                        onChange={() => toggleSubject(subject)}
-                        className="rounded"
-                      />
-                      <label htmlFor={subject} className="text-white/80 text-sm">{subject}</label>
-                    </div>
-                  ))}
+                <div>
+                  <Label className="text-white">Subjects</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto mt-2">
+                    {subjectCategories.map(subject => (
+                      <div key={subject} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={subject}
+                          checked={newChild.subjects.includes(subject)}
+                          onChange={() => toggleSubject(subject)}
+                          className="w-4 h-4 text-blue-600 bg-white/10 border-white/30 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <label htmlFor={subject} className="text-white/80 text-sm cursor-pointer">{subject}</label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
               <Button 
                 onClick={addChild}
                 disabled={loading}
