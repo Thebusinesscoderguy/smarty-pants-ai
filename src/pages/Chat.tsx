@@ -166,19 +166,6 @@ const Chat = () => {
 
   const renderNavigation = () => (
     <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
-      {/* Always show Chat for students */}
-      {effectiveRole === 'student' && (
-        <Button
-          variant={currentPage === 'chat' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setCurrentPage('chat')}
-          className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-        >
-          <MessageSquare className="h-4 w-4 mr-2" />
-          {t('chat.nav.chat')}
-        </Button>
-      )}
-      
       {/* Study Tools for students */}
       {effectiveRole === 'student' && (
         <Button
@@ -189,6 +176,19 @@ const Chat = () => {
         >
           <BarChart3 className="h-4 w-4 mr-2" />
           Study Tools
+        </Button>
+      )}
+
+      {/* Chat for students */}
+      {effectiveRole === 'student' && (
+        <Button
+          variant={currentPage === 'chat' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setCurrentPage('chat')}
+          className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+        >
+          <MessageSquare className="h-4 w-4 mr-2" />
+          {t('chat.nav.chat')}
         </Button>
       )}
 
