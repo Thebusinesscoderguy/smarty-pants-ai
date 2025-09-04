@@ -20,7 +20,6 @@ const Auth = () => {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -80,12 +79,6 @@ const Auth = () => {
     setLoading(true);
     setError('');
 
-    if (password !== confirmPassword) {
-      setError(t('auth.error.passwordMismatch'));
-      setLoading(false);
-      return;
-    }
-
     if (password.length < 6) {
       setError(t('auth.error.passwordLength'));
       setLoading(false);
@@ -114,7 +107,12 @@ const Auth = () => {
 
       // Check if user needs email confirmation
       if (data?.user && !data?.session) {
-        toast.success('Please check your email and click the confirmation link to complete registration.');
+        toast.success('Registration successful! Please check your email and click the confirmation link to complete your account setup.');
+        setError('');
+        // Clear the form
+        setEmail('');
+        setPassword('');
+        // Show a prominent success message
         setActiveTab('signin');
         return;
       }
@@ -298,18 +296,6 @@ const Auth = () => {
                       placeholder={t('auth.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">{t('auth.confirmPassword')}</label>
-                    <Input
-                      type="password"
-                      placeholder={t('auth.confirmPasswordPlaceholder')}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
                     />
