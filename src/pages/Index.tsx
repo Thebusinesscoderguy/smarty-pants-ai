@@ -7,11 +7,27 @@ import { Footer } from '@/components/layout/Footer';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useEffect } from 'react';
 
 const Index = () => {
   
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { userRole, loading } = useUserRole();
+
+  // Redirect authenticated users based on their role
+  useEffect(() => {
+    if (user && !loading) {
+      if (userRole === 'student') {
+        navigate('/quiz');
+      } else {
+        navigate('/chat');
+      }
+    }
+  }, [user, userRole, loading, navigate]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
