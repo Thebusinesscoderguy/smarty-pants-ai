@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Target, Book } from 'lucide-react';
+import { Calendar, Clock, Target, Book, Brain, FileQuestion } from 'lucide-react';
+import { useQuizGenerator } from '@/hooks/useQuizGenerator';
+import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface DailyLesson {
   day: number;
@@ -36,6 +39,10 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   onClose,
   onSelectDay
 }) => {
+  const [creatingQuiz, setCreatingQuiz] = useState<number | null>(null);
+  const { generateQuiz, isGenerating } = useQuizGenerator();
+  const navigate = useNavigate();
+
   if (!studyPlan) return null;
 
   const dailyLessons = Array.isArray(studyPlan.daily_lessons) 
@@ -45,6 +52,44 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   const handleStartDay = (day: number) => {
     onSelectDay(day);
     onClose();
+  };
+
+  const handleCreateQuiz = async (lesson: DailyLesson) => {
+    setCreatingQuiz(lesson.day);
+    
+    try {
+      const quizPrompt = `Create a quiz for: ${lesson.topic}
+      
+      Description: ${lesson.description}
+      
+      Activities covered: ${lesson.activities?.join(', ') || 'General topic coverage'}
+      
+      Please generate ${lesson.practiceQuestions || 5} questions that test understanding of this topic.`;
+
+      const quiz = await generateQuiz(
+        quizPrompt,
+        'medium',
+        lesson.practiceQuestions || 5
+      );
+
+      if (quiz) {
+        toast({
+          title: "Quiz created successfully!",
+          description: `Generated quiz for Day ${lesson.day}: ${lesson.topic}`
+        });
+        onClose();
+        navigate('/quiz');
+      }
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      toast({
+        title: "Failed to create quiz",
+        description: "Please try again or check your connection",
+        variant: "destructive"
+      });
+    } finally {
+      setCreatingQuiz(null);
+    }
   };
 
   return (
@@ -86,18 +131,31 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                         <span>{lesson.activities?.length || 0} activities</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
+                        <FileQuestion className="h-3 w-3" />
                         <span>{lesson.practiceQuestions || 0} practice questions</span>
                       </div>
                     </div>
                     
-                    <Button 
-                      onClick={() => handleStartDay(lesson.day)}
-                      className="w-full"
-                      size="sm"
-                    >
-                      Start Day {lesson.day}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => handleStartDay(lesson.day)}
+                        className="w-full"
+                        size="sm"
+                      >
+                        Start Day {lesson.day}
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => handleCreateQuiz(lesson)}
+                        variant="outline"
+                        className="w-full"
+                        size="sm"
+                        disabled={creatingQuiz === lesson.day || isGenerating}
+                      >
+                        <Brain className="mr-2 h-3 w-3" />
+                        {creatingQuiz === lesson.day ? 'Creating...' : 'Create Quiz'}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
