@@ -8,7 +8,7 @@ import { StudyPlanGenerator } from '@/components/quiz/StudyPlanGenerator';
 import { StudyPlanLibrary } from '@/components/quiz/StudyPlanLibrary';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, BookOpen } from 'lucide-react';
+import { MessageSquare, BookOpen, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -41,6 +41,17 @@ const QuizGeneratorPage = () => {
       >
         <MessageSquare className="h-4 w-4 mr-2" />
         {t('chat.nav.chat')}
+      </Button>
+
+      {/* Quests & Achievements */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/quests')}
+        className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+      >
+        <Trophy className="h-4 w-4 mr-2" />
+        Quests & Achievements
       </Button>
     </div>
   );
