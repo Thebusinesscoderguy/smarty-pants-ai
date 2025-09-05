@@ -18,16 +18,7 @@ const Index = () => {
   const { user } = useAuth();
   const { userRole, loading } = useUserRole();
 
-  // Redirect authenticated users based on their role
-  useEffect(() => {
-    if (user && !loading) {
-      if (userRole === 'student') {
-        navigate('/quiz');
-      } else {
-        navigate('/chat');
-      }
-    }
-  }, [user, userRole, loading, navigate]);
+  // Auto-redirect removed - let users stay on landing page
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
