@@ -37,7 +37,7 @@ const Auth = () => {
     if (role === 'parent') {
       navigate('/monitoring');
     } else {
-      navigate('/chat');
+      navigate('/quiz');
     }
   };
 
