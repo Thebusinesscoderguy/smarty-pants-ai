@@ -5,6 +5,7 @@ import { Trophy, Star, Award, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockAchievements } from '@/utils/mockData';
 
@@ -22,6 +23,13 @@ export const StudentAchievements = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { userRole } = useUserRole();
+  
+  // Get effective role (session role or stored role)
+  const sessionRole = typeof window !== 'undefined' 
+    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
+    : null;
+  const effectiveRole = sessionRole ?? userRole;
 
   useEffect(() => {
     if (isMockDataEnabled()) {
@@ -52,7 +60,30 @@ export const StudentAchievements = () => {
     try {
       setIsLoading(true);
       
-      console.log('DEBUG: Fetching achievements for user:', user.id);
+      console.log('DEBUG: Fetching achievements for user:', user.id, 'effectiveRole:', effectiveRole);
+
+      // Determine which users to fetch achievements for
+      let targetUserIds = [user.id];
+      
+      if (effectiveRole === 'parent') {
+        // Fetch children IDs for parent
+        const { data: childrenData } = await supabase
+          .from('parent_child_relationships')
+          .select('child_id')
+          .eq('parent_id', user.id);
+        
+        console.log('DEBUG: Parent children data:', childrenData);
+        
+        if (childrenData && childrenData.length > 0) {
+          targetUserIds = childrenData.map(child => child.child_id);
+          console.log('DEBUG: Fetching achievements for children:', targetUserIds);
+        } else {
+          console.log('DEBUG: No children found for parent, showing empty state');
+          setAchievements([]);
+          setIsLoading(false);
+          return;
+        }
+      }
 
       // Simplified approach: Just fetch ALL achievements and filter in memory
       const { data: allAchievements, error: achievementsError } = await supabase
@@ -67,73 +98,85 @@ export const StudentAchievements = () => {
 
       console.log('DEBUG: All achievements from database:', allAchievements);
 
-      // Get user's parent relationship
-      const { data: parentRelation } = await supabase
-        .from('parent_child_relationships')
-        .select('parent_id')
-        .eq('child_id', user.id)
-        .maybeSingle();
+      // For each target user, get their relationships and filter achievements
+      const allUserAchievements: Achievement[] = [];
+      
+      for (const userId of targetUserIds) {
+        // Get user's parent relationship
+        const { data: parentRelation } = await supabase
+          .from('parent_child_relationships')
+          .select('parent_id')
+          .eq('child_id', userId)
+          .maybeSingle();
 
-      console.log('DEBUG: Parent relationship:', parentRelation);
+        console.log('DEBUG: Parent relationship for user', userId, ':', parentRelation);
 
-      // Get user's school relationship
-      const { data: schoolRelation } = await supabase
-        .from('school_student_relationships')
-        .select('school_id')
-        .eq('student_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
+        // Get user's school relationship
+        const { data: schoolRelation } = await supabase
+          .from('school_student_relationships')
+          .select('school_id')
+          .eq('student_id', userId)
+          .eq('is_active', true)
+          .maybeSingle();
 
-      console.log('DEBUG: School relationship:', schoolRelation);
+        console.log('DEBUG: School relationship for user', userId, ':', schoolRelation);
 
-      // Filter achievements that user can see
-      const accessibleAchievements = allAchievements?.filter(achievement => {
-        // Global achievements (no creator and no school)
-        if (!achievement.creator_id && !achievement.school_id) {
-          return true;
-        }
-        
-        // Achievements created by user's parent
-        if (achievement.creator_id === parentRelation?.parent_id) {
-          return true;
-        }
-        
-        // Achievements from user's school
-        if (achievement.school_id === schoolRelation?.school_id) {
-          return true;
-        }
-        
-        return false;
-      }) || [];
+        // Filter achievements that user can see
+        const accessibleAchievements = allAchievements?.filter(achievement => {
+          // Global achievements (no creator and no school)
+          if (!achievement.creator_id && !achievement.school_id) {
+            return true;
+          }
+          
+          // Achievements created by user's parent
+          if (achievement.creator_id === parentRelation?.parent_id) {
+            return true;
+          }
+          
+          // Achievements from user's school
+          if (achievement.school_id === schoolRelation?.school_id) {
+            return true;
+          }
+          
+          return false;
+        }) || [];
 
-      console.log('DEBUG: Accessible achievements after filtering:', accessibleAchievements);
+        console.log('DEBUG: Accessible achievements after filtering for user', userId, ':', accessibleAchievements);
 
-      // Fetch user's earned achievements
-      const { data: userAchievements } = await supabase
-        .from('user_achievements')
-        .select('achievement_id, earned_at')
-        .eq('user_id', user.id);
+        // Fetch user's earned achievements
+        const { data: userAchievements } = await supabase
+          .from('user_achievements')
+          .select('achievement_id, earned_at')
+          .eq('user_id', userId);
 
-      console.log('DEBUG: User earned achievements:', userAchievements);
+        console.log('DEBUG: User earned achievements for user', userId, ':', userAchievements);
 
-      // Combine data
-      const earnedAchievementIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
-      const earnedAchievementsMap = new Map(
-        userAchievements?.map(ua => [ua.achievement_id, ua.earned_at]) || []
+        // Combine data for this user
+        const earnedAchievementIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
+        const earnedAchievementsMap = new Map(
+          userAchievements?.map(ua => [ua.achievement_id, ua.earned_at]) || []
+        );
+
+        const userAchievementsWithStatus: Achievement[] = accessibleAchievements.map(achievement => ({
+          id: achievement.id,
+          name: achievement.name,
+          description: achievement.description || '',
+          icon: achievement.icon || '🏆',
+          type: achievement.type,
+          earned: earnedAchievementIds.has(achievement.id),
+          earned_at: earnedAchievementsMap.get(achievement.id) || null
+        }));
+
+        allUserAchievements.push(...userAchievementsWithStatus);
+      }
+
+      // Remove duplicates and set achievements
+      const uniqueAchievements = allUserAchievements.filter((achievement, index, self) => 
+        index === self.findIndex(a => a.id === achievement.id)
       );
 
-      const achievementsWithStatus: Achievement[] = accessibleAchievements.map(achievement => ({
-        id: achievement.id,
-        name: achievement.name,
-        description: achievement.description || '',
-        icon: achievement.icon || '🏆',
-        type: achievement.type,
-        earned: earnedAchievementIds.has(achievement.id),
-        earned_at: earnedAchievementsMap.get(achievement.id) || null
-      }));
-
-      console.log('DEBUG: Final achievements with status:', achievementsWithStatus);
-      setAchievements(achievementsWithStatus);
+      console.log('DEBUG: Final unique achievements with status:', uniqueAchievements);
+      setAchievements(uniqueAchievements);
       
     } catch (error: any) {
       console.error('Error fetching achievements:', error);
@@ -178,9 +221,14 @@ export const StudentAchievements = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Your Achievements</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {effectiveRole === 'parent' ? 'Children\'s Achievements' : 'Your Achievements'}
+          </h2>
           <p className="text-gray-400">
-            Unlock achievements by completing quests and reaching milestones
+            {effectiveRole === 'parent' 
+              ? 'Track your children\'s achievements and milestones'
+              : 'Unlock achievements by completing quests and reaching milestones'
+            }
           </p>
         </div>
         <div className="text-right">

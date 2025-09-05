@@ -19,8 +19,8 @@ const QuestsAchievements = () => {
     : null;
   const effectiveRole = sessionRole ?? userRole;
 
-  // Redirect non-students
-  if (!user || effectiveRole !== 'student') {
+  // Redirect only if not logged in
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -33,10 +33,13 @@ const QuestsAchievements = () => {
           {/* Page Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-white">
-              Quests & Achievements
+              {effectiveRole === 'parent' ? 'Children\'s Quests & Achievements' : 'Quests & Achievements'}
             </h1>
             <p className="text-xl text-white/80">
-              Track your learning journey and celebrate your progress
+              {effectiveRole === 'parent' 
+                ? 'Monitor your children\'s learning journey and celebrate their progress'
+                : 'Track your learning journey and celebrate your progress'
+              }
             </p>
           </div>
 
@@ -45,7 +48,7 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Target className="h-6 w-6 text-purple-400" />
-                Your Quests
+                {effectiveRole === 'parent' ? 'Children\'s Quests' : 'Your Quests'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -58,7 +61,7 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Trophy className="h-6 w-6 text-yellow-400" />
-                Your Achievements
+                {effectiveRole === 'parent' ? 'Children\'s Achievements' : 'Your Achievements'}
               </CardTitle>
             </CardHeader>
             <CardContent>
