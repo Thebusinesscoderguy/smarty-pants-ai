@@ -158,9 +158,9 @@ const Auth = () => {
       ) : (
         <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
           <div className="w-full max-w-md mx-auto">
-            <Card className="bg-purple-900/80 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden border border-primary/20">
-              <CardHeader className="text-center pb-6 bg-gradient-to-b from-primary/5 to-transparent">
-                <CardTitle className="text-2xl font-bold text-primary mb-3">
+            <Card className="glass-dark shadow-2xl rounded-2xl overflow-hidden border-white/10">
+              <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
+                <CardTitle className="text-2xl font-bold gradient-text mb-3">
                   {t('auth.welcome')}
                 </CardTitle>
                 <p className="text-muted-foreground text-sm leading-relaxed">
@@ -170,16 +170,22 @@ const Auth = () => {
             
             <CardContent className="p-6">
             {signupSuccess && (
-              <div className="mb-6 p-6 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl">
-                <div className="text-center">
+              <div className="mb-6 p-6 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl relative overflow-hidden">
+                {/* Animated background elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+                
+                <div className="relative z-10">
                   <div className="flex items-center justify-center mb-4">
+                    {/* Email envelope illustration with animation */}
                     <div className="relative">
-                      <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center">
-                        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center animate-scale-in">
+                        <svg className="w-8 h-8 text-primary animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                      {/* Flying checkmark animation */}
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center animate-fade-in delay-500">
                         <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
@@ -188,10 +194,10 @@ const Auth = () => {
                   </div>
                   
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                    <h3 className="text-lg font-semibold text-foreground mb-2 animate-fade-in">
                       Verify Your Email
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm animate-fade-in delay-200">
                       We sent a verification link to <span className="font-medium text-foreground">{email}</span>
                     </p>
                   </div>
@@ -199,7 +205,7 @@ const Auth = () => {
                   <div className="space-y-3">
                     <Button
                       onClick={() => window.open('https://gmail.com', '_blank')}
-                      className="w-full text-primary-foreground rounded-xl h-12 text-base font-semibold"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] animate-fade-in delay-400"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -211,20 +217,20 @@ const Auth = () => {
                       <Button
                         onClick={() => setActiveTab('signin')}
                         variant="outline"
-                        className="flex-1 bg-background/50 border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl h-11"
+                        className="flex-1 bg-background/50 border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl h-11 transition-all duration-200 animate-fade-in delay-500"
                       >
                         Continue to Sign In
                       </Button>
                       <Button
                         onClick={() => setSignupSuccess(false)}
                         variant="ghost"
-                        className="flex-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl h-11"
+                        className="flex-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl h-11 transition-all duration-200 animate-fade-in delay-600"
                       >
                         Sign Up Another Account
                       </Button>
                     </div>
                     
-                    <div className="text-center pt-2">
+                    <div className="text-center pt-2 animate-fade-in delay-700">
                       <p className="text-xs text-muted-foreground mb-1">
                         Didn't receive the email?
                       </p>
@@ -270,7 +276,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
@@ -282,7 +288,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
@@ -310,7 +316,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full text-primary-foreground rounded-xl h-12 text-base font-semibold"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     {loading ? t('auth.signingIn') : t('auth.signIn')}
                   </Button>
@@ -329,7 +335,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-card/50 border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary-foreground hover:border-primary/50 rounded-xl h-12 text-base font-semibold"
+                  className="w-full bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg h-11 text-base font-medium transition-all duration-200"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -375,7 +381,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
@@ -387,7 +393,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
@@ -407,7 +413,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full text-primary-foreground rounded-xl h-12 text-base font-semibold"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
                   </Button>
@@ -426,7 +432,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-card/50 border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary-foreground hover:border-primary/50 rounded-xl h-12 text-base font-semibold"
+                  className="w-full bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg h-11 text-base font-medium transition-all duration-200"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
