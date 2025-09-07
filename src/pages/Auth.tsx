@@ -170,32 +170,85 @@ const Auth = () => {
             
             <CardContent className="p-6">
             {signupSuccess && (
-              <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+              <div className="mb-6 p-6 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl relative overflow-hidden">
+                {/* Animated background elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-center mb-4">
+                    {/* Email envelope illustration with animation */}
+                    <div className="relative">
+                      <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center animate-scale-in">
+                        <svg className="w-8 h-8 text-primary animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      {/* Flying checkmark animation */}
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center animate-fade-in delay-500">
+                        <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-emerald-400 font-semibold">Verification Email Sent!</h3>
-                </div>
-                <p className="text-emerald-300 text-sm mb-4">
-                  We've sent a verification link to <strong>{email}</strong>. Please check your email and click the link to activate your account.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setActiveTab('signin')}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white border-0"
-                  >
-                    Continue to Sign In
-                  </Button>
-                  <Button
-                    onClick={() => setSignupSuccess(false)}
-                    variant="outline"
-                    className="bg-transparent border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-                  >
-                    Sign Up Another Account
-                  </Button>
+                  
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-bold text-foreground mb-2 animate-fade-in">
+                      Almost done! 🎉
+                    </h3>
+                    <p className="text-primary font-semibold text-lg mb-2 animate-fade-in delay-200">
+                      You're one step away from unlocking your AI tutor!
+                    </p>
+                    <p className="text-muted-foreground text-sm animate-fade-in delay-300">
+                      We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => window.open('https://gmail.com', '_blank')}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] animate-fade-in delay-400"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Check Your Email
+                    </Button>
+                    
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        onClick={() => setActiveTab('signin')}
+                        variant="outline"
+                        className="flex-1 bg-background/50 border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl h-11 transition-all duration-200 animate-fade-in delay-500"
+                      >
+                        Continue to Sign In
+                      </Button>
+                      <Button
+                        onClick={() => setSignupSuccess(false)}
+                        variant="ghost"
+                        className="flex-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl h-11 transition-all duration-200 animate-fade-in delay-600"
+                      >
+                        Sign Up Another Account
+                      </Button>
+                    </div>
+                    
+                    <div className="text-center pt-2 animate-fade-in delay-700">
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Didn't receive the email?
+                      </p>
+                      <button
+                        onClick={handleSignUp}
+                        disabled={loading}
+                        className="text-primary hover:text-primary/80 text-sm font-medium underline transition-colors disabled:opacity-50"
+                      >
+                        Resend verification email
+                      </button>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Check your spam folder or try resending
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
