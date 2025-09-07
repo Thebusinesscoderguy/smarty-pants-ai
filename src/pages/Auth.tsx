@@ -194,14 +194,11 @@ const Auth = () => {
                   </div>
                   
                   <div className="text-center mb-4">
-                    <h3 className="text-xl font-bold text-foreground mb-2 animate-fade-in">
-                      Almost done! 🎉
+                    <h3 className="text-lg font-semibold text-foreground mb-2 animate-fade-in">
+                      Verify Your Email
                     </h3>
-                    <p className="text-primary font-semibold text-lg mb-2 animate-fade-in delay-200">
-                      You're one step away from unlocking your AI tutor!
-                    </p>
-                    <p className="text-muted-foreground text-sm animate-fade-in delay-300">
-                      We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>
+                    <p className="text-muted-foreground text-sm animate-fade-in delay-200">
+                      We sent a verification link to <span className="font-medium text-foreground">{email}</span>
                     </p>
                   </div>
                   
