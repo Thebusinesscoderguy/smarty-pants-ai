@@ -158,7 +158,7 @@ const Auth = () => {
       ) : (
         <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
           <div className="w-full max-w-md mx-auto">
-            <Card className="bg-card/60 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden border border-primary/20">
+            <Card className="bg-purple-900/80 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden border border-primary/20">
               <CardHeader className="text-center pb-6 bg-gradient-to-b from-primary/5 to-transparent">
                 <CardTitle className="text-2xl font-bold text-primary mb-3">
                   {t('auth.welcome')}
