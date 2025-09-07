@@ -158,8 +158,8 @@ const Auth = () => {
       ) : (
         <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
           <div className="w-full max-w-md mx-auto">
-            <Card className="glass-dark shadow-2xl rounded-2xl overflow-hidden border-white/10">
-              <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
+            <Card className="bg-card/95 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden border border-primary/20 animate-shine">
+              <CardHeader className="text-center pb-6 bg-gradient-to-b from-primary/5 to-transparent">
                 <CardTitle className="text-2xl font-bold gradient-text mb-3">
                   {t('auth.welcome')}
                 </CardTitle>
@@ -205,7 +205,7 @@ const Auth = () => {
                   <div className="space-y-3">
                     <Button
                       onClick={() => window.open('https://gmail.com', '_blank')}
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] animate-fade-in delay-400"
+                      className="w-full btn-shine text-primary-foreground rounded-xl h-12 text-base font-semibold transition-all duration-300 animate-pulse-glow hover-scale"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -276,7 +276,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
+                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
                     />
                   </div>
                   
@@ -288,7 +288,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
+                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
                     />
                   </div>
                   
@@ -316,7 +316,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="w-full btn-shine text-primary-foreground rounded-xl h-12 text-base font-semibold transition-all duration-300 animate-pulse-glow"
                   >
                     {loading ? t('auth.signingIn') : t('auth.signIn')}
                   </Button>
@@ -335,7 +335,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg h-11 text-base font-medium transition-all duration-200"
+                  className="w-full bg-card/50 border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary-foreground hover:border-primary/50 rounded-xl h-12 text-base font-semibold transition-all duration-300 hover-scale animate-shine"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -381,7 +381,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
+                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
                     />
                   </div>
                   
@@ -393,7 +393,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
+                      className="bg-input/50 border-border/50 text-foreground placeholder-muted-foreground rounded-xl h-12 focus:border-primary focus:ring-primary/30 focus:bg-input transition-all duration-200"
                     />
                   </div>
                   
@@ -413,7 +413,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="w-full btn-shine text-primary-foreground rounded-xl h-12 text-base font-semibold transition-all duration-300 animate-pulse-glow"
                   >
                     {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
                   </Button>
@@ -432,7 +432,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg h-11 text-base font-medium transition-all duration-200"
+                  className="w-full bg-card/50 border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary-foreground hover:border-primary/50 rounded-xl h-12 text-base font-semibold transition-all duration-300 hover-scale animate-shine"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
