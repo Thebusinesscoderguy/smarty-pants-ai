@@ -22,6 +22,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [signupSuccess, setSignupSuccess] = useState(false);
   
   const isSignup = searchParams.get('signup') === 'true';
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
@@ -78,6 +79,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSignupSuccess(false);
 
     if (password.length < 6) {
       setError(t('auth.error.passwordLength'));
@@ -107,13 +109,11 @@ const Auth = () => {
 
       // Check if user needs email confirmation
       if (data?.user && !data?.session) {
-        toast.success('Registration successful! Please check your email and click the confirmation link to complete your account setup.');
+        setSignupSuccess(true);
         setError('');
         // Clear the form
         setEmail('');
         setPassword('');
-        // Show a prominent success message
-        setActiveTab('signin');
         return;
       }
 
@@ -158,28 +158,59 @@ const Auth = () => {
       ) : (
         <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
           <div className="w-full max-w-md mx-auto">
-            <Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
+            <Card className="glass-dark shadow-2xl rounded-2xl overflow-hidden border-white/10">
               <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
-                <CardTitle className="text-2xl font-bold text-white mb-3">
+                <CardTitle className="text-2xl font-bold gradient-text mb-3">
                   {t('auth.welcome')}
                 </CardTitle>
-                <p className="text-slate-300 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {t('auth.subtitle')}
                 </p>
               </CardHeader>
             
-            <CardContent className="p-6">{/* ... rest of authentication form */}
+            <CardContent className="p-6">
+            {signupSuccess && (
+              <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-emerald-400 font-semibold">Verification Email Sent!</h3>
+                </div>
+                <p className="text-emerald-300 text-sm mb-4">
+                  We've sent a verification link to <strong>{email}</strong>. Please check your email and click the link to activate your account.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setActiveTab('signin')}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white border-0"
+                  >
+                    Continue to Sign In
+                  </Button>
+                  <Button
+                    onClick={() => setSignupSuccess(false)}
+                    variant="outline"
+                    className="bg-transparent border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                  >
+                    Sign Up Another Account
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/10 rounded-xl p-1 mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-muted/50 rounded-xl p-1 mb-6">
                 <TabsTrigger 
                   value="signin" 
-                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg font-medium py-2 px-4 transition-all duration-200"
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg font-medium py-2 px-4 transition-all duration-200"
                 >
                   {t('auth.signIn')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
-                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg font-medium py-2 px-4 transition-all duration-200"
+                  className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg font-medium py-2 px-4 transition-all duration-200"
                 >
                   {t('auth.signUp')}
                 </TabsTrigger>
@@ -188,39 +219,54 @@ const Auth = () => {
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">{t('auth.email')}</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('auth.email')}</label>
                     <Input
                       type="email"
                       placeholder={t('auth.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">{t('auth.password')}</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('auth.password')}</label>
                     <Input
                       type="password"
                       placeholder={t('auth.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
                   {error && (
-                    <div className="text-red-300 text-xs text-center bg-red-500/5 p-3 rounded-lg border border-red-500/20">
-                      {error}
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-destructive rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-destructive-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </div>
+                        <p className="text-destructive text-sm font-medium">{error}</p>
+                      </div>
+                      {error.includes('Email not confirmed') && (
+                        <Button
+                          onClick={() => setActiveTab('signup')}
+                          className="mt-3 w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        >
+                          Resend Confirmation Email
+                        </Button>
+                      )}
                     </div>
                   )}
                   
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     {loading ? t('auth.signingIn') : t('auth.signIn')}
                   </Button>
@@ -239,7 +285,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg h-11 text-base font-medium transition-all duration-200"
+                  className="w-full bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg h-11 text-base font-medium transition-all duration-200"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -263,11 +309,11 @@ const Auth = () => {
                 </Button>
                 
                 <div className="text-center text-sm mt-4">
-                  <p className="text-slate-400">
+                  <p className="text-muted-foreground">
                     {t('auth.noAccount')}{' '}
                     <button
                       onClick={() => setActiveTab('signup')}
-                      className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
+                      className="text-primary hover:text-primary/80 underline font-medium transition-colors"
                     >
                       {t('auth.signUpHere')}
                     </button>
@@ -278,39 +324,46 @@ const Auth = () => {
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">{t('auth.email')}</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('auth.email')}</label>
                     <Input
                       type="email"
                       placeholder={t('auth.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-300">{t('auth.password')}</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('auth.password')}</label>
                     <Input
                       type="password"
                       placeholder={t('auth.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="bg-white/5 border-white/20 text-white placeholder-white/40 rounded-lg h-11 focus:border-white/40 focus:ring-white/20"
+                      className="bg-muted/20 border-border text-foreground placeholder-muted-foreground rounded-lg h-11 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                   
                   {error && (
-                    <div className="text-red-300 text-xs text-center bg-red-500/5 p-3 rounded-lg border border-red-500/20">
-                      {error}
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-destructive rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-destructive-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </div>
+                        <p className="text-destructive text-sm font-medium">{error}</p>
+                      </div>
                     </div>
                   )}
                   
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-11 text-base font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
                   </Button>
@@ -329,7 +382,7 @@ const Auth = () => {
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-white/5 border-white/15 text-white hover:bg-white/10 rounded-lg h-11 text-base font-medium transition-all duration-200"
+                  className="w-full bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg h-11 text-base font-medium transition-all duration-200"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -353,11 +406,11 @@ const Auth = () => {
                 </Button>
                 
                 <div className="text-center text-sm mt-4">
-                  <p className="text-slate-400">
+                  <p className="text-muted-foreground">
                     {t('auth.hasAccount')}{' '}
                     <button
                       onClick={() => setActiveTab('signin')}
-                      className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
+                      className="text-primary hover:text-primary/80 underline font-medium transition-colors"
                     >
                       {t('auth.signInHere')}
                     </button>
