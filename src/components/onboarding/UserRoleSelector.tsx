@@ -129,12 +129,12 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
         <div className="grid gap-6">
           {/* Parent Option */}
           <Card 
-            className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-pink-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+            className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-indigo-500/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('parent')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-colors">
-                <Users className="h-8 w-8 text-purple-400" />
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-indigo-500/30 transition-colors">
+                <Users className="h-8 w-8 text-blue-400" />
               </div>
               <CardTitle className="text-white">I'm the Parent</CardTitle>
               <CardDescription className="text-white/70">
@@ -149,7 +149,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                 <li>• Manage study plans</li>
               </ul>
               <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('parent');

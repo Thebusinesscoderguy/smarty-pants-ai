@@ -137,7 +137,7 @@
 
   /* Gradient text utilities */
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600 bg-clip-text text-transparent;
   }
 
   .gradient-border {
