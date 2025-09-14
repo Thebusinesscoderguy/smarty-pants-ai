@@ -104,8 +104,8 @@ const Monitoring = () => {
         {renderNavigation()}
         
         <div className="mb-12">
-          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center">
-            <BarChart3 className="mr-6 h-16 w-16 text-blue-400" />
+          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center">
+            <BarChart3 className="mr-6 h-16 w-16 text-purple-400" />
             {t('monitoring.title')}
           </h1>
           <p className="text-white/70 text-2xl">
@@ -194,28 +194,28 @@ const Monitoring = () => {
           <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="overview" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.overview')}
             </TabsTrigger>
             <TabsTrigger 
               value="children" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Users className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.children')}
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Target className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.quests')}
             </TabsTrigger>
             <TabsTrigger 
               value="achievements" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Trophy className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.achievements')}

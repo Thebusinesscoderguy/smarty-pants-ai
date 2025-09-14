@@ -111,7 +111,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
+    <div className="w-full p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
