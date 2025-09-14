@@ -201,7 +201,7 @@ const Monitoring = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="children" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-600 data-[state=active]:to-rose-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Users className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.children')}
