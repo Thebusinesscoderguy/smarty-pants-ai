@@ -38,7 +38,7 @@ const Auth = () => {
     if (role === 'parent') {
       navigate('/monitoring');
     } else {
-      navigate('/quiz');
+      navigate('/quiz-generator');
     }
   };
 

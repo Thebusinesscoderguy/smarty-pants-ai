@@ -75,7 +75,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         onRoleSelected={async (role, childId) => {
           // Immediately navigate for child selection without any intermediate state
           if (role === 'child') {
-            navigate('/quiz', { replace: true });
+            navigate('/quiz-generator', { replace: true });
             return;
           }
           
