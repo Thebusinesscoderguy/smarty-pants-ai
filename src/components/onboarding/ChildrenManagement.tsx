@@ -111,7 +111,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
@@ -169,7 +169,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
               <Button 
                 onClick={addChild}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >
                 {loading ? 'Adding...' : 'Add Child'}
               </Button>
@@ -199,8 +199,8 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                       className="p-4 bg-white/5 rounded-lg border border-white/10"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-pink-500/20 rounded-full">
-                          <UserCheck className="h-4 w-4 text-pink-400" />
+                        <div className="p-2 bg-purple-500/20 rounded-full">
+                          <UserCheck className="h-4 w-4 text-purple-400" />
                         </div>
                         <div>
                           <p className="text-white font-medium">
@@ -222,7 +222,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
         <div className="text-center mt-8">
           <Button 
             onClick={onComplete}
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-8"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 px-8"
           >
             Continue to Dashboard
           </Button>
