@@ -88,13 +88,13 @@ export const Header = () => {
             </button>
             <LanguageSelector />
             {user ? (
-              <Button 
-                onClick={handleSignOut}
-                variant="outline" 
-                className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-              >
-                Sign Out
-              </Button>
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline" 
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                >
+                  {t('auth.signout')}
+                </Button>
             ) : (
               <>
                 <Button 
@@ -102,13 +102,13 @@ export const Header = () => {
                   variant="outline" 
                   className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
                 >
-                  Login
+                  {t('auth.login')}
                 </Button>
                 <Button 
                   onClick={() => navigate('/auth?signup=true')}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
                 >
-                  Sign Up
+                  {t('auth.signup')}
                 </Button>
               </>
             )}
@@ -163,7 +163,7 @@ export const Header = () => {
                     variant="outline" 
                     className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
                   >
-                    Sign Out
+                    {t('auth.signout')}
                   </Button>
                 ) : (
                   <>
@@ -172,13 +172,13 @@ export const Header = () => {
                       variant="outline" 
                       className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
                     >
-                      Login
+                      {t('auth.login')}
                     </Button>
                     <Button 
                       onClick={() => navigate('/auth?signup=true')}
                       className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
                     >
-                      Sign Up
+                      {t('auth.signup')}
                     </Button>
                   </>
                 )}

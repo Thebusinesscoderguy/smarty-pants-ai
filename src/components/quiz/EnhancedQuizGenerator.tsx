@@ -11,6 +11,7 @@ import { FileUploadZone } from './FileUploadZone';
 import { Loader2, Plus, Save, Trash2, FileQuestion, Brain, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
@@ -28,6 +29,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   
+  const { t } = useLanguage();
   const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes, extractQuizFromFile } = useQuizGenerator();
 
   const handleFileUpload = (file: File) => {
@@ -164,43 +166,43 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileQuestion className="h-5 w-5" />
-            Enhanced Quiz Generator
+            {t('quizGenerator.title')}
           </CardTitle>
           <CardDescription>
-            Create quizzes from topics, uploaded materials, or custom AI instructions
+            {t('quizGenerator.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as 'manual' | 'file' | 'ai')}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="manual">Topic Based</TabsTrigger>
-              <TabsTrigger value="file">Upload Material</TabsTrigger>
-              <TabsTrigger value="ai">AI Instructions</TabsTrigger>
+              <TabsTrigger value="manual">{t('quizGenerator.topicBased')}</TabsTrigger>
+              <TabsTrigger value="file">{t('quizGenerator.uploadMaterial')}</TabsTrigger>
+              <TabsTrigger value="ai">{t('quizGenerator.aiInstructions')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="manual" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="topic">Quiz Topic</Label>
+                  <Label htmlFor="topic">{t('quizGenerator.quizTopic')}</Label>
                   <Input
                     id="topic"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="e.g., Photosynthesis, World War II, Algebra..."
+                    placeholder={t('quizGenerator.topicPlaceholder')}
                     disabled={isGenerating}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Label htmlFor="difficulty">{t('quizGenerator.difficultyLevel')}</Label>
                   <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
+                      <SelectItem value="easy">{t('quizGenerator.easy')}</SelectItem>
+                      <SelectItem value="medium">{t('quizGenerator.medium')}</SelectItem>
+                      <SelectItem value="hard">{t('quizGenerator.hard')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -430,10 +432,10 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
           </Tabs>
 
           <div className="space-y-2">
-            <Label htmlFor="gradeLevel">Grade Level</Label>
+            <Label htmlFor="gradeLevel">{t('quizGenerator.gradeLevel')}</Label>
             <Select value={gradeLevel} onValueChange={setGradeLevel}>
               <SelectTrigger className="w-64">
-                <SelectValue placeholder="Select grade level" />
+                <SelectValue placeholder={t('quizGenerator.selectGrade')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Grade 1">Grade 1</SelectItem>
@@ -454,7 +456,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="questionCount">Number of Questions</Label>
+            <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
             <Input
               id="questionCount"
               type="text"
@@ -491,7 +493,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
             ) : (
               <>
                 <Brain className="mr-2 h-4 w-4" />
-                Generate Quiz
+                {t('quizGenerator.generateQuiz')}
               </>
             )}
           </Button>

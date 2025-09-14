@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockQuests } from '@/utils/mockData';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Quest {
   id: string;
@@ -29,6 +30,7 @@ export const StudentQuestDisplay = () => {
   const [completedQuests, setCompletedQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (isMockDataEnabled()) {
@@ -189,15 +191,15 @@ export const StudentQuestDisplay = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white mb-2">Your Quests</h2>
-        <p className="text-gray-400">Complete quests to earn rewards and track your progress</p>
+        <h2 className="text-2xl font-bold text-white mb-2">{t('questDisplay.yourQuests')}</h2>
+        <p className="text-gray-400">{t('questDisplay.completeQuests')}</p>
       </div>
 
       {/* Active Quests */}
       <div>
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Target className="h-5 w-5 text-blue-400" />
-          Active Quests ({activeQuests.length})
+          {t('questDisplay.activeQuests')} ({activeQuests.length})
         </h3>
         
         {activeQuests.length === 0 ? (
