@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { getDemoStudentProgress, getDemoMonitoringOverviewStats } from '@/utils/demoData';
+
 
 export interface StudentProgress {
   student_id: string;
@@ -50,17 +50,23 @@ export const useMonitoringData = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Use demo data when not authenticated or in demo mode
-  const useDemoData = !user || window.location.href.includes('demo');
-
   useEffect(() => {
-    if (useDemoData) {
-      setStudentProgress(getDemoStudentProgress());
-      setOverviewStats(getDemoMonitoringOverviewStats());
+    if (!user) {
+      setStudentProgress([]);
+      setOverviewStats({
+        totalStudents: 0,
+        avgCompletion: 0,
+        totalStudyTime: 0,
+        totalLessonsCompleted: 0,
+        totalTests: 0,
+        totalCurricula: 0,
+        totalQuests: 0,
+        totalAchievements: 0
+      });
       return;
     }
     fetchStudentProgress();
-  }, [user, useDemoData]);
+  }, [user]);
 
   const fetchStudentProgress = async () => {
     if (!user) return;

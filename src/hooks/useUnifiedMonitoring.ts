@@ -138,35 +138,19 @@ export const useUnifiedMonitoring = () => {
 
   const fetchData = async () => {
     if (!user) {
-      // Use demo data when not authenticated
-      const demoData = getDemoStudentProgress();
-      const convertedData = demoData.map(student => ({
-        ...student,
-        subjects_active: student.subjects?.length || 0,
-        avg_score: student.test_scores?.length > 0 
-          ? Math.round(student.test_scores.reduce((sum, t) => sum + t.percentage, 0) / student.test_scores.length)
-          : 0,
-        achievements_count: student.achievements?.length || 0,
-        subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
-        test_scores: (student.test_scores || []).map(test => ({
-          ...test,
-          subject: inferSubjectFromTestName(test.test_name)
-        })),
-        response_analytics: {
-          average_response_time: 3500,
-          quiz_performance_trend: [75, 80, 85, 82, 88],
-          fast_response_topics: student.strengths.slice(0, 3),
-          slow_response_topics: student.weak_areas.slice(0, 2),
-          accuracy_by_topic: {}
-        },
-        activity_trend: generateDemoActivityTrend(),
-        performance_insights: generateDemoInsights(student)
-      }));
-      setStudentProgress(convertedData);
+      // Not authenticated — return empty real-data state
+      setStudentProgress([]);
       setOverviewStats({
-        ...getDemoMonitoringOverviewStats(),
-        activeToday: 5,
-        weeklyGrowth: 12
+        totalStudents: 0,
+        avgCompletion: 0,
+        totalStudyTime: 0,
+        totalLessonsCompleted: 0,
+        totalTests: 0,
+        totalCurricula: 0,
+        totalQuests: 0,
+        totalAchievements: 0,
+        activeToday: 0,
+        weeklyGrowth: 0
       });
       setLastRefresh(new Date());
       return;
@@ -211,36 +195,19 @@ export const useUnifiedMonitoring = () => {
       const studentIds = await getAccessibleStudents();
       
       if (studentIds.length === 0) {
-        console.log('No accessible students found - using demo data');
-        // Use demo data when no students are accessible
-        const demoData = getDemoStudentProgress();
-        const convertedData = demoData.map(student => ({
-          ...student,
-          subjects_active: student.subjects?.length || 0,
-          avg_score: student.test_scores?.length > 0 
-            ? Math.round(student.test_scores.reduce((sum, t) => sum + t.percentage, 0) / student.test_scores.length)
-            : 0,
-          achievements_count: student.achievements?.length || 0,
-          subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
-          test_scores: (student.test_scores || []).map(test => ({
-            ...test,
-            subject: inferSubjectFromTestName(test.test_name)
-          })),
-          response_analytics: {
-            average_response_time: 3500,
-            quiz_performance_trend: [75, 80, 85, 82, 88],
-            fast_response_topics: student.strengths.slice(0, 3),
-            slow_response_topics: student.weak_areas.slice(0, 2),
-            accuracy_by_topic: {}
-          },
-          activity_trend: generateDemoActivityTrend(),
-          performance_insights: generateDemoInsights(student)
-        }));
-        setStudentProgress(convertedData);
+        console.log('No accessible students found');
+        setStudentProgress([]);
         setOverviewStats({
-          ...getDemoMonitoringOverviewStats(),
-          activeToday: 5,
-          weeklyGrowth: 12
+          totalStudents: 0,
+          avgCompletion: 0,
+          totalStudyTime: 0,
+          totalLessonsCompleted: 0,
+          totalTests: 0,
+          totalCurricula: 0,
+          totalQuests: 0,
+          totalAchievements: 0,
+          activeToday: 0,
+          weeklyGrowth: 0
         });
         setLastRefresh(new Date());
         setLoading(false);
@@ -337,38 +304,11 @@ export const useUnifiedMonitoring = () => {
         achievements
       );
 
-      // If no real data, fall back to demo data
+      // If no real data, keep empty state
       if (unifiedStudentData.length === 0) {
-        console.log('No real data found - using demo data');
-        const demoData = getDemoStudentProgress();
-        const convertedData = demoData.map(student => ({
-          ...student,
-          subjects_active: student.subjects?.length || 0,
-          avg_score: student.test_scores?.length > 0 
-            ? Math.round(student.test_scores.reduce((sum, t) => sum + t.percentage, 0) / student.test_scores.length)
-            : 0,
-          achievements_count: student.achievements?.length || 0,
-          subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
-          test_scores: (student.test_scores || []).map(test => ({
-            ...test,
-            subject: inferSubjectFromTestName(test.test_name)
-          })),
-          response_analytics: {
-            average_response_time: 3500,
-            quiz_performance_trend: [75, 80, 85, 82, 88],
-            fast_response_topics: student.strengths.slice(0, 3),
-            slow_response_topics: student.weak_areas.slice(0, 2),
-            accuracy_by_topic: {}
-          },
-          activity_trend: generateDemoActivityTrend(),
-          performance_insights: generateDemoInsights(student)
-        }));
-        setStudentProgress(convertedData);
-        setOverviewStats({
-          ...getDemoMonitoringOverviewStats(),
-          activeToday: 5,
-          weeklyGrowth: 12
-        });
+        console.log('No real data found');
+        setStudentProgress([]);
+        setOverviewStats(overviewResult);
       } else {
         setStudentProgress(unifiedStudentData);
         setOverviewStats(overviewResult);
@@ -702,36 +642,47 @@ export const useUnifiedMonitoring = () => {
       // Calculate stats from student progress
       const totalStudents = studentIds.length;
       
-      // Get today's active students based on recent progress updates
+      // Today's active students based on recent updates in progress or activity logs
       const today = new Date().toISOString().split('T')[0];
-      const { data: todayActivity } = await supabase
-        .from('user_progress')
-        .select('user_id')
-        .in('user_id', studentIds)
-        .gte('updated_at', today);
+      const [{ data: todayProgress }, { data: todayActivityLogs }] = await Promise.all([
+        supabase
+          .from('user_progress')
+          .select('user_id, updated_at')
+          .in('user_id', studentIds)
+          .gte('updated_at', today),
+        supabase
+          .from('student_activity_logs')
+          .select('student_id, created_at')
+          .in('student_id', studentIds)
+          .gte('created_at', today),
+      ]);
 
-      const activeToday = new Set(todayActivity?.map(a => a.user_id) || []).size;
+      const activeToday = new Set([
+        ...(todayProgress?.map(a => a.user_id) || []),
+        ...(todayActivityLogs?.map(a => a.student_id) || []),
+      ]).size;
 
-      // Calculate aggregated stats from user progress
-      const { data: allProgress } = await supabase
-        .from('user_progress')
-        .select('user_id, time_spent, status')
-        .in('user_id', studentIds);
+      // Aggregated stats
+      const [{ data: allProgress }, { data: allActivityLogs }] = await Promise.all([
+        supabase
+          .from('user_progress')
+          .select('user_id, time_spent, status')
+          .in('user_id', studentIds),
+        supabase
+          .from('student_activity_logs')
+          .select('student_id, duration_minutes')
+          .in('student_id', studentIds),
+      ]);
 
-      const { data: allTests } = await supabase
-        .from('test_attempts')
-        .select('student_id, percentage')
-        .in('student_id', studentIds);
+      const totalStudyMinutes =
+        (allProgress?.reduce((sum, p) => sum + (p.time_spent || 0), 0) || 0) +
+        (allActivityLogs?.reduce((sum, a) => sum + (a.duration_minutes || 0), 0) || 0);
 
-      const totalStudyTime = Math.round(
-        (allProgress?.reduce((sum, p) => sum + (p.time_spent || 0), 0) || 0) / 60
-      );
+      const totalStudyTime = Math.round(totalStudyMinutes / 60);
 
       const totalLessonsCompleted = allProgress?.filter(p => p.status === 'completed').length || 0;
-
-      const avgCompletion = studentIds.length > 0 ? Math.round(
-        (totalLessonsCompleted / (allProgress?.length || 1)) * 100
-      ) : 0;
+      const totalLessons = allProgress?.length || 0;
+      const avgCompletion = totalLessons > 0 ? Math.round((totalLessonsCompleted / totalLessons) * 100) : 0;
 
       return {
         totalStudents,
@@ -743,7 +694,7 @@ export const useUnifiedMonitoring = () => {
         totalQuests: questsData.count || 0,
         totalAchievements: achievementsData.count || 0,
         activeToday,
-        weeklyGrowth: 5 // Placeholder - would need historical data to calculate
+        weeklyGrowth: 5 // Placeholder - requires historical comparisons
       };
     } catch (error) {
       console.error('Error fetching overview stats:', error);
