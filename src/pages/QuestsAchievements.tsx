@@ -4,14 +4,16 @@ import { Footer } from '@/components/layout/Footer';
 import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { StudentAchievements } from '@/components/student/StudentAchievements';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, Target } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Trophy, Target, BookOpen, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
 
 const QuestsAchievements = () => {
   const { user } = useAuth();
   const { userRole } = useUserRole();
+  const navigate = useNavigate();
   
   // Get effective role (session role or stored role)
   const sessionRole = typeof window !== 'undefined' 
@@ -24,12 +26,49 @@ const QuestsAchievements = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  const renderNavigation = () => (
+    <div className="flex justify-center mb-8">
+      <div className="flex gap-2 bg-white/10 backdrop-blur-xl p-2 rounded-lg border border-white/20">
+        <Button
+          onClick={() => navigate('/quiz-generator')}
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/20"
+        >
+          <BookOpen className="mr-2 h-4 w-4" />
+          Study Tools
+        </Button>
+        <Button
+          onClick={() => navigate('/chat')}
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/20"
+        >
+          <MessageCircle className="mr-2 h-4 w-4" />
+          Chat
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-white bg-white/20"
+          disabled
+        >
+          <Trophy className="mr-2 h-4 w-4" />
+          Quests & Achievements
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
+          {/* Navigation */}
+          {renderNavigation()}
+          
           {/* Page Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-white">
