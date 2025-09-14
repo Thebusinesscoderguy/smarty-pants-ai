@@ -104,7 +104,7 @@ const Chat = () => {
           return;
         }
 
-        // Group messages by conversation_id
+        // Group messages by conversation_id and filter out empty conversations
         const conversationMap = new Map();
         messagesData.forEach(message => {
           const convId = message.conversation_id || 'default';
@@ -119,16 +119,18 @@ const Chat = () => {
           conversationMap.get(convId).messages.push(message);
         });
 
-        // Convert to sessions with AI-generated titles
-        const sessions = Array.from(conversationMap.values()).map(conv => {
-          const title = generateTitleFromContent(conv.firstMessage.content);
-          return {
-            id: conv.id,
-            title,
-            created_at: conv.created_at,
-            message_count: conv.messages.length
-          };
-        });
+        // Convert to sessions with AI-generated titles, only include conversations with messages
+        const sessions = Array.from(conversationMap.values())
+          .filter(conv => conv.messages.length > 0) // Filter out conversations with no messages
+          .map(conv => {
+            const title = generateTitleFromContent(conv.firstMessage.content);
+            return {
+              id: conv.id,
+              title,
+              created_at: conv.created_at,
+              message_count: conv.messages.length
+            };
+          });
 
         setChatSessions(sessions);
       } catch (error) {
@@ -621,11 +623,36 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
     }
   };
 
-  const deleteSession = (sessionId: string, e: React.MouseEvent) => {
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setChatSessions(prev => prev.filter(s => s.id !== sessionId));
-    if (activeSessionId === sessionId) {
-      handleNewChat();
+    if (!user) return;
+
+    try {
+      // Delete messages from database
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('conversation_id', sessionId);
+
+      // Update local state
+      setChatSessions(prev => prev.filter(s => s.id !== sessionId));
+      
+      if (activeSessionId === sessionId) {
+        handleNewChat();
+      }
+      
+      toast({
+        title: "Chat Deleted",
+        description: "The chat session has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      toast({
+        title: t('common.error'),
+        description: "Failed to delete chat session. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
