@@ -94,11 +94,11 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
           </Card>
 
           <Card 
-            className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+            className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-indigo-500/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('child')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-cyan-500/30 transition-colors">
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-indigo-500/30 transition-colors">
                 <Baby className="h-8 w-8 text-blue-400" />
               </div>
               <CardTitle className="text-white">I'm a Student</CardTitle>
@@ -114,7 +114,7 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
                 <li>• Complete quests</li>
               </ul>
               <Button 
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('child');
