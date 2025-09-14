@@ -22,37 +22,37 @@ const QuizGeneratorPage = () => {
   const renderNavigation = () => (
     <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
       {/* Study Tools */}
-      <Button
-        variant={currentPage === 'study' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => setCurrentPage('study')}
-        className={`${currentPage === 'study' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-      >
-        <BookOpen className="h-4 w-4 mr-2" />
-        Study Tools
-      </Button>
+        <Button
+          variant={currentPage === 'study' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setCurrentPage('study')}
+          className={`${currentPage === 'study' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+        >
+          <BookOpen className="h-4 w-4 mr-2" />
+          {t('studyTools.nav.studyTools')}
+        </Button>
 
-      {/* Chat */}
-      <Button
-        variant={currentPage === 'chat' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => { setCurrentPage('chat'); navigate('/chat'); }}
-        className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
-      >
-        <MessageSquare className="h-4 w-4 mr-2" />
-        {t('chat.nav.chat')}
-      </Button>
+        {/* Chat */}
+        <Button
+          variant={currentPage === 'chat' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => { setCurrentPage('chat'); navigate('/chat'); }}
+          className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+        >
+          <MessageSquare className="h-4 w-4 mr-2" />
+          {t('studyTools.nav.chat')}
+        </Button>
 
-      {/* Quests & Achievements */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate('/quests')}
-        className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
-      >
-        <Trophy className="h-4 w-4 mr-2" />
-        Quests & Achievements
-      </Button>
+        {/* Quests & Achievements */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/quests')}
+          className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+        >
+          <Trophy className="h-4 w-4 mr-2" />
+          {t('studyTools.nav.questsAchievements')}
+        </Button>
     </div>
   );
 
@@ -71,15 +71,15 @@ const QuizGeneratorPage = () => {
 
       <main className="flex-1 p-6 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Quiz & Study Tools</h1>
-          <p className="text-white/80 mb-6">Generate quizzes from text/image/voice and build study plans from previous grades.</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('studyTools.title')}</h1>
+          <p className="text-white/80 mb-6">{t('studyTools.subtitle')}</p>
 
           <Tabs defaultValue="generate" className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-white/10 border border-white/20">
-              <TabsTrigger value="generate">Generate Quiz</TabsTrigger>
-              <TabsTrigger value="study-plan">Study Plan</TabsTrigger>
-              <TabsTrigger value="quiz-library">Quiz Library</TabsTrigger>
-              <TabsTrigger value="study-library">Study Plans</TabsTrigger>
+              <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
+              <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+              <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
+              <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="generate" className="mt-6">

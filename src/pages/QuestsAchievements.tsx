@@ -9,11 +9,13 @@ import { Trophy, Target, BookOpen, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const QuestsAchievements = () => {
   const { user } = useAuth();
   const { userRole } = useUserRole();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   // Get effective role (session role or stored role)
   const sessionRole = typeof window !== 'undefined' 
@@ -36,7 +38,7 @@ const QuestsAchievements = () => {
           className="text-white hover:bg-white/20"
         >
           <BookOpen className="mr-2 h-4 w-4" />
-          Study Tools
+          {t('quests.nav.studyTools')}
         </Button>
         <Button
           onClick={() => navigate('/chat')}
@@ -45,7 +47,7 @@ const QuestsAchievements = () => {
           className="text-white hover:bg-white/20"
         >
           <MessageCircle className="mr-2 h-4 w-4" />
-          Chat
+          {t('quests.nav.chat')}
         </Button>
         <Button
           variant="ghost"
@@ -54,7 +56,7 @@ const QuestsAchievements = () => {
           disabled
         >
           <Trophy className="mr-2 h-4 w-4" />
-          Quests & Achievements
+          {t('quests.nav.questsAchievements')}
         </Button>
       </div>
     </div>
@@ -72,12 +74,12 @@ const QuestsAchievements = () => {
           {/* Page Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-white">
-              {effectiveRole === 'parent' ? 'Children\'s Quests & Achievements' : 'Quests & Achievements'}
+              {effectiveRole === 'parent' ? t('quests.titleParent') : t('quests.title')}
             </h1>
             <p className="text-xl text-white/80">
               {effectiveRole === 'parent' 
-                ? 'Monitor your children\'s learning journey and celebrate their progress'
-                : 'Track your learning journey and celebrate your progress'
+                ? t('quests.subtitleParent')
+                : t('quests.subtitle')
               }
             </p>
           </div>
@@ -87,7 +89,7 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Target className="h-6 w-6 text-purple-400" />
-                {effectiveRole === 'parent' ? 'Children\'s Quests' : 'Your Quests'}
+                {effectiveRole === 'parent' ? t('quests.section.questsParent') : t('quests.section.quests')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -100,7 +102,7 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Trophy className="h-6 w-6 text-yellow-400" />
-                {effectiveRole === 'parent' ? 'Children\'s Achievements' : 'Your Achievements'}
+                {effectiveRole === 'parent' ? t('quests.section.achievementsParent') : t('quests.section.achievements')}
               </CardTitle>
             </CardHeader>
             <CardContent>

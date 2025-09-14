@@ -13,6 +13,7 @@ import { useUnifiedMonitoring } from '@/hooks/useUnifiedMonitoring';
 import { ComprehensiveMonitoringDashboard } from '@/components/monitoring/ComprehensiveMonitoringDashboard';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useAchievementManagement } from '@/hooks/useAchievementManagement';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -28,6 +29,7 @@ const Monitoring = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('monitoring');
+  const { t } = useLanguage();
   
   // Demo mode - no authentication restrictions for demonstration purposes
   const { studentProgress, overviewStats, loading: dataLoading } = useUnifiedMonitoring();
@@ -88,7 +90,7 @@ const Monitoring = () => {
         className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
       >
         <BarChart3 className="h-4 w-4 mr-2" />
-        Monitoring
+        {t('monitoring.nav.monitoring')}
       </Button>
     </div>
   );
@@ -104,10 +106,10 @@ const Monitoring = () => {
         <div className="mb-12">
           <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center">
             <BarChart3 className="mr-6 h-16 w-16 text-blue-400" />
-            Learning Analytics
+            {t('monitoring.title')}
           </h1>
           <p className="text-white/70 text-2xl">
-            Monitor student progress and performance across all subjects
+            {t('monitoring.subtitle')}
           </p>
         </div>
 
@@ -119,7 +121,7 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200 text-sm font-medium">Study Time</p>
+                  <p className="text-purple-200 text-sm font-medium">{t('monitoring.metrics.studyTime')}</p>
                   <p className="text-white text-3xl font-bold">{overviewStats.totalStudyTime}h</p>
                 </div>
                 <div className="p-3 bg-purple-500/20 rounded-xl">
@@ -133,7 +135,7 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-200 text-sm font-medium">Avg Completion</p>
+                  <p className="text-orange-200 text-sm font-medium">{t('monitoring.metrics.avgCompletion')}</p>
                   <p className="text-white text-3xl font-bold">{overviewStats.avgCompletion}%</p>
                 </div>
                 <div className="p-3 bg-orange-500/20 rounded-xl">
@@ -148,7 +150,7 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-yellow-200 text-sm font-medium">Quests</p>
+                  <p className="text-yellow-200 text-sm font-medium">{t('monitoring.metrics.quests')}</p>
                   <p className="text-white text-3xl font-bold">{overviewStats.totalQuests}</p>
                 </div>
                 <div className="p-3 bg-yellow-500/20 rounded-xl">
@@ -162,7 +164,7 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-cyan-200 text-sm font-medium">Achievements</p>
+                  <p className="text-cyan-200 text-sm font-medium">{t('monitoring.metrics.achievements')}</p>
                   <p className="text-white text-3xl font-bold">{overviewStats.totalAchievements}</p>
                 </div>
                 <div className="p-3 bg-cyan-500/20 rounded-xl">
@@ -176,7 +178,7 @@ const Monitoring = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-emerald-200 text-sm font-medium">Lessons Completed</p>
+                  <p className="text-emerald-200 text-sm font-medium">{t('monitoring.metrics.lessonsCompleted')}</p>
                   <p className="text-white text-3xl font-bold">{overviewStats.totalLessonsCompleted}</p>
                 </div>
                 <div className="p-3 bg-emerald-500/20 rounded-xl">
@@ -195,28 +197,28 @@ const Monitoring = () => {
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
-              Overview
+              {t('monitoring.tabs.overview')}
             </TabsTrigger>
             <TabsTrigger 
               value="children" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Users className="h-4 w-4 mr-2" />
-              Children
+              {t('monitoring.tabs.children')}
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Target className="h-4 w-4 mr-2" />
-              Quests
+              {t('monitoring.tabs.quests')}
             </TabsTrigger>
             <TabsTrigger 
               value="achievements" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Trophy className="h-4 w-4 mr-2" />
-              Achievements
+              {t('monitoring.tabs.achievements')}
             </TabsTrigger>
           </TabsList>
 
