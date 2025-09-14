@@ -1,7 +1,7 @@
 
 
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, Star, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
+import { ArrowRight, Brain, Gamepad2, BarChart, Users, Globe, Lightbulb, Target, CheckCircle, MessageSquare, Zap, Shield, Clock } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
@@ -247,54 +247,8 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('testimonials.title')}</h2>
-              <p className="text-xl text-white/70">{t('testimonials.subtitle')}</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Sarah Chen",
-                  role: t('testimonials.teacher'),
-                  content: t('testimonials.teacher.content'),
-                  rating: 5
-                },
-                {
-                  name: "Michael Rodriguez",
-                  role: t('testimonials.parent'),
-                  content: t('testimonials.parent.content'),
-                  rating: 5
-                },
-                {
-                  name: "Dr. Emily Johnson",
-                  role: t('testimonials.principal'),
-                  content: t('testimonials.principal.content'),
-                  rating: 5
-                }
-              ].map((testimonial, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-white/80 mb-4 italic">"{testimonial.content}"</p>
-                  <div>
-                    <p className="text-white font-semibold">{testimonial.name}</p>
-                    <p className="text-white/60 text-sm">{testimonial.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Pricing Section */}
-        <section id="pricing" className="px-4 py-20 md:px-6 lg:px-8">
+        <section id="pricing" className="px-4 py-20 md:px-6 lg:px-8">{/* Empty line space where testimonials were */}
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('pricing.title')}</h2>
