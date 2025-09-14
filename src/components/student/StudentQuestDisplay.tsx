@@ -6,6 +6,7 @@ import { Target, Trophy, Clock, CheckCircle, Calendar, Gift } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockQuests } from '@/utils/mockData';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -19,6 +20,7 @@ interface Quest {
   target_value: number;
   current_value: number;
   completed?: boolean;
+  status?: 'active' | 'completed' | 'failed';
   expires_at?: string;
   completed_at?: string;
   subjects?: { name: string };
@@ -28,9 +30,17 @@ interface Quest {
 export const StudentQuestDisplay = () => {
   const [activeQuests, setActiveQuests] = useState<Quest[]>([]);
   const [completedQuests, setCompletedQuests] = useState<Quest[]>([]);
+  const [failedQuests, setFailedQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { userRole } = useUserRole();
+  
+  // Get effective role (session role or stored role)
+  const sessionRole = typeof window !== 'undefined' 
+    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
+    : null;
+  const effectiveRole = sessionRole ?? userRole;
 
   useEffect(() => {
     if (isMockDataEnabled()) {
@@ -95,6 +105,7 @@ export const StudentQuestDisplay = () => {
           user_quest_progress!left (
             current_value,
             completed,
+            status,
             created_at
           )
         `)
@@ -153,12 +164,14 @@ export const StudentQuestDisplay = () => {
           current_value: progress?.current_value || 0,
           expires_at: quest.expires_at,
           completed: progress?.completed || false,
+          status: (progress?.status as 'active' | 'completed' | 'failed') || 'active',
           subjects: quest.subjects
         };
       });
 
-      setActiveQuests(questsWithProgress.filter(q => !q.completed));
-      setCompletedQuests(questsWithProgress.filter(q => q.completed));
+      setActiveQuests(questsWithProgress.filter(q => q.status === 'active'));
+      setCompletedQuests(questsWithProgress.filter(q => q.status === 'completed'));
+      setFailedQuests(questsWithProgress.filter(q => q.status === 'failed'));
     } catch (error: any) {
       console.error('Error fetching quests:', error);
       toast({
@@ -260,6 +273,47 @@ export const StudentQuestDisplay = () => {
           </div>
         )}
       </div>
+
+      {/* Failed Quests - Only show for parents viewing children */}
+      {failedQuests.length > 0 && effectiveRole === 'parent' && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5 text-red-400" />
+            Failed Quests ({failedQuests.length})
+          </h3>
+          
+          <div className="grid gap-4">
+            {failedQuests.map((quest) => (
+              <Card key={quest.id} className="bg-red-500/10 border-red-500/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Target className="h-5 w-5 text-red-400" />
+                      <div>
+                        <h4 className="font-medium text-white">{quest.title}</h4>
+                        <p className="text-sm text-gray-400">{quest.description}</p>
+                        <p className="text-xs text-red-400 mt-1">
+                          Progress: {quest.current_value}/{quest.target_value}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="destructive" className="bg-red-500/20 text-red-300">
+                        Failed
+                      </Badge>
+                      {quest.expires_at && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          Expired: {new Date(quest.expires_at).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Completed Quests */}
       {completedQuests.length > 0 && (

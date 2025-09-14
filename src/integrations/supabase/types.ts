@@ -1735,6 +1735,7 @@ export type Database = {
           progress_data: Json | null
           quest_id: string
           school_id: string | null
+          status: string | null
           user_id: string
         }
         Insert: {
@@ -1746,6 +1747,7 @@ export type Database = {
           progress_data?: Json | null
           quest_id: string
           school_id?: string | null
+          status?: string | null
           user_id: string
         }
         Update: {
@@ -1757,6 +1759,7 @@ export type Database = {
           progress_data?: Json | null
           quest_id?: string
           school_id?: string | null
+          status?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1781,6 +1784,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      mark_expired_daily_quests_as_failed: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_student_monitoring_snapshot: {
         Args: { user_id: string }
         Returns: undefined
