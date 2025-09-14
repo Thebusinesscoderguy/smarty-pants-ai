@@ -25,7 +25,7 @@ export const useAchievementManagement = () => {
   // Use demo data when not authenticated or in demo mode
   const useDemoData = !user || window.location.href.includes('demo');
 
-  const fetchAchievements = async () => {
+  const fetchAchievements = async (filterByCreator = false) => {
     if (useDemoData) {
       setAchievements(getDemoAchievementList());
       return;
@@ -35,11 +35,16 @@ export const useAchievementManagement = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('achievements')
-        .select('*')
-        .eq('creator_id', user.id)
-        .order('created_at', { ascending: false });
+        .select('*');
+      
+      // Only filter by creator when specifically requested (for management)
+      if (filterByCreator) {
+        query = query.eq('creator_id', user.id);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setAchievements(data || []);
@@ -98,7 +103,7 @@ export const useAchievementManagement = () => {
         description: "Achievement created successfully!",
       });
 
-      await fetchAchievements();
+      await fetchAchievements(true);
       return data;
     } catch (error: any) {
       console.error('Error creating achievement:', error);
@@ -133,7 +138,7 @@ export const useAchievementManagement = () => {
         description: "Achievement updated successfully!",
       });
 
-      await fetchAchievements();
+      await fetchAchievements(true);
     } catch (error: any) {
       console.error('Error updating achievement:', error);
       toast({
@@ -166,7 +171,7 @@ export const useAchievementManagement = () => {
         description: "Achievement deleted successfully!",
       });
 
-      await fetchAchievements();
+      await fetchAchievements(true);
     } catch (error: any) {
       console.error('Error deleting achievement:', error);
       toast({
@@ -178,7 +183,7 @@ export const useAchievementManagement = () => {
   };
 
   useEffect(() => {
-    fetchAchievements();
+    fetchAchievements(true); // Filter by creator for management
   }, [user, useDemoData]);
 
   return {
