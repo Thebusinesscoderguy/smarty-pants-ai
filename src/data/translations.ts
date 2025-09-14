@@ -264,6 +264,13 @@ export const translations: TranslationData = {
     'quests.section.achievements': 'Your Achievements',
     'quests.section.achievementsParent': 'Children\'s Achievements',
 
+    // Quest Display Content (for StudentQuestDisplay)
+    'questDisplay.yourQuests': 'Your Quests',
+    'questDisplay.completeQuests': 'Complete quests to earn rewards and track your progress',
+    'questDisplay.activeQuests': 'Active Quests',
+    'questDisplay.progress': 'Progress',
+
+
     // Monitoring 
     'monitoring.title': 'Learning Analytics',
     'monitoring.subtitle': 'Monitor student progress and performance across all subjects',
