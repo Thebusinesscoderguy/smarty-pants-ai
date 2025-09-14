@@ -570,6 +570,23 @@ export const translations: TranslationData = {
     'auth.error.passwordMismatch': 'Passwords do not match. Please try again.',
     'auth.error.passwordLength': 'Password must be at least 6 characters long.',
     'auth.error.alreadyRegistered': 'This email is already registered. Please sign in instead.',
+    
+    // Enhanced Quiz Generator
+    'quizGenerator.title': 'Enhanced Quiz Generator',
+    'quizGenerator.subtitle': 'Create quizzes from topics, uploaded materials, or custom AI instructions',
+    'quizGenerator.topicBased': 'Topic Based',
+    'quizGenerator.uploadMaterial': 'Upload Material',
+    'quizGenerator.aiInstructions': 'AI Instructions',
+    'quizGenerator.quizTopic': 'Quiz Topic',
+    'quizGenerator.topicPlaceholder': 'e.g., Photosynthesis, World War II, Algebra...',
+    'quizGenerator.difficultyLevel': 'Difficulty Level',
+    'quizGenerator.gradeLevel': 'Grade Level',
+    'quizGenerator.selectGrade': 'Select grade level',
+    'quizGenerator.numberOfQuestions': 'Number of Questions',
+    'quizGenerator.generateQuiz': 'Generate Quiz',
+    'quizGenerator.medium': 'Medium',
+    'quizGenerator.easy': 'Easy',
+    'quizGenerator.hard': 'Hard',
   },
   es: {
     'nav.features': 'Características',
