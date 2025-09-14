@@ -169,7 +169,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
               <Button 
                 onClick={addChild}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
               >
                 {loading ? 'Adding...' : 'Add Child'}
               </Button>
@@ -199,8 +199,8 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                       className="p-4 bg-white/5 rounded-lg border border-white/10"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/20 rounded-full">
-                          <UserCheck className="h-4 w-4 text-blue-400" />
+                        <div className="p-2 bg-pink-500/20 rounded-full">
+                          <UserCheck className="h-4 w-4 text-pink-400" />
                         </div>
                         <div>
                           <p className="text-white font-medium">
@@ -222,7 +222,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
         <div className="text-center mt-8">
           <Button 
             onClick={onComplete}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8"
+            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-8"
           >
             Continue to Dashboard
           </Button>
