@@ -132,12 +132,13 @@ export const useUnifiedMonitoring = () => {
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  // Use demo data when not authenticated or in demo mode
-  const useDemoData = !user || window.location.href.includes('demo');
-
   useEffect(() => {
-    if (useDemoData) {
-      // Convert demo data to unified format
+    fetchData();
+  }, [user]);
+
+  const fetchData = async () => {
+    if (!user) {
+      // Use demo data when not authenticated
       const demoData = getDemoStudentProgress();
       const convertedData = demoData.map(student => ({
         ...student,
@@ -149,7 +150,7 @@ export const useUnifiedMonitoring = () => {
         subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
         test_scores: (student.test_scores || []).map(test => ({
           ...test,
-          subject: inferSubjectFromTestName(test.test_name) // Infer subject from test name
+          subject: inferSubjectFromTestName(test.test_name)
         })),
         response_analytics: {
           average_response_time: 3500,
@@ -170,12 +171,13 @@ export const useUnifiedMonitoring = () => {
       setLastRefresh(new Date());
       return;
     }
-    fetchUnifiedMonitoringData();
-  }, [user, useDemoData]);
+
+    await fetchUnifiedMonitoringData();
+  };
 
   // Real-time subscription for monitoring updates
   useEffect(() => {
-    if (!user || useDemoData) return;
+    if (!user) return;
 
     const channel = supabase
       .channel('monitoring-updates')
@@ -196,10 +198,10 @@ export const useUnifiedMonitoring = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, useDemoData]);
+  }, [user]);
 
   const fetchUnifiedMonitoringData = async () => {
-    if (!user) return;
+    if (!user) return await fetchData();
 
     setLoading(true);
     try {
@@ -209,9 +211,39 @@ export const useUnifiedMonitoring = () => {
       const studentIds = await getAccessibleStudents();
       
       if (studentIds.length === 0) {
-        console.log('No accessible students found');
-        setStudentProgress([]);
-        setOverviewStats(prev => ({ ...prev, totalStudents: 0 }));
+        console.log('No accessible students found - using demo data');
+        // Use demo data when no students are accessible
+        const demoData = getDemoStudentProgress();
+        const convertedData = demoData.map(student => ({
+          ...student,
+          subjects_active: student.subjects?.length || 0,
+          avg_score: student.test_scores?.length > 0 
+            ? Math.round(student.test_scores.reduce((sum, t) => sum + t.percentage, 0) / student.test_scores.length)
+            : 0,
+          achievements_count: student.achievements?.length || 0,
+          subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
+          test_scores: (student.test_scores || []).map(test => ({
+            ...test,
+            subject: inferSubjectFromTestName(test.test_name)
+          })),
+          response_analytics: {
+            average_response_time: 3500,
+            quiz_performance_trend: [75, 80, 85, 82, 88],
+            fast_response_topics: student.strengths.slice(0, 3),
+            slow_response_topics: student.weak_areas.slice(0, 2),
+            accuracy_by_topic: {}
+          },
+          activity_trend: generateDemoActivityTrend(),
+          performance_insights: generateDemoInsights(student)
+        }));
+        setStudentProgress(convertedData);
+        setOverviewStats({
+          ...getDemoMonitoringOverviewStats(),
+          activeToday: 5,
+          weeklyGrowth: 12
+        });
+        setLastRefresh(new Date());
+        setLoading(false);
         return;
       }
 
@@ -305,8 +337,42 @@ export const useUnifiedMonitoring = () => {
         achievements
       );
 
-      setStudentProgress(unifiedStudentData);
-      setOverviewStats(overviewResult);
+      // If no real data, fall back to demo data
+      if (unifiedStudentData.length === 0) {
+        console.log('No real data found - using demo data');
+        const demoData = getDemoStudentProgress();
+        const convertedData = demoData.map(student => ({
+          ...student,
+          subjects_active: student.subjects?.length || 0,
+          avg_score: student.test_scores?.length > 0 
+            ? Math.round(student.test_scores.reduce((sum, t) => sum + t.percentage, 0) / student.test_scores.length)
+            : 0,
+          achievements_count: student.achievements?.length || 0,
+          subjects: (student.subjects || []).map(s => ({ ...s, avg_score: 85 })),
+          test_scores: (student.test_scores || []).map(test => ({
+            ...test,
+            subject: inferSubjectFromTestName(test.test_name)
+          })),
+          response_analytics: {
+            average_response_time: 3500,
+            quiz_performance_trend: [75, 80, 85, 82, 88],
+            fast_response_topics: student.strengths.slice(0, 3),
+            slow_response_topics: student.weak_areas.slice(0, 2),
+            accuracy_by_topic: {}
+          },
+          activity_trend: generateDemoActivityTrend(),
+          performance_insights: generateDemoInsights(student)
+        }));
+        setStudentProgress(convertedData);
+        setOverviewStats({
+          ...getDemoMonitoringOverviewStats(),
+          activeToday: 5,
+          weeklyGrowth: 12
+        });
+      } else {
+        setStudentProgress(unifiedStudentData);
+        setOverviewStats(overviewResult);
+      }
       setLastRefresh(new Date());
 
     } catch (error: any) {
