@@ -115,7 +115,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
@@ -129,12 +129,12 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
         <div className="grid gap-6">
           {/* Parent Option */}
           <Card 
-            className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-indigo-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+            className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-fuchsia-500/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('parent')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-indigo-500/30 transition-colors">
-                <Users className="h-8 w-8 text-blue-400" />
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-fuchsia-500/30 transition-colors">
+                <Users className="h-8 w-8 text-purple-400" />
               </div>
               <CardTitle className="text-white">I'm the Parent</CardTitle>
               <CardDescription className="text-white/70">
@@ -149,7 +149,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                 <li>• Manage study plans</li>
               </ul>
               <Button 
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0"
+                className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('parent');
@@ -169,12 +169,12 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                 {children.map((child) => (
                   <Card 
                     key={child.id}
-                    className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+                    className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-fuchsia-500/20 transition-all cursor-pointer group backdrop-blur-sm"
                     onClick={() => handleRoleSelection('child', child.id)}
                   >
                     <CardHeader className="text-center pb-2">
-                      <div className="mx-auto mb-2 p-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full w-fit group-hover:from-blue-500/30 group-hover:to-cyan-500/30 transition-colors">
-                        <Baby className="h-6 w-6 text-blue-400" />
+                      <div className="mx-auto mb-2 p-3 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-fuchsia-500/30 transition-colors">
+                        <Baby className="h-6 w-6 text-purple-400" />
                       </div>
                       <CardTitle className="text-white text-lg">
                         {child.first_name} {child.last_name}
@@ -182,7 +182,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <Button 
-                        className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0"
+                        className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white border-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRoleSelection('child', child.id);
