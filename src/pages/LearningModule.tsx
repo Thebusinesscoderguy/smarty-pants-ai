@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import LessonViewer from '@/components/learning/LessonViewer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useGamification } from '@/hooks/useGamification';
 
 interface DailyLesson {
   day: number;
@@ -11,6 +12,8 @@ interface DailyLesson {
   activities: string[];
   estimatedTime: number;
   practiceQuestions: number;
+  completed?: boolean;
+  completedAt?: string;
 }
 
 interface StudyPlan {
@@ -26,7 +29,7 @@ const LearningModule = () => {
   const [currentDay, setCurrentDay] = useState(1);
   const [loading, setLoading] = useState(true);
   const [lessonContent, setLessonContent] = useState<string>('');
-
+  const { completeLesson } = useGamification();
   useEffect(() => {
     const loadStudyPlan = async () => {
       try {
@@ -208,13 +211,33 @@ const LearningModule = () => {
     <LessonViewer 
       lesson={lesson}
       onBack={() => navigate('/quiz-generator')}
-      onComplete={() => {
-        // Mark lesson as completed and navigate back
-        toast({
-          title: "Lesson completed!",
-          description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}`
-        });
-        navigate('/quiz-generator');
+      onComplete={async (lessonId) => {
+        try {
+          // Save user progress
+          await completeLesson(lessonId);
+
+          // Mark the current day as completed in the study plan JSON
+          const updatedLessons = studyPlan!.daily_lessons.map((l) =>
+            l.day === currentLesson.day
+              ? { ...l, completed: true, completedAt: new Date().toISOString() }
+              : l
+          );
+
+          await supabase
+            .from('study_plans')
+            .update({ daily_lessons: updatedLessons as any })
+            .eq('id', studyPlan!.id);
+
+          toast({
+            title: "Lesson completed!",
+            description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}`
+          });
+        } catch (error) {
+          console.error('Error completing lesson:', error);
+          toast({ title: 'Error', description: 'Failed to save completion', variant: 'destructive' });
+        } finally {
+          navigate('/quiz-generator');
+        }
       }}
     />
   );
