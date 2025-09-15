@@ -78,7 +78,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
           description: `Generated quiz for Day ${lesson.day}: ${lesson.topic}`
         });
         onClose();
-        navigate('/quiz');
+        navigate('/quiz-generator');
       }
     } catch (error) {
       console.error('Error creating quiz:', error);

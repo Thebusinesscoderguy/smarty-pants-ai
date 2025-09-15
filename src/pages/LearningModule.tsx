@@ -42,7 +42,7 @@ const LearningModule = () => {
             description: "Please create a study plan first",
             variant: "destructive"
           });
-          navigate('/quiz');
+          navigate('/quiz-generator');
           return;
         }
 
@@ -84,7 +84,7 @@ const LearningModule = () => {
             description: "The study plan may have been deleted or doesn't belong to you",
             variant: "destructive"
           });
-          navigate('/quiz');
+          navigate('/quiz-generator');
           return;
         }
         
@@ -157,7 +157,7 @@ const LearningModule = () => {
           description: error.message || "Please try again",
           variant: "destructive"
         });
-        navigate('/quiz');
+        navigate('/quiz-generator');
       } finally {
         console.log('=== LearningModule: Loading complete, setting loading to false ===');
         setLoading(false);
@@ -181,7 +181,7 @@ const LearningModule = () => {
         <div className="text-white text-center">
           <h2 className="text-xl mb-4">No lessons found</h2>
           <button 
-            onClick={() => navigate('/quiz')}
+            onClick={() => navigate('/quiz-generator')}
             className="text-blue-400 underline"
           >
             Return to Quiz Generator
@@ -207,14 +207,14 @@ const LearningModule = () => {
   return (
     <LessonViewer 
       lesson={lesson}
-      onBack={() => navigate('/quiz')}
+      onBack={() => navigate('/quiz-generator')}
       onComplete={() => {
         // Mark lesson as completed and navigate back
         toast({
           title: "Lesson completed!",
           description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}`
         });
-        navigate('/quiz');
+        navigate('/quiz-generator');
       }}
     />
   );

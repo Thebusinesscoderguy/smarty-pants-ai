@@ -100,7 +100,7 @@ const FamilyHub = () => {
       description: 'Get personalized study plans from quiz mistakes',
       icon: FileQuestion,
       color: 'from-blue-500 to-purple-600',
-      action: () => navigate('/quiz', { state: { tab: 'study-plan' } })
+      action: () => navigate('/quiz-generator', { state: { tab: 'study-plan' } })
     },
     {
       id: 'create-quiz',
@@ -108,7 +108,7 @@ const FamilyHub = () => {
       description: 'AI creates quizzes based on weak areas',
       icon: Brain,
       color: 'from-green-500 to-emerald-600',
-      action: () => navigate('/quiz', { state: { tab: 'generate' } })
+      action: () => navigate('/quiz-generator', { state: { tab: 'generate' } })
     },
     {
       id: 'voice-chat',
@@ -283,7 +283,7 @@ const FamilyHub = () => {
                       <span className="text-white">{area}</span>
                       <Button 
                         size="sm"
-                        onClick={() => navigate('/quiz', { state: { topic: area, tab: 'generate' } })}
+                        onClick={() => navigate('/quiz-generator', { state: { topic: area, tab: 'generate' } })}
                         className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xs"
                       >
                         Practice
