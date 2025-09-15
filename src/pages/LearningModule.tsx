@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LessonViewer from '@/components/learning/LessonViewer';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,11 +25,21 @@ interface StudyPlan {
 
 const LearningModule = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(null);
   const [currentDay, setCurrentDay] = useState(1);
   const [loading, setLoading] = useState(true);
   const [lessonContent, setLessonContent] = useState<string>('');
   const { completeLesson } = useGamification();
+
+  // Sync current day from URL param (?day=)
+  useEffect(() => {
+    const dayParam = Number(searchParams.get('day'));
+    if (!Number.isNaN(dayParam) && dayParam > 0) {
+      setCurrentDay(dayParam);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const loadStudyPlan = async () => {
       try {
@@ -223,20 +233,28 @@ const LearningModule = () => {
               : l
           );
 
-          await supabase
-            .from('study_plans')
-            .update({ daily_lessons: updatedLessons as any })
-            .eq('id', studyPlan!.id);
+          const nextUncompleted = updatedLessons.find((l: any) => !l.completed);
+          const nextDay = nextUncompleted ? nextUncompleted.day : null;
 
           toast({
             title: "Lesson completed!",
             description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}`
           });
+
+          // Navigate to next lesson if available
+          if (nextDay) {
+            navigate(`/modules?day=${nextDay}`);
+          } else {
+            // Mark plan as completed
+            await supabase
+              .from('study_plans')
+              .update({ status: 'completed' })
+              .eq('id', studyPlan!.id);
+            navigate('/quiz-generator');
+          }
         } catch (error) {
           console.error('Error completing lesson:', error);
           toast({ title: 'Error', description: 'Failed to save completion', variant: 'destructive' });
-        } finally {
-          navigate('/quiz-generator');
         }
       }}
     />

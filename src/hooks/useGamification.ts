@@ -208,8 +208,12 @@ export const useGamification = () => {
     }));
   };
 
-  const completeLesson = async (lessonId: string, timeSpent: number = 0) => {
+  const completeLesson = async (lessonId?: string, timeSpent: number = 0) => {
     if (!user) return;
+
+    // Helper: validate UUID v4
+    const isValidUuid = (val?: string) =>
+      !!val && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val);
 
     try {
       // Update or insert user progress
@@ -217,7 +221,7 @@ export const useGamification = () => {
         .from('user_progress')
         .upsert({
           user_id: user.id,
-          lesson_id: lessonId,
+          lesson_id: isValidUuid(lessonId) ? (lessonId as any) : null,
           status: 'completed',
           completion_percentage: 100,
           time_spent: timeSpent,

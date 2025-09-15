@@ -227,7 +227,13 @@ export const StudyPlanLibrary = () => {
       }
 
       localStorage.setItem('active_study_plan_id', studyPlan.id);
-      navigate('/modules');
+
+      // Determine next uncompleted day (fallback to 1)
+      const lessons = Array.isArray(studyPlan.daily_lessons) ? studyPlan.daily_lessons : [];
+      const nextUncompleted = lessons.find((l: any) => !l.completed);
+      const nextDay = nextUncompleted ? nextUncompleted.day : 1;
+
+      navigate(`/modules?day=${nextDay}`);
     } catch (error: any) {
       console.error('Error continuing study plan:', error);
       toast({
@@ -272,6 +278,8 @@ export const StudyPlanLibrary = () => {
         {studyPlans.map((plan) => {
           const dailyLessonsArray = Array.isArray(plan.daily_lessons) ? plan.daily_lessons : [];
           const isStarted = plan.status === 'active' || plan.started_at;
+          const completedCount = dailyLessonsArray.filter((l: any) => l.completed).length;
+          const progressPct = dailyLessonsArray.length ? Math.round((completedCount / dailyLessonsArray.length) * 100) : 0;
 
           return (
             <Card key={plan.id} className="hover:shadow-md transition-shadow">
@@ -369,12 +377,12 @@ export const StudyPlanLibrary = () => {
                     <div className="pt-2 border-t">
                       <div className="flex justify-between text-sm text-muted-foreground mb-1">
                         <span>Progress</span>
-                        <span>0/{dailyLessonsArray.length} lessons completed</span>
+                        <span>{completedCount}/{dailyLessonsArray.length} lessons completed</span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div 
                           className="bg-primary h-2 rounded-full transition-all duration-300"
-                          style={{ width: '0%' }}
+                          style={{ width: `${progressPct}%` }}
                         ></div>
                       </div>
                     </div>
