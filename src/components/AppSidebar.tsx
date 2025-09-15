@@ -38,7 +38,7 @@ import { toast } from "@/hooks/use-toast";
 
 // Child navigation - limited access
 const childNavigationItems = [
-  { title: "Study Tools", icon: BookOpen, url: "/quiz" },
+  { title: "Study Tools", icon: BookOpen, url: "/quiz-generator" },
   { title: "Chat", icon: MessageSquare, url: "/chat" },
   { title: "Quests & Achievements", icon: Trophy, url: "/quests" },
 ];
