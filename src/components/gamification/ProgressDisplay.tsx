@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Target, Clock, BookOpen } from 'lucide-react';
+import { Target, BookOpen } from 'lucide-react';
 import { useQuests } from '@/hooks/useQuests';
 import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export const ProgressDisplay = () => {
   const { user } = useAuth();
   const { dailyQuests, subjectAssignments, isLoading } = useQuests();
-  const { userAchievements } = useGamification();
+  
 
   if (!user) {
     return (

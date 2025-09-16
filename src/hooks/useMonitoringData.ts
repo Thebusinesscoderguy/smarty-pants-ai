@@ -28,11 +28,6 @@ export interface StudentProgress {
     percentage: number;
     completed_at: string;
   }>;
-  achievements: Array<{
-    name: string;
-    earned_at: string;
-    points: number;
-  }>;
 }
 
 export const useMonitoringData = () => {
@@ -45,8 +40,7 @@ export const useMonitoringData = () => {
     totalLessonsCompleted: 0,
     totalTests: 0,
     totalCurricula: 0,
-    totalQuests: 0,
-    totalAchievements: 0
+    totalQuests: 0
   });
   const [loading, setLoading] = useState(false);
 
@@ -60,8 +54,7 @@ export const useMonitoringData = () => {
         totalLessonsCompleted: 0,
         totalTests: 0,
         totalCurricula: 0,
-        totalQuests: 0,
-        totalAchievements: 0
+        totalQuests: 0
       });
       return;
     }
@@ -107,17 +100,16 @@ export const useMonitoringData = () => {
       }
 
       // Fetch core datasets in parallel for speed
-      const [profilesRes, progressRes, testAttemptsRes, userAchievementsRes] = await Promise.all([
+      const [profilesRes, progressRes, testAttemptsRes] = await Promise.all([
         supabase.from('profiles').select('id, display_name').in('id', studentIds),
         supabase.from('user_progress').select('*').in('user_id', studentIds),
         supabase.from('test_attempts').select(`*, tests(title)`).in('student_id', studentIds),
-        supabase.from('user_achievements').select(`*, achievements(name, points)`).in('user_id', studentIds),
       ]);
 
       const profiles = profilesRes?.data || [];
       const progressData = progressRes?.data || [];
       const testAttempts = testAttemptsRes?.data || [];
-      const userAchievements = userAchievementsRes?.data || [];
+      
 
       // Fallback if profiles table is empty or not accessible
       const safeProfiles = (profiles.length ? profiles : studentIds.map(id => ({ id, display_name: 'Student' }))) as Array<{ id: string; display_name: string | null }>;
@@ -125,7 +117,7 @@ export const useMonitoringData = () => {
       const studentProgressData: StudentProgress[] = (safeProfiles || []).map(profile => {
         const studentProgress = (progressData || []).filter(p => p.user_id === profile.id);
         const studentTests = (testAttempts || []).filter(t => t.student_id === profile.id);
-        const studentAchievementsForUser = (userAchievements || []).filter(a => a.user_id === profile.id);
+        
 
         const totalTime = studentProgress.reduce((sum, p) => sum + (p.time_spent || 0), 0);
         const completedLessons = studentProgress.filter(p => p.status === 'completed').length;
@@ -154,11 +146,6 @@ export const useMonitoringData = () => {
             percentage: test.percentage || 0,
             completed_at: test.completed_at || ''
           })),
-          achievements: studentAchievementsForUser.map(achievement => ({
-            name: achievement.achievements?.name || 'Unknown Achievement',
-            earned_at: achievement.earned_at || '',
-            points: achievement.achievements?.points || 0
-          }))
         };
       });
 
@@ -172,11 +159,10 @@ export const useMonitoringData = () => {
       const totalStudyTime = Math.round(studentProgressData.reduce((sum, s) => sum + s.total_time_spent, 0) / 60);
       const totalLessonsCompleted = studentProgressData.reduce((sum, s) => sum + s.completed_lessons, 0);
 
-      const [testsData, curriculaData, questsData, achievementsData] = await Promise.all([
+      const [testsData, curriculaData, questsData] = await Promise.all([
         supabase.from('tests').select('id', { count: 'exact' }).eq('creator_id', user.id),
         supabase.from('curricula').select('id', { count: 'exact' }),
-        supabase.from('quests').select('id', { count: 'exact' }).eq('created_by_id', user.id),
-        supabase.from('achievements').select('id', { count: 'exact' }).eq('creator_id', user.id)
+        supabase.from('quests').select('id', { count: 'exact' }).eq('created_by_id', user.id)
       ]);
 
       setOverviewStats({
@@ -186,8 +172,7 @@ export const useMonitoringData = () => {
         totalLessonsCompleted,
         totalTests: testsData.count || 0,
         totalCurricula: curriculaData.count || 0,
-        totalQuests: questsData.count || 0,
-        totalAchievements: achievementsData.count || 0
+        totalQuests: questsData.count || 0
       });
 
     } catch (error: any) {

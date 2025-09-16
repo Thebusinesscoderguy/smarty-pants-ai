@@ -220,7 +220,6 @@ export const useUnifiedMonitoring = () => {
         progressResult,
         testAttemptsResult,
         interactionsResult,
-        achievementsResult,
         overviewResult
       ] = await Promise.all([
         supabase
@@ -268,15 +267,6 @@ export const useUnifiedMonitoring = () => {
           .order('created_at', { ascending: false })
           .limit(1000),
         
-        supabase
-          .from('user_achievements')
-          .select(`
-            user_id,
-            earned_at,
-            achievements (name, points)
-          `)
-          .in('user_id', studentIds),
-        
         fetchOverviewStats(studentIds)
       ]);
 
@@ -284,15 +274,14 @@ export const useUnifiedMonitoring = () => {
         profiles: profilesResult.data?.length || 0,
         progress: progressResult.data?.length || 0,
         tests: testAttemptsResult.data?.length || 0,
-        interactions: interactionsResult.data?.length || 0,
-        achievements: achievementsResult.data?.length || 0
+        interactions: interactionsResult.data?.length || 0
       });
 
       const profiles = profilesResult.data || [];
       const progressData = progressResult.data || [];
       const testAttempts = testAttemptsResult.data || [];
       const interactions = interactionsResult.data || [];
-      const achievements = achievementsResult.data || [];
+      const achievements: any[] = [];
 
       // Process unified student data
       const unifiedStudentData = await processUnifiedStudentData(
@@ -632,11 +621,10 @@ export const useUnifiedMonitoring = () => {
 
   const fetchOverviewStats = async (studentIds: string[]): Promise<OverviewStats> => {
     try {
-      const [testsData, curriculaData, questsData, achievementsData] = await Promise.all([
+      const [testsData, curriculaData, questsData] = await Promise.all([
         supabase.from('tests').select('id', { count: 'exact' }),
         supabase.from('curricula').select('id', { count: 'exact' }),
-        supabase.from('quests').select('id', { count: 'exact' }),
-        supabase.from('achievements').select('id', { count: 'exact' })
+        supabase.from('quests').select('id', { count: 'exact' })
       ]);
 
       // Calculate stats from student progress
@@ -692,7 +680,7 @@ export const useUnifiedMonitoring = () => {
         totalTests: testsData.count || 0,
         totalCurricula: curriculaData.count || 0,
         totalQuests: questsData.count || 0,
-        totalAchievements: achievementsData.count || 0,
+        totalAchievements: 0,
         activeToday,
         weeklyGrowth: 5 // Placeholder - requires historical comparisons
       };
