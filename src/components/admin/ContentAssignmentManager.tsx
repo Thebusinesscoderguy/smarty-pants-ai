@@ -12,7 +12,6 @@ import { useStudentClassifications } from '@/hooks/useStudentClassifications';
 import { useTestManagement } from '@/hooks/useTestManagement';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
-import { useAchievementManagement } from '@/hooks/useAchievementManagement';
 import { useMonitoringData } from '@/hooks/useMonitoringData';
 
 export const ContentAssignmentManager = () => {
@@ -21,7 +20,6 @@ export const ContentAssignmentManager = () => {
   const { tests } = useTestManagement();
   const { quests } = useQuestManagement();
   const { curricula } = useCurriculumManagement();
-  const { achievements } = useAchievementManagement();
   const { studentProgress } = useMonitoringData();
 
   const [selectedContentType, setSelectedContentType] = useState<string>('');
@@ -38,8 +36,6 @@ export const ContentAssignmentManager = () => {
         return quests.map(q => ({ id: q.id, title: q.title }));
       case 'curriculum':
         return curricula.map(c => ({ id: c.id, title: c.title }));
-      case 'achievement':
-        return achievements.map(a => ({ id: a.id, title: a.name }));
       default:
         return [];
     }
@@ -125,7 +121,6 @@ export const ContentAssignmentManager = () => {
                   <SelectItem value="test">Test</SelectItem>
                   <SelectItem value="quest">Quest</SelectItem>
                   <SelectItem value="curriculum">Curriculum</SelectItem>
-                  <SelectItem value="achievement">Achievement</SelectItem>
                 </SelectContent>
               </Select>
 

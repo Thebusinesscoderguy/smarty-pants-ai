@@ -101,12 +101,8 @@ export const EnhancedAnalytics = () => {
           .eq('user_id', studentId)
           .eq('school_id', schoolData.id);
 
-        // Get achievements
-        const { data: achievements } = await supabase
-          .from('user_achievements')
-          .select('*')
-          .eq('user_id', studentId)
-          .eq('school_id', schoolData.id);
+        // Get achievements - removed (achievements system disabled)
+        const achievements: any[] = [];
 
         // Get learning analytics
         const { data: learningData } = await supabase
@@ -158,8 +154,8 @@ export const EnhancedAnalytics = () => {
             total: questProgress?.length || 0
           },
           achievements: {
-            earned: achievements?.length || 0,
-            total: 10 // This would come from total available achievements
+            earned: 0, // Achievements system removed
+            total: 0
           }
         });
       }

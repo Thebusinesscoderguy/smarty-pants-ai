@@ -43,10 +43,8 @@ export const SchoolOverview = () => {
         .from('quests')
         .select('is_active');
 
-      // Fetch achievement count
-      const { data: achievements } = await supabase
-        .from('achievements')
-        .select('id');
+      // Fetch achievement count - removed (achievements system disabled)
+      const achievements: any[] = [];
 
       // Fetch subject count
       const { data: subjects } = await supabase
@@ -58,7 +56,7 @@ export const SchoolOverview = () => {
         activeInvitations: invitations?.filter(inv => !inv.used).length || 0,
         totalQuests: quests?.length || 0,
         activeQuests: quests?.filter(quest => quest.is_active).length || 0,
-        totalAchievements: achievements?.length || 0,
+        totalAchievements: 0, // Achievements system removed
         totalSubjects: subjects?.length || 0
       });
     } catch (error) {
@@ -89,10 +87,10 @@ export const SchoolOverview = () => {
     },
     {
       title: 'Achievements',
-      value: stats.totalAchievements,
-      subtitle: 'Available rewards',
+      value: 0, // Achievements system removed
+      subtitle: 'System disabled',
       icon: Trophy,
-      color: 'bg-yellow-500'
+      color: 'bg-gray-500'
     },
     {
       title: 'Subjects',

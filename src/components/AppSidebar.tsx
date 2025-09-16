@@ -40,7 +40,7 @@ import { toast } from "@/hooks/use-toast";
 const childNavigationItems = [
   { title: "Study Tools", icon: BookOpen, url: "/quiz-generator" },
   { title: "Chat", icon: MessageSquare, url: "/chat" },
-  { title: "Quests & Achievements", icon: Trophy, url: "/quests" },
+  { title: "Quests", icon: Trophy, url: "/quests" },
 ];
 
 // Parent navigation - monitoring only

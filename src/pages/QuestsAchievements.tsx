@@ -2,7 +2,6 @@ import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
-import { StudentAchievements } from '@/components/student/StudentAchievements';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, Target, BookOpen, MessageCircle } from 'lucide-react';
@@ -38,7 +37,7 @@ const QuestsAchievements = () => {
           className="text-white hover:bg-white/20"
         >
           <BookOpen className="mr-2 h-4 w-4" />
-          {t('quests.nav.studyTools')}
+            Study Tools
         </Button>
         <Button
           onClick={() => navigate('/chat')}
@@ -47,7 +46,7 @@ const QuestsAchievements = () => {
           className="text-white hover:bg-white/20"
         >
           <MessageCircle className="mr-2 h-4 w-4" />
-          {t('quests.nav.chat')}
+            Chat
         </Button>
         <Button
           variant="ghost"
@@ -56,7 +55,7 @@ const QuestsAchievements = () => {
           disabled
         >
           <Trophy className="mr-2 h-4 w-4" />
-          {t('quests.nav.questsAchievements')}
+            Quests
         </Button>
       </div>
     </div>
@@ -73,15 +72,8 @@ const QuestsAchievements = () => {
           
           {/* Page Header */}
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-white">
-              {effectiveRole === 'parent' ? t('quests.titleParent') : t('quests.title')}
-            </h1>
-            <p className="text-xl text-white/80">
-              {effectiveRole === 'parent' 
-                ? t('quests.subtitleParent')
-                : t('quests.subtitle')
-              }
-            </p>
+            <h1 className="text-4xl font-bold text-white">Quests</h1>
+            <p className="text-xl text-white/80">Complete quests to earn rewards and track your progress</p>
           </div>
 
           {/* Quests Section */}
@@ -89,24 +81,11 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Target className="h-6 w-6 text-purple-400" />
-                {effectiveRole === 'parent' ? t('quests.section.questsParent') : t('quests.section.quests')}
+                Quests
               </CardTitle>
             </CardHeader>
             <CardContent>
               <StudentQuestDisplay />
-            </CardContent>
-          </Card>
-
-          {/* Achievements Section */}
-          <Card className="bg-white/10 border-white/20 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Trophy className="h-6 w-6 text-yellow-400" />
-                {effectiveRole === 'parent' ? t('quests.section.achievementsParent') : t('quests.section.achievements')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <StudentAchievements />
             </CardContent>
           </Card>
         </div>

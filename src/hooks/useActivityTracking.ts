@@ -85,65 +85,10 @@ export const useActivityTracking = () => {
               completed_at: completed ? new Date().toISOString() : null
             })
             .eq('id', progress.id);
-
-          // Award achievement if quest completed
-          if (completed) {
-            await checkAndAwardAchievements();
-          }
         }
       }
     } catch (error) {
       console.error('Error updating quest progress:', error);
-    }
-  };
-
-  const checkAndAwardAchievements = async () => {
-    if (!user) return;
-
-    try {
-      // Get user's school
-      const { data: schoolRelation } = await supabase
-        .from('school_student_relationships')
-        .select('school_id')
-        .eq('student_id', user.id)
-        .eq('is_active', true)
-        .single();
-
-      // Get completed quests count
-      const { data: completedQuests } = await supabase
-        .from('user_quest_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('completed', true);
-
-      const questCount = completedQuests?.length || 0;
-
-      // Check for milestone achievements
-      const milestones = [1, 5, 10, 25, 50];
-      for (const milestone of milestones) {
-        if (questCount >= milestone) {
-          // Check if achievement already earned
-          const { data: existingAchievement } = await supabase
-            .from('user_achievements')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('achievement_id', `quest_milestone_${milestone}`)
-            .single();
-
-          if (!existingAchievement) {
-            // Award achievement
-            await supabase
-              .from('user_achievements')
-              .insert({
-                user_id: user.id,
-                achievement_id: `quest_milestone_${milestone}`,
-                school_id: schoolRelation?.school_id || null
-              });
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error checking achievements:', error);
     }
   };
 

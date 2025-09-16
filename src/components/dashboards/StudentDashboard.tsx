@@ -47,21 +47,8 @@ export const StudentDashboard = () => {
         .select('*')
         .eq('user_id', user.id);
 
-      // Get achievements
-      const { data: achievements } = await supabase
-        .from('user_achievements')
-        .select(`
-          *,
-          achievements (
-            name,
-            description,
-            icon,
-            points
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('earned_at', { ascending: false })
-        .limit(3);
+      // Get achievements - removed (achievements system disabled)
+      const achievements: any[] = [];
 
       // Get active quests
       const { data: questProgress } = await supabase
@@ -88,7 +75,7 @@ export const StudentDashboard = () => {
       setStats({
         totalQuizzes,
         averageScore,
-        achievements: achievements?.length || 0,
+        achievements: 0, // Achievements system removed
         studyStreak: 3, // Mock data
         weeklyGoal: 60,
         weeklyProgress: 45

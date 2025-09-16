@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      achievements: {
-        Row: {
-          created_at: string | null
-          creator_id: string | null
-          criteria: Json | null
-          description: string | null
-          icon: string | null
-          id: string
-          name: string
-          points: number | null
-          school_id: string | null
-          type: Database["public"]["Enums"]["achievement_type"]
-        }
-        Insert: {
-          created_at?: string | null
-          creator_id?: string | null
-          criteria?: Json | null
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name: string
-          points?: number | null
-          school_id?: string | null
-          type: Database["public"]["Enums"]["achievement_type"]
-        }
-        Update: {
-          created_at?: string | null
-          creator_id?: string | null
-          criteria?: Json | null
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name?: string
-          points?: number | null
-          school_id?: string | null
-          type?: Database["public"]["Enums"]["achievement_type"]
-        }
-        Relationships: []
-      }
       children: {
         Row: {
           created_at: string
@@ -1601,45 +1562,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_achievements: {
-        Row: {
-          achievement_id: string | null
-          earned_at: string | null
-          id: string
-          school_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          achievement_id?: string | null
-          earned_at?: string | null
-          id?: string
-          school_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          achievement_id?: string | null
-          earned_at?: string | null
-          id?: string
-          school_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_achievements_achievement_id_fkey"
-            columns: ["achievement_id"]
-            isOneToOne: false
-            referencedRelation: "achievements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_achievements_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "school_accounts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_challenge_progress: {
         Row: {
           challenge_id: string | null
@@ -1794,12 +1716,6 @@ export type Database = {
       }
     }
     Enums: {
-      achievement_type:
-        | "milestone"
-        | "streak"
-        | "completion"
-        | "mastery"
-        | "challenge"
       user_role: "student" | "parent" | "teacher"
     }
     CompositeTypes: {
@@ -1928,13 +1844,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      achievement_type: [
-        "milestone",
-        "streak",
-        "completion",
-        "mastery",
-        "challenge",
-      ],
       user_role: ["student", "parent", "teacher"],
     },
   },

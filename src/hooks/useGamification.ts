@@ -1,20 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
-import { mockAchievements } from '@/utils/mockData';
-
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  type: 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge';
-  icon: string;
-  criteria?: any;
-  earned_at?: string;
-}
 
 export interface Challenge {
   id: string;
@@ -36,8 +24,6 @@ export interface UserProgress {
 }
 
 export const useGamification = () => {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [userAchievements, setUserAchievements] = useState<Achievement[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
   const [userLevel, setUserLevel] = useState(1);
@@ -47,18 +33,6 @@ export const useGamification = () => {
   useEffect(() => {
     if (isMockDataEnabled()) {
       setIsLoading(true);
-      // Properly map mock achievements to the correct interface
-      const mockAchievementsWithCriteria: Achievement[] = mockAchievements.map(achievement => ({
-        id: achievement.id,
-        name: achievement.name,
-        description: achievement.description,
-        type: achievement.type as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge',
-        icon: achievement.icon,
-        criteria: achievement.type === 'milestone' ? { lessons_completed: 1 } : {},
-        earned_at: achievement.earned ? achievement.earned_at : undefined
-      }));
-      setAchievements(mockAchievementsWithCriteria);
-      setUserAchievements(mockAchievementsWithCriteria.filter(a => a.earned_at));
       setChallenges([]);
       setUserProgress([]);
       setUserLevel(3);
@@ -75,24 +49,6 @@ export const useGamification = () => {
     try {
       setIsLoading(true);
       
-      // Fetch all achievements
-      const { data: achievementsData, error: achievementsError } = await supabase
-        .from('achievements')
-        .select('*');
-      
-      if (achievementsError) throw achievementsError;
-
-      // Fetch user's earned achievements
-      const { data: userAchievementsData, error: userAchievementsError } = await supabase
-        .from('user_achievements')
-        .select(`
-          earned_at,
-          achievements (*)
-        `)
-        .eq('user_id', user?.id);
-
-      if (userAchievementsError) throw userAchievementsError;
-
       // Fetch daily challenges
       const today = new Date().toISOString().split('T')[0];
       const { data: challengesData, error: challengesError } = await supabase
@@ -130,12 +86,6 @@ export const useGamification = () => {
         .eq('user_id', user?.id);
 
       if (progressError) throw progressError;
-
-      setAchievements(achievementsData || []);
-      setUserAchievements(userAchievementsData?.map(ua => ({
-        ...ua.achievements,
-        earned_at: ua.earned_at
-      })) || []);
 
       // Process challenges with user progress
       const processedChallenges = challengesData?.map(challenge => {
@@ -231,9 +181,6 @@ export const useGamification = () => {
 
       if (error) throw error;
 
-      // Check for new achievements
-      await checkAchievements();
-      
       // Update challenge progress
       await updateChallengeProgress('lessons_completed', 1);
 
@@ -252,83 +199,6 @@ export const useGamification = () => {
         description: "Failed to update progress",
         variant: "destructive"
       });
-    }
-  };
-
-  const checkAchievements = async () => {
-    if (!user) return;
-
-    try {
-      // Get user's current progress stats
-      const { data: progressData } = await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'completed');
-
-      const completedLessons = progressData?.length || 0;
-
-      // Check each achievement criteria
-      for (const achievement of achievements) {
-        const criteria = achievement.criteria;
-        let shouldEarn = false;
-
-        switch (achievement.type) {
-          case 'milestone':
-            if (criteria.lessons_completed && completedLessons >= criteria.lessons_completed) {
-              shouldEarn = true;
-            }
-            break;
-          case 'challenge':
-            if (criteria.lessons_per_day) {
-              // Check if user completed required lessons today
-              const today = new Date().toISOString().split('T')[0];
-              const { data: todayProgress } = await supabase
-                .from('user_progress')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('status', 'completed')
-                .gte('completed_at', today + 'T00:00:00.000Z')
-                .lt('completed_at', today + 'T23:59:59.999Z');
-
-              if (todayProgress && todayProgress.length >= criteria.lessons_per_day) {
-                shouldEarn = true;
-              }
-            }
-            break;
-        }
-
-        if (shouldEarn && !userAchievements.find(ua => ua.id === achievement.id)) {
-          await earnAchievement(achievement.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking achievements:', error);
-    }
-  };
-
-  const earnAchievement = async (achievementId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_achievements')
-        .insert({
-          user_id: user.id,
-          achievement_id: achievementId
-        });
-
-      if (error) throw error;
-
-      const achievement = achievements.find(a => a.id === achievementId);
-      if (achievement) {
-        toast({
-          title: "Achievement Unlocked! 🏆",
-          description: `${achievement.icon} ${achievement.name}`,
-        });
-      }
-    } catch (error) {
-      console.error('Error earning achievement:', error);
     }
   };
 
@@ -365,14 +235,11 @@ export const useGamification = () => {
   };
 
   return {
-    achievements,
-    userAchievements,
     challenges,
     userProgress,
     userLevel,
     isLoading,
     completeLesson,
-    checkAchievements,
     updateChallengeProgress,
     fetchGamificationData
   };

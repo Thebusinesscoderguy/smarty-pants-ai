@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 
 export interface ContentAssignment {
   id: string;
-  content_type: 'test' | 'quest' | 'curriculum' | 'achievement';
+  content_type: 'test' | 'quest' | 'curriculum';
   content_id: string;
   assignment_type: 'individual' | 'classification' | 'all';
   target_id?: string;
@@ -68,14 +68,6 @@ export const useContentAssignments = () => {
                 .eq('id', assignment.content_id)
                 .single();
               contentTitle = curriculum?.title || 'Unknown Curriculum';
-              break;
-            case 'achievement':
-              const { data: achievement } = await supabase
-                .from('achievements')
-                .select('name')
-                .eq('id', assignment.content_id)
-                .single();
-              contentTitle = achievement?.name || 'Unknown Achievement';
               break;
           }
 
