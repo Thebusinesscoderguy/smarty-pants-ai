@@ -20,8 +20,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Calendar,
-  Activity,
-  Award
+  Activity
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -168,12 +167,12 @@ export const EnhancedStudentDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-orange-500/10 rounded-lg">
-                <Award className="h-6 w-6 text-orange-500" />
+                <Target className="h-6 w-6 text-orange-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Achievements</p>
-                <p className="text-2xl font-bold">{overviewStats?.totalAchievements || 0}</p>
-                <p className="text-xs text-orange-600">Earned this month</p>
+                <p className="text-sm font-medium text-muted-foreground">Quests</p>
+                <p className="text-2xl font-bold">{overviewStats?.totalQuests || 0}</p>
+                <p className="text-xs text-orange-600">Active quests</p>
               </div>
             </div>
           </CardContent>

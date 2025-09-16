@@ -1,16 +1,13 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Target, BookOpen } from 'lucide-react';
 import { useQuests } from '@/hooks/useQuests';
-import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const ProgressDisplay = () => {
   const { user } = useAuth();
   const { dailyQuests, subjectAssignments, isLoading } = useQuests();
-  
 
   if (!user) {
     return (
@@ -106,34 +103,6 @@ export const ProgressDisplay = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Recent Achievements */}
-      {userAchievements.length > 0 && (
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Trophy className="h-5 w-5 text-purple-500" />
-              Recent Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {userAchievements.slice(0, 4).map((achievement) => (
-                <div 
-                  key={achievement.id}
-                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50/10 to-blue-50/10 rounded-lg border border-white/10"
-                >
-                  <div className="text-2xl">{achievement.icon || '🏆'}</div>
-                  <div>
-                    <div className="font-medium text-white">{achievement.name}</div>
-                    <div className="text-xs text-gray-400">{achievement.description}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
