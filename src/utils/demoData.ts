@@ -1,7 +1,6 @@
 
 import { Curriculum } from '@/hooks/useCurriculumManagement';
 import { Quest } from '@/hooks/useQuestManagement';
-import { Achievement } from '@/hooks/useAchievementManagement';
 import { Test } from '@/hooks/useTestManagement';
 
 export const getDemoTestData = (): Test[] => [
@@ -139,52 +138,6 @@ export const getDemoQuestList = (): Quest[] => [
   }
 ];
 
-export const getDemoAchievementList = (): Achievement[] => [
-  {
-    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-    name: 'First Steps',
-    description: 'Complete your first lesson',
-    type: 'milestone',
-    icon: 'trophy',
-    points: 10,
-    criteria: { lessons_completed: 1 },
-    created_at: '2024-01-15T10:00:00.000Z',
-    creator_id: 'teacher-uuid-1'
-  },
-  {
-    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d480',
-    name: 'Streak Master',
-    description: 'Study for 7 days in a row',
-    type: 'streak',
-    icon: 'flame',
-    points: 50,
-    criteria: { consecutive_days: 7 },
-    created_at: '2024-01-20T14:30:00.000Z',
-    creator_id: 'teacher-uuid-1'
-  },
-  {
-    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d481',
-    name: 'Perfect Score',
-    description: 'Get 100% on a test',
-    type: 'mastery',
-    icon: 'star',
-    points: 25,
-    criteria: { test_score: 100 },
-    created_at: '2024-02-01T09:15:00.000Z',
-    creator_id: 'teacher-uuid-1'
-  },
-  {
-    id: 'b47ac10b-58cc-4372-a567-0e02b2c3d482',
-    name: 'Quick Learner',
-    description: 'Complete 5 lessons in one day',
-    type: 'challenge',
-    icon: 'zap',
-    points: 75,
-    criteria: { daily_lessons: 5 },
-    created_at: '2024-02-05T11:20:00.000Z',
-    creator_id: 'teacher-uuid-1'
-  }
-];
 
 // Add demo data for quest completions
 export const getDemoQuestCompletions = () => [
@@ -207,34 +160,6 @@ export const getDemoQuestCompletions = () => [
   }
 ];
 
-// Add demo data for achievement completions
-export const getDemoAchievementCompletions = () => [
-  {
-    achievement_id: 'b47ac10b-58cc-4372-a567-0e02b2c3d479',
-    achievement_name: 'First Steps',
-    earned_by: [
-      { student_id: 'student-1', student_name: 'Alice Johnson', earned_at: '2024-01-16T09:30:00.000Z' },
-      { student_id: 'student-2', student_name: 'Bob Smith', earned_at: '2024-01-17T11:15:00.000Z' },
-      { student_id: 'student-3', student_name: 'Charlie Brown', earned_at: '2024-01-18T13:45:00.000Z' },
-      { student_id: 'student-4', student_name: 'Diana Prince', earned_at: '2024-01-19T10:20:00.000Z' }
-    ]
-  },
-  {
-    achievement_id: 'b47ac10b-58cc-4372-a567-0e02b2c3d480',
-    achievement_name: 'Streak Master',
-    earned_by: [
-      { student_id: 'student-1', student_name: 'Alice Johnson', earned_at: '2024-01-27T18:00:00.000Z' },
-      { student_id: 'student-4', student_name: 'Diana Prince', earned_at: '2024-01-29T19:30:00.000Z' }
-    ]
-  },
-  {
-    achievement_id: 'b47ac10b-58cc-4372-a567-0e02b2c3d481',
-    achievement_name: 'Perfect Score',
-    earned_by: [
-      { student_id: 'student-1', student_name: 'Alice Johnson', earned_at: '2024-02-02T14:15:00.000Z' }
-    ]
-  }
-];
 
 // Add missing demo data functions
 export const getDemoChildName = () => 'Emma';
@@ -274,13 +199,6 @@ export const getDemoStudentProgress = () => [
         percentage: 95,
         completed_at: '2024-01-18T14:00:00.000Z'
       }
-    ],
-    achievements: [
-      {
-        name: 'First Steps',
-        earned_at: '2024-01-16T09:30:00.000Z',
-        points: 10
-      }
     ]
   }
 ];
@@ -292,8 +210,7 @@ export const getDemoMonitoringOverviewStats = () => ({
   totalLessonsCompleted: 342,
   totalTests: 12,
   totalCurricula: 8,
-  totalQuests: 15,
-  totalAchievements: 24
+  totalQuests: 15
 });
 
 export const getDemoQuestData = () => ({
@@ -372,50 +289,6 @@ export const getDemoSubjectData = () => [
   }
 ];
 
-export const getDemoAchievementData = () => ({
-  earned: [
-    {
-      id: 'a1',
-      name: 'First Steps',
-      description: 'Complete your first lesson',
-      type: 'milestone',
-      icon: '🎯',
-      rarity: 'common',
-      earned_at: '2024-01-15T10:00:00.000Z'
-    },
-    {
-      id: 'a2',
-      name: 'Math Wizard',
-      description: 'Score 100% on 5 math quizzes',
-      type: 'mastery',
-      icon: '🧙‍♀️',
-      rarity: 'rare',
-      earned_at: '2024-01-18T16:30:00.000Z'
-    }
-  ],
-  available: [
-    {
-      id: 'a3',
-      name: 'Speed Reader',
-      description: 'Read 10 books this month',
-      type: 'completion',
-      icon: '📚',
-      rarity: 'uncommon',
-      progress: 6,
-      target: 10
-    },
-    {
-      id: 'a4',
-      name: 'Science Master',
-      description: 'Complete all science experiments',
-      type: 'mastery',
-      icon: '🔬',
-      rarity: 'epic',
-      progress: 3,
-      target: 8
-    }
-  ]
-});
 
 export const getDemoAnalyticsData = () => ({
   strengths: [

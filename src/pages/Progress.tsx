@@ -6,15 +6,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { StudentDashboard } from '@/components/monitoring/StudentDashboard';
 import { ParentDashboard } from '@/components/monitoring/ParentDashboard';
 import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
-import { StudentAchievements } from '@/components/student/StudentAchievements';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { DemoParentDashboard } from '@/components/demo/DemoParentDashboard';
 import { DemoQuestDisplay } from '@/components/demo/DemoQuestDisplay';
-import { DemoAchievements } from '@/components/demo/DemoAchievements';
 import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { CurriculumSelector } from '@/components/CurriculumSelector';
-import { BarChart3, BookOpen, Target, Award, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
+import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -490,7 +488,7 @@ const Progress = () => {
         </div>
 
         <Tabs defaultValue="monitoring" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="monitoring" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
@@ -511,13 +509,6 @@ const Progress = () => {
             >
               <Target className="h-4 w-4 mr-2" />
               Quests
-            </TabsTrigger>
-            <TabsTrigger 
-              value="achievements" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <Award className="h-4 w-4 mr-2" />
-              Achievements
             </TabsTrigger>
             <TabsTrigger 
               value="tests" 
@@ -541,9 +532,6 @@ const Progress = () => {
               {user ? <StudentQuestDisplay /> : <DemoQuestDisplay />}
             </TabsContent>
 
-            <TabsContent value="achievements" className="space-y-8">
-              {user ? <StudentAchievements /> : <DemoAchievements />}
-            </TabsContent>
 
             <TabsContent value="tests" className="space-y-8">
               {renderTestsTab()}

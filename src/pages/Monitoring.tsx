@@ -12,7 +12,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useUnifiedMonitoring } from '@/hooks/useUnifiedMonitoring';
 import { ComprehensiveMonitoringDashboard } from '@/components/monitoring/ComprehensiveMonitoringDashboard';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
-import { useAchievementManagement } from '@/hooks/useAchievementManagement';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
@@ -22,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { getDemoQuestCompletions, getDemoAchievementCompletions } from '@/utils/demoData';
+import { getDemoQuestCompletions } from '@/utils/demoData';
 import { QuizPerformanceAnalytics } from '@/components/monitoring/QuizPerformanceAnalytics';
 
 const Monitoring = () => {
@@ -34,15 +34,13 @@ const Monitoring = () => {
   // Demo mode - no authentication restrictions for demonstration purposes
   const { studentProgress, overviewStats, loading: dataLoading } = useUnifiedMonitoring();
   const { quests, createQuest, deleteQuest } = useQuestManagement();
-  const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
+  
 
   // Get completion data for demo
   const questCompletions = getDemoQuestCompletions();
-  const achievementCompletions = getDemoAchievementCompletions();
 
   // Dialog states
   const [showQuestDialog, setShowQuestDialog] = useState(false);
-  const [showAchievementDialog, setShowAchievementDialog] = useState(false);
 
   // Form states
 
@@ -56,13 +54,6 @@ const Monitoring = () => {
     requirements: {}
   });
 
-  const [achievementForm, setAchievementForm] = useState({
-    name: '',
-    description: '',
-    type: 'milestone' as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge',
-    points: 10,
-    criteria: { requirement: '' }
-  });
 
 
   const handleCreateQuest = async () => {
@@ -73,13 +64,6 @@ const Monitoring = () => {
     setQuestForm({ title: '', description: '', type: 'daily', difficulty: 'basic', target_value: 1, rewards: { points: 10 }, requirements: {} });
   };
 
-  const handleCreateAchievement = async () => {
-    if (!achievementForm.name) return;
-    
-    await createAchievement(achievementForm);
-    setShowAchievementDialog(false);
-    setAchievementForm({ name: '', description: '', type: 'milestone', points: 10, criteria: { requirement: '' } });
-  };
 
   const renderNavigation = () => (
     <div className="flex items-center justify-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10 mb-8">
@@ -160,19 +144,6 @@ const Monitoring = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/10 border-cyan-500/30 backdrop-blur-sm rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-cyan-200 text-sm font-medium">{t('monitoring.metrics.achievements')}</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalAchievements}</p>
-                </div>
-                <div className="p-3 bg-cyan-500/20 rounded-xl">
-                  <Trophy className="h-6 w-6 text-cyan-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 border-emerald-500/30 backdrop-blur-sm rounded-2xl">
             <CardContent className="p-6">
@@ -191,7 +162,7 @@ const Monitoring = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
@@ -212,13 +183,6 @@ const Monitoring = () => {
             >
               <Target className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.quests')}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="achievements" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
-            >
-              <Trophy className="h-4 w-4 mr-2" />
-              {t('monitoring.tabs.achievements')}
             </TabsTrigger>
           </TabsList>
 
@@ -402,144 +366,6 @@ const Monitoring = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="achievements" className="space-y-8">
-            <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-3xl">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white flex items-center text-2xl">
-                  <Trophy className="h-6 w-6 mr-3 text-cyan-400" />
-                  Achievement Management
-                </CardTitle>
-                <Dialog open={showAchievementDialog} onOpenChange={setShowAchievementDialog}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-cyan-600 hover:bg-cyan-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Achievement
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-slate-900 border-white/20">
-                    <DialogHeader>
-                      <DialogTitle className="text-white">Create New Achievement</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-white">Name</Label>
-                        <Input
-                          value={achievementForm.name}
-                          onChange={(e) => setAchievementForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="bg-white/10 border-white/20 text-white"
-                          placeholder="Achievement name"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-white">Description</Label>
-                        <Textarea
-                          value={achievementForm.description}
-                          onChange={(e) => setAchievementForm(prev => ({ ...prev, description: e.target.value }))}
-                          className="bg-white/10 border-white/20 text-white"
-                          placeholder="Achievement description"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-white">Type</Label>
-                          <Select value={achievementForm.type} onValueChange={(value) => setAchievementForm(prev => ({ ...prev, type: value as 'milestone' | 'streak' | 'completion' | 'mastery' | 'challenge' }))}>
-                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="milestone">Milestone</SelectItem>
-                              <SelectItem value="completion">Completion</SelectItem>
-                              <SelectItem value="mastery">Mastery</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-white">Points</Label>
-                          <Input
-                            type="number"
-                            value={achievementForm.points}
-                            onChange={(e) => setAchievementForm(prev => ({ ...prev, points: parseInt(e.target.value) || 10 }))}
-                            className="bg-white/10 border-white/20 text-white"
-                          />
-                        </div>
-                      </div>
-                      <Button onClick={handleCreateAchievement} className="w-full bg-cyan-600 hover:bg-cyan-700">
-                        Create Achievement
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                {achievements.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Trophy className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">No Achievements Yet</h3>
-                    <p className="text-white/60">Create your first achievement to reward student progress</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {achievements.map((achievement) => {
-                      const completionData = achievementCompletions.find(a => a.achievement_id === achievement.id);
-                      return (
-                        <Card key={achievement.id} className="bg-white/5 border-white/10">
-                          <CardContent className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
-                                <p className="text-white/60 text-sm">{achievement.description}</p>
-                                <div className="flex gap-2 mt-2">
-                                  <Badge variant="outline">{achievement.type}</Badge>
-                                  <Badge variant="secondary">{achievement.points} pts</Badge>
-                                </div>
-                              </div>
-                              <Button 
-                                variant="destructive" 
-                                size="sm"
-                                onClick={() => deleteAchievement(achievement.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                            
-                            {/* Student Completion Section */}
-                            {completionData && (
-                              <div className="mt-4 pt-4 border-t border-white/10">
-                                <h4 className="text-white font-medium mb-3 flex items-center">
-                                  <Award className="h-4 w-4 mr-2" />
-                                  Earned by Students ({completionData.earned_by.length} students)
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {completionData.earned_by.map((student) => (
-                                    <div key={student.student_id} className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                                      <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                        {student.student_name.charAt(0)}
-                                      </div>
-                                      <div className="flex-1">
-                                        <div className="text-white font-medium">{student.student_name}</div>
-                                        <div className="text-white/60 text-xs">
-                                          Earned {new Date(student.earned_at).toLocaleDateString()}
-                                        </div>
-                                      </div>
-                                      <Trophy className="h-4 w-4 text-yellow-400" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            <div className="flex justify-between text-sm mt-4">
-                              <span className="text-white/60">Created: {new Date(achievement.created_at).toLocaleDateString()}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
         </Tabs>
       </main>

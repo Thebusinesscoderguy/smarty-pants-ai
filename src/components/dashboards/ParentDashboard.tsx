@@ -16,7 +16,7 @@ interface StudentProgress {
   totalStudyTime: number;
   averageScore: number;
   completedQuizzes: number;
-  achievements: number;
+  
   currentSubjects: string[];
   weakAreas: string[];
   strongAreas: string[];
@@ -55,7 +55,7 @@ export const ParentDashboard = () => {
           totalStudyTime: 0, // Children records don't track activity yet
           averageScore: 0,
           completedQuizzes: 0,
-          achievements: 0,
+          
           currentSubjects: child.subjects || [],
           weakAreas: [],
           strongAreas: [],
@@ -115,7 +115,7 @@ export const ParentDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-400">{student.averageScore}%</div>
                       <div className="text-sm text-white/70">Average Score</div>
@@ -123,10 +123,6 @@ export const ParentDashboard = () => {
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-400">{student.completedQuizzes}</div>
                       <div className="text-sm text-white/70">Quizzes Completed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400">{student.achievements}</div>
-                      <div className="text-sm text-white/70">Achievements</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-orange-400">{student.totalStudyTime}</div>

@@ -19,7 +19,7 @@ import { useMonitoringData } from '@/hooks/useMonitoringData';
 import { useTestManagement } from '@/hooks/useTestManagement';
 import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
-import { useAchievementManagement } from '@/hooks/useAchievementManagement';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -55,7 +55,6 @@ const Demo = () => {
   const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
   const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
   const { quests, createQuest, deleteQuest } = useQuestManagement();
-  const { achievements, createAchievement, deleteAchievement } = useAchievementManagement();
 
   const VOICE_OPTIONS = [
     { value: 'alloy', label: 'Alloy (Default)', description: 'Balanced and clear' },

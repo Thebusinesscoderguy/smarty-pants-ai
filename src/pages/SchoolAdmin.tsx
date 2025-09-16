@@ -5,7 +5,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { QuestManagement } from '@/components/admin/QuestManagement';
-import { AchievementManagement } from '@/components/admin/AchievementManagement';
 import { SchoolOverview } from '@/components/admin/SchoolOverview';
 import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
@@ -28,7 +27,7 @@ const SchoolAdmin = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-8 bg-white/10">
+            <TabsList className="grid w-full grid-cols-7 bg-white/10">
               <TabsTrigger value="overview" className="data-[state=active]:bg-white/20">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Overview
@@ -44,10 +43,6 @@ const SchoolAdmin = () => {
               <TabsTrigger value="quests" className="data-[state=active]:bg-white/20">
                 <Target className="h-4 w-4 mr-2" />
                 Quests
-              </TabsTrigger>
-              <TabsTrigger value="achievements" className="data-[state=active]:bg-white/20">
-                <Trophy className="h-4 w-4 mr-2" />
-                Achievements
               </TabsTrigger>
               <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
                 <TrendingUp className="h-4 w-4 mr-2" />
@@ -80,9 +75,6 @@ const SchoolAdmin = () => {
                 <QuestManagement />
               </TabsContent>
 
-              <TabsContent value="achievements" className="space-y-6">
-                <AchievementManagement />
-              </TabsContent>
 
               <TabsContent value="analytics" className="space-y-6">
                 <EnhancedAnalytics />

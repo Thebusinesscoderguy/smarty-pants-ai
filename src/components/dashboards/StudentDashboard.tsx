@@ -25,12 +25,12 @@ export const StudentDashboard = () => {
   const [stats, setStats] = useState({
     totalQuizzes: 0,
     averageScore: 0,
-    achievements: 0,
+    
     studyStreak: 3,
     weeklyGoal: 60,
     weeklyProgress: 45
   });
-  const [recentAchievements, setRecentAchievements] = useState<any[]>([]);
+  
   const [activeQuests, setActiveQuests] = useState<any[]>([]);
 
   useEffect(() => {
@@ -75,13 +75,13 @@ export const StudentDashboard = () => {
       setStats({
         totalQuizzes,
         averageScore,
-        achievements: 0, // Achievements system removed
+        
         studyStreak: 3, // Mock data
         weeklyGoal: 60,
         weeklyProgress: 45
       });
 
-      setRecentAchievements(achievements || []);
+      
       setActiveQuests(questProgress || []);
     } catch (error) {
       console.error('Error fetching student data:', error);
@@ -138,12 +138,6 @@ export const StudentDashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">{stats.achievements}</div>
-              <div className="text-sm text-white/70">Achievements</div>
-            </CardContent>
-          </Card>
           
           <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 backdrop-blur-sm">
             <CardContent className="p-4 text-center">
@@ -206,34 +200,6 @@ export const StudentDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Achievements */}
-          <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-400" />
-                Recent Achievements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentAchievements.length > 0 ? (
-                <div className="space-y-3">
-                  {recentAchievements.map((achievement, index) => (
-                    <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
-                      <div className="text-2xl">{achievement.achievements?.icon || '🏆'}</div>
-                      <div>
-                        <div className="font-semibold text-white">{achievement.achievements?.name || 'Achievement'}</div>
-                        <div className="text-xs text-white/70">{achievement.achievements?.description || 'Great job!'}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-white/50 text-center py-4">
-                  Complete your first quiz to earn achievements! 🏆
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         {/* Active Quests */}
