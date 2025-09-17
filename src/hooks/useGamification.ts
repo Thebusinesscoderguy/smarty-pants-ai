@@ -191,8 +191,54 @@ export const useGamification = () => {
 
       if (error) throw error;
 
-      // Update challenge progress
-      await updateChallengeProgress('lessons_completed', 1);
+      // Extract lesson context from current study plan if available
+      let lessonContext: { subject?: string; topic?: string; lessonTitle?: string } = {};
+      
+      try {
+        const planId = localStorage.getItem('active_study_plan_id');
+        if (planId) {
+          const { data: studyPlan } = await supabase
+            .from('study_plans')
+            .select('*')
+            .eq('id', planId)
+            .eq('user_id', user.id)
+            .maybeSingle();
+            
+          if (studyPlan && studyPlan.daily_lessons) {
+            const currentDay = parseInt(new URLSearchParams(window.location.search).get('day') || '1');
+            const currentLesson = (studyPlan.daily_lessons as any[]).find((l: any) => l.day === currentDay);
+            
+            if (currentLesson) {
+              lessonContext = {
+                subject: 'science', // Infer from lesson content
+                topic: currentLesson.topic,
+                lessonTitle: currentLesson.topic
+              };
+              
+              // Smart subject detection based on topic
+              const topicLower = currentLesson.topic.toLowerCase();
+              if (topicLower.includes('displacement') || topicLower.includes('velocity') || 
+                  topicLower.includes('speed') || topicLower.includes('motion') ||
+                  topicLower.includes('physics') || topicLower.includes('force')) {
+                lessonContext.subject = 'science';
+              } else if (topicLower.includes('algebra') || topicLower.includes('geometry') || 
+                        topicLower.includes('calculus') || topicLower.includes('equation')) {
+                lessonContext.subject = 'math';
+              } else if (topicLower.includes('grammar') || topicLower.includes('literature') || 
+                        topicLower.includes('writing') || topicLower.includes('reading')) {
+                lessonContext.subject = 'english';
+              }
+            }
+          }
+        }
+      } catch (contextError) {
+        console.log('Could not extract lesson context:', contextError);
+      }
+
+      console.log('Completing lesson with context:', lessonContext);
+
+      // Update challenge progress with intelligent matching
+      await updateChallengeProgress('lessons_completed', 1, lessonContext);
 
       // Refresh data
       await fetchGamificationData();
@@ -212,19 +258,86 @@ export const useGamification = () => {
     }
   };
 
-  const updateChallengeProgress = async (type: string, increment: number) => {
+  const updateChallengeProgress = async (type: string, increment: number, lessonContext?: {
+    subject?: string;
+    topic?: string;
+    lessonTitle?: string;
+  }) => {
     if (!user) return;
 
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Find relevant challenges for today
+      // Smart quest matching logic
       const relevantChallenges = challenges.filter(challenge => {
-        if (type === 'lessons_completed' && 
-            (challenge.title.includes('lesson') || challenge.title.includes('Dose'))) {
+        if (type === 'lessons_completed') {
+          const titleLower = challenge.title.toLowerCase();
+          const descriptionLower = challenge.description.toLowerCase();
+          
+          // Check if it's a lesson-based quest
+          const isLessonQuest = titleLower.includes('lesson') || 
+                               titleLower.includes('dose') ||
+                               descriptionLower.includes('lesson') ||
+                               descriptionLower.includes('complete');
+          
+          if (!isLessonQuest) return false;
+          
+          // If we have lesson context, do smart matching
+          if (lessonContext) {
+            const { subject, topic, lessonTitle } = lessonContext;
+            
+            // Subject matching
+            if (subject) {
+              const subjectLower = subject.toLowerCase();
+              const hasSubjectMatch = titleLower.includes(subjectLower) || 
+                                    descriptionLower.includes(subjectLower);
+              
+              // If quest mentions a specific subject, only match that subject
+              const mentionsScience = titleLower.includes('science') || titleLower.includes('physics');
+              const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry');
+              const mentionsEnglish = titleLower.includes('english') || titleLower.includes('language');
+              
+              if (mentionsScience && subjectLower.includes('science')) return true;
+              if (mentionsScience && (subjectLower.includes('physics') || subjectLower.includes('displacement') || subjectLower.includes('velocity'))) return true;
+              if (mentionsMath && subjectLower.includes('math')) return true;
+              if (mentionsEnglish && subjectLower.includes('english')) return true;
+              
+              // If quest is generic but we have subject context, be more inclusive
+              if (hasSubjectMatch) return true;
+            }
+            
+            // Topic matching
+            if (topic) {
+              const topicLower = topic.toLowerCase();
+              if (titleLower.includes(topicLower) || descriptionLower.includes(topicLower)) {
+                return true;
+              }
+            }
+            
+            // Lesson title matching
+            if (lessonTitle) {
+              const lessonTitleLower = lessonTitle.toLowerCase();
+              // Extract key words from lesson title for matching
+              const keyWords = lessonTitleLower.split(' ').filter(word => word.length > 3);
+              const hasKeyWordMatch = keyWords.some(word => 
+                titleLower.includes(word) || descriptionLower.includes(word)
+              );
+              if (hasKeyWordMatch) return true;
+            }
+          }
+          
+          // Fallback to generic lesson quest if no specific matching
           return true;
         }
         return false;
+      });
+
+      console.log('Quest matching results:', {
+        type,
+        lessonContext,
+        totalChallenges: challenges.length,
+        relevantChallenges: relevantChallenges.length,
+        matchedQuests: relevantChallenges.map(c => ({ title: c.title, description: c.description }))
       });
 
       for (const challenge of relevantChallenges) {
