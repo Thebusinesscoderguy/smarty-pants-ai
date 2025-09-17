@@ -31,17 +31,21 @@ serve(async (req) => {
     }
 
     const prompt = mode === 'summary'
-      ? `You are an expert educator. Create a comprehensive, detailed summary that is 5-7 paragraphs long (approximately 800-1200 words). This should be a thorough academic summary that covers:
+      ? `Create a clear, well-formatted summary of this lesson content. Structure it as:
 
-1. **Core Concepts**: Explain all the main ideas, definitions, and principles covered in the content
-2. **Key Methodologies**: Describe the important techniques, approaches, and problem-solving strategies  
-3. **Mathematical Foundations**: Detail the underlying mathematical principles and formulas
-4. **Practical Applications**: Discuss real-world applications and how the concepts connect to practical situations
-5. **Conceptual Understanding**: Explain why these concepts are important and how they fit into the broader subject area
-6. **Learning Progression**: How this material builds on previous knowledge and prepares for advanced topics
-7. **Key Takeaways**: Highlight the most important insights and learning outcomes
+## Key Points
+- Main concepts and definitions
+- Important formulas (use LaTeX: $$formula$$ for display, $formula$ for inline)
 
-Write in clear, professional academic prose. Use proper mathematical notation with LaTeX format ($$formula$$ for display math, $formula$ for inline math). Write in flowing paragraphs with proper transitions. Be comprehensive and detailed while remaining accessible. Make this a substantial academic summary that thoroughly covers the material.
+## Essential Methods
+- Step-by-step approaches
+- Problem-solving techniques
+
+## Quick Review
+- Main takeaways
+- Things to remember
+
+Keep it concise but complete. Use markdown formatting for readability.
 
 Content to Summarize:
 ${text}`
@@ -57,12 +61,12 @@ ${text}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a helpful educator assistant.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 4000,
+        max_tokens: 1500,
         temperature: 0.2,
       }),
     });
@@ -90,10 +94,10 @@ ${text}`;
       return words.slice(0, n).join(' ') + '…';
     };
 
-    // For summaries, preserve LaTeX and don't limit words as heavily
+    // For summaries, preserve formatting and LaTeX notation
     if (mode === 'summary') {
-      // Only clean up leading text and collapse whitespace, preserve LaTeX
-      generatedText = collapse(stripLead(generatedText)).trim();
+      // Only clean up leading text, preserve markdown and LaTeX formatting
+      generatedText = stripLead(generatedText).trim();
     } else {
       generatedText = collapse(stripLead(stripMd(stripLists(generatedText)))).trim();
       const maxWords = 250;
