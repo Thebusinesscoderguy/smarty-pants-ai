@@ -15,6 +15,8 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { QuestProgressNotification } from '@/components/quests/QuestProgressNotification';
+import { useGamification } from '@/hooks/useGamification';
 
 const Chat = () => {
   const { user } = useAuth();
@@ -47,6 +49,7 @@ const Chat = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('chat');
   const { selectedVoice } = useVoiceSettings();
+  const { questProgressNotification, clearQuestNotification } = useGamification();
 
   useEffect(() => {
     // Handle initial message from navigation state
@@ -881,6 +884,12 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       </main>
 
       <Footer />
+      
+      {/* Quest Progress Notification */}
+      <QuestProgressNotification
+        progressUpdate={questProgressNotification}
+        onComplete={clearQuestNotification}
+      />
     </div>
   );
 };

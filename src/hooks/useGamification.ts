@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
+import { useQuestProgressNotification } from './useQuestProgressNotification';
 
 export interface Challenge {
   id: string;
@@ -29,6 +30,12 @@ export const useGamification = () => {
   const [userLevel, setUserLevel] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { 
+    currentNotification, 
+    showProgressUpdate, 
+    clearNotification, 
+    initializeQuestValues 
+  } = useQuestProgressNotification();
 
   useEffect(() => {
     if (isMockDataEnabled()) {
@@ -100,6 +107,9 @@ export const useGamification = () => {
       }) || [];
 
       setChallenges(processedChallenges);
+      
+      // Initialize quest values for progress tracking
+      initializeQuestValues(processedChallenges);
 
       // Calculate user level and progress
       const totalCompletedLessons = progressData?.filter(p => p.status === 'completed').length || 0;
@@ -218,16 +228,32 @@ export const useGamification = () => {
       });
 
       for (const challenge of relevantChallenges) {
+        const oldValue = challenge.current_value || 0;
+        const newValue = oldValue + increment;
+        const completed = newValue >= challenge.target_value;
+        
         const { error } = await supabase
           .from('user_challenge_progress')
           .upsert({
             user_id: user.id,
             challenge_id: challenge.id,
-            current_value: (challenge.current_value || 0) + increment,
-            completed: (challenge.current_value || 0) + increment >= challenge.target_value
+            current_value: newValue,
+            completed
           });
 
         if (error) throw error;
+        
+        // Show progress notification if value increased
+        if (newValue > oldValue) {
+          const questType = challenge.title.toLowerCase().includes('daily') ? 'daily' : 'weekly';
+          showProgressUpdate(
+            challenge.id,
+            challenge.title,
+            newValue,
+            challenge.target_value,
+            questType as 'daily' | 'weekly'
+          );
+        }
       }
     } catch (error) {
       console.error('Error updating challenge progress:', error);
@@ -241,6 +267,9 @@ export const useGamification = () => {
     isLoading,
     completeLesson,
     updateChallengeProgress,
-    fetchGamificationData
+    fetchGamificationData,
+    // Quest progress notification
+    questProgressNotification: currentNotification,
+    clearQuestNotification: clearNotification
   };
 };

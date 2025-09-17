@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LessonViewer from '@/components/learning/LessonViewer';
+import { QuestProgressNotification } from '@/components/quests/QuestProgressNotification';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useGamification } from '@/hooks/useGamification';
@@ -30,7 +31,7 @@ const LearningModule = () => {
   const [currentDay, setCurrentDay] = useState(1);
   const [loading, setLoading] = useState(true);
   const [lessonContent, setLessonContent] = useState<string>('');
-  const { completeLesson } = useGamification();
+  const { completeLesson, questProgressNotification, clearQuestNotification } = useGamification();
 
   // Sync current day from URL param (?day=)
   useEffect(() => {
@@ -218,46 +219,54 @@ const LearningModule = () => {
   };
 
   return (
-    <LessonViewer 
-      lesson={lesson}
-      onBack={() => navigate('/quiz-generator')}
-      onComplete={async (lessonId) => {
-        try {
-          // Save user progress
-          await completeLesson(lessonId);
+    <>
+      <LessonViewer 
+        lesson={lesson}
+        onBack={() => navigate('/quiz-generator')}
+        onComplete={async (lessonId) => {
+          try {
+            // Save user progress
+            await completeLesson(lessonId);
 
-          // Mark the current day as completed in the study plan JSON
-          const updatedLessons = studyPlan!.daily_lessons.map((l) =>
-            l.day === currentLesson.day
-              ? { ...l, completed: true, completedAt: new Date().toISOString() }
-              : l
-          );
+            // Mark the current day as completed in the study plan JSON
+            const updatedLessons = studyPlan!.daily_lessons.map((l) =>
+              l.day === currentLesson.day
+                ? { ...l, completed: true, completedAt: new Date().toISOString() }
+                : l
+            );
 
-          const nextUncompleted = updatedLessons.find((l: any) => !l.completed);
-          const nextDay = nextUncompleted ? nextUncompleted.day : null;
+            const nextUncompleted = updatedLessons.find((l: any) => !l.completed);
+            const nextDay = nextUncompleted ? nextUncompleted.day : null;
 
-          // Update study plan with completion status
-          await supabase
-            .from('study_plans')
-            .update({ 
-              daily_lessons: updatedLessons as any,
-              status: !nextUncompleted ? 'completed' : 'active'
-            })
-            .eq('id', studyPlan!.id);
+            // Update study plan with completion status
+            await supabase
+              .from('study_plans')
+              .update({ 
+                daily_lessons: updatedLessons as any,
+                status: !nextUncompleted ? 'completed' : 'active'
+              })
+              .eq('id', studyPlan!.id);
 
-          toast({
-            title: "Lesson completed! 🎉",
-            description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}${nextUncompleted ? '. Ready for your next lesson!' : ' Study plan completed!'}`
-          });
+            toast({
+              title: "Lesson completed! 🎉",
+              description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}${nextUncompleted ? '. Ready for your next lesson!' : ' Study plan completed!'}`
+            });
 
-          // Always navigate back to study plans
-          navigate('/quiz-generator');
-        } catch (error) {
-          console.error('Error completing lesson:', error);
-          toast({ title: 'Error', description: 'Failed to save completion', variant: 'destructive' });
-        }
-      }}
-    />
+            // Always navigate back to study plans
+            navigate('/quiz-generator');
+          } catch (error) {
+            console.error('Error completing lesson:', error);
+            toast({ title: 'Error', description: 'Failed to save completion', variant: 'destructive' });
+          }
+        }}
+      />
+      
+      {/* Quest Progress Notification */}
+      <QuestProgressNotification
+        progressUpdate={questProgressNotification}
+        onComplete={clearQuestNotification}
+      />
+    </>
   );
 };
 
