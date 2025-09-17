@@ -236,22 +236,22 @@ const LearningModule = () => {
           const nextUncompleted = updatedLessons.find((l: any) => !l.completed);
           const nextDay = nextUncompleted ? nextUncompleted.day : null;
 
+          // Update study plan with completion status
+          await supabase
+            .from('study_plans')
+            .update({ 
+              daily_lessons: updatedLessons as any,
+              status: !nextUncompleted ? 'completed' : 'active'
+            })
+            .eq('id', studyPlan!.id);
+
           toast({
-            title: "Lesson completed!",
-            description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}`
+            title: "Lesson completed! 🎉",
+            description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}${nextUncompleted ? '. Ready for your next lesson!' : ' Study plan completed!'}`
           });
 
-          // Navigate to next lesson if available
-          if (nextDay) {
-            navigate(`/modules?day=${nextDay}`);
-          } else {
-            // Mark plan as completed
-            await supabase
-              .from('study_plans')
-              .update({ status: 'completed' })
-              .eq('id', studyPlan!.id);
-            navigate('/quiz-generator');
-          }
+          // Always navigate back to study plans
+          navigate('/quiz-generator');
         } catch (error) {
           console.error('Error completing lesson:', error);
           toast({ title: 'Error', description: 'Failed to save completion', variant: 'destructive' });
