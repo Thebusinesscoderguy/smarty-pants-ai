@@ -430,6 +430,19 @@ export const useGamification = () => {
           console.log('🎯 Matched quests for progress update:', matchedQuests.map(q => q.title));
 
           for (const quest of matchedQuests) {
+            // Determine effective target from DB value or parse from title/description
+            const parseTarget = (q: any) => {
+              const text = `${q.title || ''} ${q.description || ''}`;
+              const nums = text.match(/\b(\d+)\b/);
+              const parsed = nums ? parseInt(nums[1], 10) : NaN;
+              // Prefer explicit DB target_value when > 1; otherwise use parsed number; fallback to 1
+              return q.target_value && q.target_value > 1
+                ? q.target_value
+                : (Number.isFinite(parsed) && parsed > 1 ? parsed : (q.target_value || 1));
+            };
+
+            const effectiveTarget = parseTarget(quest);
+
             // Read existing value
             const { data: existing, error: existingErr } = await supabase
               .from('user_quest_progress')
@@ -444,7 +457,7 @@ export const useGamification = () => {
 
             const oldValue = existing?.current_value || 0;
             const newValue = oldValue + increment;
-            const completed = newValue >= (quest.target_value || 1);
+            const completed = newValue >= effectiveTarget;
 
             const { error: upsertErr } = await supabase
               .from('user_quest_progress')
@@ -463,7 +476,7 @@ export const useGamification = () => {
                 quest.id,
                 quest.title,
                 newValue,
-                quest.target_value,
+                effectiveTarget,
                 (quest.type as 'daily' | 'weekly') || 'daily'
               );
             }

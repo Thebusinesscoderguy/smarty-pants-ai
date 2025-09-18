@@ -154,13 +154,26 @@ export const StudentQuestDisplay = () => {
       // Process quests with progress
       const questsWithProgress: Quest[] = (questsData || []).map(quest => {
         const progress = quest.user_quest_progress?.[0];
+        
+        // Same logic from useGamification for target value
+        const parseTarget = (q: any) => {
+          const text = `${q.title || ''} ${q.description || ''}`;
+          const nums = text.match(/\b(\d+)\b/);
+          const parsed = nums ? parseInt(nums[1], 10) : NaN;
+          return q.target_value && q.target_value > 1
+            ? q.target_value
+            : (Number.isFinite(parsed) && parsed > 1 ? parsed : (q.target_value || 1));
+        };
+
+        const effectiveTarget = parseTarget(quest);
+
         return {
           id: quest.id,
           title: quest.title,
           description: quest.description,
           type: quest.type,
           difficulty: quest.difficulty,
-          target_value: quest.target_value,
+          target_value: effectiveTarget, // Use the same effective target logic
           current_value: progress?.current_value || 0,
           expires_at: quest.expires_at,
           completed: progress?.completed || false,
