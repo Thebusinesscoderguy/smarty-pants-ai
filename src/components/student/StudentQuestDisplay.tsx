@@ -182,6 +182,8 @@ export const StudentQuestDisplay = () => {
         };
       });
 
+      console.log('DEBUG: questsWithProgress (effective targets):', questsWithProgress.map(q => ({ title: q.title, target: q.target_value, current: q.current_value })));
+
       setActiveQuests(questsWithProgress.filter(q => q.status === 'active'));
       setCompletedQuests(questsWithProgress.filter(q => q.status === 'completed'));
       setFailedQuests(questsWithProgress.filter(q => q.status === 'failed'));

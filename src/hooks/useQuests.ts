@@ -106,8 +106,28 @@ export const useQuests = () => {
 
       if (subjectError) throw subjectError;
 
-      setDailyQuests(dailyQuestsData || []);
-      setWeeklyQuests(weeklyQuestsData || []);
+      // Normalize target values: infer number from title/description when DB stores 1
+      const normalizeTarget = (q: any) => {
+        const text = `${q.title || ''} ${q.description || ''}`;
+        const nums = text.match(/\b(\d+)\b/);
+        const parsed = nums ? parseInt(nums[1], 10) : NaN;
+        return q.target_value && q.target_value > 1
+          ? q.target_value
+          : (Number.isFinite(parsed) && parsed > 1 ? parsed : (q.target_value || 1));
+      };
+
+      const normalizedDaily = (dailyQuestsData || []).map((q: any) => ({
+        ...q,
+        target_value: normalizeTarget(q),
+      }));
+
+      const normalizedWeekly = (weeklyQuestsData || []).map((q: any) => ({
+        ...q,
+        target_value: normalizeTarget(q),
+      }));
+
+      setDailyQuests(normalizedDaily);
+      setWeeklyQuests(normalizedWeekly);
       
       // Map the real data to match SubjectAssignment interface
       const mappedSubjectAssignments: SubjectAssignment[] = (subjectData || []).map(assignment => ({
