@@ -355,34 +355,23 @@ export const useGamification = () => {
 
       let notificationShown = false;
       
-      for (const challenge of relevantChallenges) {
-        const oldValue = challenge.current_value || 0;
+      const firstChallenge = relevantChallenges[0];
+      if (firstChallenge) {
+        const oldValue = firstChallenge.current_value || 0;
         const newValue = oldValue + increment;
-        const completed = newValue >= challenge.target_value;
+        const completed = newValue >= firstChallenge.target_value;
         
         const { error } = await supabase
           .from('user_challenge_progress')
           .upsert({
             user_id: user.id,
-            challenge_id: challenge.id,
+            challenge_id: firstChallenge.id,
             current_value: newValue,
             completed
           });
 
         if (error) throw error;
-        
-        // Show progress notification only for the first quest that increases (prevent multiple popups)
-        if (newValue > oldValue && !notificationShown) {
-          const questType = challenge.title.toLowerCase().includes('daily') ? 'daily' : 'weekly';
-          showProgressUpdate(
-            challenge.id,
-            challenge.title,
-            newValue,
-            challenge.target_value,
-            questType as 'daily' | 'weekly'
-          );
-          notificationShown = true;
-        }
+        // No popup for challenges to avoid duplicates; quests will handle notification
       }
 
       // Also update "quests" progress (separate from daily_challenges)
@@ -436,7 +425,8 @@ export const useGamification = () => {
 
           console.log('🎯 Matched quests for progress update:', matchedQuests.map(q => q.title));
 
-          for (const quest of matchedQuests) {
+          const topQuest = matchedQuests[0];
+          if (topQuest) {
             // Determine effective target from DB value or parse from title/description
             const parseTarget = (q: any) => {
               const text = `${q.title || ''} ${q.description || ''}`;
@@ -448,18 +438,18 @@ export const useGamification = () => {
                 : (Number.isFinite(parsed) && parsed > 1 ? parsed : (q.target_value || 1));
             };
 
-            const effectiveTarget = parseTarget(quest);
+            const effectiveTarget = parseTarget(topQuest);
 
             // Read existing value
             const { data: existing, error: existingErr } = await supabase
               .from('user_quest_progress')
               .select('current_value, completed')
               .eq('user_id', user.id)
-              .eq('quest_id', quest.id)
+              .eq('quest_id', topQuest.id)
               .maybeSingle();
 
             if (existingErr) {
-              console.warn('Could not read existing quest progress:', { questId: quest.id, error: existingErr });
+              console.warn('Could not read existing quest progress:', { questId: topQuest.id, error: existingErr });
             }
 
             const oldValue = existing?.current_value || 0;
@@ -470,7 +460,7 @@ export const useGamification = () => {
               .from('user_quest_progress')
               .upsert({
                 user_id: user.id,
-                quest_id: quest.id,
+                quest_id: topQuest.id,
                 current_value: newValue,
                 completed,
                 completed_at: completed ? new Date().toISOString() : null
@@ -478,14 +468,15 @@ export const useGamification = () => {
 
             if (upsertErr) throw upsertErr;
 
-            if (newValue > oldValue) {
+            if (newValue > oldValue && !notificationShown) {
               showProgressUpdate(
-                quest.id,
-                quest.title,
+                topQuest.id,
+                topQuest.title,
                 newValue,
                 effectiveTarget,
-                (quest.type as 'daily' | 'weekly') || 'daily'
+                (topQuest.type as 'daily' | 'weekly') || 'daily'
               );
+              notificationShown = true;
             }
           }
         }
