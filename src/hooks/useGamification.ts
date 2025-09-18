@@ -376,6 +376,102 @@ export const useGamification = () => {
           );
         }
       }
+
+      // Also update "quests" progress (separate from daily_challenges)
+      try {
+        const { data: activeQuests, error: questsFetchError } = await supabase
+          .from('quests')
+          .select('id, title, description, target_value, type, subject_id')
+          .eq('is_active', true);
+
+        if (questsFetchError) {
+          console.warn('Could not fetch quests for progress update:', questsFetchError);
+        } else {
+          // Smart match quests similar to challenges
+          const matchedQuests = (activeQuests || []).filter((q) => {
+            const titleLower = (q.title || '').toLowerCase();
+            const descLower = (q.description || '').toLowerCase();
+
+            if (type === 'lessons_completed') {
+              const isLessonQuest = titleLower.includes('lesson') || descLower.includes('lesson') || descLower.includes('complete');
+              if (!isLessonQuest) return false;
+
+              if (lessonContext) {
+                const subject = (lessonContext.subject || '').toLowerCase();
+                const topic = (lessonContext.topic || '').toLowerCase();
+                const lt = (lessonContext.lessonTitle || '').toLowerCase();
+
+                // Subject-aware matching
+                const mentionsScience = titleLower.includes('science') || titleLower.includes('physics') || descLower.includes('science') || descLower.includes('physics');
+                const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry') || descLower.includes('math');
+                const mentionsEnglish = titleLower.includes('english') || titleLower.includes('language') || descLower.includes('english');
+
+                if (subject) {
+                  if (mentionsScience && (subject.includes('science') || subject.includes('physics'))) return true;
+                  if (mentionsMath && subject.includes('math')) return true;
+                  if (mentionsEnglish && subject.includes('english')) return true;
+                }
+
+                // Topic / title keyword matching
+                if (topic && (titleLower.includes(topic) || descLower.includes(topic))) return true;
+                if (lt) {
+                  const words = lt.split(' ').filter(w => w.length > 3);
+                  if (words.some(w => titleLower.includes(w) || descLower.includes(w))) return true;
+                }
+              }
+
+              // Generic lesson quest fallback
+              return true;
+            }
+
+            return false;
+          });
+
+          console.log('🎯 Matched quests for progress update:', matchedQuests.map(q => q.title));
+
+          for (const quest of matchedQuests) {
+            // Read existing value
+            const { data: existing, error: existingErr } = await supabase
+              .from('user_quest_progress')
+              .select('current_value, completed')
+              .eq('user_id', user.id)
+              .eq('quest_id', quest.id)
+              .maybeSingle();
+
+            if (existingErr) {
+              console.warn('Could not read existing quest progress:', { questId: quest.id, error: existingErr });
+            }
+
+            const oldValue = existing?.current_value || 0;
+            const newValue = oldValue + increment;
+            const completed = newValue >= (quest.target_value || 1);
+
+            const { error: upsertErr } = await supabase
+              .from('user_quest_progress')
+              .upsert({
+                user_id: user.id,
+                quest_id: quest.id,
+                current_value: newValue,
+                completed,
+                completed_at: completed ? new Date().toISOString() : null
+              } as any, { onConflict: 'user_id,quest_id' } as any);
+
+            if (upsertErr) throw upsertErr;
+
+            if (newValue > oldValue) {
+              showProgressUpdate(
+                quest.id,
+                quest.title,
+                newValue,
+                quest.target_value,
+                (quest.type as 'daily' | 'weekly') || 'daily'
+              );
+            }
+          }
+        }
+      } catch (questsUpdateErr) {
+        console.error('Error updating quests progress:', questsUpdateErr);
+      }
     } catch (error) {
       console.error('Error updating challenge progress:', error);
     }
