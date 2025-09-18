@@ -219,18 +219,38 @@ export const useGamification = () => {
                 lessonTitle: currentLesson.topic
               };
               
-              // Smart subject detection based on topic
+              // Smart subject detection based on topic - more precise classification
               const topicLower = currentLesson.topic.toLowerCase();
+              
+              // Physics/Science keywords (most specific first)
               if (topicLower.includes('displacement') || topicLower.includes('velocity') || 
                   topicLower.includes('speed') || topicLower.includes('motion') ||
-                  topicLower.includes('physics') || topicLower.includes('force')) {
+                  topicLower.includes('physics') || topicLower.includes('force') ||
+                  topicLower.includes('energy') || topicLower.includes('momentum') ||
+                  topicLower.includes('acceleration') || topicLower.includes('friction') ||
+                  topicLower.includes('gravity') || topicLower.includes('wave') ||
+                  topicLower.includes('light') || topicLower.includes('sound') ||
+                  topicLower.includes('electric') || topicLower.includes('magnetic') ||
+                  topicLower.includes('atom') || topicLower.includes('molecule') ||
+                  topicLower.includes('chemistry') || topicLower.includes('biology')) {
                 lessonContext.subject = 'science';
-              } else if (topicLower.includes('algebra') || topicLower.includes('geometry') || 
-                        topicLower.includes('calculus') || topicLower.includes('equation')) {
+              } 
+              // Math keywords (only pure math topics)
+              else if (topicLower.includes('algebra') || topicLower.includes('geometry') || 
+                        topicLower.includes('calculus') || topicLower.includes('trigonometry') ||
+                        topicLower.includes('statistics') || topicLower.includes('probability') ||
+                        (topicLower.includes('equation') && !topicLower.includes('motion') && !topicLower.includes('physics'))) {
                 lessonContext.subject = 'math';
-              } else if (topicLower.includes('grammar') || topicLower.includes('literature') || 
-                        topicLower.includes('writing') || topicLower.includes('reading')) {
+              } 
+              // English keywords
+              else if (topicLower.includes('grammar') || topicLower.includes('literature') || 
+                        topicLower.includes('writing') || topicLower.includes('reading') ||
+                        topicLower.includes('essay') || topicLower.includes('poetry')) {
                 lessonContext.subject = 'english';
+              }
+              // Default to science for ambiguous topics
+              else {
+                lessonContext.subject = 'science';
               }
             }
           }
@@ -333,6 +353,8 @@ export const useGamification = () => {
         matchedQuests: relevantChallenges.map(c => ({ title: c.title, description: c.description }))
       });
 
+      let notificationShown = false;
+      
       for (const challenge of relevantChallenges) {
         const oldValue = challenge.current_value || 0;
         const newValue = oldValue + increment;
@@ -349,8 +371,8 @@ export const useGamification = () => {
 
         if (error) throw error;
         
-        // Show progress notification if value increased
-        if (newValue > oldValue) {
+        // Show progress notification only for the first quest that increases (prevent multiple popups)
+        if (newValue > oldValue && !notificationShown) {
           const questType = challenge.title.toLowerCase().includes('daily') ? 'daily' : 'weekly';
           showProgressUpdate(
             challenge.id,
@@ -359,6 +381,7 @@ export const useGamification = () => {
             challenge.target_value,
             questType as 'daily' | 'weekly'
           );
+          notificationShown = true;
         }
       }
 
