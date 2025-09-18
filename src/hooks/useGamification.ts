@@ -244,8 +244,8 @@ export const useGamification = () => {
       // Update challenge progress with intelligent matching
       await updateChallengeProgress('lessons_completed', 1, lessonContext);
 
-      // Refresh data
-      await fetchGamificationData();
+      // Only refresh the specific data that might have changed, not everything
+      // This prevents unnecessary updates to other quests
 
       toast({
         title: "Lesson Completed! 🎉",
@@ -276,7 +276,7 @@ export const useGamification = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Smart quest matching logic
+      // Smart quest matching logic - STRICT matching only
       const relevantChallenges = challenges.filter(challenge => {
         if (type === 'lessons_completed') {
           const titleLower = challenge.title.toLowerCase();
@@ -290,52 +290,37 @@ export const useGamification = () => {
           
           if (!isLessonQuest) return false;
           
-          // If we have lesson context, do smart matching
+          // If we have lesson context, do STRICT matching only
           if (lessonContext) {
-            const { subject, topic, lessonTitle } = lessonContext;
+            const { subject } = lessonContext;
             
-            // Subject matching
+            // Subject matching - ONLY match if quest explicitly mentions the subject
             if (subject) {
               const subjectLower = subject.toLowerCase();
-              const hasSubjectMatch = titleLower.includes(subjectLower) || 
-                                    descriptionLower.includes(subjectLower);
               
-              // If quest mentions a specific subject, only match that subject
+              // Check if quest mentions specific subjects
               const mentionsScience = titleLower.includes('science') || titleLower.includes('physics');
               const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry');
               const mentionsEnglish = titleLower.includes('english') || titleLower.includes('language');
               
-              if (mentionsScience && subjectLower.includes('science')) return true;
-              if (mentionsScience && (subjectLower.includes('physics') || subjectLower.includes('displacement') || subjectLower.includes('velocity'))) return true;
-              if (mentionsMath && subjectLower.includes('math')) return true;
-              if (mentionsEnglish && subjectLower.includes('english')) return true;
-              
-              // If quest is generic but we have subject context, be more inclusive
-              if (hasSubjectMatch) return true;
-            }
-            
-            // Topic matching
-            if (topic) {
-              const topicLower = topic.toLowerCase();
-              if (titleLower.includes(topicLower) || descriptionLower.includes(topicLower)) {
-                return true;
+              // STRICT matching - only if subject and quest match exactly
+              if (subjectLower.includes('science') || subjectLower.includes('physics')) {
+                return mentionsScience;
               }
-            }
-            
-            // Lesson title matching
-            if (lessonTitle) {
-              const lessonTitleLower = lessonTitle.toLowerCase();
-              // Extract key words from lesson title for matching
-              const keyWords = lessonTitleLower.split(' ').filter(word => word.length > 3);
-              const hasKeyWordMatch = keyWords.some(word => 
-                titleLower.includes(word) || descriptionLower.includes(word)
-              );
-              if (hasKeyWordMatch) return true;
+              if (subjectLower.includes('math')) {
+                return mentionsMath;
+              }
+              if (subjectLower.includes('english')) {
+                return mentionsEnglish;
+              }
+              
+              // No match found
+              return false;
             }
           }
           
-          // Fallback to generic lesson quest if no specific matching
-          return true;
+          // Without proper context, don't update any quest
+          return false;
         }
         return false;
       });
@@ -398,30 +383,29 @@ export const useGamification = () => {
 
               if (lessonContext) {
                 const subject = (lessonContext.subject || '').toLowerCase();
-                const topic = (lessonContext.topic || '').toLowerCase();
-                const lt = (lessonContext.lessonTitle || '').toLowerCase();
 
-                // Subject-aware matching
+                // Only match quests that explicitly mention the subject we're working on
                 const mentionsScience = titleLower.includes('science') || titleLower.includes('physics') || descLower.includes('science') || descLower.includes('physics');
                 const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry') || descLower.includes('math');
                 const mentionsEnglish = titleLower.includes('english') || titleLower.includes('language') || descLower.includes('english');
 
-                if (subject) {
-                  if (mentionsScience && (subject.includes('science') || subject.includes('physics'))) return true;
-                  if (mentionsMath && subject.includes('math')) return true;
-                  if (mentionsEnglish && subject.includes('english')) return true;
+                // STRICT matching - only update if the quest specifically mentions the subject
+                if (subject.includes('science') || subject.includes('physics')) {
+                  return mentionsScience;
                 }
-
-                // Topic / title keyword matching
-                if (topic && (titleLower.includes(topic) || descLower.includes(topic))) return true;
-                if (lt) {
-                  const words = lt.split(' ').filter(w => w.length > 3);
-                  if (words.some(w => titleLower.includes(w) || descLower.includes(w))) return true;
+                if (subject.includes('math')) {
+                  return mentionsMath;
                 }
+                if (subject.includes('english')) {
+                  return mentionsEnglish;
+                }
+                
+                // If no specific subject match, don't update any quest
+                return false;
               }
 
-              // Generic lesson quest fallback
-              return true;
+              // Without context, don't update any quest to avoid unintended updates
+              return false;
             }
 
             return false;
