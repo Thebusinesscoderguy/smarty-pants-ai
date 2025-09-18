@@ -169,7 +169,11 @@ export const useGamification = () => {
   };
 
   const completeLesson = async (lessonId?: string, timeSpent: number = 0) => {
-    if (!user) return;
+    console.log('🎯 CompleteLesson called:', { user: !!user, lessonId, timeSpent });
+    if (!user) {
+      console.log('❌ No user found, cannot complete lesson');
+      return;
+    }
 
     // Helper: validate UUID v4
     const isValidUuid = (val?: string) =>
@@ -235,7 +239,7 @@ export const useGamification = () => {
         console.log('Could not extract lesson context:', contextError);
       }
 
-      console.log('Completing lesson with context:', lessonContext);
+      console.log('🎯 Completing lesson with context:', lessonContext);
 
       // Update challenge progress with intelligent matching
       await updateChallengeProgress('lessons_completed', 1, lessonContext);
@@ -263,7 +267,11 @@ export const useGamification = () => {
     topic?: string;
     lessonTitle?: string;
   }) => {
-    if (!user) return;
+    console.log('🎯 UpdateChallengeProgress called:', { user: !!user, type, increment, lessonContext });
+    if (!user) {
+      console.log('❌ No user found, cannot update challenge progress');
+      return;
+    }
 
     try {
       const today = new Date().toISOString().split('T')[0];
