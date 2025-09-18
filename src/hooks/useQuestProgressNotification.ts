@@ -12,6 +12,8 @@ interface QuestProgressData {
 export const useQuestProgressNotification = () => {
   const [currentNotification, setCurrentNotification] = useState<QuestProgressData | null>(null);
   const previousQuestValues = useRef<Map<string, number>>(new Map());
+  const isShowingRef = useRef(false);
+  const lastShownAtRef = useRef<number>(0);
 
   const showProgressUpdate = useCallback((
     questId: string,
@@ -21,11 +23,25 @@ export const useQuestProgressNotification = () => {
     questType: 'daily' | 'weekly'
   ) => {
     const oldValue = previousQuestValues.current.get(questId) || 0;
-    
+
+    // Always update stored value so future comparisons are correct
+    if (newValue > oldValue) {
+      previousQuestValues.current.set(questId, newValue);
+    }
+
+    // Global guard: only one popup at a time, with a brief cooldown
+    const now = Date.now();
+    if (isShowingRef.current || now - lastShownAtRef.current < 2500) {
+      return;
+    }
+
     // Only show notification if value actually increased
     if (newValue > oldValue) {
       const completed = newValue >= targetValue;
-      
+
+      isShowingRef.current = true;
+      lastShownAtRef.current = now;
+
       setCurrentNotification({
         questTitle,
         oldValue,
@@ -34,9 +50,11 @@ export const useQuestProgressNotification = () => {
         questType,
         completed
       });
-      
-      // Update stored value
-      previousQuestValues.current.set(questId, newValue);
+
+      // Auto-release guard after animation window
+      window.setTimeout(() => {
+        isShowingRef.current = false;
+      }, 2200);
     }
   }, []);
 
