@@ -53,7 +53,7 @@ function App() {
                <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
                <Route path="/voice" element={<Chat />} />
               <Route path="/progress" element={<Progress />} />
-              <Route path="/monitoring" element={<Monitoring />} />
+              <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
               
               <Route path="/features" element={<Features />} />

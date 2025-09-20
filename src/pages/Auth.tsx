@@ -35,9 +35,12 @@ const Auth = () => {
   }, [user, showRoleSelector]);
 
   const handleRoleSelected = (role: 'parent' | 'child', childId?: string) => {
+    console.log('Auth: handleRoleSelected called', { role, childId });
     if (role === 'parent') {
+      console.log('Auth: Navigating to monitoring dashboard');
       navigate('/monitoring');
     } else {
+      console.log('Auth: Navigating to quiz generator');
       navigate('/quiz-generator');
     }
   };

@@ -75,10 +75,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         onRoleSelected={async (role, childId) => {
           // Immediately navigate for child selection without any intermediate state
           if (role === 'child') {
+            console.log('ProtectedRoute: Child role selected, navigating to quiz-generator');
             navigate('/quiz-generator', { replace: true });
             return;
           }
           
+          console.log('ProtectedRoute: Parent role selected, checking for children');
           setShowRoleSelector(false);
           setHasNavigated(true);
           
@@ -89,18 +91,24 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           
           // Handle parent role - check if they need to add children
           try {
-            const { data: childrenData } = await supabase
+            const { data: childrenData, error } = await supabase
               .from('children')
               .select('id')
               .eq('parent_id', user.id);
+            
+            console.log('ProtectedRoute: Children check result', { childrenData, error });
               
             if (!childrenData || childrenData.length === 0) {
+              console.log('ProtectedRoute: No children found, showing children management');
               setShowChildrenManagement(true);
             } else {
+              console.log('ProtectedRoute: Children found, navigating to monitoring');
               navigate('/monitoring', { replace: true });
             }
           } catch (error) {
-            console.error('Error checking children:', error);
+            console.error('ProtectedRoute: Error checking children:', error);
+            // If there's an error, still navigate to monitoring
+            navigate('/monitoring', { replace: true });
           }
         }} 
       />
