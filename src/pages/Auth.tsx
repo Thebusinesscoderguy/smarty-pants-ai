@@ -111,8 +111,7 @@ const Auth = () => {
       if (data?.user && !data?.session) {
         setSignupSuccess(true);
         setError('');
-        // Clear the form
-        setEmail('');
+        // Don't clear email for resend functionality
         setPassword('');
         return;
       }
@@ -123,6 +122,36 @@ const Auth = () => {
       }
     } catch (error: any) {
       setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        toast.success('Verification email sent! Check your inbox.');
+      }
+    } catch (error: any) {
+      setError('Failed to resend verification email. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -235,7 +264,7 @@ const Auth = () => {
                         Didn't receive the email?
                       </p>
                       <button
-                        onClick={handleSignUp}
+                        onClick={handleResendVerification}
                         disabled={loading}
                         className="text-primary hover:text-primary/80 text-sm font-medium underline transition-colors disabled:opacity-50"
                       >
