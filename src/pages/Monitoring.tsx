@@ -191,7 +191,7 @@ const Monitoring = () => {
           </TabsContent>
 
           <TabsContent value="children" className="space-y-6">
-            <ChildrenManagement onComplete={() => {}} />
+            <ChildrenManagement onComplete={() => navigate('/monitoring')} />
           </TabsContent>
 
 
