@@ -124,17 +124,12 @@ export const StudentQuestDisplay = () => {
         console.log('DEBUG: Adding school condition for school_id:', schoolRelation.school_id);
       }
       
-      // Parent quests - check if user has a parent relationship OR if there are any parent-created quests
-      // This is a fallback in case parent-child relationships are not set up properly
+      // Parent quests - only show quests from the user's actual parent
       if (parentRelation?.parent_id) {
         conditions.push(`created_by_id.eq.${parentRelation.parent_id}`);
         console.log('DEBUG: Adding parent condition for parent_id:', parentRelation.parent_id);
-      } else {
-        // Fallback: include all parent-created quests if no relationship exists
-        // This should be temporary until proper relationships are established
-        console.log('DEBUG: No parent relationship found, including all parent-created quests as fallback');
-        conditions.push('created_by.eq.parent');
       }
+      // If no parent relationship exists, don't show any parent quests
 
       console.log('DEBUG: Query conditions:', conditions);
 

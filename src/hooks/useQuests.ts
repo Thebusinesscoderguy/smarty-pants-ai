@@ -74,21 +74,47 @@ export const useQuests = () => {
     try {
       setIsLoading(true);
 
-      // Fetch daily quests
-      const { data: dailyQuestsData, error: dailyError } = await supabase
+      // Fetch daily quests - only from user's parents
+      const { data: parentRelation } = await supabase
+        .from('parent_child_relationships')
+        .select('parent_id')
+        .eq('child_id', user?.id)
+        .maybeSingle();
+
+      let dailyQuestsQuery = supabase
         .from('quests')
         .select('*')
         .eq('type', 'daily')
         .eq('is_active', true);
 
+      // Only show parent quests if there's an actual parent relationship
+      if (parentRelation?.parent_id) {
+        dailyQuestsQuery = dailyQuestsQuery.eq('created_by_id', parentRelation.parent_id);
+      } else {
+        // If no parent relationship, only show system quests
+        dailyQuestsQuery = dailyQuestsQuery.eq('created_by', 'system');
+      }
+
+      const { data: dailyQuestsData, error: dailyError } = await dailyQuestsQuery;
+
       if (dailyError) throw dailyError;
 
-      // Fetch weekly quests
-      const { data: weeklyQuestsData, error: weeklyError } = await supabase
+      // Fetch weekly quests - only from user's parents
+      let weeklyQuestsQuery = supabase
         .from('quests')
         .select('*')
         .eq('type', 'weekly')
         .eq('is_active', true);
+
+      // Use the same parent relationship from above
+      if (parentRelation?.parent_id) {
+        weeklyQuestsQuery = weeklyQuestsQuery.eq('created_by_id', parentRelation.parent_id);
+      } else {
+        // If no parent relationship, only show system quests
+        weeklyQuestsQuery = weeklyQuestsQuery.eq('created_by', 'system');
+      }
+
+      const { data: weeklyQuestsData, error: weeklyError } = await weeklyQuestsQuery;
 
       if (weeklyError) throw weeklyError;
 
