@@ -624,7 +624,7 @@ export const useUnifiedMonitoring = () => {
       const [testsData, curriculaData, questsData] = await Promise.all([
         supabase.from('tests').select('id', { count: 'exact' }),
         supabase.from('curricula').select('id', { count: 'exact' }),
-        supabase.from('quests').select('id', { count: 'exact' })
+        supabase.from('quests').select('id', { count: 'exact' }).eq('created_by_id', user?.id)
       ]);
 
       // Calculate stats from student progress
