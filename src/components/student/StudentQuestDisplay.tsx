@@ -63,41 +63,9 @@ export const StudentQuestDisplay = () => {
 
     try {
       setIsLoading(true);
-      
-      console.log('DEBUG: Fetching quests for user:', user.id);
-      
-      // Get user's school relationship
-      const { data: schoolRelation, error: schoolError } = await supabase
-        .from('school_student_relationships')
-        .select('school_id')
-        .eq('student_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
 
-      console.log('DEBUG: School relationship query result:', { schoolRelation, schoolError });
-
-      // Get user's parent relationship
-      const { data: parentRelation, error: parentError } = await supabase
-        .from('parent_child_relationships')
-        .select('parent_id')
-        .eq('child_id', user.id)
-        .maybeSingle();
-
-      console.log('DEBUG: Parent relationship query result:', { parentRelation, parentError });
-
-      // First, let's fetch ALL active quests to see what exists
-      const { data: allQuests, error: allQuestsError } = await supabase
-        .from('quests')
-        .select(`
-          *,
-          subjects (name)
-        `)
-        .eq('is_active', true);
-      
-      console.log('DEBUG: All active quests in database:', allQuests);
-
-      // Get all active quests with progress
-      let questsQuery = supabase
+      // Fetch quests - RLS policies will ensure only appropriate quests are returned
+      const { data: questsData, error } = await supabase
         .from('quests')
         .select(`
           *,
@@ -111,33 +79,6 @@ export const StudentQuestDisplay = () => {
         `)
         .eq('is_active', true)
         .eq('user_quest_progress.user_id', user.id);
-
-      // Build conditions for accessible quests
-      const conditions = [];
-      
-      // System quests (always accessible)
-      conditions.push('created_by.eq.system');
-      
-      // School quests (if user is in a school)
-      if (schoolRelation?.school_id) {
-        conditions.push('created_by.eq.school');
-        console.log('DEBUG: Adding school condition for school_id:', schoolRelation.school_id);
-      }
-      
-      // Parent quests - only show quests from the user's actual parent
-      if (parentRelation?.parent_id) {
-        conditions.push(`created_by_id.eq.${parentRelation.parent_id}`);
-        console.log('DEBUG: Adding parent condition for parent_id:', parentRelation.parent_id);
-      }
-      // If no parent relationship exists, don't show any parent quests
-
-      console.log('DEBUG: Query conditions:', conditions);
-
-      if (conditions.length > 0) {
-        questsQuery = questsQuery.or(conditions.join(','));
-      }
-
-      const { data: questsData, error } = await questsQuery;
 
       if (error) {
         console.error('Error fetching quests:', error);
