@@ -72,7 +72,7 @@ export const QuestManagement = () => {
     description: '',
     type: 'daily' as 'daily' | 'weekly',
     difficulty: 'basic' as 'basic' | 'intermediate' | 'hard',
-    target_value: 1,
+    target_value: '1',
     subject_id: ''
   });
 
@@ -192,7 +192,7 @@ export const QuestManagement = () => {
         description: newQuest.description,
         type: newQuest.type,
         difficulty: newQuest.difficulty,
-        target_value: newQuest.target_value,
+        target_value: parseInt(newQuest.target_value) || 1,
         subject_id: newQuest.subject_id || null,
         created_by_id: user?.id,
         created_by: 'school'
@@ -221,7 +221,7 @@ export const QuestManagement = () => {
         description: '',
         type: 'daily',
         difficulty: 'basic',
-        target_value: 1,
+        target_value: '1',
         subject_id: ''
       });
       
@@ -360,7 +360,7 @@ export const QuestManagement = () => {
                     type="number"
                     min="1"
                     value={newQuest.target_value}
-                    onChange={(e) => setNewQuest({ ...newQuest, target_value: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setNewQuest({ ...newQuest, target_value: e.target.value })}
                     className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   />
                 </div>
