@@ -357,10 +357,15 @@ export const QuestManagement = () => {
                   <Label htmlFor="targetValue" className="text-white">Target Value</Label>
                   <Input
                     id="targetValue"
-                    type="number"
-                    min="1"
+                    type="text"
                     value={newQuest.target_value}
-                    onChange={(e) => setNewQuest({ ...newQuest, target_value: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow numbers or empty string
+                      if (value === '' || /^\d+$/.test(value)) {
+                        setNewQuest({ ...newQuest, target_value: value });
+                      }
+                    }}
                     placeholder="1"
                     className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   />
