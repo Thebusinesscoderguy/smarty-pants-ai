@@ -44,10 +44,11 @@ serve(async (req) => {
     const constraints = [
       planDays ? `Create exactly ${planDays} daily lessons.` : 'Create 7-14 daily lessons depending on complexity.',
       perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
-      'ABSOLUTELY NO basic math introductions, definitions of what math is, or elementary concepts.',
-      'SKIP ALL foundational explanations - assume advanced mathematical knowledge for the grade level.',
-      'Focus EXCLUSIVELY on the specific advanced topic - no broad overviews or general introductions.',
-      'Start immediately with complex concepts, theorems, and applications relevant to the topic.',
+      'Start Day 1 with essential foundations: define key variables, terms, and notation before proceeding.',
+      'For example, if teaching y = mx + b, first define what y, m, x, and b represent.',
+      'Build from appropriate foundations but avoid overly elementary concepts unrelated to the topic.',
+      'Progress logically from foundational definitions to more complex applications.',
+      'Each day should build on the previous day\'s concepts in a structured progression.',
       'Include a mini-quiz each day; set practiceQuestions to match the mini-quiz size.'
     ].join('\n- ');
 
@@ -92,7 +93,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: 'gpt-4.1-2025-04-14',
             messages: [
-              { role: 'system', content: 'You are an expert educational consultant who specializes in creating advanced, grade-appropriate study plans. You focus on the SPECIFIC topic requested and avoid generic introductions. Create content that challenges students at their grade level. Always respond with valid JSON only.' },
+              { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. Always respond with valid JSON only.' },
               { role: 'user', content: fullPrompt }
             ],
             max_completion_tokens: 2000,
