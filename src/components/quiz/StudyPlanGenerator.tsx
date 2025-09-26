@@ -183,9 +183,8 @@ const handleCreateMistakesSimilar = async () => {
 
       console.log('Study plan saved successfully:', data);
       toast({ 
-        title: 'Study Plan Saved!', 
-        description: 'Your personalized study plan has been saved successfully.',
-        className: "bg-green-50 border-green-200"
+        title: 'Success', 
+        description: 'Study plan has been saved',
       });
     } catch (e: any) {
       console.error('Save error details:', e);
