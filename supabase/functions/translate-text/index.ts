@@ -112,7 +112,7 @@ serve(async (req) => {
       });
 
     } catch (error) {
-      console.error('OpenAI translation failed:', error.message);
+      console.error('OpenAI translation failed:', error instanceof Error ? error.message : 'Unknown error');
       
       // Return original text as fallback
       return new Response(JSON.stringify({ 
@@ -120,7 +120,7 @@ serve(async (req) => {
         originalText: text,
         targetLang,
         sourceLang,
-        error: `Translation failed: ${error.message}`,
+        error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         fallback: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -130,7 +130,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Translation function error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
       translatedText: null 
     }), {
       status: 500,

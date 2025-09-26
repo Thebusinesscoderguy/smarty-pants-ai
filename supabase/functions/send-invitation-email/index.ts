@@ -145,7 +145,7 @@ serve(async (req) => {
       clearTimeout(timeoutId);
       console.error('Fetch operation error:', fetchError);
       
-      if (fetchError.name === 'AbortError') {
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
         console.log('Fetch operation timed out');
         return new Response(
           JSON.stringify({ 
@@ -168,7 +168,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: false,
         message: 'Test completed with error but continued',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         type: 'internal_error'
       }),
       { 
