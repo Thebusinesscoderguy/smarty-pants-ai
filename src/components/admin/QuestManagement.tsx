@@ -72,7 +72,7 @@ export const QuestManagement = () => {
     description: '',
     type: 'daily' as 'daily' | 'weekly',
     difficulty: 'basic' as 'basic' | 'intermediate' | 'hard',
-    target_value: '1',
+    target_value: '',
     subject_id: ''
   });
 
@@ -221,7 +221,7 @@ export const QuestManagement = () => {
         description: '',
         type: 'daily',
         difficulty: 'basic',
-        target_value: '1',
+        target_value: '',
         subject_id: ''
       });
       
@@ -361,6 +361,7 @@ export const QuestManagement = () => {
                     min="1"
                     value={newQuest.target_value}
                     onChange={(e) => setNewQuest({ ...newQuest, target_value: e.target.value })}
+                    placeholder="1"
                     className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   />
                 </div>
