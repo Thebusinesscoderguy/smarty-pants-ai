@@ -74,20 +74,20 @@ const QuizGeneratorPage = () => {
           <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('studyTools.title')}</h1>
           <p className="text-white/80 mb-6">{t('studyTools.subtitle')}</p>
 
-          <Tabs defaultValue="generate" className="w-full">
+          <Tabs defaultValue="study-plan" className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-white/10 border border-white/20">
-              <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
               <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+              <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
               <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
               <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="generate" className="mt-6">
-              <EnhancedQuizGenerator />
-            </TabsContent>
-
             <TabsContent value="study-plan" className="mt-6">
               <StudyPlanGenerator />
+            </TabsContent>
+
+            <TabsContent value="generate" className="mt-6">
+              <EnhancedQuizGenerator />
             </TabsContent>
 
             <TabsContent value="quiz-library" className="mt-6">
