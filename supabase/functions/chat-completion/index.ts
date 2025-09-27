@@ -31,14 +31,20 @@ serve(async (req) => {
 
     console.log('Chat completion request:', { hasMessages: !!messages, messageCount: messages?.length || 0, language });
 
-    // Add language instruction to system message if not English
-    const languageInstruction = language !== 'en' ? `Always respond in ${getLanguageName(language)}. ` : '';
-    const systemMessage = {
-      role: 'system',
-      content: `${languageInstruction}You are a helpful AI tutor designed to assist students with their learning. You can help with homework, explain concepts, answer questions, and provide educational guidance across all subjects. Be encouraging, patient, and thorough in your explanations. Adapt your teaching style to the student's level and needs.`
-    };
-
-    const messagesWithSystem = [systemMessage, ...(messages || [{ role: 'user', content: 'Hello' }])];
+    // Use messages as-is without custom system instructions (base GPT behavior)
+    const finalMessages = messages || [{ role: 'user', content: 'Hello' }];
+    
+    // Only add language instruction if not English, without other custom instructions
+    let messagesWithSystem;
+    if (language !== 'en') {
+      const languageSystemMessage = {
+        role: 'system',
+        content: `Always respond in ${getLanguageName(language)}.`
+      };
+      messagesWithSystem = [languageSystemMessage, ...finalMessages];
+    } else {
+      messagesWithSystem = finalMessages;
+    }
 
     // Set a timeout for the fetch operation
     const controller = new AbortController();
