@@ -490,35 +490,33 @@ export const QuestManagement = () => {
                     </div>
                     <p className="text-sm text-gray-300 mb-3">{quest.description}</p>
                     
-                    {/* Progress Statistics */}
-                    {quest.progress_stats && quest.progress_stats.total_users > 0 && (
-                      <div className="bg-white/5 rounded-lg p-3 mb-3">
-                        <div className="grid grid-cols-2 gap-4 mb-2">
-                          <div className="text-center">
-                            <div className="text-sm font-semibold text-blue-400">
-                              {quest.progress_stats.average_progress.toFixed(1)}/{quest.target_value}
-                            </div>
-                            <div className="text-xs text-gray-400">Avg Progress</div>
+                    {/* Progress */}
+                    <div className="bg-white/5 rounded-lg p-3 mb-3">
+                      <div className="grid grid-cols-2 gap-4 mb-2">
+                        <div className="text-center">
+                          <div className="text-sm font-semibold text-blue-400">
+                            {Number(quest.progress_stats?.average_progress ?? 0).toFixed(1)}/{quest.target_value}
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm font-semibold text-green-400">
-                              {quest.progress_stats.completion_rate}%
-                            </div>
-                            <div className="text-xs text-gray-400">Completion Rate</div>
-                          </div>
+                          <div className="text-xs text-gray-400">Avg Progress</div>
                         </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-gray-400">
-                            <span>Overall Progress</span>
-                            <span>{quest.progress_stats.active_users} active users</span>
+                        <div className="text-center">
+                          <div className="text-sm font-semibold text-green-400">
+                            {quest.progress_stats ? `${quest.progress_stats.completion_rate}%` : '0%'}
                           </div>
-                          <Progress 
-                            value={(quest.progress_stats.average_progress / quest.target_value) * 100} 
-                            className="h-2" 
-                          />
+                          <div className="text-xs text-gray-400">Completion Rate</div>
                         </div>
                       </div>
-                    )}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-gray-400">
+                          <span>Overall Progress</span>
+                          <span>{quest.progress_stats ? `${quest.progress_stats.active_users} active users` : 'No participants yet'}</span>
+                        </div>
+                        <Progress 
+                          value={((quest.progress_stats?.average_progress ?? 0) / quest.target_value) * 100} 
+                          className="h-2" 
+                        />
+                      </div>
+                    </div>
                     
                     <div className="flex items-center space-x-4 text-xs text-gray-400">
                       <span>Target: {quest.target_value}</span>
