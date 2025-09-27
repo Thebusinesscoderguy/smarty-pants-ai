@@ -33,18 +33,20 @@ serve(async (req) => {
     const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
     const selectedVoice = validVoices.includes(voice) ? voice : 'alloy'
 
-    // Call OpenAI TTS API
+    // Call OpenAI TTS API with optimized settings
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'Connection': 'keep-alive',
       },
       body: JSON.stringify({
-        model: 'tts-1',
-        input: text.trim().slice(0, 600),
+        model: 'tts-1-hd', // Faster model
+        input: text.trim().slice(0, 300), // Reduced length for speed
         voice: selectedVoice,
         response_format: 'mp3',
+        speed: 1.25, // Slightly faster speech
       }),
     })
 
