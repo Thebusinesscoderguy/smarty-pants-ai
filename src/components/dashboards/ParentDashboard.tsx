@@ -21,6 +21,25 @@ interface StudentProgress {
   weakAreas: string[];
   strongAreas: string[];
   lastActivity: string;
+  
+  // Add quest progress tracking
+  questProgress: {
+    activeQuests: QuestWithProgress[];
+    completedQuests: QuestWithProgress[];
+    totalCompleted: number;
+    totalActive: number;
+  };
+}
+
+interface QuestWithProgress {
+  id: string;
+  title: string;
+  description: string;
+  target_value: number;
+  current_value: number;
+  type: 'daily' | 'weekly' | 'monthly';
+  status: 'active' | 'completed' | 'failed';
+  progress_percentage: number;
 }
 
 export const ParentDashboard = () => {
@@ -36,7 +55,89 @@ export const ParentDashboard = () => {
     if (!user) return;
     
     try {
-      // Fetch children from the simple children table
+      // Fetch children from parent-child relationships (linked to actual user accounts)
+      const { data: relationships, error: relationshipsError } = await supabase
+        .from('parent_child_relationships')
+        .select('child_id')
+        .eq('parent_id', user.id);
+
+      if (relationshipsError) {
+        console.log('No parent-child relationships found, trying children table');
+      }
+
+      const studentData: StudentProgress[] = [];
+
+      // If we have linked relationships, fetch quest progress for those users
+      if (relationships && relationships.length > 0) {
+        for (const rel of relationships) {
+          const childUserId = rel.child_id;
+          
+          // Get child profile/info
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', childUserId)
+            .single();
+
+          // Fetch quest progress for this child
+          const { data: questProgress } = await supabase
+            .from('user_quest_progress')
+            .select(`
+              id,
+              current_value,
+              completed,
+              status,
+              created_at,
+              quests!inner(
+                id,
+                title,
+                description,
+                target_value,
+                type,
+                difficulty
+              )
+            `)
+            .eq('user_id', childUserId);
+
+          // Process quest data
+          const questsWithProgress: QuestWithProgress[] = (questProgress || []).map(qp => ({
+            id: qp.quests.id,
+            title: qp.quests.title,
+            description: qp.quests.description,
+            target_value: qp.quests.target_value,
+            current_value: qp.current_value,
+            type: qp.quests.type as 'daily' | 'weekly' | 'monthly',
+            status: qp.status as 'active' | 'completed' | 'failed',
+            progress_percentage: Math.min(100, Math.round((qp.current_value / qp.quests.target_value) * 100))
+          }));
+
+          const activeQuests = questsWithProgress.filter(q => q.status === 'active');
+          const completedQuests = questsWithProgress.filter(q => q.status === 'completed');
+
+          studentData.push({
+            id: childUserId,
+            name: profile?.display_name || 'Student',
+            email: '',
+            totalStudyTime: 0,
+            averageScore: 0,
+            completedQuizzes: 0,
+            
+            currentSubjects: [],
+            weakAreas: [],
+            strongAreas: [],
+            lastActivity: 'Recently active',
+            
+            questProgress: {
+              activeQuests,
+              completedQuests,
+              totalCompleted: completedQuests.length,
+              totalActive: activeQuests.length
+            }
+          });
+        }
+      }
+
+      // Also fetch from children table for basic records (without quest progress)
       const { data: children, error: childrenError } = await supabase
         .from('children')
         .select('*')
@@ -44,22 +145,30 @@ export const ParentDashboard = () => {
 
       if (childrenError) throw childrenError;
 
-      const studentData: StudentProgress[] = [];
-
       for (const child of children || []) {
-        // Each child is just a record with name and grade, no complex user relationships
+        // Skip if we already have this child from relationships
+        const alreadyAdded = studentData.find(s => s.name.includes(child.first_name));
+        if (alreadyAdded) continue;
+        
         studentData.push({
           id: child.id,
           name: `${child.first_name} ${child.last_name}`,
           email: '',
-          totalStudyTime: 0, // Children records don't track activity yet
+          totalStudyTime: 0,
           averageScore: 0,
           completedQuizzes: 0,
           
           currentSubjects: child.subjects || [],
           weakAreas: [],
           strongAreas: [],
-          lastActivity: child.grade_level || 'No grade set'
+          lastActivity: child.grade_level || 'No grade set',
+          
+          questProgress: {
+            activeQuests: [],
+            completedQuests: [],
+            totalCompleted: 0,
+            totalActive: 0
+          }
         });
       }
 
@@ -117,18 +226,91 @@ export const ParentDashboard = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">{student.averageScore}%</div>
-                      <div className="text-sm text-white/70">Average Score</div>
+                      <div className="text-2xl font-bold text-blue-400">{student.questProgress.totalActive}</div>
+                      <div className="text-sm text-white/70">Active Quests</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">{student.completedQuizzes}</div>
-                      <div className="text-sm text-white/70">Quizzes Completed</div>
+                      <div className="text-2xl font-bold text-green-400">{student.questProgress.totalCompleted}</div>
+                      <div className="text-sm text-white/70">Completed Quests</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-orange-400">{student.totalStudyTime}</div>
                       <div className="text-sm text-white/70">Study Minutes</div>
                     </div>
                   </div>
+
+                  {/* Quest Progress Section */}
+                  {student.questProgress.activeQuests.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-blue-400" />
+                        Active Quest Progress
+                      </h4>
+                      <div className="space-y-4">
+                        {student.questProgress.activeQuests.slice(0, 5).map((quest) => (
+                          <div key={quest.id} className="bg-white/5 rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h5 className="text-white font-medium">{quest.title}</h5>
+                                <p className="text-white/60 text-sm">{quest.description}</p>
+                              </div>
+                              <Badge 
+                                variant="secondary" 
+                                className={`
+                                  ${quest.type === 'daily' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : ''}
+                                  ${quest.type === 'weekly' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : ''}
+                                  ${quest.type === 'monthly' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : ''}
+                                `}
+                              >
+                                {quest.type}
+                              </Badge>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-white/70">
+                                  Progress: {quest.current_value} / {quest.target_value}
+                                </span>
+                                <span className="text-white font-medium">
+                                  {quest.progress_percentage}%
+                                </span>
+                              </div>
+                              <Progress 
+                                value={quest.progress_percentage} 
+                                className="h-2"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {student.questProgress.activeQuests.length > 5 && (
+                        <p className="text-white/50 text-sm mt-2 text-center">
+                          +{student.questProgress.activeQuests.length - 5} more quests...
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Recently Completed Quests */}
+                  {student.questProgress.completedQuests.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-green-400" />
+                        Recently Completed Quests
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {student.questProgress.completedQuests.slice(0, 3).map((quest) => (
+                          <Badge 
+                            key={quest.id} 
+                            variant="secondary" 
+                            className="bg-green-500/20 text-green-400 border-green-500/30"
+                          >
+                            ✓ {quest.title}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
