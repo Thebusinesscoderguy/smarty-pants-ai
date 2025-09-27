@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Target, Calendar, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -25,6 +26,13 @@ interface Quest {
   created_at: string;
   subjects?: {
     name: string;
+  };
+  // Add progress tracking
+  progress_stats?: {
+    total_users: number;
+    active_users: number;
+    average_progress: number;
+    completion_rate: number;
   };
 }
 
@@ -96,7 +104,41 @@ export const QuestManagement = () => {
       
       // Convert database results to typed Quest objects
       const convertedQuests = (data || []).map(convertDatabaseQuest);
-      setQuests(convertedQuests);
+      
+      // Fetch progress statistics for each quest
+      const questsWithProgress = await Promise.all(
+        convertedQuests.map(async (quest) => {
+          const { data: progressData, error: progressError } = await supabase
+            .from('user_quest_progress')
+            .select('user_id, current_value, completed, status')
+            .eq('quest_id', quest.id);
+
+          if (progressError) {
+            console.error('Error fetching progress for quest:', quest.id, progressError);
+            return quest;
+          }
+
+          const totalUsers = progressData?.length || 0;
+          const activeUsers = progressData?.filter(p => p.status === 'active').length || 0;
+          const completedUsers = progressData?.filter(p => p.completed).length || 0;
+          const averageProgress = totalUsers > 0 
+            ? progressData.reduce((sum, p) => sum + (p.current_value || 0), 0) / totalUsers 
+            : 0;
+          const completionRate = totalUsers > 0 ? (completedUsers / totalUsers) * 100 : 0;
+
+          return {
+            ...quest,
+            progress_stats: {
+              total_users: totalUsers,
+              active_users: activeUsers,
+              average_progress: Math.round(averageProgress * 10) / 10,
+              completion_rate: Math.round(completionRate)
+            }
+          };
+        })
+      );
+      
+      setQuests(questsWithProgress);
     } catch (error: any) {
       console.error('Error fetching quests:', error);
       toast({
@@ -446,7 +488,38 @@ export const QuestManagement = () => {
                         {quest.difficulty}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-300 mb-2">{quest.description}</p>
+                    <p className="text-sm text-gray-300 mb-3">{quest.description}</p>
+                    
+                    {/* Progress Statistics */}
+                    {quest.progress_stats && quest.progress_stats.total_users > 0 && (
+                      <div className="bg-white/5 rounded-lg p-3 mb-3">
+                        <div className="grid grid-cols-2 gap-4 mb-2">
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-blue-400">
+                              {quest.progress_stats.average_progress.toFixed(1)}/{quest.target_value}
+                            </div>
+                            <div className="text-xs text-gray-400">Avg Progress</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-green-400">
+                              {quest.progress_stats.completion_rate}%
+                            </div>
+                            <div className="text-xs text-gray-400">Completion Rate</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-gray-400">
+                            <span>Overall Progress</span>
+                            <span>{quest.progress_stats.active_users} active users</span>
+                          </div>
+                          <Progress 
+                            value={(quest.progress_stats.average_progress / quest.target_value) * 100} 
+                            className="h-2" 
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center space-x-4 text-xs text-gray-400">
                       <span>Target: {quest.target_value}</span>
                       {quest.subjects && <span>Subject: {quest.subjects.name}</span>}
