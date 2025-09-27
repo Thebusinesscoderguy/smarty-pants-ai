@@ -308,6 +308,27 @@ const Monitoring = () => {
                                 Delete
                               </Button>
                             </div>
+
+                            {/* Overall Quest Progress (visible always) */}
+                            <div className="mt-2">
+                              {(() => {
+                                const students = (completionData?.completed_by ?? []) as any[];
+                                const avg = students.length > 0
+                                  ? students.reduce((sum, s) => sum + (s.progress || 0), 0) / students.length
+                                  : 0;
+                                const safeTarget = quest.target_value || 1;
+                                const percent = Math.min(100, Math.max(0, (avg / safeTarget) * 100));
+                                return (
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-white/70">Progress</span>
+                                      <span className="text-white">{Math.round(avg * 10) / 10}/{safeTarget}</span>
+                                    </div>
+                                    <Progress value={percent} className="h-2" />
+                                  </div>
+                                );
+                              })()}
+                            </div>
                             
                             {/* Student Completion Section */}
                             {completionData && (
