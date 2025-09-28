@@ -33,7 +33,10 @@ interface DailyLesson {
   description: string;
   activities: string[];
   estimatedTime: number; // minutes
-  practiceQuestions: number;
+  exampleQuestions?: Array<{
+    question: string;
+    solution: string;
+  }>;
 }
 
 export const StudyPlanGenerator = () => {
@@ -603,9 +606,11 @@ const handleCreateMistakesSimilar = async () => {
                           <div className="text-xs text-muted-foreground">
                             {lesson.estimatedTime} min
                           </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {lesson.practiceQuestions} questions
-                          </Badge>
+                          {lesson.exampleQuestions && lesson.exampleQuestions.length > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {lesson.exampleQuestions.length} examples
+                            </Badge>
+                          )}
                         </div>
                       </div>
 
@@ -618,7 +623,7 @@ const handleCreateMistakesSimilar = async () => {
                               const quiz = await generateQuiz(
                                 subjectContext,
                                 'medium',
-                                lesson.practiceQuestions,
+                                5,
                                 undefined,
                                 gradeLevel
                               );

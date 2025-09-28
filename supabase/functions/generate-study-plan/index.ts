@@ -49,7 +49,7 @@ serve(async (req) => {
       'Build from appropriate foundations but avoid overly elementary concepts unrelated to the topic.',
       'Progress logically from foundational definitions to more complex applications.',
       'Each day should build on the previous day\'s concepts in a structured progression.',
-      'Include a mini-quiz each day; set practiceQuestions to match the mini-quiz size.'
+      'Include 2-3 clear example questions with solutions to illustrate concepts.'
     ].join('\n- ');
 
     const gradeContext = gradeLevel ? `\n\nCRITICAL: This is for a ${gradeLevel} student. Content must be appropriate for this grade level. Do NOT include elementary concepts unless specifically relevant to building toward the advanced topic. Start with concepts appropriate for ${gradeLevel} level understanding.` : '';
@@ -69,9 +69,14 @@ serve(async (req) => {
           "day": 1,
           "topic": "Core Concepts in ${inputData}",
           "description": "Dive into the fundamental principles and theories specific to ${inputData}.",
-          "activities": ["Deep explanation of key concepts", "Real-world applications", "Practice problems", "Conceptual mini-quiz"],
+          "activities": ["Deep explanation of key concepts", "Real-world applications", "Example questions with solutions"],
           "estimatedTime": ${perDayLimit ?? 45},
-          "practiceQuestions": 5
+          "exampleQuestions": [
+            {
+              "question": "Example question text",
+              "solution": "Step-by-step solution explanation"
+            }
+          ]
         }
       ]
     }

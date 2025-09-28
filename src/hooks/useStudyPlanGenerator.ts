@@ -18,7 +18,10 @@ interface DailyLesson {
   description: string;
   activities: string[];
   estimatedTime: number;
-  practiceQuestions: number;
+  exampleQuestions?: Array<{
+    question: string;
+    solution: string;
+  }>;
 }
 
 export const useStudyPlanGenerator = () => {
