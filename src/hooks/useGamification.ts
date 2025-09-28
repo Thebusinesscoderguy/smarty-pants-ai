@@ -235,13 +235,21 @@ export const useGamification = () => {
                   topicLower.includes('chemistry') || topicLower.includes('biology')) {
                 lessonContext.subject = 'science';
               } 
-              // Math keywords (only pure math topics)
+              // Math keywords (comprehensive math detection)
               else if (topicLower.includes('algebra') || topicLower.includes('geometry') || 
                         topicLower.includes('calculus') || topicLower.includes('trigonometry') ||
                         topicLower.includes('statistics') || topicLower.includes('probability') ||
+                        topicLower.includes('slope') || topicLower.includes('intercept') ||
+                        topicLower.includes('linear') || topicLower.includes('quadratic') ||
+                        topicLower.includes('polynomial') || topicLower.includes('function') ||
+                        topicLower.includes('graph') || topicLower.includes('coordinate') ||
+                        topicLower.includes('math') || topicLower.includes('arithmetic') ||
+                        topicLower.includes('fraction') || topicLower.includes('decimal') ||
+                        topicLower.includes('ratio') || topicLower.includes('proportion') ||
+                        topicLower.includes('exponent') || topicLower.includes('logarithm') ||
                         (topicLower.includes('equation') && !topicLower.includes('motion') && !topicLower.includes('physics'))) {
                 lessonContext.subject = 'math';
-              } 
+              }
               // English keywords
               else if (topicLower.includes('grammar') || topicLower.includes('literature') || 
                         topicLower.includes('writing') || topicLower.includes('reading') ||
@@ -320,7 +328,8 @@ export const useGamification = () => {
               
               // Check if quest mentions specific subjects
               const mentionsScience = titleLower.includes('science') || titleLower.includes('physics');
-              const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry');
+              const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry') || 
+                                 titleLower.includes('slope') || titleLower.includes('equation') || titleLower.includes('calculus');
               const mentionsEnglish = titleLower.includes('english') || titleLower.includes('language');
               
               // STRICT matching - only if subject and quest match exactly
@@ -398,7 +407,9 @@ export const useGamification = () => {
 
                 // Only match quests that explicitly mention the subject we're working on
                 const mentionsScience = titleLower.includes('science') || titleLower.includes('physics') || descLower.includes('science') || descLower.includes('physics');
-                const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry') || descLower.includes('math');
+                const mentionsMath = titleLower.includes('math') || titleLower.includes('algebra') || titleLower.includes('geometry') || 
+                                   titleLower.includes('slope') || titleLower.includes('equation') || titleLower.includes('calculus') ||
+                                   descLower.includes('math') || descLower.includes('algebra') || descLower.includes('geometry');
                 const mentionsEnglish = titleLower.includes('english') || titleLower.includes('language') || descLower.includes('english');
 
                 // STRICT matching - only update if the quest specifically mentions the subject
