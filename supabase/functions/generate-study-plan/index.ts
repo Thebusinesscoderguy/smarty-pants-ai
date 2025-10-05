@@ -98,7 +98,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: 'gpt-4.1-2025-04-14',
             messages: [
-              { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. Always respond with valid JSON only.' },
+              { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy of any concept, do NOT include that content in the study plan. Only present information you are confident is accurate and consistent. Always respond with valid JSON only.' },
               { role: 'user', content: fullPrompt }
             ],
             max_completion_tokens: 2000,

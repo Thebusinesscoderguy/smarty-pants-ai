@@ -67,7 +67,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: 'gpt-4o',
             messages: [
-              { role: 'system', content: 'You are an expert educator creating quiz questions. Always respond with valid JSON only.' },
+              { role: 'system', content: 'You are an expert educator creating quiz questions. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy for any question, skip that question and do not include it in the quiz. Only create questions with information you are confident is accurate and consistent. Always respond with valid JSON only.' },
               { role: 'user', content: prompt }
             ],
             temperature: 0.5,

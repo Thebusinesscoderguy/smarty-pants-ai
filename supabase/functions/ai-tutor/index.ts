@@ -26,6 +26,9 @@ serve(async (req) => {
 LESSON CONTEXT:
 ${lessonContent}
 
+CRITICAL ACCURACY REQUIREMENT:
+If you encounter any conflicting information or are uncertain about the factual accuracy of any concept, do NOT present that information to the student. Only discuss concepts you are confident are accurate and consistent. If uncertain, acknowledge your uncertainty rather than presenting potentially incorrect information.
+
 TEACHING PRINCIPLES:
 1. Use guided questioning - never just give answers directly
 2. Ask probing questions to check understanding before moving forward

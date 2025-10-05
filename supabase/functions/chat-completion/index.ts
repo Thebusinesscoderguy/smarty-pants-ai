@@ -34,16 +34,22 @@ serve(async (req) => {
     // Use messages as-is without custom system instructions (base GPT behavior)
     const finalMessages = messages || [{ role: 'user', content: 'Hello' }];
     
-    // Only add language instruction if not English, without other custom instructions
+    // Add system message with accuracy requirements and language instruction
     let messagesWithSystem;
+    const accuracyInstruction = 'CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy, do NOT present that information to the student. Only provide information you are confident is accurate and consistent. If uncertain, acknowledge your uncertainty rather than presenting potentially incorrect information.';
+    
     if (language !== 'en') {
       const languageSystemMessage = {
         role: 'system',
-        content: `Always respond in ${getLanguageName(language)}.`
+        content: `${accuracyInstruction}\n\nAlways respond in ${getLanguageName(language)}.`
       };
       messagesWithSystem = [languageSystemMessage, ...finalMessages];
     } else {
-      messagesWithSystem = finalMessages;
+      const systemMessage = {
+        role: 'system',
+        content: accuracyInstruction
+      };
+      messagesWithSystem = [systemMessage, ...finalMessages];
     }
 
     // Set a timeout for the fetch operation
