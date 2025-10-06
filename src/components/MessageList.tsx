@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Volume2, VolumeX, User, Bot, FileText, Image, Play, Pause, File, Download, Loader2 } from 'lucide-react';
+import { Volume2, VolumeX, User, Bot, FileText, Image, Play, Pause, File, Download, Loader2, Copy } from 'lucide-react';
 import { Message } from '@/types/message';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -170,6 +170,23 @@ const MessageList: React.FC<MessageListProps> = ({
     }
   };
 
+  const handleCopyMessage = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard",
+        description: "Message text has been copied successfully.",
+      });
+    } catch (error) {
+      console.error('Copy error:', error);
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy message to clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderFileContent = (message: Message) => {
     if (!message.fileUrl) return null;
 
@@ -278,22 +295,33 @@ const MessageList: React.FC<MessageListProps> = ({
                   )}
                   
                   {!message.isFromUser && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleTextToSpeech(message.id || '', message.text)}
-                      disabled={loadingTTS.has(message.id || '')}
-                      className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all duration-200"
-                      title={speakingMessages.has(message.id || '') ? "Stop speech" : "Read aloud"}
-                    >
-                      {loadingTTS.has(message.id || '') ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : speakingMessages.has(message.id || '') ? (
-                        <VolumeX className="h-4 w-4" />
-                      ) : (
-                        <Volume2 className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopyMessage(message.text)}
+                        className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all duration-200"
+                        title="Copy to clipboard"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTextToSpeech(message.id || '', message.text)}
+                        disabled={loadingTTS.has(message.id || '')}
+                        className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all duration-200"
+                        title={speakingMessages.has(message.id || '') ? "Stop speech" : "Read aloud"}
+                      >
+                        {loadingTTS.has(message.id || '') ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : speakingMessages.has(message.id || '') ? (
+                          <VolumeX className="h-4 w-4" />
+                        ) : (
+                          <Volume2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </>
                   )}
                 </div>
 
