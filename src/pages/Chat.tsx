@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX, Trophy } from 'lucide-react';
+import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX, Trophy, Copy } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -570,6 +570,23 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
     }
   };
 
+  const handleCopyMessage = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard",
+        description: "Message text has been copied successfully.",
+      });
+    } catch (error) {
+      console.error('Copy error:', error);
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy message to clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleNewChat = () => {
     // Reset to welcome message for new chat
     setMessages([{
@@ -719,15 +736,26 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                             {formatTime(message.timestamp)}
                           </p>
                           {!message.isUser && (
-                            <Button
-                              onClick={() => handleTextToSpeech(message.content)}
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10"
-                              title={t('chat.readAloud')}
-                            >
-                              <Volume2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                onClick={() => handleCopyMessage(message.content)}
+                                variant="ghost"
+                                size="sm"
+                                className="p-1 h-auto hover:bg-white/10"
+                                title="Copy to clipboard"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => handleTextToSpeech(message.content)}
+                                variant="ghost"
+                                size="sm"
+                                className="p-1 h-auto hover:bg-white/10"
+                                title={t('chat.readAloud')}
+                              >
+                                <Volume2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </div>
