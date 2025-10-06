@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2, Volume2, Upload, Mic, Bot, VolumeX } from 'lucide-react';
+import { ArrowLeft, Clock, Play, MessageSquare, User, Send, BarChart3, Settings, MessageSquarePlus, Trash2, Volume2, Upload, Mic, Bot, VolumeX, Copy } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RoleSelection } from '@/components/RoleSelection';
@@ -172,6 +172,24 @@ const Demo = () => {
   };
 
   // Instant voice functionality for demo
+  const handleCopyMessage = async (text: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard",
+        description: "Message text has been copied successfully.",
+      });
+    } catch (error) {
+      console.error('Copy error:', error);
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy message to clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleTextToSpeech = async (text: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('text-to-voice', {
@@ -553,9 +571,7 @@ const Demo = () => {
                               {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
                             </div>
                              <div 
-                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/15 cursor-pointer'} shadow-xl border border-white/20 group transition-all duration-200`}
-                               onClick={() => !message.isUser && handleTextToSpeech(message.content)}
-                               title={!message.isUser ? 'Click to hear this message' : undefined}
+                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group transition-all duration-200`}
                              >
                                <p className="text-lg leading-relaxed">{message.content}</p>
                                <div className="flex items-center justify-between mt-3">
@@ -563,9 +579,28 @@ const Demo = () => {
                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                  </p>
                                  {!message.isUser && (
-                                   <div className="transition-opacity text-xs opacity-0 group-hover:opacity-100 text-purple-300">
-                                     <Volume2 className="h-3 w-3 inline mr-1" />
-                                     Click to speak
+                                   <div className="flex items-center gap-2">
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       onClick={(e) => handleCopyMessage(message.content, e)}
+                                       className="h-7 w-7 p-0 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200"
+                                       title="Copy to clipboard"
+                                     >
+                                       <Copy className="h-4 w-4" />
+                                     </Button>
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handleTextToSpeech(message.content);
+                                       }}
+                                       className="h-7 w-7 p-0 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200"
+                                       title="Read aloud"
+                                     >
+                                       <Volume2 className="h-4 w-4" />
+                                     </Button>
                                    </div>
                                  )}
                                </div>
