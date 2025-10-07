@@ -33,6 +33,7 @@ export const useStudyPlanGenerator = () => {
     opts?: { gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number }
   ): Promise<StudyPlan | null> => {
     setIsGenerating(true);
+    let timeoutId: any;
     try {
       const invokePromise = supabase.functions.invoke('generate-study-plan', {
         body: {
@@ -44,7 +45,6 @@ export const useStudyPlanGenerator = () => {
           maxDailyMinutes: opts?.maxDailyMinutes
         }
       });
-      let timeoutId: any;
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error('Request timed out')), 45000);
       });
