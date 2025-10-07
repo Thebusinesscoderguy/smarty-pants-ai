@@ -89,27 +89,42 @@ serve(async (req) => {
 
     async function callOpenAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
-        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4.1-2025-04-14',
-            messages: [
-              { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy of any concept, do NOT include that content in the study plan. Only present information you are confident is accurate and consistent. Always respond with valid JSON only.' },
-              { role: 'user', content: fullPrompt }
-            ],
-            max_completion_tokens: 2000,
-          }),
-        });
-        if (resp.ok) return resp;
-        if (resp.status === 429 && attempt < retries) {
-          await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
-          continue;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 30000);
+        try {
+          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4.1-2025-04-14',
+              messages: [
+                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy of any concept, do NOT include that content in the study plan. Only present information you are confident is accurate and consistent. Always respond with valid JSON only.' },
+                { role: 'user', content: fullPrompt }
+              ],
+              max_completion_tokens: 2000,
+            }),
+            signal: controller.signal,
+          });
+          if (resp.ok) return resp;
+          if (resp.status === 429 && attempt < retries) {
+            await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
+            continue;
+          }
+          return resp;
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') {
+            if (attempt < retries) {
+              continue;
+            }
+            throw new Error('AI request timed out');
+          }
+          throw e;
+        } finally {
+          clearTimeout(timer);
         }
-        return resp;
       }
       return new Response(null, { status: 500 });
     }

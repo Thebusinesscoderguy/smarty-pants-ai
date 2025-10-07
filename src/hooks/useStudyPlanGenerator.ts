@@ -33,9 +33,8 @@ export const useStudyPlanGenerator = () => {
     opts?: { gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number }
   ): Promise<StudyPlan | null> => {
     setIsGenerating(true);
-    
     try {
-      const { data, error } = await supabase.functions.invoke('generate-study-plan', {
+      const invokePromise = supabase.functions.invoke('generate-study-plan', {
         body: {
           inputData,
           inputType,
@@ -45,8 +44,14 @@ export const useStudyPlanGenerator = () => {
           maxDailyMinutes: opts?.maxDailyMinutes
         }
       });
+      let timeoutId: any;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 45000);
+      });
+      const result = await Promise.race([invokePromise, timeoutPromise]) as { data: any; error: any };
+      clearTimeout(timeoutId);
 
-      if (error) throw error;
+      const { data, error } = result;
 
       return data as StudyPlan;
     } catch (error: any) {
@@ -54,7 +59,9 @@ export const useStudyPlanGenerator = () => {
       const status = error?.context?.response?.status || error?.status;
       const msg = String(error?.message || '');
       let description = 'Failed to generate study plan.';
-      if (status === 429 || /rate limit/i.test(msg)) {
+      if (error?.name === 'AbortError' || /aborted|AbortError|timed out|timeout/i.test(msg)) {
+        description = 'Request timed out. Please try again in a moment.';
+      } else if (status === 429 || /rate limit/i.test(msg)) {
         description = 'OpenAI rate limit reached. Please wait and try again shortly.';
       } else if (typeof status === 'number') {
         description = `Server error (${status}). Please try again.`;
@@ -68,6 +75,7 @@ export const useStudyPlanGenerator = () => {
       });
       return null;
     } finally {
+      try { clearTimeout(timeoutId); } catch {}
       setIsGenerating(false);
     }
   };
