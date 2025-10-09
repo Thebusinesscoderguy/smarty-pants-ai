@@ -141,6 +141,8 @@ const handleCreateMistakesSimilar = async () => {
     const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes });
     if (plan) {
       setGeneratedPlan(plan);
+    } else {
+      toast({ title: 'Could not generate plan', description: 'Please try again in a moment.', variant: 'destructive' });
     }
   };
 
