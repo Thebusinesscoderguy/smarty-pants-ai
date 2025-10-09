@@ -17,10 +17,11 @@ serve(async (req) => {
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
+    const AI_GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
     // Create different prompts based on input type
     let prompt = '';
@@ -87,24 +88,23 @@ serve(async (req) => {
     - Make activities directly related to the advanced topic, not basic math concepts
     - Use grade-appropriate language and examples throughout`;
 
-    async function callOpenAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
+    async function callAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 30000);
+        const timer = setTimeout(() => controller.abort(), 45000);
         try {
-          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          const resp = await fetch(AI_GATEWAY_URL, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${openAIApiKey}`,
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4.1-2025-04-14',
+              model: 'google/gemini-2.5-flash',
               messages: [
-                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy of any concept, do NOT include that content in the study plan. Only present information you are confident is accurate and consistent. Always respond with valid JSON only.' },
+                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
-              ],
-              max_completion_tokens: 2000,
+              ]
             }),
             signal: controller.signal,
           });
@@ -129,27 +129,63 @@ serve(async (req) => {
       return new Response(null, { status: 500 });
     }
 
-    const response = await callOpenAIWithRetry();
+    const response = await callAIWithRetry();
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`OpenAI API error (${response.status}): ${text}`);
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const t = await response.text();
+      console.error('AI gateway error:', response.status, t);
+      return new Response(JSON.stringify({ error: 'AI gateway error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
     let planContent = data.choices?.[0]?.message?.content ?? '';
-    planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
-    
+    planContent = planContent.trim();
+
+    function extractFirstJsonObject(text: string): string | null {
+      // Strip common code fences
+      let cleaned = text.replace(/^```json[\s\r\n]*/i, '').replace(/```$/i, '').trim();
+      const start = cleaned.indexOf('{');
+      const end = cleaned.lastIndexOf('}');
+      if (start !== -1 && end !== -1 && end > start) {
+        return cleaned.slice(start, end + 1);
+      }
+      return null;
+    }
+
+    const jsonStr = extractFirstJsonObject(planContent);
     let studyPlan: any;
     try {
-      studyPlan = JSON.parse(planContent);
+      const toParse = jsonStr ?? planContent;
+      studyPlan = JSON.parse(toParse);
       if (!studyPlan.id) {
         studyPlan.id = crypto.randomUUID();
       }
     } catch (parseError) {
       console.error('Failed to parse study plan JSON:', planContent);
-      throw new Error('Failed to generate valid study plan format');
+      return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    return new Response(JSON.stringify(studyPlan), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
     return new Response(JSON.stringify(studyPlan), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -46,12 +46,22 @@ export const useStudyPlanGenerator = () => {
         }
       });
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 45000);
+        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 60000);
       });
       const result = await Promise.race([invokePromise, timeoutPromise]) as { data: any; error: any };
       clearTimeout(timeoutId);
 
       const { data, error } = result;
+
+      if (error) {
+        const status = (error as any)?.context?.response?.status ?? (error as any)?.status;
+        const message = (error as any)?.message || 'Failed to generate study plan';
+        throw { ...error, status, message };
+      }
+
+      if (!data) {
+        throw new Error('No study plan returned');
+      }
 
       return data as StudyPlan;
     } catch (error: any) {
