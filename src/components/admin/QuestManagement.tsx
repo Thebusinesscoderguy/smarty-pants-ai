@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-
+import { useUserRole } from '@/hooks/useUserRole';
 interface Quest {
   id: string;
   title: string;
@@ -82,8 +82,8 @@ export const QuestManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { user } = useAuth();
-  
+const { user } = useAuth();
+const { isSchoolAdmin } = useUserRole();
   const [newQuest, setNewQuest] = useState({
     title: '',
     description: '',
@@ -473,51 +473,55 @@ export const QuestManagement = () => {
                 </div>
               </div>
 
-              {children.length > 0 && (
-                <div>
-                  <Label className="text-white mb-2 block">Assign to Children</Label>
-                  <div className="space-y-2 p-3 bg-white/5 rounded-md border border-white/10">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="all-children"
-                        checked={newQuest.assigned_children.length === 0}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setNewQuest({ ...newQuest, assigned_children: [] });
-                          }
-                        }}
-                      />
-                      <label htmlFor="all-children" className="text-sm text-white cursor-pointer">
-                        All Children
-                      </label>
-                    </div>
-                    {children.map((child) => (
-                      <div key={child.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`child-${child.id}`}
-                          checked={newQuest.assigned_children.includes(child.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setNewQuest({
-                                ...newQuest,
-                                assigned_children: [...newQuest.assigned_children, child.id]
-                              });
-                            } else {
-                              setNewQuest({
-                                ...newQuest,
-                                assigned_children: newQuest.assigned_children.filter(id => id !== child.id)
-                              });
-                            }
-                          }}
-                        />
-                        <label htmlFor={`child-${child.id}`} className="text-sm text-white cursor-pointer">
-                          {child.first_name} {child.last_name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+<div>
+  <Label className="text-white mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
+  <div className="space-y-2 p-3 bg-white/5 rounded-md border border-white/10">
+    <div className="flex items-center space-x-2">
+      <Checkbox
+        id="all-children"
+        checked={newQuest.assigned_children.length === 0}
+        onCheckedChange={(checked) => {
+          if (checked) {
+            setNewQuest({ ...newQuest, assigned_children: [] });
+          }
+        }}
+      />
+      <label htmlFor="all-children" className="text-sm text-white cursor-pointer">
+        {isSchoolAdmin ? 'All Students' : 'All Children'}
+      </label>
+    </div>
+    {children.length > 0 ? (
+      children.map((child) => (
+        <div key={child.id} className="flex items-center space-x-2">
+          <Checkbox
+            id={`child-${child.id}`}
+            checked={newQuest.assigned_children.includes(child.id)}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                setNewQuest({
+                  ...newQuest,
+                  assigned_children: [...newQuest.assigned_children, child.id]
+                });
+              } else {
+                setNewQuest({
+                  ...newQuest,
+                  assigned_children: newQuest.assigned_children.filter(id => id !== child.id)
+                });
+              }
+            }}
+          />
+          <label htmlFor={`child-${child.id}`} className="text-sm text-white cursor-pointer">
+            {child.first_name} {child.last_name}
+          </label>
+        </div>
+      ))
+    ) : (
+      <p className="text-xs text-gray-400">
+        {isSchoolAdmin ? 'No students linked to your school yet.' : 'No children linked yet.'}
+      </p>
+    )}
+  </div>
+</div>
 
               <Button
                 onClick={createQuest}
