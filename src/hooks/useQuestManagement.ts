@@ -158,6 +158,15 @@ export const useQuestManagement = () => {
     }
 
     try {
+      // First delete all related progress records
+      const { error: progressError } = await supabase
+        .from('user_quest_progress')
+        .delete()
+        .eq('quest_id', id);
+
+      if (progressError) throw progressError;
+
+      // Then delete the quest
       const { error } = await supabase
         .from('quests')
         .delete()
