@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Target, Calendar, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +25,7 @@ interface Quest {
   created_by: string | null;
   is_active: boolean;
   created_at: string;
+  assigned_children?: string[] | null;
   subjects?: {
     name: string;
   };
@@ -34,6 +36,12 @@ interface Quest {
     average_progress: number;
     completion_rate: number;
   };
+}
+
+interface Child {
+  id: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface Subject {
@@ -70,6 +78,7 @@ const convertDatabaseQuest = (dbQuest: any): Quest => {
 export const QuestManagement = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -81,12 +90,14 @@ export const QuestManagement = () => {
     type: 'daily' as 'daily' | 'weekly',
     difficulty: 'basic' as 'basic' | 'intermediate' | 'hard',
     target_value: '',
-    subject_id: ''
+    subject_id: '',
+    assigned_children: [] as string[]
   });
 
   useEffect(() => {
     fetchQuests();
     fetchSubjects();
+    fetchChildren();
   }, []);
 
   const fetchQuests = async () => {
@@ -216,6 +227,35 @@ export const QuestManagement = () => {
     }
   };
 
+  const fetchChildren = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('parent_child_relationships')
+        .select(`
+          child_id,
+          profiles!parent_child_relationships_child_id_fkey (
+            id,
+            display_name
+          )
+        `)
+        .eq('parent_id', user.id);
+
+      if (error) throw error;
+
+      const childrenData = (data || []).map((rel: any) => ({
+        id: rel.child_id,
+        first_name: rel.profiles?.display_name?.split(' ')[0] || 'Child',
+        last_name: rel.profiles?.display_name?.split(' ').slice(1).join(' ') || ''
+      }));
+
+      setChildren(childrenData);
+    } catch (error: any) {
+      console.error('Error fetching children:', error);
+    }
+  };
+
   const createQuest = async () => {
     if (!newQuest.title.trim() || !newQuest.description.trim()) {
       toast({
@@ -237,7 +277,8 @@ export const QuestManagement = () => {
         target_value: parseInt(newQuest.target_value) || 1,
         subject_id: newQuest.subject_id || null,
         created_by_id: user?.id,
-        created_by: 'school'
+        created_by: 'school',
+        assigned_children: newQuest.assigned_children.length > 0 ? newQuest.assigned_children : null
       };
       
       console.log('Creating quest with data:', questData);
@@ -264,7 +305,8 @@ export const QuestManagement = () => {
         type: 'daily',
         difficulty: 'basic',
         target_value: '',
-        subject_id: ''
+        subject_id: '',
+        assigned_children: []
       });
       
       setIsDialogOpen(false);
@@ -431,7 +473,53 @@ export const QuestManagement = () => {
                 </div>
               </div>
 
-              <Button 
+              {children.length > 0 && (
+                <div>
+                  <Label className="text-white mb-2 block">Assign to Children</Label>
+                  <div className="space-y-2 p-3 bg-white/5 rounded-md border border-white/10">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="all-children"
+                        checked={newQuest.assigned_children.length === 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setNewQuest({ ...newQuest, assigned_children: [] });
+                          }
+                        }}
+                      />
+                      <label htmlFor="all-children" className="text-sm text-white cursor-pointer">
+                        All Children
+                      </label>
+                    </div>
+                    {children.map((child) => (
+                      <div key={child.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`child-${child.id}`}
+                          checked={newQuest.assigned_children.includes(child.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setNewQuest({
+                                ...newQuest,
+                                assigned_children: [...newQuest.assigned_children, child.id]
+                              });
+                            } else {
+                              setNewQuest({
+                                ...newQuest,
+                                assigned_children: newQuest.assigned_children.filter(id => id !== child.id)
+                              });
+                            }
+                          }}
+                        />
+                        <label htmlFor={`child-${child.id}`} className="text-sm text-white cursor-pointer">
+                          {child.first_name} {child.last_name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Button
                 onClick={createQuest}
                 disabled={isCreating || !newQuest.title.trim() || !newQuest.description.trim()}
                 className="w-full bg-purple-600 hover:bg-purple-700"

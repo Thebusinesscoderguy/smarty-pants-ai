@@ -19,6 +19,7 @@ export interface Quest {
   rewards: any;
   requirements: any;
   created_at: string;
+  assigned_children?: string[] | null;
 }
 
 export const useQuestManagement = () => {
@@ -69,6 +70,7 @@ export const useQuestManagement = () => {
     expires_at?: string;
     rewards?: any;
     requirements?: any;
+    assigned_children?: string[] | null;
   }) => {
     if (useDemoData) {
       toast({

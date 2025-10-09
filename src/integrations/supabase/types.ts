@@ -656,6 +656,7 @@ export type Database = {
       }
       quests: {
         Row: {
+          assigned_children: string[] | null
           created_at: string
           created_by: string | null
           created_by_id: string | null
@@ -672,6 +673,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          assigned_children?: string[] | null
           created_at?: string
           created_by?: string | null
           created_by_id?: string | null
@@ -688,6 +690,7 @@ export type Database = {
           type: string
         }
         Update: {
+          assigned_children?: string[] | null
           created_at?: string
           created_by?: string | null
           created_by_id?: string | null
