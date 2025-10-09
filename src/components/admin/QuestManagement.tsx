@@ -379,11 +379,11 @@ export const QuestManagement = () => {
               Create Quest
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-gray-700 max-w-md">
+          <DialogContent className="bg-gray-900 border-gray-700 max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 pr-2">
               <div>
                 <Label htmlFor="title" className="text-white">Quest Title *</Label>
                 <Input
