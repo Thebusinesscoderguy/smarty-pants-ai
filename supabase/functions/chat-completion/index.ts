@@ -16,11 +16,12 @@ serve(async (req) => {
     const { messages, language = 'en' } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OpenAI API key not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!openAIApiKey && !lovableApiKey) {
+      console.error('No AI API key configured');
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured'
+          error: 'No AI API key configured'
         }),
         { 
           status: 500,
@@ -57,29 +58,67 @@ serve(async (req) => {
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
     
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-5-mini-2025-08-07',
-          messages: messagesWithSystem,
-          max_completion_tokens: 1000,
-          stream: true,
-        }),
-        signal: controller.signal
-      });
+      let response: Response;
+      if (lovableApiKey) {
+        const gatewayUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+        response = await fetch(gatewayUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'openai/gpt-5-mini',
+            messages: messagesWithSystem,
+            stream: true,
+          }),
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('AI gateway error (gpt-5-mini):', response.status, errText);
+          // Fallback to fast/free Gemini streaming
+          response = await fetch(gatewayUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: messagesWithSystem,
+              stream: true,
+            }),
+            signal: controller.signal
+          });
+        }
+      } else {
+        // Fallback: direct OpenAI (may fail to stream depending on org settings)
+        response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-5-mini-2025-08-07',
+            messages: messagesWithSystem,
+            max_completion_tokens: 1000,
+            stream: true,
+          }),
+          signal: controller.signal
+        });
+      }
       
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('OpenAI API error:', response.status, errorText);
+        console.error('AI request error:', response.status, errorText);
         return new Response(
           JSON.stringify({ 
-            error: `OpenAI API error: ${response.statusText}`,
+            error: `AI request error: ${response.statusText}`,
             details: errorText
           }),
           { 
@@ -89,7 +128,7 @@ serve(async (req) => {
         );
       }
 
-      console.log('OpenAI streaming response received, forwarding stream');
+      console.log('AI streaming response received, forwarding stream');
 
       // Create a streaming response
       const stream = new ReadableStream({
