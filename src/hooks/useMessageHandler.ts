@@ -108,6 +108,10 @@ export const useMessageHandler = () => {
         // Remove processing message and add streaming message
         setMessages(prev => prev.filter(m => m.id !== processingMessageId).concat(streamingMessage));
 
+        console.log('Calling chat-completion function...');
+        console.log('URL:', `https://twfzlbockonxopuindaw.supabase.co/functions/v1/chat-completion`);
+        console.log('Has API key:', !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+        
         // Generate AI response using direct fetch for proper streaming support
         const response = await fetch(
           `https://twfzlbockonxopuindaw.supabase.co/functions/v1/chat-completion`,
@@ -127,8 +131,13 @@ export const useMessageHandler = () => {
           }
         );
 
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
         if (!response.ok) {
-          throw new Error(`Failed to generate AI response: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error('Response error:', errorText);
+          throw new Error(`Failed to generate AI response: ${response.statusText} - ${errorText}`);
         }
 
         // Handle streaming response with token-by-token updates
