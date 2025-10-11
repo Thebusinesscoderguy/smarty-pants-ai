@@ -108,24 +108,31 @@ export const useMessageHandler = () => {
         // Remove processing message and add streaming message
         setMessages(prev => prev.filter(m => m.id !== processingMessageId).concat(streamingMessage));
 
-        // Generate AI response using OpenAI's chat completion API with streaming
-        const completionResponse = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages: [
-              ...conversationHistory,
-              { role: "user", content: userMessage }
-            ],
-            language: localStorage.getItem('selectedLanguage') || 'en'
+        // Generate AI response using direct fetch for proper streaming support
+        const response = await fetch(
+          `https://twfzlbockonxopuindaw.supabase.co/functions/v1/chat-completion`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              messages: [
+                ...conversationHistory,
+                { role: "user", content: userMessage }
+              ],
+              language: localStorage.getItem('selectedLanguage') || 'en'
+            })
           }
-        });
+        );
 
-        if (completionResponse.error) {
-          throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+        if (!response.ok) {
+          throw new Error(`Failed to generate AI response: ${response.statusText}`);
         }
 
-        // Handle streaming response
+        // Handle streaming response with token-by-token updates
         let aiResponseText = '';
-        const response = new Response(completionResponse.data);
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
 
@@ -147,7 +154,7 @@ export const useMessageHandler = () => {
                   if (data.content) {
                     aiResponseText += data.content;
                     
-                    // Update the streaming message in real-time
+                    // Update the streaming message in real-time for each token
                     setMessages(prev => prev.map(msg => 
                       msg.id === aiMessageId 
                         ? { ...msg, text: aiResponseText }
@@ -160,24 +167,6 @@ export const useMessageHandler = () => {
               }
             }
           }
-        } else {
-          // Fallback for non-streaming response
-          console.log('Non-streaming response received:', completionResponse.data);
-          
-          if (typeof completionResponse.data === 'string') {
-            aiResponseText = completionResponse.data;
-          } else if (completionResponse.data.content) {
-            aiResponseText = completionResponse.data.content;
-          } else {
-            console.error('Unexpected response format:', completionResponse.data);
-            aiResponseText = "I'm sorry, I encountered an issue processing your request.";
-          }
-          
-          setMessages(prev => prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { ...msg, text: aiResponseText }
-              : msg
-          ));
         }
         
         // Check if this is a quiz question and update state
