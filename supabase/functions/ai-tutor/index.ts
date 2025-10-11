@@ -66,10 +66,9 @@ Remember: Your goal is to guide discovery, not lecture. Let the student construc
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini-2025-08-07',
         messages: messages,
-        max_tokens: 300,
-        temperature: 0.7,
+        max_completion_tokens: 300,
         stream: true,
       }),
     });
