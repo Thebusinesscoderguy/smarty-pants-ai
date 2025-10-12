@@ -49,7 +49,11 @@ serve(async (req) => {
       'Build from appropriate foundations but avoid overly elementary concepts unrelated to the topic.',
       'Progress logically from foundational definitions to more complex applications.',
       'Each day should build on the previous day\'s concepts in a structured progression.',
-      'Include 2-3 clear example questions with solutions to illustrate concepts.'
+      'Include 2-3 clear example questions with solutions to illustrate concepts.',
+      'FORMATTING: For math questions, structure solutions as numbered steps with clear spacing.',
+      'FORMATTING: Use proper LaTeX notation enclosed in \\( \\) for inline math or $$ $$ for display math.',
+      'FORMATTING: Each solution step should be on its own line with clear explanations.',
+      'FORMATTING: Use bullet points or numbered lists for multi-step processes.'
     ].join('\n- ');
 
     const gradeContext = gradeLevel ? `\n\nCRITICAL: This is for a ${gradeLevel} student. Content must be appropriate for this grade level. Do NOT include elementary concepts unless specifically relevant to building toward the advanced topic. Start with concepts appropriate for ${gradeLevel} level understanding.` : '';
@@ -73,8 +77,8 @@ serve(async (req) => {
           "estimatedTime": ${perDayLimit ?? 45},
           "exampleQuestions": [
             {
-              "question": "Example question text",
-              "solution": "Step-by-step solution explanation"
+              "question": "Example question text with proper LaTeX formatting for math: \\(x^2 + 5x + 6\\)",
+              "solution": "**Step 1:** Identify the key information\\n\\n**Step 2:** Apply the method\\n\\n**Step 3:** Simplify and check your answer\\n\\n**Final Answer:** Result here"
             }
           ]
         }
@@ -101,7 +105,7 @@ serve(async (req) => {
             body: JSON.stringify({
               model: 'gpt-4o',
               messages: [
-                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. Always respond with valid JSON only.' },
+                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
               ],
               temperature: 0.7,
