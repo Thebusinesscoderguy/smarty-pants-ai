@@ -61,6 +61,7 @@ serve(async (req) => {
       let response: Response;
       if (lovableApiKey) {
         const gatewayUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+        // Primary: Gemini 2.5 Flash (default, fast)
         response = await fetch(gatewayUrl, {
           method: 'POST',
           headers: {
@@ -68,7 +69,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'openai/gpt-5-mini',
+            model: 'google/gemini-2.5-flash',
             messages: messagesWithSystem,
             stream: true,
           }),
@@ -77,8 +78,8 @@ serve(async (req) => {
 
         if (!response.ok) {
           const errText = await response.text();
-          console.error('AI gateway error (gpt-5-mini):', response.status, errText);
-          // Fallback to fast/free Gemini streaming
+          console.error('AI gateway error (gemini-2.5-flash):', response.status, errText);
+          // Fallback to Gemini Pro
           response = await fetch(gatewayUrl, {
             method: 'POST',
             headers: {
@@ -86,7 +87,7 @@ serve(async (req) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
+              model: 'google/gemini-2.5-pro',
               messages: messagesWithSystem,
               stream: true,
             }),
@@ -94,21 +95,11 @@ serve(async (req) => {
           });
         }
       } else {
-        // Fallback: direct OpenAI (may fail to stream depending on org settings)
-        response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-5-mini-2025-08-07',
-            messages: messagesWithSystem,
-            max_completion_tokens: 1000,
-            stream: true,
-          }),
-          signal: controller.signal
-        });
+        console.error('LOVABLE_API_KEY is not configured');
+        return new Response(
+          JSON.stringify({ error: 'AI gateway not configured' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
       clearTimeout(timeoutId);
