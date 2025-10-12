@@ -118,7 +118,10 @@ export const useMessageHandler = () => {
           {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Accept': 'text/event-stream',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              'apikey': `${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
             },
             body: JSON.stringify({
               messages: [
