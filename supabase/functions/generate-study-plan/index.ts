@@ -17,11 +17,10 @@ serve(async (req) => {
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OPENAI_API_KEY is not configured');
     }
-    const AI_GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
     // Create different prompts based on input type
     let prompt = '';
@@ -93,18 +92,19 @@ serve(async (req) => {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 45000);
         try {
-          const resp = await fetch(AI_GATEWAY_URL, {
+          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              'Authorization': `Bearer ${openAIApiKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
+              model: 'gpt-4o',
               messages: [
                 { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
-              ]
+              ],
+              temperature: 0.7,
             }),
             signal: controller.signal,
           });
@@ -138,15 +138,9 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
       const t = await response.text();
-      console.error('AI gateway error:', response.status, t);
-      return new Response(JSON.stringify({ error: 'AI gateway error' }), {
+      console.error('OpenAI API error:', response.status, t);
+      return new Response(JSON.stringify({ error: 'OpenAI API error' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -154,7 +148,7 @@ serve(async (req) => {
 
     const data = await response.json();
     let planContent = data.choices?.[0]?.message?.content ?? '';
-    planContent = planContent.trim();
+    planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
 
     function extractFirstJsonObject(text: string): string | null {
       // Strip common code fences
