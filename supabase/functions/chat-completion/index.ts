@@ -16,12 +16,11 @@ serve(async (req) => {
     const { messages, language = 'en' } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!openAIApiKey && !lovableApiKey) {
-      console.error('No AI API key configured');
+    if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
       return new Response(
         JSON.stringify({ 
-          error: 'No AI API key configured'
+          error: 'OpenAI API key not configured'
         }),
         { 
           status: 500,
@@ -55,70 +54,32 @@ serve(async (req) => {
 
     // Set a timeout for the fetch operation
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
     
     try {
-      let response: Response;
-      if (lovableApiKey) {
-        const gatewayUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-        response = await fetch(gatewayUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'openai/gpt-5-mini',
-            messages: messagesWithSystem,
-            stream: true,
-          }),
-          signal: controller.signal
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          console.error('AI gateway error (gpt-5-mini):', response.status, errText);
-          // Fallback to fast/free Gemini streaming
-          response = await fetch(gatewayUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${lovableApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
-              messages: messagesWithSystem,
-              stream: true,
-            }),
-            signal: controller.signal
-          });
-        }
-      } else {
-        // Fallback: direct OpenAI (may fail to stream depending on org settings)
-        response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-5-mini-2025-08-07',
-            messages: messagesWithSystem,
-            max_completion_tokens: 1000,
-            stream: true,
-          }),
-          signal: controller.signal
-        });
-      }
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-2025-04-14',
+          messages: messagesWithSystem,
+          temperature: 0.7,
+          stream: true,
+        }),
+        signal: controller.signal
+      });
       
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('AI request error:', response.status, errorText);
+        console.error('OpenAI API error:', response.status, errorText);
         return new Response(
           JSON.stringify({ 
-            error: `AI request error: ${response.statusText}`,
+            error: `OpenAI API error: ${response.statusText}`,
             details: errorText
           }),
           { 
@@ -128,7 +89,7 @@ serve(async (req) => {
         );
       }
 
-      console.log('AI streaming response received, forwarding stream');
+      console.log('OpenAI streaming response received, forwarding stream');
 
       // Create a streaming response
       const stream = new ReadableStream({
@@ -182,7 +143,7 @@ serve(async (req) => {
       return new Response(stream, {
         headers: {
           ...corsHeaders,
-          'Content-Type': 'text/event-stream',
+          'Content-Type': 'text/plain',
           'Cache-Control': 'no-cache',
           'Connection': 'keep-alive',
         },
