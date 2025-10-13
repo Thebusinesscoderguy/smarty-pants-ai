@@ -91,10 +91,10 @@ serve(async (req) => {
     - Make activities directly related to the advanced topic, not basic math concepts
     - Use grade-appropriate language and examples throughout`;
 
-    async function callAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
+    async function callAIWithRetry(retries = 0, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 45000);
+        const timer = setTimeout(() => controller.abort(), 25000);
         try {
           const resp = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -210,10 +210,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in generate-study-plan function:', error);
+    const msg = (error as Error)?.message || 'Unknown error';
+    const isTimeout = /timed out|AbortError/i.test(msg);
+    const status = isTimeout ? 504 : 500;
+    const code = isTimeout ? 'TIMEOUT' : 'SERVER_ERROR';
     return new Response(
-      JSON.stringify({ error: (error as Error).message }),
+      JSON.stringify({ error: msg, code }),
       { 
-        status: 500, 
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

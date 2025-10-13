@@ -69,7 +69,9 @@ export const useStudyPlanGenerator = () => {
       const status = error?.context?.response?.status || error?.status;
       const msg = String(error?.message || '');
       let description = 'Failed to generate study plan.';
-      if (error?.name === 'AbortError' || /aborted|AbortError|timed out|timeout/i.test(msg)) {
+      if (status === 504) {
+        description = 'AI request timed out. Please try again.';
+      } else if (error?.name === 'AbortError' || /aborted|AbortError|timed out|timeout/i.test(msg)) {
         description = 'Request timed out. Please try again in a moment.';
       } else if (status === 429 || /rate limit/i.test(msg)) {
         description = 'OpenAI rate limit reached. Please wait and try again shortly.';
