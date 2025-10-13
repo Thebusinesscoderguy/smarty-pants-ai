@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { useQuestProgressNotification } from './useQuestProgressNotification';
+import { useQuestEvents } from './useQuestEvents';
 
 export interface Challenge {
   id: string;
@@ -32,7 +33,7 @@ export const useGamification = () => {
   const { user } = useAuth();
   const { 
     currentNotification, 
-    showProgressUpdate, 
+    showProgressUpdate,
     clearNotification, 
     initializeQuestValues 
   } = useQuestProgressNotification();
@@ -271,6 +272,21 @@ export const useGamification = () => {
 
       // Update challenge progress with intelligent matching
       await updateChallengeProgress('lessons_completed', 1, lessonContext);
+
+      // Log quest event for AI classification
+      if (lessonContext?.subject || lessonContext?.topic) {
+        await logQuestEvent({
+          source: 'lesson',
+          event_type: 'lesson_completed',
+          payload: {
+            lesson_id: lessonId,
+            subject_name: lessonContext?.subject,
+            topic: lessonContext?.topic,
+            lesson_title: lessonContext?.lessonTitle,
+            time_spent: timeSpent
+          }
+        });
+      }
 
       // Only refresh the specific data that might have changed, not everything
       // This prevents unnecessary updates to other quests

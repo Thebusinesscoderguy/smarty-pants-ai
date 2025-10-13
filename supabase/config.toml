@@ -46,6 +46,9 @@ verify_jwt = false
 [functions.get-api-service]
 verify_jwt = false
 
+[functions.classify-quest-event]
+verify_jwt = true
+
 [edge-runtime]
 enabled = true
 policy = "per_request"
