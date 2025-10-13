@@ -108,8 +108,9 @@ serve(async (req) => {
                 { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
               ],
+              response_format: { type: 'json_object' },
               temperature: 0.4,
-              max_tokens: 1200,
+              max_tokens: 1100,
             }),
             signal: controller.signal,
           });
@@ -201,8 +202,40 @@ serve(async (req) => {
       }
     } catch (parseError) {
       console.error('Failed to parse study plan JSON:', planContent);
-      return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
-        status: 500,
+      // Fallback: construct a minimal valid plan to avoid blocking the UI
+      const totalDays = planDays ?? 7;
+      const perDay = perDayLimit ?? 45;
+      const fallbackLessons = Array.from({ length: totalDays }, (_, i) => ({
+        day: i + 1,
+        topic: i === 0 ? `Foundations of ${inputData}` : `Practice: ${inputData} (Day ${i + 1})`,
+        description: i === 0
+          ? `Start with key definitions, notation, and core ideas for ${inputData}.`
+          : `Apply concepts of ${inputData} with short exercises and a quick recap.`,
+        activities: [
+          'Key concepts overview',
+          'Targeted practice',
+          'One example with solution'
+        ],
+        estimatedTime: perDay,
+        exampleQuestions: [
+          {
+            question: `Brief example related to ${inputData}`,
+            solution: '**Step 1:** Outline approach\n\n**Step 2:** Apply method\n\n**Final Answer:** Result'
+          }
+        ]
+      }));
+
+      const fallbackPlan = {
+        id: crypto.randomUUID(),
+        title: `Study Plan for ${inputData}`,
+        description: `Auto-generated fallback plan${gradeLevel ? ` for ${gradeLevel}` : ''} focusing on ${inputData}.`,
+        weakAreas: [],
+        estimatedDuration: totalDays,
+        difficultyLevel: 'medium' as const,
+        dailyLessons: fallbackLessons
+      };
+
+      return new Response(JSON.stringify(fallbackPlan), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
