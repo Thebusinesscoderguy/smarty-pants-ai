@@ -32,7 +32,7 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
 const startTimeRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());
   const perQuestionMsRef = useRef<Record<string, number>>({});
-  const { logQuestEvent } = useQuestEvents();
+  const questEvents = useQuestEvents();
 
   const questions = quiz.questions || [];
   const totalPoints = useMemo(
@@ -127,7 +127,7 @@ const startTimeRef = useRef<number>(Date.now());
       }
 
       // Log quest event for AI classification
-      await logQuestEvent({
+      await questEvents.logQuestEvent({
         source: 'quiz',
         event_type: 'quiz_completed',
         subject_id: quiz.subject_id,

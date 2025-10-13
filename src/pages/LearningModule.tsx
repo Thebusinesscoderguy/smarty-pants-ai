@@ -33,7 +33,7 @@ const LearningModule = () => {
   const [loading, setLoading] = useState(true);
   const [lessonContent, setLessonContent] = useState<string>('');
   const { completeLesson, questProgressNotification, clearQuestNotification } = useGamification();
-  const { logQuestEvent } = useQuestEvents();
+  const questEvents = useQuestEvents();
 
   // Sync current day from URL param (?day=)
   useEffect(() => {
@@ -231,7 +231,7 @@ const LearningModule = () => {
             await completeLesson(lessonId);
 
             // Log quest event for AI classification
-            await logQuestEvent({
+            await questEvents.logQuestEvent({
               source: 'study_plan',
               event_type: 'study_step_completed',
               payload: {

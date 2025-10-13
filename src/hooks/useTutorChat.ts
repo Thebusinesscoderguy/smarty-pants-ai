@@ -26,7 +26,7 @@ export const useTutorChat = (lesson: Lesson) => {
     handlePlayAudio,
     handlePauseAudio
   } = useAudioHandler();
-  const { logQuestEvent } = useQuestEvents();
+  const questEvents = useQuestEvents();
 
   // Initialize conversation with AI tutor introduction
   useEffect(() => {
@@ -75,7 +75,7 @@ Let's start: What do you already know about this topic, or what would you like t
     setMessages(prev => [...prev, userMsg]);
     
     // Log quest event for AI classification
-    await logQuestEvent({
+    await questEvents.logQuestEvent({
       source: 'chat',
       event_type: 'chat_message',
       payload: {
