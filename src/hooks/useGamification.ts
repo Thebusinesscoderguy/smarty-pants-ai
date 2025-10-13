@@ -37,7 +37,7 @@ export const useGamification = () => {
     clearNotification, 
     initializeQuestValues 
   } = useQuestProgressNotification();
-  const { logQuestEvent } = useQuestEvents();
+  const questEvents = useQuestEvents();
 
   useEffect(() => {
     if (isMockDataEnabled()) {
@@ -276,7 +276,7 @@ export const useGamification = () => {
 
       // Log quest event for AI classification
       if (lessonContext?.subject || lessonContext?.topic) {
-        await logQuestEvent({
+        await questEvents.logQuestEvent({
           source: 'lesson',
           event_type: 'lesson_completed',
           payload: {
