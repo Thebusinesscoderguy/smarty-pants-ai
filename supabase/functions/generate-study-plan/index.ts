@@ -165,11 +165,30 @@ serve(async (req) => {
       return null;
     }
 
-    const jsonStr = extractFirstJsonObject(planContent);
+    // Sanitize common model issues inside JSON strings (e.g., unescaped backslashes in LaTeX)
+    function sanitizeJsonCandidate(str: string): string {
+      let s = str;
+      // Remove trailing commas before } or ]
+      s = s.replace(/,\s*(\}|\])/g, '$1');
+      // Escape invalid backslashes that are not valid JSON escapes (\\, \/, \" , \b, \f, \n, \r, \t, \u)
+      s = s.replace(/\\(?![\\\/\"bfnrtu])/g, '\\\\');
+      // Ensure LaTeX delimiters like \( \) are double-escaped
+      s = s.replace(/\\\(/g, '\\\\(').replace(/\\\)/g, '\\\\)');
+      // Also handle cases where model returned single backslashes: \( or \)
+      s = s.replace(/\((?=[^\"]*\"|[^\"]*$)/g, '('); // no-op to keep structure, for safety
+      return s;
+    }
+
+    const jsonStr = extractFirstJsonObject(planContent) ?? planContent;
     let studyPlan: any;
     try {
-      const toParse = jsonStr ?? planContent;
-      studyPlan = JSON.parse(toParse);
+      const primary = jsonStr;
+      try {
+        studyPlan = JSON.parse(primary);
+      } catch {
+        const sanitized = sanitizeJsonCandidate(primary);
+        studyPlan = JSON.parse(sanitized);
+      }
       if (!studyPlan.id) {
         studyPlan.id = crypto.randomUUID();
       }
