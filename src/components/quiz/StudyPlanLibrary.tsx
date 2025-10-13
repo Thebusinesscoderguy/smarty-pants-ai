@@ -333,7 +333,7 @@ export const StudyPlanLibrary = () => {
                     {plan.grade_level && (
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4" />
-                        <span>Grade {plan.grade_level}</span>
+                        <span>{plan.grade_level.toString().toLowerCase().includes('grade') ? plan.grade_level : `Grade ${plan.grade_level}`}</span>
                       </div>
                     )}
                   </div>
