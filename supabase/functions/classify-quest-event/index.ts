@@ -40,13 +40,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!serviceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY not configured');
+    }
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      serviceRoleKey
+    );
+
+    const { data: { user } } = await supabaseUser.auth.getUser();
     if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -58,7 +67,7 @@ Deno.serve(async (req) => {
     console.log('Processing event:', eventId);
 
     // Fetch event
-    const { data: event, error: eventError } = await supabaseClient
+    const { data: event, error: eventError } = await supabaseUser
       .from('quest_events')
       .select('*')
       .eq('id', eventId)
@@ -81,13 +90,13 @@ Deno.serve(async (req) => {
     }
 
     // Fetch active quests for user
-    const { data: quests, error: questsError } = await supabaseClient
+    const nowIso = new Date().toISOString();
+    const { data: quests, error: questsError } = await supabaseUser
       .from('quests')
       .select('*')
       .eq('is_active', true)
       .or(`created_by.eq.system,created_by_id.eq.${event.user_id}`)
-      .filter('expires_at', 'is', null)
-      .or(`expires_at.gt.${new Date().toISOString()}`);
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
 
     if (questsError) {
       console.error('Error fetching quests:', questsError);
@@ -198,7 +207,7 @@ Determine which quests (if any) should be incremented and by how much.`;
       console.log('No tool call in response - no matching quests');
       
       // Create classification record
-      const { data: classification } = await supabaseClient
+      const { data: classification } = await supabaseAdmin
         .from('ai_event_classifications')
         .insert({
           event_id: eventId,
@@ -212,7 +221,7 @@ Determine which quests (if any) should be incremented and by how much.`;
         .single();
 
       // Update event status
-      await supabaseClient
+      await supabaseAdmin
         .from('quest_events')
         .update({
           status: 'ignored',
@@ -231,7 +240,7 @@ Determine which quests (if any) should be incremented and by how much.`;
 
     if (!decisions || decisions.length === 0) {
       // Same as no matches
-      const { data: classification } = await supabaseClient
+      const { data: classification } = await supabaseAdmin
         .from('ai_event_classifications')
         .insert({
           event_id: eventId,
@@ -244,7 +253,7 @@ Determine which quests (if any) should be incremented and by how much.`;
         .select()
         .single();
 
-      await supabaseClient
+      await supabaseAdmin
         .from('quest_events')
         .update({
           status: 'ignored',
@@ -259,7 +268,7 @@ Determine which quests (if any) should be incremented and by how much.`;
     }
 
     // Create classification record
-    const { data: classification } = await supabaseClient
+    const { data: classification } = await supabaseAdmin
       .from('ai_event_classifications')
       .insert({
         event_id: eventId,
@@ -275,7 +284,7 @@ Determine which quests (if any) should be incremented and by how much.`;
     // Apply each decision
     for (const decision of decisions) {
       // Create event link
-      await supabaseClient
+      await supabaseAdmin
         .from('quest_event_links')
         .upsert({
           event_id: eventId,
@@ -286,7 +295,7 @@ Determine which quests (if any) should be incremented and by how much.`;
         }, { onConflict: 'event_id,quest_id' });
 
       // Update quest progress
-      const { data: progress } = await supabaseClient
+      const { data: progress } = await supabaseAdmin
         .from('user_quest_progress')
         .select('*')
         .eq('user_id', event.user_id)
@@ -300,7 +309,7 @@ Determine which quests (if any) should be incremented and by how much.`;
         const newValue = progress.current_value + decision.increment;
         const completed = newValue >= quest.target_value;
         
-        await supabaseClient
+        await supabaseAdmin
           .from('user_quest_progress')
           .update({
             current_value: newValue,
@@ -315,7 +324,7 @@ Determine which quests (if any) should be incremented and by how much.`;
       } else {
         // Create progress
         const completed = decision.increment >= quest.target_value;
-        await supabaseClient
+        await supabaseAdmin
           .from('user_quest_progress')
           .insert({
             user_id: event.user_id,
@@ -331,7 +340,7 @@ Determine which quests (if any) should be incremented and by how much.`;
     }
 
     // Update event status
-    await supabaseClient
+    await supabaseAdmin
       .from('quest_events')
       .update({
         status: 'classified',
