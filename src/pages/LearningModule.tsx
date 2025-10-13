@@ -5,7 +5,6 @@ import { QuestProgressNotification } from '@/components/quests/QuestProgressNoti
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useGamification } from '@/hooks/useGamification';
-import { useQuestEvents } from '@/hooks/useQuestEvents';
 
 interface DailyLesson {
   day: number;
@@ -33,7 +32,6 @@ const LearningModule = () => {
   const [loading, setLoading] = useState(true);
   const [lessonContent, setLessonContent] = useState<string>('');
   const { completeLesson, questProgressNotification, clearQuestNotification } = useGamification();
-  const questEvents = useQuestEvents();
 
   // Sync current day from URL param (?day=)
   useEffect(() => {
@@ -229,18 +227,6 @@ const LearningModule = () => {
           try {
             // Save user progress
             await completeLesson(lessonId);
-
-            // Log quest event for AI classification
-            await questEvents.logQuestEvent({
-              source: 'study_plan',
-              event_type: 'study_step_completed',
-              payload: {
-                study_plan_id: studyPlan?.id,
-                day: currentDay,
-                topic: currentLesson?.topic,
-                lesson_id: lessonId
-              }
-            });
 
             // Mark the current day as completed in the study plan JSON
             const updatedLessons = studyPlan!.daily_lessons.map((l) =>

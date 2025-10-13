@@ -9,7 +9,6 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
-import { useQuestEvents } from '@/hooks/useQuestEvents';
 
 interface QuizTakerProps {
   quiz: Quiz;
@@ -32,7 +31,6 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
 const startTimeRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());
   const perQuestionMsRef = useRef<Record<string, number>>({});
-  const questEvents = useQuestEvents();
 
   const questions = quiz.questions || [];
   const totalPoints = useMemo(
@@ -125,22 +123,6 @@ const startTimeRef = useRef<number>(Date.now());
         onComplete({ score, total, saved: false });
         return;
       }
-
-      // Log quest event for AI classification
-      await questEvents.logQuestEvent({
-        source: 'quiz',
-        event_type: 'quiz_completed',
-        subject_id: quiz.subject_id,
-        score: (score / total) * 100,
-        payload: {
-          quiz_id: quiz.id,
-          quiz_title: quiz.title,
-          score,
-          total_possible: total,
-          time_taken: durationSec,
-          percentage: Math.round((score / total) * 100)
-        }
-      });
 
       toast({ title: 'Quiz saved', description: `Score: ${score}/${total}` });
       onComplete({ score, total, saved: true });

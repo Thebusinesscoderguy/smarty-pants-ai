@@ -3,7 +3,6 @@ import { Message } from '@/types/message';
 import { useAudioHandler } from '@/hooks/useAudioHandler';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuestEvents } from '@/hooks/useQuestEvents';
 
 interface Lesson {
   id: string;
@@ -26,7 +25,6 @@ export const useTutorChat = (lesson: Lesson) => {
     handlePlayAudio,
     handlePauseAudio
   } = useAudioHandler();
-  const questEvents = useQuestEvents();
 
   // Initialize conversation with AI tutor introduction
   useEffect(() => {
@@ -73,18 +71,6 @@ Let's start: What do you already know about this topic, or what would you like t
     };
 
     setMessages(prev => [...prev, userMsg]);
-    
-    // Log quest event for AI classification
-    await questEvents.logQuestEvent({
-      source: 'chat',
-      event_type: 'chat_message',
-      payload: {
-        lesson_id: lesson.id,
-        lesson_title: lesson.title,
-        message_length: userMessage.trim().length,
-        conversation_depth: conversationDepth
-      }
-    });
     
     // Track conversation depth for progress
     setConversationDepth(prev => prev + 1);

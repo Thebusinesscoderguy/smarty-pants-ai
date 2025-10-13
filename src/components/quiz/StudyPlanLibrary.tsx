@@ -226,30 +226,14 @@ export const StudyPlanLibrary = () => {
         return;
       }
 
-      // Check if plan is completed
-      if (studyPlan.status === 'completed') {
-        toast({
-          title: "Study plan completed! 🎉",
-          description: "You've finished all lessons in this plan. Great job!",
-        });
-        return;
-      }
-
       localStorage.setItem('active_study_plan_id', studyPlan.id);
 
       // Determine next uncompleted day (fallback to 1)
       const lessons = Array.isArray(studyPlan.daily_lessons) ? studyPlan.daily_lessons : [];
       const nextUncompleted = lessons.find((l: any) => !l.completed);
-      
-      if (!nextUncompleted) {
-        toast({
-          title: "All lessons completed!",
-          description: "This study plan is finished.",
-        });
-        return;
-      }
+      const nextDay = nextUncompleted ? nextUncompleted.day : 1;
 
-      navigate(`/modules?day=${nextUncompleted.day}`);
+      navigate(`/modules?day=${nextDay}`);
     } catch (error: any) {
       console.error('Error continuing study plan:', error);
       toast({
@@ -333,25 +317,14 @@ export const StudyPlanLibrary = () => {
                     {plan.grade_level && (
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4" />
-                        <span>{plan.grade_level.toString().toLowerCase().includes('grade') ? plan.grade_level : `Grade ${plan.grade_level}`}</span>
+                        <span>Grade {plan.grade_level}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 pt-2">
-                    {plan.status === 'completed' ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          onClick={() => handleOpenDaySelector(plan)}
-                          className="flex-1"
-                        >
-                          <List className="mr-2 h-4 w-4" />
-                          Review Lessons
-                        </Button>
-                      </>
-                    ) : isStarted ? (
+                    {isStarted ? (
                       <>
                         <Button
                           onClick={() => handleContinueStudyPlan(plan)}

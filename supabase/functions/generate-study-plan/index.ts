@@ -91,10 +91,10 @@ serve(async (req) => {
     - Make activities directly related to the advanced topic, not basic math concepts
     - Use grade-appropriate language and examples throughout`;
 
-    async function callAIWithRetry(retries = 0, delayMs = 1200): Promise<Response> {
+    async function callAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 55000);
+        const timer = setTimeout(() => controller.abort(), 45000);
         try {
           const resp = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -103,14 +103,12 @@ serve(async (req) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4o-mini',
+              model: 'gpt-4o',
               messages: [
                 { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
               ],
-              response_format: { type: 'json_object' },
-              temperature: 0.4,
-              max_tokens: 1100,
+              temperature: 0.7,
             }),
             signal: controller.signal,
           });
@@ -139,20 +137,14 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.', code: 'RATE_LIMIT' }), {
+        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
           status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your AI provider.', code: 'PAYMENT_REQUIRED' }), {
-          status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const t = await response.text();
       console.error('OpenAI API error:', response.status, t);
-      return new Response(JSON.stringify({ error: 'OpenAI API error', code: 'PROVIDER_ERROR' }), {
+      return new Response(JSON.stringify({ error: 'OpenAI API error' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -173,69 +165,18 @@ serve(async (req) => {
       return null;
     }
 
-    // Sanitize common model issues inside JSON strings (e.g., unescaped backslashes in LaTeX)
-    function sanitizeJsonCandidate(str: string): string {
-      let s = str;
-      // Remove trailing commas before } or ]
-      s = s.replace(/,\s*(\}|\])/g, '$1');
-      // Escape invalid backslashes that are not valid JSON escapes (\\, \/, \" , \b, \f, \n, \r, \t, \u)
-      s = s.replace(/\\(?![\\\/\"bfnrtu])/g, '\\\\');
-      // Ensure LaTeX delimiters like \( \) are double-escaped
-      s = s.replace(/\\\(/g, '\\\\(').replace(/\\\)/g, '\\\\)');
-      // Also handle cases where model returned single backslashes: \( or \)
-      s = s.replace(/\((?=[^\"]*\"|[^\"]*$)/g, '('); // no-op to keep structure, for safety
-      return s;
-    }
-
-    const jsonStr = extractFirstJsonObject(planContent) ?? planContent;
+    const jsonStr = extractFirstJsonObject(planContent);
     let studyPlan: any;
     try {
-      const primary = jsonStr;
-      try {
-        studyPlan = JSON.parse(primary);
-      } catch {
-        const sanitized = sanitizeJsonCandidate(primary);
-        studyPlan = JSON.parse(sanitized);
-      }
+      const toParse = jsonStr ?? planContent;
+      studyPlan = JSON.parse(toParse);
       if (!studyPlan.id) {
         studyPlan.id = crypto.randomUUID();
       }
     } catch (parseError) {
       console.error('Failed to parse study plan JSON:', planContent);
-      // Fallback: construct a minimal valid plan to avoid blocking the UI
-      const totalDays = planDays ?? 7;
-      const perDay = perDayLimit ?? 45;
-      const fallbackLessons = Array.from({ length: totalDays }, (_, i) => ({
-        day: i + 1,
-        topic: i === 0 ? `Foundations of ${inputData}` : `Practice: ${inputData} (Day ${i + 1})`,
-        description: i === 0
-          ? `Start with key definitions, notation, and core ideas for ${inputData}.`
-          : `Apply concepts of ${inputData} with short exercises and a quick recap.`,
-        activities: [
-          'Key concepts overview',
-          'Targeted practice',
-          'One example with solution'
-        ],
-        estimatedTime: perDay,
-        exampleQuestions: [
-          {
-            question: `Brief example related to ${inputData}`,
-            solution: '**Step 1:** Outline approach\n\n**Step 2:** Apply method\n\n**Final Answer:** Result'
-          }
-        ]
-      }));
-
-      const fallbackPlan = {
-        id: crypto.randomUUID(),
-        title: `Study Plan for ${inputData}`,
-        description: `Auto-generated fallback plan${gradeLevel ? ` for ${gradeLevel}` : ''} focusing on ${inputData}.`,
-        weakAreas: [],
-        estimatedDuration: totalDays,
-        difficultyLevel: 'medium' as const,
-        dailyLessons: fallbackLessons
-      };
-
-      return new Response(JSON.stringify(fallbackPlan), {
+      return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -250,14 +191,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in generate-study-plan function:', error);
-    const msg = (error as Error)?.message || 'Unknown error';
-    const isTimeout = /timed out|AbortError/i.test(msg);
-    const status = isTimeout ? 504 : 500;
-    const code = isTimeout ? 'TIMEOUT' : 'SERVER_ERROR';
     return new Response(
-      JSON.stringify({ error: msg, code }),
+      JSON.stringify({ error: (error as Error).message }),
       { 
-        status,
+        status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
