@@ -46,7 +46,7 @@ export const useStudyPlanGenerator = () => {
         }
       });
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 60000);
+        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 70000);
       });
       const result = await Promise.race([invokePromise, timeoutPromise]) as { data: any; error: any };
       clearTimeout(timeoutId);
@@ -75,6 +75,8 @@ export const useStudyPlanGenerator = () => {
         description = 'Request timed out. Please try again in a moment.';
       } else if (status === 429 || /rate limit/i.test(msg)) {
         description = 'OpenAI rate limit reached. Please wait and try again shortly.';
+      } else if (status === 402) {
+        description = 'Payment required for AI usage. Please add credits to continue.';
       } else if (typeof status === 'number') {
         description = `Server error (${status}). Please try again.`;
       } else if (msg) {

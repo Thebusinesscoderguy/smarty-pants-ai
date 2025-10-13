@@ -94,7 +94,7 @@ serve(async (req) => {
     async function callAIWithRetry(retries = 0, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 25000);
+        const timer = setTimeout(() => controller.abort(), 55000);
         try {
           const resp = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -103,12 +103,13 @@ serve(async (req) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4o',
+              model: 'gpt-4o-mini',
               messages: [
                 { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
               ],
-              temperature: 0.7,
+              temperature: 0.4,
+              max_tokens: 1200,
             }),
             signal: controller.signal,
           });
@@ -137,14 +138,20 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
+        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.', code: 'RATE_LIMIT' }), {
           status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your AI provider.', code: 'PAYMENT_REQUIRED' }), {
+          status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const t = await response.text();
       console.error('OpenAI API error:', response.status, t);
-      return new Response(JSON.stringify({ error: 'OpenAI API error' }), {
+      return new Response(JSON.stringify({ error: 'OpenAI API error', code: 'PROVIDER_ERROR' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
