@@ -37,6 +37,7 @@ export const useGamification = () => {
     clearNotification, 
     initializeQuestValues 
   } = useQuestProgressNotification();
+  const { logQuestEvent } = useQuestEvents();
 
   useEffect(() => {
     if (isMockDataEnabled()) {
