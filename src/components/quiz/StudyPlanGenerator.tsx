@@ -610,7 +610,7 @@ const handleCreateMistakesSimilar = async () => {
                           </div>
                           {lesson.exampleQuestions && lesson.exampleQuestions.length > 0 && (
                             <Badge variant="secondary" className="text-xs">
-                              {lesson.exampleQuestions.length} examples
+                              {lesson.exampleQuestions.length} example{lesson.exampleQuestions.length !== 1 ? 's' : ''}
                             </Badge>
                           )}
                         </div>
