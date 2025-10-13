@@ -226,14 +226,30 @@ export const StudyPlanLibrary = () => {
         return;
       }
 
+      // Check if plan is completed
+      if (studyPlan.status === 'completed') {
+        toast({
+          title: "Study plan completed! 🎉",
+          description: "You've finished all lessons in this plan. Great job!",
+        });
+        return;
+      }
+
       localStorage.setItem('active_study_plan_id', studyPlan.id);
 
       // Determine next uncompleted day (fallback to 1)
       const lessons = Array.isArray(studyPlan.daily_lessons) ? studyPlan.daily_lessons : [];
       const nextUncompleted = lessons.find((l: any) => !l.completed);
-      const nextDay = nextUncompleted ? nextUncompleted.day : 1;
+      
+      if (!nextUncompleted) {
+        toast({
+          title: "All lessons completed!",
+          description: "This study plan is finished.",
+        });
+        return;
+      }
 
-      navigate(`/modules?day=${nextDay}`);
+      navigate(`/modules?day=${nextUncompleted.day}`);
     } catch (error: any) {
       console.error('Error continuing study plan:', error);
       toast({
@@ -324,7 +340,18 @@ export const StudyPlanLibrary = () => {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 pt-2">
-                    {isStarted ? (
+                    {plan.status === 'completed' ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenDaySelector(plan)}
+                          className="flex-1"
+                        >
+                          <List className="mr-2 h-4 w-4" />
+                          Review Lessons
+                        </Button>
+                      </>
+                    ) : isStarted ? (
                       <>
                         <Button
                           onClick={() => handleContinueStudyPlan(plan)}
