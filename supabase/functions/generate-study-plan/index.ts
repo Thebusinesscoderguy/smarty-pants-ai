@@ -49,7 +49,8 @@ serve(async (req) => {
       'Build from appropriate foundations but avoid overly elementary concepts unrelated to the topic.',
       'Progress logically from foundational definitions to more complex applications.',
       'Each day should build on the previous day\'s concepts in a structured progression.',
-      'Include 2-3 clear example questions with solutions to illustrate concepts.',
+      'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions (minimum 2, ideally 3).',
+      'Examples should progress from simple to more complex to demonstrate concept mastery.',
       'FORMATTING: For math questions, structure solutions as numbered steps with clear spacing.',
       'FORMATTING: Use proper LaTeX notation enclosed in \\( \\) for inline math or $$ $$ for display math.',
       'FORMATTING: Each solution step should be on its own line with clear explanations.',
@@ -77,8 +78,16 @@ serve(async (req) => {
           "estimatedTime": ${perDayLimit ?? 45},
           "exampleQuestions": [
             {
-              "question": "Example question text with proper LaTeX formatting for math: \\(x^2 + 5x + 6\\)",
-              "solution": "**Step 1:** Identify the key information\\n\\n**Step 2:** Apply the method\\n\\n**Step 3:** Simplify and check your answer\\n\\n**Final Answer:** Result here"
+              "question": "Basic example question with proper LaTeX formatting: \\(x^2 + 5x + 6\\)",
+              "solution": "**Step 1:** Identify the key information\\n\\n**Step 2:** Apply the method\\n\\n**Step 3:** Simplify\\n\\n**Final Answer:** Result here"
+            },
+            {
+              "question": "Intermediate example building on the first concept",
+              "solution": "**Step 1:** Review what we learned\\n\\n**Step 2:** Apply to this scenario\\n\\n**Step 3:** Verify the result\\n\\n**Final Answer:** Result here"
+            },
+            {
+              "question": "Advanced application combining multiple concepts",
+              "solution": "**Step 1:** Break down the complex problem\\n\\n**Step 2:** Solve each part\\n\\n**Step 3:** Combine results\\n\\n**Final Answer:** Result here"
             }
           ]
         }
@@ -87,6 +96,7 @@ serve(async (req) => {
     Requirements:
     - Target the EXACT topic specified - no generic math introductions
     - ${constraints}
+    - MANDATORY: Every lesson must have 2-3 example questions minimum (preferably 3)
     - Each day should build progressively within the SPECIFIC subject area
     - Make activities directly related to the advanced topic, not basic math concepts
     - Use grade-appropriate language and examples throughout`;
