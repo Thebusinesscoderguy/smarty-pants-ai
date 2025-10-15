@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_event_classifications: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          event_id: string
+          id: string
+          increments: Json
+          matched_quests: string[]
+          model: string
+          reason: string
+          verdict: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          event_id: string
+          id?: string
+          increments?: Json
+          matched_quests?: string[]
+          model: string
+          reason: string
+          verdict: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          increments?: Json
+          matched_quests?: string[]
+          model?: string
+          reason?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_event_classifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "quest_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       children: {
         Row: {
           created_at: string
@@ -653,6 +697,108 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      quest_event_links: {
+        Row: {
+          applied: boolean
+          applied_at: string | null
+          event_id: string
+          id: string
+          increment: number
+          quest_id: string
+        }
+        Insert: {
+          applied?: boolean
+          applied_at?: string | null
+          event_id: string
+          id?: string
+          increment?: number
+          quest_id: string
+        }
+        Update: {
+          applied?: boolean
+          applied_at?: string | null
+          event_id?: string
+          id?: string
+          increment?: number
+          quest_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_event_links_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "quest_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_event_links_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_events: {
+        Row: {
+          classification_id: string | null
+          created_at: string
+          dedup_hash: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          score: number | null
+          source: string
+          status: string
+          subject_id: string | null
+          user_id: string
+        }
+        Insert: {
+          classification_id?: string | null
+          created_at?: string
+          dedup_hash?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          score?: number | null
+          source: string
+          status?: string
+          subject_id?: string | null
+          user_id: string
+        }
+        Update: {
+          classification_id?: string | null
+          created_at?: string
+          dedup_hash?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          score?: number | null
+          source?: string
+          status?: string
+          subject_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_quest_events_classification"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "ai_event_classifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_events_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quests: {
         Row: {
@@ -1657,10 +1803,14 @@ export type Database = {
           created_at: string
           current_value: number | null
           id: string
+          last_increment_at: string | null
+          metadata: Json | null
           progress_data: Json | null
           quest_id: string
           school_id: string | null
+          started_at: string | null
           status: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -1669,10 +1819,14 @@ export type Database = {
           created_at?: string
           current_value?: number | null
           id?: string
+          last_increment_at?: string | null
+          metadata?: Json | null
           progress_data?: Json | null
           quest_id: string
           school_id?: string | null
+          started_at?: string | null
           status?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -1681,10 +1835,14 @@ export type Database = {
           created_at?: string
           current_value?: number | null
           id?: string
+          last_increment_at?: string | null
+          metadata?: Json | null
           progress_data?: Json | null
           quest_id?: string
           school_id?: string | null
+          started_at?: string | null
           status?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1706,12 +1864,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_quest_progress_detailed: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          completion_percentage: number | null
+          created_at: string | null
+          current_value: number | null
+          description: string | null
+          difficulty: string | null
+          display_status: string | null
+          expires_at: string | null
+          id: string | null
+          last_increment_at: string | null
+          metadata: Json | null
+          quest_id: string | null
+          requirements: Json | null
+          rewards: Json | null
+          started_at: string | null
+          status: string | null
+          subject_name: string | null
+          target_value: number | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      handle_expired_quests: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      initialize_user_quests: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       mark_expired_daily_quests_as_failed: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      test_quest_system: {
+        Args: { test_user_id?: string }
+        Returns: {
+          details: string
+          passed: boolean
+          test_name: string
+        }[]
       }
       update_student_monitoring_snapshot: {
         Args: { user_id: string }
