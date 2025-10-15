@@ -114,6 +114,7 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               model: 'gpt-4o',
+              response_format: { type: 'json_object' },
               messages: [
                 { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
