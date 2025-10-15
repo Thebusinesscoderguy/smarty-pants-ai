@@ -195,10 +195,6 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-    return new Response(JSON.stringify(studyPlan), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
   } catch (error) {
     console.error('Error in generate-study-plan function:', error);
     return new Response(
