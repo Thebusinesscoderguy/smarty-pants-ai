@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Target, Calendar, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Target, Calendar, Users, Sparkles, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -81,7 +82,9 @@ export const QuestManagement = () => {
   const [children, setChildren] = useState<Child[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [creationMode, setCreationMode] = useState<'manual' | 'ai'>('manual');
 const { user } = useAuth();
 const { isSchoolAdmin } = useUserRole();
   const [newQuest, setNewQuest] = useState({
@@ -91,6 +94,15 @@ const { isSchoolAdmin } = useUserRole();
     difficulty: 'basic' as 'basic' | 'intermediate' | 'hard',
     target_value: '',
     subject_id: '',
+    assigned_children: [] as string[]
+  });
+
+  const [aiQuestParams, setAiQuestParams] = useState({
+    subject_id: '',
+    grade_level: '',
+    difficulty: 'intermediate' as 'basic' | 'intermediate' | 'hard',
+    type: 'daily' as 'daily' | 'weekly',
+    count: 3,
     assigned_children: [] as string[]
   });
 
@@ -256,6 +268,89 @@ const { isSchoolAdmin } = useUserRole();
     }
   };
 
+  const generateAIQuests = async () => {
+    const selectedSubject = subjects.find(s => s.id === aiQuestParams.subject_id);
+    
+    if (!selectedSubject) {
+      toast({
+        title: "Error",
+        description: "Please select a subject",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+
+      const { data, error } = await supabase.functions.invoke('generate-quests', {
+        body: {
+          subject: selectedSubject.name,
+          gradeLevel: aiQuestParams.grade_level || 'middle school',
+          difficulty: aiQuestParams.difficulty,
+          questType: aiQuestParams.type,
+          count: aiQuestParams.count
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data?.quests || data.quests.length === 0) {
+        throw new Error('No quests were generated');
+      }
+
+      // Insert generated quests into database
+      const questsToInsert = data.quests.map((quest: any) => ({
+        ...quest,
+        subject_id: aiQuestParams.subject_id || null,
+        created_by_id: user?.id,
+        created_by: 'school',
+        assigned_children: aiQuestParams.assigned_children.length > 0 ? aiQuestParams.assigned_children : null
+      }));
+
+      const { data: insertedQuests, error: insertError } = await supabase
+        .from('quests')
+        .insert(questsToInsert)
+        .select(`
+          *,
+          subjects (name)
+        `);
+
+      if (insertError) throw insertError;
+
+      // Add to state
+      const convertedQuests = (insertedQuests || []).map(convertDatabaseQuest);
+      setQuests([...convertedQuests, ...quests]);
+
+      // Reset form
+      setAiQuestParams({
+        subject_id: '',
+        grade_level: '',
+        difficulty: 'intermediate',
+        type: 'daily',
+        count: 3,
+        assigned_children: []
+      });
+
+      setIsDialogOpen(false);
+
+      toast({
+        title: "Quests Generated",
+        description: `${data.quests.length} AI-generated quests created successfully`,
+      });
+
+    } catch (error: any) {
+      console.error('Error generating quests:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate quests",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const createQuest = async () => {
     if (!newQuest.title.trim() || !newQuest.description.trim()) {
       toast({
@@ -379,11 +474,24 @@ const { isSchoolAdmin } = useUserRole();
               Create Quest
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-gray-700 max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pr-2">
+            
+            <Tabs value={creationMode} onValueChange={(v) => setCreationMode(v as 'manual' | 'ai')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-white/10">
+                <TabsTrigger value="manual" className="data-[state=active]:bg-purple-600">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manual Creation
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="data-[state=active]:bg-purple-600">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Generation
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="manual" className="space-y-4 pr-2 mt-4">
               <div>
                 <Label htmlFor="title" className="text-white">Quest Title *</Label>
                 <Input
@@ -530,7 +638,150 @@ const { isSchoolAdmin } = useUserRole();
               >
                 {isCreating ? 'Creating...' : 'Create Quest'}
               </Button>
-            </div>
+              </TabsContent>
+
+              <TabsContent value="ai" className="space-y-4 pr-2 mt-4">
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <Sparkles className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="text-white font-medium mb-1">AI Quest Generation</h4>
+                      <p className="text-sm text-white/70">
+                        Generate multiple quests automatically based on subject, grade level, and difficulty. 
+                        The AI will create engaging, curriculum-aligned quests for your students.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="ai-subject" className="text-white">Subject *</Label>
+                  <Select value={aiQuestParams.subject_id} onValueChange={(value) => setAiQuestParams({ ...aiQuestParams, subject_id: value })}>
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Select subject" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-600">
+                      {subjects.map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-gray-700">
+                          {subject.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="grade-level" className="text-white">Grade Level</Label>
+                  <Input
+                    id="grade-level"
+                    value={aiQuestParams.grade_level}
+                    onChange={(e) => setAiQuestParams({ ...aiQuestParams, grade_level: e.target.value })}
+                    placeholder="e.g., 6th grade, high school"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="ai-type" className="text-white">Type</Label>
+                    <Select value={aiQuestParams.type} onValueChange={(value: 'daily' | 'weekly') => setAiQuestParams({ ...aiQuestParams, type: value })}>
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-600">
+                        <SelectItem value="daily" className="text-white hover:bg-gray-700">Daily</SelectItem>
+                        <SelectItem value="weekly" className="text-white hover:bg-gray-700">Weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ai-difficulty" className="text-white">Difficulty</Label>
+                    <Select value={aiQuestParams.difficulty} onValueChange={(value: 'basic' | 'intermediate' | 'hard') => setAiQuestParams({ ...aiQuestParams, difficulty: value })}>
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-600">
+                        <SelectItem value="basic" className="text-white hover:bg-gray-700">Basic</SelectItem>
+                        <SelectItem value="intermediate" className="text-white hover:bg-gray-700">Intermediate</SelectItem>
+                        <SelectItem value="hard" className="text-white hover:bg-gray-700">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="quest-count" className="text-white">Count</Label>
+                    <Input
+                      id="quest-count"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={aiQuestParams.count}
+                      onChange={(e) => setAiQuestParams({ ...aiQuestParams, count: parseInt(e.target.value) || 3 })}
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-white mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
+                  <div className="space-y-2 p-3 bg-white/5 rounded-md border border-white/10 max-h-40 overflow-y-auto">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="ai-all-children"
+                        checked={aiQuestParams.assigned_children.length === 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setAiQuestParams({ ...aiQuestParams, assigned_children: [] });
+                          }
+                        }}
+                      />
+                      <label htmlFor="ai-all-children" className="text-sm text-white cursor-pointer">
+                        {isSchoolAdmin ? 'All Students' : 'All Children'}
+                      </label>
+                    </div>
+                    {children.map((child) => (
+                      <div key={child.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`ai-child-${child.id}`}
+                          checked={aiQuestParams.assigned_children.includes(child.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setAiQuestParams({
+                                ...aiQuestParams,
+                                assigned_children: [...aiQuestParams.assigned_children, child.id]
+                              });
+                            } else {
+                              setAiQuestParams({
+                                ...aiQuestParams,
+                                assigned_children: aiQuestParams.assigned_children.filter(id => id !== child.id)
+                              });
+                            }
+                          }}
+                        />
+                        <label htmlFor={`ai-child-${child.id}`} className="text-sm text-white cursor-pointer">
+                          {child.first_name} {child.last_name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button onClick={generateAIQuests} disabled={isGenerating} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate {aiQuestParams.count} Quest{aiQuestParams.count > 1 ? 's' : ''}
+                    </>
+                  )}
+                </Button>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
