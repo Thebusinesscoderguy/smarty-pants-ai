@@ -84,7 +84,7 @@ export const QuestManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [creationMethod, setCreationMethod] = useState<'ai' | 'manual' | 'both' | null>(null);
+  const [creationMode, setCreationMode] = useState<'manual' | 'ai'>('manual');
 const { user } = useAuth();
 const { isSchoolAdmin } = useUserRole();
   const [newQuest, setNewQuest] = useState({
@@ -467,10 +467,7 @@ const { isSchoolAdmin } = useUserRole();
           </p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) setCreationMethod(null);
-        }}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-purple-600 hover:bg-purple-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -482,63 +479,19 @@ const { isSchoolAdmin } = useUserRole();
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
             </DialogHeader>
             
-            {!creationMethod ? (
-              <div className="space-y-4">
-                <Label className="text-white text-lg">How would you like to create quests?</Label>
-                <div className="grid grid-cols-1 gap-3">
-                  <Button
-                    variant="outline"
-                    className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-purple-600/20 hover:border-purple-600"
-                    onClick={() => setCreationMethod('ai')}
-                  >
-                    <Sparkles className="h-6 w-6 text-purple-400" />
-                    <div className="text-center">
-                      <div className="font-semibold text-white">AI Made</div>
-                      <div className="text-xs text-gray-400">Generate quests automatically with AI</div>
-                    </div>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-blue-600/20 hover:border-blue-600"
-                    onClick={() => setCreationMethod('manual')}
-                  >
-                    <Plus className="h-6 w-6 text-blue-400" />
-                    <div className="text-center">
-                      <div className="font-semibold text-white">Made by Me</div>
-                      <div className="text-xs text-gray-400">Create custom quests manually</div>
-                    </div>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-green-600/20 hover:border-green-600"
-                    onClick={() => setCreationMethod('both')}
-                  >
-                    <div className="flex gap-2">
-                      <Sparkles className="h-6 w-6 text-purple-400" />
-                      <Plus className="h-6 w-6 text-blue-400" />
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-white">Both</div>
-                      <div className="text-xs text-gray-400">Use AI then customize manually</div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCreationMethod(null)}
-                  className="text-gray-400 hover:text-white mb-2"
-                >
-                  ← Back to selection
-                </Button>
+            <Tabs value={creationMode} onValueChange={(v) => setCreationMode(v as 'manual' | 'ai')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-white/10">
+                <TabsTrigger value="manual" className="data-[state=active]:bg-purple-600">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manual Creation
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="data-[state=active]:bg-purple-600">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Generation
+                </TabsTrigger>
+              </TabsList>
 
-                {(creationMethod === 'manual' || creationMethod === 'both') && (
-                  <div className="space-y-4 pr-2">
+              <TabsContent value="manual" className="space-y-4 pr-2 mt-4">
               <div>
                 <Label htmlFor="title" className="text-white">Quest Title *</Label>
                 <Input
@@ -685,11 +638,9 @@ const { isSchoolAdmin } = useUserRole();
               >
                 {isCreating ? 'Creating...' : 'Create Quest'}
               </Button>
-                  </div>
-                )}
+              </TabsContent>
 
-                {(creationMethod === 'ai' || creationMethod === 'both') && (
-                  <div className="space-y-4 pr-2">
+              <TabsContent value="ai" className="space-y-4 pr-2 mt-4">
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
                   <div className="flex items-start space-x-3">
                     <Sparkles className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
@@ -829,10 +780,8 @@ const { isSchoolAdmin } = useUserRole();
                     </>
                   )}
                 </Button>
-                  </div>
-                )}
-              </div>
-            )}
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
