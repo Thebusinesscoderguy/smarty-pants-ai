@@ -84,7 +84,7 @@ export const QuestManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [creationMethod, setCreationMethod] = useState<'ai' | 'manual' | 'both' | null>(null);
+  const [creationMode, setCreationMode] = useState<'manual' | 'ai'>('manual');
 const { user } = useAuth();
 const { isSchoolAdmin } = useUserRole();
   const [newQuest, setNewQuest] = useState({
@@ -467,10 +467,7 @@ const { isSchoolAdmin } = useUserRole();
           </p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) setCreationMethod(null);
-        }}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-purple-600 hover:bg-purple-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -482,64 +479,19 @@ const { isSchoolAdmin } = useUserRole();
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
             </DialogHeader>
             
-            {!creationMethod ? (
-              <div className="space-y-4 py-4">
-                <p className="text-white/70 text-center mb-6">Choose how you want to create your quest</p>
-                <div className="grid gap-3">
-                  <Button
-                    onClick={() => setCreationMethod('manual')}
-                    className="h-auto py-4 bg-white/10 hover:bg-purple-600/20 border border-white/20 hover:border-purple-500"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Plus className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-semibold">Made by Me</div>
-                        <div className="text-xs opacity-70">Create a custom quest manually</div>
-                      </div>
-                    </div>
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setCreationMethod('ai')}
-                    className="h-auto py-4 bg-white/10 hover:bg-purple-600/20 border border-white/20 hover:border-purple-500"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Sparkles className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-semibold">AI Made</div>
-                        <div className="text-xs opacity-70">Let AI generate quests for you</div>
-                      </div>
-                    </div>
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setCreationMethod('both')}
-                    className="h-auto py-4 bg-white/10 hover:bg-purple-600/20 border border-white/20 hover:border-purple-500"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex">
-                        <Plus className="h-5 w-5" />
-                        <Sparkles className="h-5 w-5 -ml-2" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">Both</div>
-                        <div className="text-xs opacity-70">Create manually and generate with AI</div>
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4 pr-2 mt-4">
-                {(creationMethod === 'manual' || creationMethod === 'both') && (
-                  <div className="space-y-4">
-                    {creationMethod === 'both' && (
-                      <h3 className="text-white font-semibold flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Manual Quest Creation
-                      </h3>
-                    )}
-                    
+            <Tabs value={creationMode} onValueChange={(v) => setCreationMode(v as 'manual' | 'ai')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-white/10">
+                <TabsTrigger value="manual" className="data-[state=active]:bg-purple-600">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manual Creation
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="data-[state=active]:bg-purple-600">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Generation
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="manual" className="space-y-4 pr-2 mt-4">
               <div>
                 <Label htmlFor="title" className="text-white">Quest Title *</Label>
                 <Input
@@ -679,27 +631,16 @@ const { isSchoolAdmin } = useUserRole();
   </div>
 </div>
 
-                    <Button
-                      onClick={createQuest}
-                      disabled={isCreating || !newQuest.title.trim() || !newQuest.description.trim()}
-                      className="w-full bg-purple-600 hover:bg-purple-700"
-                    >
-                      {isCreating ? 'Creating...' : 'Create Quest'}
-                    </Button>
-                  </div>
-                )}
+              <Button
+                onClick={createQuest}
+                disabled={isCreating || !newQuest.title.trim() || !newQuest.description.trim()}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
+                {isCreating ? 'Creating...' : 'Create Quest'}
+              </Button>
+              </TabsContent>
 
-                {(creationMethod === 'ai' || creationMethod === 'both') && (
-                  <div className="space-y-4">
-                    {creationMethod === 'both' && (
-                      <>
-                        <div className="border-t border-white/10 my-6"></div>
-                        <h3 className="text-white font-semibold flex items-center gap-2">
-                          <Sparkles className="h-4 w-4" />
-                          AI Quest Generation
-                        </h3>
-                      </>
-                    )}
+              <TabsContent value="ai" className="space-y-4 pr-2 mt-4">
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
                   <div className="flex items-start space-x-3">
                     <Sparkles className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
@@ -826,23 +767,21 @@ const { isSchoolAdmin } = useUserRole();
                   </div>
                 </div>
 
-                    <Button onClick={generateAIQuests} disabled={isGenerating} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Generate {aiQuestParams.count} Quest{aiQuestParams.count > 1 ? 's' : ''}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+                <Button onClick={generateAIQuests} disabled={isGenerating} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate {aiQuestParams.count} Quest{aiQuestParams.count > 1 ? 's' : ''}
+                    </>
+                  )}
+                </Button>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
