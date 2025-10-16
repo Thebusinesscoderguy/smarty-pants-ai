@@ -85,6 +85,10 @@ export const QuestManagement = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [creationMethod, setCreationMethod] = useState<'manual' | 'ai' | 'both' | null>(null);
+  const selectCreationMethod = (m: 'manual' | 'ai' | 'both') => {
+    console.log('[QuestManagement] Select creation method:', m);
+    setCreationMethod(m);
+  };
 const { user } = useAuth();
 const { isSchoolAdmin } = useUserRole();
   const [newQuest, setNewQuest] = useState({
@@ -487,7 +491,8 @@ const { isSchoolAdmin } = useUserRole();
                 <p className="text-white/70 text-center mb-6">Choose how you'd like to create your quest</p>
                 <div className="grid grid-cols-1 gap-4">
                   <Button
-                    onClick={() => setCreationMethod('manual')}
+                    type="button"
+                    onClick={() => selectCreationMethod('manual')}
                     className="h-auto py-6 bg-purple-600 hover:bg-purple-700 flex flex-col items-center gap-2"
                   >
                     <Plus className="h-8 w-8" />
@@ -496,7 +501,8 @@ const { isSchoolAdmin } = useUserRole();
                   </Button>
                   
                   <Button
-                    onClick={() => setCreationMethod('ai')}
+                    type="button"
+                    onClick={() => selectCreationMethod('ai')}
                     className="h-auto py-6 bg-blue-600 hover:bg-blue-700 flex flex-col items-center gap-2"
                   >
                     <Sparkles className="h-8 w-8" />
@@ -505,7 +511,8 @@ const { isSchoolAdmin } = useUserRole();
                   </Button>
                   
                   <Button
-                    onClick={() => setCreationMethod('both')}
+                    type="button"
+                    onClick={() => selectCreationMethod('both')}
                     className="h-auto py-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex flex-col items-center gap-2"
                   >
                     <div className="flex gap-2">
