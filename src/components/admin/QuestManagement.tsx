@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,6 +89,21 @@ export const QuestManagement = () => {
     console.log('[QuestManagement] Select creation method:', m);
     setCreationMethod(m);
   };
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (creationMethod) {
+      requestAnimationFrame(() => {
+        try {
+          dialogContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+          const firstField = dialogContentRef.current?.querySelector('input, textarea, select, button') as HTMLElement | null;
+          firstField?.focus();
+        } catch (e) {
+          console.log('[QuestManagement] focus/scroll skipped:', e);
+        }
+      });
+    }
+  }, [creationMethod]);
 const { user } = useAuth();
 const { isSchoolAdmin } = useUserRole();
   const [newQuest, setNewQuest] = useState({
@@ -481,7 +496,7 @@ const { isSchoolAdmin } = useUserRole();
               Create Quest
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent ref={dialogContentRef} className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
             </DialogHeader>
@@ -525,7 +540,11 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
               </div>
             ) : creationMethod === 'both' ? (
-              <Tabs defaultValue="manual" className="w-full">
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-white border-white/20 hover:bg-white/10">← Back</Button>
+                </div>
+                <Tabs defaultValue="manual" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-white/10">
                   <TabsTrigger value="manual" className="data-[state=active]:bg-purple-600">
                     <Plus className="h-4 w-4 mr-2" />
@@ -970,8 +989,12 @@ const { isSchoolAdmin } = useUserRole();
                   </Button>
                 </TabsContent>
               </Tabs>
+                </>
             ) : creationMethod === 'manual' ? (
               <div className="space-y-4 pr-2 mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-white border-white/20 hover:bg-white/10">← Back</Button>
+                </div>
                 <div>
                   <Label htmlFor="title" className="text-white">Quest Title *</Label>
                   <Input
@@ -1120,6 +1143,9 @@ const { isSchoolAdmin } = useUserRole();
               </div>
             ) : (
               <div className="space-y-4 pr-2 mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-white border-white/20 hover:bg-white/10">← Back</Button>
+                </div>
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
                   <div className="flex items-start space-x-3">
                     <Sparkles className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
