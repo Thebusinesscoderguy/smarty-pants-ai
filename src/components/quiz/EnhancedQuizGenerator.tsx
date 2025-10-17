@@ -365,7 +365,6 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                           </Select>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">Your selection will be applied when you press Generate Quiz.</p>
                     </div>
                   )}
                 </>
