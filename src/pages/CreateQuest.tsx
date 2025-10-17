@@ -9,8 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { z } from 'zod';
 
 interface Subject { id: string; name: string }
+
+const questSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required').max(120),
+  description: z.string().trim().min(1, 'Description is required').max(1000),
+  type: z.enum(['daily', 'weekly']),
+  difficulty: z.enum(['basic', 'intermediate', 'hard']),
+  target_value: z.string().regex(/^\d+$/, 'Target must be a number'),
+  subject_id: z.string().optional(),
+});
 
 export default function CreateQuest() {
   // SEO
@@ -53,6 +63,7 @@ export default function CreateQuest() {
   const { createQuest } = useQuestManagement();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
     title: '',
@@ -76,10 +87,18 @@ export default function CreateQuest() {
   }, []);
 
   const onSubmit = async () => {
-    if (!form.title.trim() || !form.description.trim()) {
-      toast({ title: "Error", description: "Title and description are required", variant: "destructive" });
+    const validation = questSchema.safeParse(form);
+    if (!validation.success) {
+      const fieldErrors: Record<string, string> = {};
+      validation.error.issues.forEach(i => {
+        const key = (i.path[0] as string) || 'form';
+        if (!fieldErrors[key]) fieldErrors[key] = i.message;
+      });
+      setErrors(fieldErrors);
+      toast({ title: 'Fix form errors', description: 'Please correct the highlighted fields.', variant: 'destructive' });
       return;
     }
+    setErrors({});
     const res = await createQuest({
       title: form.title.trim(),
       description: form.description.trim(),

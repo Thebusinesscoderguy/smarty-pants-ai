@@ -518,14 +518,7 @@ const { isSchoolAdmin } = useUserRole();
                   <Button
                     type="button"
                     onClick={() => { 
-                      console.log('Made by Me clicked');
-                      if (!user) {
-                        toast({ title: 'Sign in required', description: 'Please sign in to create a quest.' });
-                        setIsDialogOpen(false);
-                        setTimeout(() => navigate('/auth'), 50);
-                        return;
-                      }
-                      console.log('Navigating to /quests/create');
+                      console.log('Made by Me clicked → /quests/create');
                       setIsDialogOpen(false);
                       setTimeout(() => navigate('/quests/create'), 50);
                     }}
