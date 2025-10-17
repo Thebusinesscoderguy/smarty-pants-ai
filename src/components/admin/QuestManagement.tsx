@@ -88,6 +88,10 @@ export const QuestManagement = () => {
   const selectCreationMethod = (m: 'manual' | 'ai' | 'both') => {
     console.log('[QuestManagement] Select creation method:', m);
     setCreationMethod(m);
+    toast({
+      title: 'Creation mode selected',
+      description: m === 'manual' ? 'Made by Me' : m === 'ai' ? 'Made by AI' : 'Both',
+    });
   };
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
 
@@ -496,7 +500,7 @@ const { isSchoolAdmin } = useUserRole();
               Create Quest
             </Button>
           </DialogTrigger>
-          <DialogContent key={creationMethod || 'choose'} ref={dialogContentRef} className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent ref={dialogContentRef} className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
               {creationMethod && (
