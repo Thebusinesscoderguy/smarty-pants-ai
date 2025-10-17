@@ -345,9 +345,9 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                                     break;
                                 }
                                 
-                                if (!quiz) return;
-                                const savedId = await saveQuiz({ ...quiz, title });
-                                if (savedId) toast({ title: 'Saved', description: 'Quiz saved to your Library.' });
+                                if (quiz) {
+                                  setGeneratedQuiz({ ...quiz, title });
+                                }
                               } catch (e: any) {
                                 toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
                               } finally {
