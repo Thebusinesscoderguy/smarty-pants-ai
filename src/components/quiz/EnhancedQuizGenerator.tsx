@@ -27,6 +27,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
+  const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   
   const { t } = useLanguage();
@@ -49,15 +50,57 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
         break;
       
       case 'file':
-        if (!uploadedFile) {
-          toast({ title: 'Error', description: 'Please upload a file first.', variant: 'destructive' });
-          return;
+        if (uploadType === 'graded_quiz' && generationOption) {
+          // Apply selected generation option on submit
+          if ((generationOption === 'same_questions' || generationOption === 'similar_quiz') && !uploadedFile) {
+            toast({ title: 'Error', description: 'Please upload your graded quiz first.', variant: 'destructive' });
+            return;
+          }
+
+          switch (generationOption) {
+            case 'same_questions':
+              quiz = await extractQuizFromFile(uploadedFile as File, {
+                difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                questionCount: 5,
+                gradeLevel,
+              });
+              break;
+            case 'mistakes_only':
+              quiz = await quizFromLatestMistakes();
+              break;
+            case 'questions_like_mistakes':
+              quiz = await quizFromLatestMistakes({ targetCount: 10 });
+              break;
+            case 'mistakes_similar':
+              quiz = await quizFromLatestMistakes({ targetCount: 10 });
+              break;
+            case 'similar_quiz':
+              quiz = await extractQuizFromFile(uploadedFile as File, {
+                difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                questionCount: 10,
+                gradeLevel,
+              });
+              break;
+            default:
+              // Fallback to default extraction if none selected
+              if (!uploadedFile) {
+                toast({ title: 'Error', description: 'Please upload a file first.', variant: 'destructive' });
+                return;
+              }
+              quiz = await extractQuizFromFile(uploadedFile, { difficulty, questionCount, gradeLevel });
+              break;
+          }
+        } else {
+          if (!uploadedFile) {
+            toast({ title: 'Error', description: 'Please upload a file first.', variant: 'destructive' });
+            return;
+          }
+          quiz = await extractQuizFromFile(uploadedFile, {
+            difficulty,
+            questionCount,
+            gradeLevel,
+          });
         }
-        quiz = await extractQuizFromFile(uploadedFile, {
-          difficulty,
-          questionCount,
-          gradeLevel
-        });
         break;
       
       case 'ai':
@@ -306,55 +349,8 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                         <div className="space-y-2">
                           <Label>Quiz Generation Options</Label>
                           <Select 
-                            onValueChange={async (value) => {
-                              setCreatingPractice(true);
-                              try {
-                                if (!uploadedFile) return;
-                                
-                                let quiz: Quiz | null = null;
-                                let title = '';
-                                
-                                switch(value) {
-                                  case 'same_questions':
-                                    quiz = await extractQuizFromFile(uploadedFile, {
-                                      difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                                      questionCount: 5,
-                                      gradeLevel
-                                    });
-                                    title = `${uploadedFile.name.split('.')[0]} (Same Questions)`;
-                                    break;
-                                  case 'mistakes_only':
-                                    quiz = await quizFromLatestMistakes();
-                                    title = `${quiz?.title ?? 'Quiz'} (Mistakes Only)`;
-                                    break;
-                                  case 'questions_like_mistakes':
-                                    quiz = await quizFromLatestMistakes({ targetCount: 10 });
-                                    title = `${quiz?.title ?? 'Quiz'} (Questions Like Mistakes)`;
-                                    break;
-                                  case 'mistakes_similar':
-                                    quiz = await quizFromLatestMistakes({ targetCount: 10 });
-                                    title = `${quiz?.title ?? 'Quiz'} + Similar`;
-                                    break;
-                                  case 'similar_quiz':
-                                    quiz = await extractQuizFromFile(uploadedFile, {
-                                      difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                                      questionCount: 10,
-                                      gradeLevel
-                                    });
-                                    title = `${uploadedFile.name.split('.')[0]} (Similar Quiz)`;
-                                    break;
-                                }
-                                
-                                if (quiz) {
-                                  setGeneratedQuiz({ ...quiz, title });
-                                }
-                              } catch (e: any) {
-                                toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-                              } finally {
-                                setCreatingPractice(false);
-                              }
-                            }}
-                            disabled={creatingPractice || isGenerating}
+                            value={generationOption}
+                            onValueChange={(value) => setGenerationOption(value as 'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz')}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select quiz generation option" />
@@ -369,7 +365,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
                           </Select>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
+                      <p className="text-xs text-muted-foreground">Your selection will be applied when you press Generate Quiz.</p>
                     </div>
                   )}
                 </>
