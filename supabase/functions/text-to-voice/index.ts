@@ -42,11 +42,11 @@ serve(async (req) => {
         'Connection': 'keep-alive',
       },
       body: JSON.stringify({
-        model: 'tts-1-hd', // Faster model
+        model: 'tts-1', // Fastest model
         input: text.trim().slice(0, 300), // Reduced length for speed
         voice: selectedVoice,
         response_format: 'mp3',
-        speed: 1.25, // Slightly faster speech
+        speed: 1.3, // Faster speech
       }),
     })
 
