@@ -518,9 +518,9 @@ const { isSchoolAdmin } = useUserRole();
                   <Button
                     type="button"
                     onClick={() => { 
-                      console.log('Made by Me clicked → /quests/create');
+                      console.log('Made by Me clicked → /quests/made-by-me');
                       setIsDialogOpen(false);
-                      setTimeout(() => navigate('/quests/create'), 50);
+                      setTimeout(() => navigate('/quests/made-by-me'), 50);
                     }}
                     className="h-auto py-6 bg-purple-600 hover:bg-purple-700 flex flex-col items-center gap-2"
                   >
