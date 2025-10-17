@@ -41,6 +41,7 @@ interface DailyLesson {
 export const StudyPlanGenerator = () => {
   const [inputMethod, setInputMethod] = useState<'file' | 'chat' | 'topic'>('file');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
   const [chatInput, setChatInput] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [gradeLevel, setGradeLevel] = useState<string>('');
@@ -228,15 +229,43 @@ export const StudyPlanGenerator = () => {
             </TabsList>
 
             <TabsContent value="file" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Upload File</Label>
-                <FileUploadZone
-                  onFileUpload={handleFileUpload}
-                  onFileRemove={handleFileRemove}
-                  uploadedFile={uploadedFile}
-                  acceptedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png']}
-                  disabled={isGenerating}
-                />
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label>Upload Material Type</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant={uploadType === 'study_material' ? "default" : "outline"}
+                      onClick={() => setUploadType('study_material')}
+                      disabled={isGenerating}
+                      className="justify-start"
+                    >
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Study Material
+                    </Button>
+                    <Button
+                      variant={uploadType === 'graded_quiz' ? "default" : "outline"}
+                      onClick={() => setUploadType('graded_quiz')}
+                      disabled={isGenerating}
+                      className="justify-start"
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Graded Quiz
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {uploadType === 'study_material' ? 'Upload Study Material' : 'Upload Graded Quiz/Test'}
+                  </Label>
+                  <FileUploadZone
+                    onFileUpload={handleFileUpload}
+                    onFileRemove={handleFileRemove}
+                    uploadedFile={uploadedFile}
+                    acceptedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png']}
+                    disabled={isGenerating}
+                  />
+                </div>
               </div>
             </TabsContent>
 
