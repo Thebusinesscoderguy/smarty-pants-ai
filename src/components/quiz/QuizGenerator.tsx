@@ -287,37 +287,21 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <Label>Quiz Difficulty Relative to Original</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          variant={quizDifficulty === 'easier' ? "default" : "outline"}
-                          onClick={() => setQuizDifficulty('easier')}
-                          disabled={creatingPractice || isGenerating}
-                          size="sm"
-                        >
-                          Easier
-                        </Button>
-                        <Button
-                          variant={quizDifficulty === 'same' ? "default" : "outline"}
-                          onClick={() => setQuizDifficulty('same')}
-                          disabled={creatingPractice || isGenerating}
-                          size="sm"
-                        >
-                          Same as Test
-                        </Button>
-                        <Button
-                          variant={quizDifficulty === 'harder' ? "default" : "outline"}
-                          onClick={() => setQuizDifficulty('harder')}
-                          disabled={creatingPractice || isGenerating}
-                          size="sm"
-                        >
-                          Harder
-                        </Button>
-                      </div>
+                      <Select value={quizDifficulty} onValueChange={(value: 'easier' | 'same' | 'harder') => setQuizDifficulty(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select difficulty" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="easier">Easier</SelectItem>
+                          <SelectItem value="same">Same as Test</SelectItem>
+                          <SelectItem value="harder">Harder</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Quiz Generation Options (Upload Type: graded_quiz)</Label>
-                      <Select 
+                      <Label>Quiz Generation Options</Label>
+                      <Select
                         onValueChange={async (value) => {
                           setCreatingPractice(true);
                           try {
