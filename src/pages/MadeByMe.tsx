@@ -51,47 +51,54 @@ export default function MadeByMe() {
   useEffect(() => { fetchQuests(); }, []);
 
   return (
-    <main className="container mx-auto max-w-5xl py-8">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Made by Me</h1>
-          <p className="text-muted-foreground">{user ? 'Quests you created' : 'Demo: sample quests shown (sign in to save).'} </p>
-        </div>
-        <Button asChild>
-          <Link to="/quests/create">Create Quest</Link>
-        </Button>
+    <main className="container mx-auto max-w-3xl py-8">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold">Made by Me</h1>
+        <p className="text-muted-foreground">View and manage quests you've created.</p>
       </header>
 
-      <section aria-label="Your quests" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {!loading && quests.length === 0 && (
-          <Card className="md:col-span-2">
-            <CardContent className="py-10 text-center">
-              <p className="mb-4">You have not created any quests yet.</p>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Your Quests</CardTitle>
+          <Button asChild>
+            <Link to="/quests/create">Create Quest</Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loading && (
+            <p className="text-center text-muted-foreground py-8">Loading quests...</p>
+          )}
+
+          {!loading && quests.length === 0 && (
+            <div className="text-center py-10">
+              <p className="mb-4 text-muted-foreground">You haven't created any quests yet.</p>
               <Button asChild>
                 <Link to="/quests/create">Create your first quest</Link>
               </Button>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {quests.map((q) => (
-          <Card key={q.id}>
-            <CardHeader className="flex flex-row items-start justify-between gap-2">
-              <CardTitle className="text-lg leading-tight">{q.title}</CardTitle>
-              <Badge variant="secondary" className="shrink-0">{q.difficulty}</Badge>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>{q.description}</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">{q.type}</Badge>
-                {typeof q.target_value === 'number' && (
-                  <Badge variant="outline">Target: {q.target_value}</Badge>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+          {!loading && quests.length > 0 && (
+            <div className="space-y-3">
+              {quests.map((q) => (
+                <div key={q.id} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-lg">{q.title}</h3>
+                    <Badge variant="secondary" className="shrink-0">{q.difficulty}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{q.description}</p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Badge variant="outline">{q.type}</Badge>
+                    {typeof q.target_value === 'number' && (
+                      <Badge variant="outline">Target: {q.target_value}</Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }
