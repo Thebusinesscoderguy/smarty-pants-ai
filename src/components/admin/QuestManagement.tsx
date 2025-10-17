@@ -517,7 +517,11 @@ const { isSchoolAdmin } = useUserRole();
                 <div className="grid grid-cols-1 gap-4">
                   <Button
                     type="button"
-                    onClick={() => { setIsDialogOpen(false); navigate('/quests/create'); }}
+                    onClick={() => { 
+                      console.log('Made by Me clicked, navigating to /quests/create');
+                      setIsDialogOpen(false);
+                      setTimeout(() => navigate('/quests/create'), 100);
+                    }}
                     className="h-auto py-6 bg-purple-600 hover:bg-purple-700 flex flex-col items-center gap-2"
                   >
                     <Plus className="h-8 w-8" />

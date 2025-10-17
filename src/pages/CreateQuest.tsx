@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Subject { id: string; name: string }
 
@@ -75,7 +76,10 @@ export default function CreateQuest() {
   }, []);
 
   const onSubmit = async () => {
-    if (!form.title.trim() || !form.description.trim()) return;
+    if (!form.title.trim() || !form.description.trim()) {
+      toast({ title: "Error", description: "Title and description are required", variant: "destructive" });
+      return;
+    }
     const res = await createQuest({
       title: form.title.trim(),
       description: form.description.trim(),
