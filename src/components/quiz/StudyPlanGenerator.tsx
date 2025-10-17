@@ -12,7 +12,6 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
-import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -53,63 +52,11 @@ export const StudyPlanGenerator = () => {
   const [aiChooseDailyMinutes, setAiChooseDailyMinutes] = useState<boolean>(false);
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
   const [mistakeBasedMode, setMistakeBasedMode] = useState(false);
-  const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
   const navigate = useNavigate();
-const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
-const { isGenerating: isBuildingQuiz, generateQuiz, retakeLatestQuiz, quizFromLatestMistakes, saveQuiz, extractQuizFromFile } = useQuizGenerator();
-const [creatingPractice, setCreatingPractice] = useState(false);
-
-const handleCreateRetake = async () => {
-  setCreatingPractice(true);
-  try {
-    if (!uploadedFile) return;
-    
-    // Use file extraction to generate quiz with specified difficulty
-    const quiz = await extractQuizFromFile(uploadedFile, {
-      difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-      questionCount: 5,
-      gradeLevel
-    });
-    if (!quiz) return;
-    const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
-    if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
-  } catch (e: any) {
-    toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-  } finally {
-    setCreatingPractice(false);
-  }
-};
-
-const handleCreateMistakes = async () => {
-  setCreatingPractice(true);
-  try {
-    const quiz = await quizFromLatestMistakes();
-    if (!quiz) return;
-    const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Mistakes Only)` });
-    if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
-  } catch (e: any) {
-    toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-  } finally {
-    setCreatingPractice(false);
-  }
-};
-
-const handleCreateMistakesSimilar = async () => {
-  setCreatingPractice(true);
-  try {
-    const quiz = await quizFromLatestMistakes({ targetCount: 10 });
-    if (!quiz) return;
-    const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
-    if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
-  } catch (e: any) {
-    toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-  } finally {
-    setCreatingPractice(false);
-  }
-};
+  const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
@@ -319,80 +266,6 @@ const handleCreateMistakesSimilar = async () => {
                     disabled={isGenerating}
                   />
                 </div>
-
-                {uploadedFile && (
-                  <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
-                    <div className="text-sm font-medium">Quiz Generation Options</div>
-                    
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label>Quiz Difficulty Relative to Original</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Button
-                            variant={quizDifficulty === 'easier' ? "default" : "outline"}
-                            onClick={() => setQuizDifficulty('easier')}
-                            disabled={creatingPractice || isBuildingQuiz}
-                            size="sm"
-                          >
-                            Easier
-                          </Button>
-                          <Button
-                            variant={quizDifficulty === 'same' ? "default" : "outline"}
-                            onClick={() => setQuizDifficulty('same')}
-                            disabled={creatingPractice || isBuildingQuiz}
-                            size="sm"
-                          >
-                            Same as Test
-                          </Button>
-                          <Button
-                            variant={quizDifficulty === 'harder' ? "default" : "outline"}
-                            onClick={() => setQuizDifficulty('harder')}
-                            disabled={creatingPractice || isBuildingQuiz}
-                            size="sm"
-                          >
-                            Harder
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <Button onClick={handleCreateRetake} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                          {creatingPractice ? 'Working…' : 'Same Quiz Questions'}
-                        </Button>
-                        <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                          {creatingPractice ? 'Working…' : 'Test From Mistakes'}
-                        </Button>
-                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                          {creatingPractice ? 'Working…' : 'Questions Like Mistakes'}
-                        </Button>
-                        <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                          {creatingPractice ? 'Working…' : 'Mistakes + Similar'}
-                        </Button>
-                        <Button variant="outline" onClick={async () => {
-                          setCreatingPractice(true);
-                          try {
-                            if (!uploadedFile) return;
-                            const quiz = await extractQuizFromFile(uploadedFile, {
-                              difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                              questionCount: 10,
-                              gradeLevel
-                            });
-                            if (!quiz) return;
-                            const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Similar Quiz)` });
-                            if (savedId) toast({ title: 'Saved', description: 'Similar quiz saved to your Library.' });
-                          } catch (e: any) {
-                            toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
-                          } finally {
-                            setCreatingPractice(false);
-                          }
-                        }} disabled={creatingPractice || isBuildingQuiz} size="sm">
-                          {creatingPractice ? 'Working…' : 'Similar Quiz'}
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
-                  </div>
-                )}
               </div>
             </TabsContent>
 
@@ -616,33 +489,7 @@ const handleCreateMistakesSimilar = async () => {
                         </div>
                       </div>
 
-                      <div className="pt-2 flex gap-2 flex-col sm:flex-row">
-                        <Button
-                          size="sm"
-                          onClick={async () => {
-                            try {
-                              const subjectContext = `${generatedPlan.title} - ${lesson.topic}`;
-                              const quiz = await generateQuiz(
-                                subjectContext,
-                                'medium',
-                                5,
-                                undefined,
-                                gradeLevel
-                              );
-                              if (!quiz) return;
-                              const savedId = await saveQuiz({ ...quiz, title: `${generatedPlan.title} - ${lesson.topic} (Day ${lesson.day} Practice)` });
-                              if (savedId) {
-                                toast({ title: 'Quiz ready', description: 'Saved to your Library. You can take it now.' });
-                              }
-                            } catch (e: any) {
-                              toast({ title: 'Failed to create quiz', description: e?.message || 'Please try again.', variant: 'destructive' });
-                            }
-                          }}
-                          className="flex-1"
-                          variant="outline"
-                        >
-                          Create Quiz
-                        </Button>
+                      <div className="pt-2">
                         <Button
                           size="sm"
                           onClick={() => {
@@ -659,7 +506,7 @@ Please help me learn this topic and answer any questions I have about it.`;
                             // Navigate to learning module with specific day
                             navigate(`/modules?day=${lesson.day}`);
                           }}
-                          className="flex-1"
+                          className="w-full"
                         >
                           Begin Learning
                         </Button>
