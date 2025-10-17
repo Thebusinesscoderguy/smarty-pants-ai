@@ -496,11 +496,15 @@ const { isSchoolAdmin } = useUserRole();
               Create Quest
             </Button>
           </DialogTrigger>
-          <DialogContent ref={dialogContentRef} className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent key={creationMethod || 'choose'} ref={dialogContentRef} className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
+              {creationMethod && (
+                <p className="text-xs text-white/70 mt-1">
+                  Mode: {creationMethod === 'manual' ? 'Made by Me' : creationMethod === 'ai' ? 'Made by AI' : 'Both'}
+                </p>
+              )}
             </DialogHeader>
-            
             {!creationMethod ? (
               <div className="space-y-4 py-6">
                 <p className="text-white/70 text-center mb-6">Choose how you'd like to create your quest</p>
