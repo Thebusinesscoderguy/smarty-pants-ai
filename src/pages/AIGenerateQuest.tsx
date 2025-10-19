@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,13 +18,65 @@ const AIGenerateQuest = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createQuest } = useQuestManagement();
-  const [prompt, setPrompt] = useState('');
+  
+  const [subject, setSubject] = useState('');
+  const [gradeLevel, setGradeLevel] = useState('');
+  const [type, setType] = useState('daily');
+  const [difficulty, setDifficulty] = useState('medium');
+  const [count, setCount] = useState(3);
+  const [assignToAll, setAssignToAll] = useState(true);
+  const [children, setChildren] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedChildren, setSelectedChildren] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    const fetchChildren = async () => {
+      if (!user) return;
+      try {
+        const { data: rels, error: relError } = await supabase
+          .from('parent_child_relationships')
+          .select('child_id')
+          .eq('parent_id', user.id);
+
+        if (relError) throw relError;
+
+        const childIds = (rels || []).map((r: any) => r.child_id).filter(Boolean);
+
+        if (childIds.length === 0) {
+          setChildren([]);
+          return;
+        }
+
+        const { data: profiles, error: profError } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', childIds);
+
+        if (profError) throw profError;
+
+        const mapped = (profiles || []).map((p: any) => ({
+          id: p.id as string,
+          name: p.display_name || 'Child',
+        }));
+
+        setChildren(mapped);
+      } catch (err: any) {
+        console.error('Error fetching children:', err);
+      }
+    };
+    fetchChildren();
+  }, [user]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim()) {
-      toast({ title: 'Enter a prompt', description: 'Describe what kind of quest you want to create.', variant: 'destructive' });
+    
+    if (!subject || !gradeLevel) {
+      toast({ title: 'Missing fields', description: 'Please fill in subject and grade level.', variant: 'destructive' });
+      return;
+    }
+
+    if (!assignToAll && selectedChildren.length === 0) {
+      toast({ title: 'Select children', description: 'Choose at least one child or select "All Children".', variant: 'destructive' });
       return;
     }
 
@@ -30,33 +84,44 @@ const AIGenerateQuest = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-quest', {
-        body: { prompt: prompt.trim(), userId: user?.id }
+        body: { 
+          subject,
+          gradeLevel,
+          type,
+          difficulty,
+          count,
+          userId: user?.id 
+        }
       });
 
       if (error) throw error;
 
-      if (data?.quest) {
-        await createQuest({
-          title: data.quest.title,
-          description: data.quest.description,
-          type: data.quest.type || 'daily',
-          difficulty: data.quest.difficulty || 'medium',
-          target_value: data.quest.target_value || 1,
-          rewards: data.quest.rewards || { xp: 25 },
-          requirements: data.quest.requirements || {},
-          assigned_children: null
-        });
+      if (data?.quests && Array.isArray(data.quests)) {
+        const assignedChildren = assignToAll ? null : selectedChildren;
+        
+        for (const questData of data.quests) {
+          await createQuest({
+            title: questData.title,
+            description: questData.description,
+            type: questData.type || type,
+            difficulty: questData.difficulty || difficulty,
+            target_value: questData.target_value || 1,
+            rewards: questData.rewards || { xp: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 25 : 50 },
+            requirements: questData.requirements || {},
+            assigned_children: assignedChildren
+          });
+        }
 
-        toast({ title: 'Quest created!', description: 'Your AI-generated quest has been created.' });
+        toast({ title: `${data.quests.length} quests created!`, description: 'Your AI-generated quests have been created.' });
         navigate('/quests/made-by-me');
       } else {
         throw new Error('No quest data returned');
       }
     } catch (error: any) {
-      console.error('Error generating quest:', error);
+      console.error('Error generating quests:', error);
       toast({ 
         title: 'Generation failed', 
-        description: error.message || 'Could not generate quest. Please try again.', 
+        description: error.message || 'Could not generate quests. Please try again.', 
         variant: 'destructive' 
       });
     } finally {
@@ -83,47 +148,138 @@ const AIGenerateQuest = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Sparkles className="h-6 w-6 text-blue-400" />
-                AI Quest Generator
+                AI Quest Generation
               </CardTitle>
+              <CardDescription className="text-white/70">
+                Generate multiple quests automatically based on subject, grade level, and difficulty. The AI will create engaging, curriculum-aligned quests for your students.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleGenerate} className="space-y-4">
+              <form onSubmit={handleGenerate} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="prompt" className="text-white">
-                    Describe the quest you want to create
-                  </Label>
-                  <Textarea
-                    id="prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="E.g., 'Create a daily quest for practicing multiplication tables' or 'Make a weekly reading challenge for middle school students'"
-                    required
-                    rows={6}
-                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
-                  />
-                  <p className="text-sm text-white/60">
-                    The AI will generate a complete quest with title, description, difficulty, and rewards.
-                  </p>
+                  <Label htmlFor="subject" className="text-white">Subject *</Label>
+                  <Select value={subject} onValueChange={setSubject} required>
+                    <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectValue placeholder="Select subject" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-white/20">
+                      <SelectItem value="mathematics">Mathematics</SelectItem>
+                      <SelectItem value="science">Science</SelectItem>
+                      <SelectItem value="english">English</SelectItem>
+                      <SelectItem value="history">History</SelectItem>
+                      <SelectItem value="geography">Geography</SelectItem>
+                      <SelectItem value="art">Art</SelectItem>
+                      <SelectItem value="music">Music</SelectItem>
+                      <SelectItem value="physical_education">Physical Education</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    type="submit"
-                    disabled={isGenerating}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    {isGenerating ? 'Generating...' : 'Generate Quest'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate('/quests')}
-                    className="border-white/20 text-white hover:bg-white/20"
-                  >
-                    Cancel
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="gradeLevel" className="text-white">Grade Level</Label>
+                  <Input
+                    id="gradeLevel"
+                    value={gradeLevel}
+                    onChange={(e) => setGradeLevel(e.target.value)}
+                    placeholder="e.g., 6th grade, high school"
+                    required
+                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                  />
                 </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Type</Label>
+                    <Select value={type} onValueChange={setType}>
+                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/20">
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white">Difficulty</Label>
+                    <Select value={difficulty} onValueChange={setDifficulty}>
+                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/20">
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Intermediate</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="count" className="text-white">Count</Label>
+                    <Input
+                      id="count"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={count}
+                      onChange={(e) => setCount(parseInt(e.target.value))}
+                      required
+                      className="bg-white/5 border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-white">Assign to Children</Label>
+                  <div className="flex items-center space-x-2 bg-white/5 p-3 rounded-lg">
+                    <Checkbox
+                      id="assign-all"
+                      checked={assignToAll}
+                      onCheckedChange={(checked) => {
+                        setAssignToAll(Boolean(checked));
+                        if (checked) setSelectedChildren([]);
+                      }}
+                    />
+                    <Label htmlFor="assign-all" className="text-white cursor-pointer">All Children</Label>
+                  </div>
+
+                  {!assignToAll && children.length > 0 && (
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {children.map((child) => {
+                        const checked = selectedChildren.includes(child.id);
+                        return (
+                          <div key={child.id} className="flex items-center space-x-2 bg-white/5 p-3 rounded-lg">
+                            <Checkbox
+                              id={`child-${child.id}`}
+                              checked={checked}
+                              onCheckedChange={(c) => {
+                                const isChecked = Boolean(c);
+                                setSelectedChildren((prev) =>
+                                  isChecked ? [...prev, child.id] : prev.filter((id) => id !== child.id)
+                                );
+                              }}
+                            />
+                            <Label htmlFor={`child-${child.id}`} className="text-white cursor-pointer">{child.name}</Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!assignToAll && children.length === 0 && (
+                    <p className="text-white/70 text-sm">No children connected yet. Connect children to assign specifically.</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isGenerating}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {isGenerating ? 'Generating...' : `Generate ${count} Quest${count > 1 ? 's' : ''}`}
+                </Button>
               </form>
             </CardContent>
           </Card>

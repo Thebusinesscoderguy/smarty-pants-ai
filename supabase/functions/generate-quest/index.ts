@@ -11,34 +11,40 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { subject, gradeLevel, type, difficulty, count } = await req.json();
     
-    if (!prompt) {
+    if (!subject || !gradeLevel || !count) {
       return new Response(
-        JSON.stringify({ error: "Prompt is required" }),
+        JSON.stringify({ error: "Subject, gradeLevel, and count are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const userPrompt = `Generate ${count} ${difficulty} ${type} quest${count > 1 ? 's' : ''} for ${subject} at ${gradeLevel} level. Each quest should be unique and engaging.`;
+
+    const systemPrompt = `You are a quest generation assistant. Generate educational quests based on provided parameters.
+
+For each quest, return a JSON object with this exact structure:
+{
+  "title": "Quest title (concise, engaging)",
+  "description": "Quest description (what the student needs to do)",
+  "type": "daily" or "weekly" (use the provided type),
+  "difficulty": "easy", "medium", or "hard" (use the provided difficulty),
+  "target_value": number (how many times to complete the task, typically 1-5 for daily, 3-10 for weekly),
+  "rewards": { "xp": number (10 for easy, 25 for medium, 50 for hard) },
+  "requirements": {}
+}
+
+Make quests:
+- Educational and aligned with the subject and grade level
+- Achievable and motivating
+- Age-appropriate for the grade level
+- Varied and engaging`;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
-
-    const systemPrompt = `You are a quest generation assistant. Generate educational quests based on user descriptions.
-    
-Return a JSON object with this exact structure:
-{
-  "title": "Quest title (concise, engaging)",
-  "description": "Quest description (what the student needs to do)",
-  "type": "daily" or "weekly",
-  "difficulty": "easy", "medium", or "hard",
-  "target_value": number (how many times to complete the task),
-  "rewards": { "xp": number (10 for easy, 25 for medium, 50 for hard) },
-  "requirements": {}
-}
-
-Make quests educational, achievable, and motivating.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -50,38 +56,48 @@ Make quests educational, achievable, and motivating.`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
+          { role: "user", content: userPrompt }
         ],
         tools: [
           {
             type: "function",
             function: {
-              name: "generate_quest",
-              description: "Generate a quest with structured data",
+              name: "generate_quests",
+              description: `Generate ${count} quest${count > 1 ? 's' : ''} with structured data`,
               parameters: {
                 type: "object",
                 properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  type: { type: "string", enum: ["daily", "weekly"] },
-                  difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
-                  target_value: { type: "number" },
-                  rewards: {
-                    type: "object",
-                    properties: {
-                      xp: { type: "number" }
-                    },
-                    required: ["xp"]
-                  },
-                  requirements: { type: "object" }
+                  quests: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        type: { type: "string", enum: ["daily", "weekly"] },
+                        difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
+                        target_value: { type: "number" },
+                        rewards: {
+                          type: "object",
+                          properties: {
+                            xp: { type: "number" }
+                          },
+                          required: ["xp"]
+                        },
+                        requirements: { type: "object" }
+                      },
+                      required: ["title", "description", "type", "difficulty", "target_value", "rewards", "requirements"],
+                      additionalProperties: false
+                    }
+                  }
                 },
-                required: ["title", "description", "type", "difficulty", "target_value", "rewards", "requirements"],
+                required: ["quests"],
                 additionalProperties: false
               }
             }
           }
         ],
-        tool_choice: { type: "function", function: { name: "generate_quest" } }
+        tool_choice: { type: "function", function: { name: "generate_quests" } }
       }),
     });
 
@@ -113,10 +129,11 @@ Make quests educational, achievable, and motivating.`;
       throw new Error("No tool call in response");
     }
 
-    const quest = JSON.parse(toolCall.function.arguments);
+    const data = JSON.parse(toolCall.function.arguments);
+    const quests = data.quests || [];
 
     return new Response(
-      JSON.stringify({ quest }),
+      JSON.stringify({ quests }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
