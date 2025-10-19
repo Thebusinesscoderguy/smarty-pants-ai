@@ -26,9 +26,11 @@ const CreateQuest = () => {
     description: '',
     type: 'daily',
     difficulty: 'medium',
-    target_value: 1,
-    expires_at: ''
+    target_value: 1
   });
+
+  const [expirationValue, setExpirationValue] = useState<number>(1);
+  const [expirationUnit, setExpirationUnit] = useState<'days' | 'weeks'>('days');
 
   // Assignment state
   const { user } = useAuth();
@@ -107,12 +109,18 @@ const CreateQuest = () => {
         return;
       }
 
+      // Calculate expiration date
+      const now = new Date();
+      const daysToAdd = expirationUnit === 'days' ? expirationValue : expirationValue * 7;
+      const expiresAt = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000).toISOString();
+
       await createQuest({
         ...formData,
         target_value: Number(formData.target_value),
         rewards: { xp: formData.difficulty === 'easy' ? 10 : formData.difficulty === 'medium' ? 25 : 50 },
         requirements: {},
-        assigned_children: assignMode === 'specific' ? selectedChildren : null
+        assigned_children: assignMode === 'specific' ? selectedChildren : null,
+        expires_at: expiresAt
       });
 
       navigate('/quests/made-by-me');
@@ -217,14 +225,37 @@ const CreateQuest = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="expires_at" className="text-white">Expiration Date (Optional)</Label>
-                  <Input
-                    id="expires_at"
-                    type="datetime-local"
-                    value={formData.expires_at}
-                    onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
-                    className="bg-white/5 border-white/20 text-white"
-                  />
+                  <Label className="text-white">When does it expire?</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select
+                      value={expirationValue.toString()}
+                      onValueChange={(value) => setExpirationValue(Number(value))}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={expirationUnit}
+                      onValueChange={(value: 'days' | 'weeks') => setExpirationUnit(value)}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="days">Days</SelectItem>
+                        <SelectItem value="weeks">Weeks</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
