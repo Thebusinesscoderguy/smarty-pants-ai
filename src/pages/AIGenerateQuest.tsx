@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,6 +67,14 @@ const AIGenerateQuest = () => {
     };
     fetchChildren();
   }, [user]);
+
+  // Ensure "All Children" stays selected when no children are linked
+  useEffect(() => {
+    if (children.length === 0 && !assignToAll) {
+      setAssignToAll(true);
+      setSelectedChildren([]);
+    }
+  }, [children.length, assignToAll]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,16 +241,22 @@ const AIGenerateQuest = () => {
 
                 <div className="space-y-3">
                   <Label className="text-white">Assign to Children</Label>
-                  <div className="flex items-center space-x-2 bg-white/5 p-3 rounded-lg">
-                    <Checkbox
-                      id="assign-all"
-                      checked={assignToAll}
-                      onCheckedChange={(checked) => {
-                        setAssignToAll(Boolean(checked));
-                        if (checked) setSelectedChildren([]);
-                      }}
-                    />
-                    <Label htmlFor="assign-all" className="text-white cursor-pointer">All Children</Label>
+                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="assign-all"
+                        checked={assignToAll}
+                        disabled={children.length === 0}
+                        onCheckedChange={(checked) => {
+                          setAssignToAll(Boolean(checked));
+                          if (checked) setSelectedChildren([]);
+                        }}
+                      />
+                      <Label htmlFor="assign-all" className="text-white cursor-pointer">All Children</Label>
+                    </div>
+                    {children.length === 0 && (
+                      <span className="text-xs text-white/60">No children linked</span>
+                    )}
                   </div>
 
                   {!assignToAll && children.length > 0 && (
@@ -267,8 +282,20 @@ const AIGenerateQuest = () => {
                     </div>
                   )}
 
-                  {!assignToAll && children.length === 0 && (
-                    <p className="text-white/70 text-sm">No children connected yet. Connect children to assign specifically.</p>
+                  {children.length === 0 && (
+                    <Alert className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border-white/20 text-white">
+                      <AlertDescription className="flex items-center justify-between gap-4">
+                        <span>No children connected yet. Connect children to assign specifically.</span>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => navigate('/monitoring')}
+                          className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                        >
+                          Manage Children
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
                   )}
                 </div>
 
