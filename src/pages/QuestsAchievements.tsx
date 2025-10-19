@@ -83,7 +83,14 @@ const QuestsAchievements = () => {
               className="bg-purple-600 hover:bg-purple-700"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Create Quest
+              Made by Me
+            </Button>
+            <Button
+              onClick={() => navigate('/quests/ai-generate')}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Target className="mr-2 h-4 w-4" />
+              Made by AI
             </Button>
             <Button
               onClick={() => navigate('/quests/made-by-me')}
@@ -91,7 +98,7 @@ const QuestsAchievements = () => {
               className="border-white/20 text-white hover:bg-white/20"
             >
               <List className="mr-2 h-4 w-4" />
-              My Quests
+              View My Quests
             </Button>
           </div>
 

@@ -49,6 +49,9 @@ verify_jwt = false
 [functions.generate-quests]
 verify_jwt = false
 
+[functions.generate-quest]
+verify_jwt = false
+
 [edge-runtime]
 enabled = true
 policy = "per_request"

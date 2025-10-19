@@ -28,6 +28,7 @@ import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
 import QuestsAchievements from './pages/QuestsAchievements';
 import CreateQuest from './pages/CreateQuest';
+import AIGenerateQuest from './pages/AIGenerateQuest';
 import MadeByMe from './pages/MadeByMe';
 import Monitoring from './pages/Monitoring';
 import Settings from './pages/Settings';
@@ -71,6 +72,7 @@ function App() {
                <Route path="/quiz-generator" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
                <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
                <Route path="/quests/create" element={<ProtectedRoute><CreateQuest /></ProtectedRoute>} />
+               <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />
                <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
                <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
