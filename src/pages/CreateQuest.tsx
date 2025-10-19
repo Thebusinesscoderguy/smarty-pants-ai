@@ -40,24 +40,36 @@ const CreateQuest = () => {
     const fetchChildren = async () => {
       if (!user) return;
       try {
-        const { data, error } = await supabase
+        const { data: rels, error: relError } = await supabase
           .from('parent_child_relationships')
-          .select(`
-            child_id,
-            profiles!parent_child_relationships_child_id_fkey (
-              id,
-              display_name
-            )
-          `)
+          .select('child_id')
           .eq('parent_id', user.id);
-        if (error) throw error;
-        const mapped = (data || []).map((rel: any) => ({
-          id: rel.child_id as string,
-          name: rel.profiles?.display_name || 'Child'
+
+        if (relError) throw relError;
+
+        const childIds = (rels || []).map((r: any) => r.child_id).filter(Boolean);
+
+        if (childIds.length === 0) {
+          setChildren([]);
+          return;
+        }
+
+        const { data: profiles, error: profError } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', childIds);
+
+        if (profError) throw profError;
+
+        const mapped = (profiles || []).map((p: any) => ({
+          id: p.id as string,
+          name: p.display_name || 'Child',
         }));
+
         setChildren(mapped);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching children:', err);
+        toast({ title: 'Could not load children', description: err?.message || 'Please try again.', variant: 'destructive' });
       }
     };
     fetchChildren();
