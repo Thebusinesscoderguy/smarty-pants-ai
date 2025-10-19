@@ -50,21 +50,40 @@ const CreateQuest = () => {
         const childIds = (rels || []).map((r: any) => r.child_id).filter(Boolean);
 
         if (childIds.length === 0) {
-          setChildren([]);
+          // Fallback: legacy children table
+          const { data: kids, error: kidsErr } = await supabase
+            .from('children')
+            .select('id, first_name, last_name')
+            .eq('parent_id', user.id);
+          if (!kidsErr && kids && kids.length > 0) {
+            const mappedKids = kids.map((c: any) => ({
+              id: c.id as string,
+              name: [c.first_name, c.last_name].filter(Boolean).join(' ') || 'Child',
+            }));
+            setChildren(mappedKids);
+          } else {
+            setChildren([]);
+          }
           return;
         }
 
-        const { data: profiles, error: profError } = await supabase
-          .from('profiles')
-          .select('id, display_name')
-          .in('id', childIds);
+        let mapped: Array<{ id: string; name: string }> = [];
+        try {
+          const { data: profiles, error: profError } = await supabase
+            .from('profiles')
+            .select('id, display_name')
+            .in('id', childIds);
 
-        if (profError) throw profError;
+          if (profError) throw profError;
 
-        const mapped = (profiles || []).map((p: any) => ({
-          id: p.id as string,
-          name: p.display_name || 'Child',
-        }));
+          mapped = (profiles || []).map((p: any) => ({
+            id: p.id as string,
+            name: p.display_name || 'Child',
+          }));
+        } catch (profileErr) {
+          console.warn('Profiles not accessible via RLS, falling back to IDs');
+          mapped = childIds.map((id: string) => ({ id, name: 'Child' }));
+        }
 
         setChildren(mapped);
       } catch (err: any) {
