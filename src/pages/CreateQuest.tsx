@@ -40,12 +40,13 @@ const CreateQuest = () => {
     const fetchChildren = async () => {
       if (!user) return;
       try {
+        console.log('CreateQuest: fetching children for parent', user.id);
         const { data: rels, error: relError } = await supabase
           .from('parent_child_relationships')
           .select('child_id')
           .eq('parent_id', user.id);
 
-        if (relError) throw relError;
+        console.log('CreateQuest: parent_child_relationships count', rels?.length, 'error', relError);
 
         const childIds = (rels || []).map((r: any) => r.child_id).filter(Boolean);
 
@@ -84,11 +85,11 @@ const CreateQuest = () => {
           console.warn('Profiles not accessible via RLS, falling back to IDs');
           mapped = childIds.map((id: string) => ({ id, name: 'Child' }));
         }
-
         setChildren(mapped);
       } catch (err: any) {
         console.error('Error fetching children:', err);
         toast({ title: 'Could not load children', description: err?.message || 'Please try again.', variant: 'destructive' });
+        setChildren([]);
       }
     };
     fetchChildren();
