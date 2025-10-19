@@ -4,7 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, Target, BookOpen, MessageCircle } from 'lucide-react';
+import { Trophy, Target, BookOpen, MessageCircle, Plus, List } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -74,6 +74,25 @@ const QuestsAchievements = () => {
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-white">Quests</h1>
             <p className="text-xl text-white/80">Complete quests to earn rewards and track your progress</p>
+          </div>
+
+          {/* Quest Actions */}
+          <div className="flex justify-center gap-4">
+            <Button
+              onClick={() => navigate('/quests/create')}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Quest
+            </Button>
+            <Button
+              onClick={() => navigate('/quests/made-by-me')}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/20"
+            >
+              <List className="mr-2 h-4 w-4" />
+              My Quests
+            </Button>
           </div>
 
           {/* Quests Section */}

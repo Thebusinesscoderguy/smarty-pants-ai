@@ -1,0 +1,180 @@
+import React, { useState } from 'react';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
+import { useQuestManagement } from '@/hooks/useQuestManagement';
+import { ArrowLeft } from 'lucide-react';
+
+const CreateQuest = () => {
+  const navigate = useNavigate();
+  const { createQuest } = useQuestManagement();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    type: 'daily',
+    difficulty: 'medium',
+    target_value: 1,
+    expires_at: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await createQuest({
+        ...formData,
+        target_value: Number(formData.target_value),
+        rewards: { xp: formData.difficulty === 'easy' ? 10 : formData.difficulty === 'medium' ? 25 : 50 },
+        requirements: {}
+      });
+      
+      navigate('/quests/made-by-me');
+    } catch (error) {
+      console.error('Error creating quest:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <Header />
+      
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/quests')}
+            className="text-white hover:bg-white/20"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Quests
+          </Button>
+
+          <Card className="bg-white/10 border-white/20 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-white">Create New Quest</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-white">Quest Title</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Enter quest title"
+                    required
+                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-white">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Describe the quest"
+                    required
+                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="type" className="text-white">Type</Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={(value) => setFormData({ ...formData, type: value })}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="difficulty" className="text-white">Difficulty</Label>
+                    <Select
+                      value={formData.difficulty}
+                      onValueChange={(value) => setFormData({ ...formData, difficulty: value })}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="target_value" className="text-white">Target Value</Label>
+                  <Input
+                    id="target_value"
+                    type="number"
+                    min="1"
+                    value={formData.target_value}
+                    onChange={(e) => setFormData({ ...formData, target_value: parseInt(e.target.value) })}
+                    required
+                    className="bg-white/5 border-white/20 text-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="expires_at" className="text-white">Expiration Date (Optional)</Label>
+                  <Input
+                    id="expires_at"
+                    type="datetime-local"
+                    value={formData.expires_at}
+                    onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
+                    className="bg-white/5 border-white/20 text-white"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create Quest'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/quests')}
+                    className="border-white/20 text-white hover:bg-white/20"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default CreateQuest;
