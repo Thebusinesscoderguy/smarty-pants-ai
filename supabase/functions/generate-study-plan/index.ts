@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes } = await req.json();
+    console.log('Received request:', { inputType, gradeLevel, days, maxDailyMinutes, inputDataLength: inputData?.length });
     
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
@@ -201,22 +202,32 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       return new Response(null, { status: 500 });
     }
 
+    console.log('Calling OpenAI with model: gpt-5-2025-08-07');
     const response = await callAIWithRetry();
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error - Status:', response.status);
+      console.error('OpenAI API error - Response:', errorText);
+      
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const t = await response.text();
-      console.error('OpenAI API error:', response.status, t);
-      return new Response(JSON.stringify({ error: 'OpenAI API error' }), {
+      
+      return new Response(JSON.stringify({ 
+        error: 'OpenAI API error',
+        details: errorText,
+        status: response.status 
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    console.log('OpenAI request successful, parsing response...');
 
     const data = await response.json();
     let planContent = data.choices?.[0]?.message?.content ?? '';
