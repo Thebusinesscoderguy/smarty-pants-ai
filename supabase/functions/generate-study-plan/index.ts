@@ -30,7 +30,31 @@ serve(async (req) => {
     
     switch (inputType) {
       case 'file':
-        prompt = `Analyze this specific text content in detail:\n\n"${inputData}"\n\nCreate a comprehensive study plan that helps students deeply understand THIS SPECIFIC TEXT - its themes, messages, literary devices, author's purpose, and key arguments. Extract the actual content, ideas, and concepts from this text and build lessons around them. Do NOT create generic lessons about "understanding themes" - create lessons about the SPECIFIC themes, messages, and ideas in THIS text.`;
+        prompt = `🔴 CRITICAL: ANALYZE THIS EXACT TEXT - NOT GENERIC CONCEPTS 🔴
+
+TEXT TO ANALYZE:
+"${inputData}"
+
+YOUR JOB: Create a study plan that teaches students about THIS SPECIFIC TEXT'S content.
+
+✅ CORRECT APPROACH:
+- "Day 1: Brooks argues that dining tables create family bonds through shared ritual"
+- "Day 2: Analyzing Brooks' use of personal anecdotes to support his thesis"
+- "Day 3: The metaphor of the dining table as community anchor in Brooks' essay"
+
+❌ WRONG APPROACH (DO NOT DO THIS):
+- "Day 1: Understanding themes and messages in texts"
+- "Day 2: Identifying literary devices"
+- "Day 3: Analyzing author's purpose"
+
+MANDATORY REQUIREMENTS:
+1. Every lesson must reference SPECIFIC passages, quotes, or arguments from THIS text
+2. Use direct quotes from the text to support each lesson
+3. Discuss the ACTUAL themes found in THIS text, not how to find themes
+4. Analyze THIS author's specific literary choices, not generic literary devices
+5. Connect every concept to a concrete example from THIS text
+
+Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as a metaphor for family unity, seen when he writes '[specific quote from text]'"`;
         titleTemplate = 'the provided text';
         descriptionTemplate = 'Comprehensive study plan for analyzing and understanding the provided text';
         topicTemplate = 'Introduction and Key Themes in the Text';
@@ -56,21 +80,35 @@ serve(async (req) => {
 
     const contextLine = `${gradeLevel ? `Grade level: ${gradeLevel}. ` : ''}${region ? `Curriculum/Country: ${region}. ` : ''}`;
 
-    const constraints = [
+    const baseConstraints = [
       planDays ? `Create exactly ${planDays} daily lessons.` : 'Create 7-14 daily lessons depending on complexity.',
       perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
+      'Progress logically in a structured progression.',
+      'Each day should build on the previous day\'s concepts.',
+      'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions (minimum 2, ideally 3).',
+      'Examples should progress from simple to more complex to demonstrate concept mastery.'
+    ];
+
+    const literatureConstraints = [
+      '🔴 MANDATORY: Reference specific passages, quotes, or paragraphs from the text in EVERY lesson',
+      'Include direct quotes from the text to support analysis',
+      'Connect each literary concept to a specific example from THIS text',
+      'Never write "identify the themes" - write what the themes ARE',
+      'Never write "analyze the author\'s purpose" - write what the purpose IS'
+    ];
+
+    const mathConstraints = [
       'Start Day 1 with essential foundations: define key variables, terms, and notation before proceeding.',
       'For example, if teaching y = mx + b, first define what y, m, x, and b represent.',
       'Build from appropriate foundations but avoid overly elementary concepts unrelated to the topic.',
-      'Progress logically from foundational definitions to more complex applications.',
-      'Each day should build on the previous day\'s concepts in a structured progression.',
-      'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions (minimum 2, ideally 3).',
-      'Examples should progress from simple to more complex to demonstrate concept mastery.',
       'FORMATTING: For math questions, structure solutions as numbered steps with clear spacing.',
       'FORMATTING: Use proper LaTeX notation enclosed in \\( \\) for inline math or $$ $$ for display math.',
       'FORMATTING: Each solution step should be on its own line with clear explanations.',
       'FORMATTING: Use bullet points or numbered lists for multi-step processes.'
-    ].join('\n- ');
+    ];
+
+    const specificConstraints = inputType === 'file' ? literatureConstraints : mathConstraints;
+    const constraints = [...baseConstraints, ...specificConstraints].join('\n- ');
 
     const gradeContext = gradeLevel ? `\n\nCRITICAL: This is for a ${gradeLevel} student. Content must be appropriate for this grade level. Do NOT include elementary concepts unless specifically relevant to building toward the advanced topic. Start with concepts appropriate for ${gradeLevel} level understanding.` : '';
 
@@ -127,14 +165,18 @@ serve(async (req) => {
               'Authorization': `Bearer ${openAIApiKey}`,
               'Content-Type': 'application/json',
             },
+            const systemMessage = inputType === 'file' 
+              ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
+              : 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.';
+
             body: JSON.stringify({
-              model: 'gpt-4o',
+              model: 'gpt-5-mini-2025-08-07',
               response_format: { type: 'json_object' },
               messages: [
-                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When analyzing specific texts (essays, articles, stories), extract the ACTUAL themes, messages, arguments, and literary devices from that exact text - do not create generic lessons about "how to identify themes." When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
+                { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
               ],
-              temperature: 0.7,
+              max_completion_tokens: 4096,
             }),
             signal: controller.signal,
           });
