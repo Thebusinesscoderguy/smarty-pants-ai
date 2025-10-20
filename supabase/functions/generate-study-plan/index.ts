@@ -18,9 +18,9 @@ serve(async (req) => {
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
     
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // Create different prompts based on input type
@@ -168,14 +168,14 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
             ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
             : 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.';
 
-          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          const resp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${openaiApiKey}`,
+              'Authorization': `Bearer ${lovableApiKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4o-mini',
+              model: 'google/gemini-2.5-flash',
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
@@ -258,13 +258,13 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       return new Response(null, { status: 500 });
     }
 
-    console.log('Calling OpenAI with model: gpt-4o-mini');
+    console.log('Calling Lovable AI with model: google/gemini-2.5-flash');
     const response = await callAIWithRetry();
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI error - Status:', response.status);
-      console.error('OpenAI error - Response:', errorText);
+      console.error('Lovable AI error - Status:', response.status);
+      console.error('Lovable AI error - Response:', errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
@@ -273,8 +273,15 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         });
       }
       
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       return new Response(JSON.stringify({ 
-        error: 'OpenAI API error',
+        error: 'Lovable AI API error',
         details: errorText,
         status: response.status 
       }), {
@@ -283,7 +290,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       });
     }
 
-    console.log('OpenAI request successful, parsing response...');
+    console.log('Lovable AI request successful, parsing response...');
 
     const data = await response.json();
 
