@@ -349,6 +349,60 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       studyPlan.id = crypto.randomUUID();
     }
 
+    // Normalize and enforce exact number of days
+    const targetDays = actualDays; // from earlier calculation
+
+    // Ensure dailyLessons is an array
+    let lessons: any[] = Array.isArray(studyPlan.dailyLessons)
+      ? studyPlan.dailyLessons
+      : (studyPlan.dailyLessons && typeof studyPlan.dailyLessons === 'object')
+        ? Object.values(studyPlan.dailyLessons)
+        : [];
+
+    // Basic cleanup and ordering
+    lessons = lessons
+      .filter((l) => l && typeof l === 'object')
+      .map((l, idx) => ({
+        day: Number.isFinite(Number(l.day)) ? Number(l.day) : idx + 1,
+        topic: String(l.topic || `Day ${idx + 1} Topic`),
+        description: String(l.description || 'Lesson details to be refined.'),
+        activities: Array.isArray(l.activities) ? l.activities.map(String) : ['Study key concepts', 'Practice problems'],
+        estimatedTime: Number.isFinite(Number(l.estimatedTime)) ? Number(l.estimatedTime) : (perDayLimit ?? 45),
+        exampleQuestions: Array.isArray(l.exampleQuestions) ? l.exampleQuestions.map((q: any) => ({
+          question: String(q?.question || 'Example question'),
+          solution: String(q?.solution || 'Solution outline')
+        })) : []
+      }))
+      .sort((a, b) => a.day - b.day);
+
+    // Reindex, clamp times, and enforce exact count
+    lessons = lessons.map((l, i) => ({
+      ...l,
+      day: i + 1,
+      estimatedTime: perDayLimit ? Math.min(perDayLimit, Math.max(10, l.estimatedTime)) : l.estimatedTime,
+    }));
+
+    if (lessons.length > targetDays) {
+      lessons = lessons.slice(0, targetDays);
+      lessons = lessons.map((l, i) => ({ ...l, day: i + 1 }));
+    }
+
+    if (lessons.length < targetDays) {
+      for (let i = lessons.length + 1; i <= targetDays; i++) {
+        lessons.push({
+          day: i,
+          topic: `Day ${i}: Continue Building Mastery`,
+          description: 'Auto-generated placeholder. Focus on consolidating previous concepts and applying them to new problems.',
+          activities: ['Review prior day\'s concepts', 'Apply to 2–3 new problems', 'Reflect and summarize learnings'],
+          estimatedTime: perDayLimit ?? 45,
+          exampleQuestions: []
+        });
+      }
+    }
+
+    studyPlan.dailyLessons = lessons;
+    studyPlan.estimatedDuration = targetDays;
+
     return new Response(JSON.stringify(studyPlan), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
