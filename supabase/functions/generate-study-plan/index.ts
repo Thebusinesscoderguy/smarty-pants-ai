@@ -159,16 +159,16 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 45000);
         try {
+          const systemMessage = inputType === 'file' 
+            ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
+            : 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.';
+
           const resp = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${openAIApiKey}`,
               'Content-Type': 'application/json',
             },
-            const systemMessage = inputType === 'file' 
-              ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
-              : 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.';
-
             body: JSON.stringify({
               model: 'gpt-5-mini-2025-08-07',
               response_format: { type: 'json_object' },
