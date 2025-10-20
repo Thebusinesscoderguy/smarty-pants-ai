@@ -488,7 +488,7 @@ const { isSchoolAdmin } = useUserRole();
         <div>
           <h2 className="text-2xl font-bold text-white">Quest Management</h2>
           <p className="text-gray-400">
-            Create and manage daily and weekly quests for students
+            Complete quests to earn rewards and track your progress
           </p>
         </div>
         
