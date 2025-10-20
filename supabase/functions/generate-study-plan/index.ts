@@ -129,18 +129,18 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
           "description": "Dive into the fundamental principles and key ideas.",
           "activities": ["Deep explanation of key concepts", "Real-world applications", "Example questions with solutions"],
           "estimatedTime": ${perDayLimit ?? 45},
-          "exampleQuestions": [
+            "exampleQuestions": [
             {
-              "question": "Basic example question with proper LaTeX formatting: \\(x^2 + 5x + 6\\)",
-              "solution": "**Step 1:** Identify the key information\\n\\n**Step 2:** Apply the method\\n\\n**Step 3:** Simplify\\n\\n**Final Answer:** Result here"
+              "question": "Close reading: \"[Insert exact quote from the provided text]\"",
+              "solution": "**Step 1:** Identify devices and diction choices\\n\\n**Step 2:** Analyze syntax (sentence type, length, punctuation) and its effect\\n\\n**Step 3:** Explain how this passage advances today's theme\\n\\n**Final Insight:** [Insight tied to this specific text]"
             },
             {
-              "question": "Intermediate example building on the first concept",
-              "solution": "**Step 1:** Review what we learned\\n\\n**Step 2:** Apply to this scenario\\n\\n**Step 3:** Verify the result\\n\\n**Final Answer:** Result here"
+              "question": "How does the text develop [specific theme] across a scene/section? Cite two quotes.",
+              "solution": "**Step 1:** Summarize the scene with brief textual evidence\\n\\n**Step 2:** Link devices (imagery, motif, irony) to meaning\\n\\n**Step 3:** Synthesize what the text claims about the theme"
             },
             {
-              "question": "Advanced application combining multiple concepts",
-              "solution": "**Step 1:** Break down the complex problem\\n\\n**Step 2:** Solve each part\\n\\n**Step 3:** Combine results\\n\\n**Final Answer:** Result here"
+              "question": "Syntax focus: Select one sentence and analyze its structure and impact.",
+              "solution": "**Step 1:** Classify sentence type (simple/compound/complex/periodic)\\n\\n**Step 2:** Note punctuation and rhythm\\n\\n**Step 3:** Connect syntax to tone/theme and reader effect"
             }
           ]
         }
