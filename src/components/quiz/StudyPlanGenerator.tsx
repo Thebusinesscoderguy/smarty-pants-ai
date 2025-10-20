@@ -365,13 +365,17 @@ export const StudyPlanGenerator = () => {
               </div>
               <Input
                 id="maxDailyMinutes"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={String(maxDailyMinutes)}
+                type="number"
+                min="1"
+                max="180"
+                value={maxDailyMinutes}
                 onChange={(e) => {
-                  const v = e.target.value.replace(/[^0-9]/g, '');
-                  setMaxDailyMinutes(Math.max(10, Math.min(180, parseInt(v || '0', 10))));
+                  const value = parseInt(e.target.value, 10);
+                  if (!isNaN(value) && value <= 180) {
+                    setMaxDailyMinutes(value);
+                  } else if (e.target.value === '') {
+                    setMaxDailyMinutes(0);
+                  }
                 }}
                 disabled={aiChooseDailyMinutes}
               />
