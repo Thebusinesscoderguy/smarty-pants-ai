@@ -239,6 +239,13 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
 
     const data = await response.json();
     let planContent = data.choices?.[0]?.message?.content ?? '';
+    if (typeof planContent !== 'string') {
+      // Some providers may return an already-parsed object when using JSON mode
+      return new Response(JSON.stringify(planContent), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
 
     function extractFirstJsonObject(text: string): string | null {
@@ -252,11 +259,25 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       return null;
     }
 
+    function repairJsonString(s: string): string {
+      let repaired = s;
+      // Double any backslash that isn't starting a valid JSON escape sequence
+      repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
+      // Remove trailing commas before closing braces/brackets
+      repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
+      return repaired;
+    }
+
     const jsonStr = extractFirstJsonObject(planContent);
     let studyPlan: any;
     try {
       const toParse = jsonStr ?? planContent;
-      studyPlan = JSON.parse(toParse);
+      try {
+        studyPlan = JSON.parse(toParse);
+      } catch (_) {
+        const repaired = repairJsonString(toParse);
+        studyPlan = JSON.parse(repaired);
+      }
       if (!studyPlan.id) {
         studyPlan.id = crypto.randomUUID();
       }
