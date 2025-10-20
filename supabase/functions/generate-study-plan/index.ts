@@ -171,13 +171,14 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-5-2025-08-07',
+              model: 'gpt-4o',
               response_format: { type: 'json_object' },
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
               ],
-              max_completion_tokens: 4096,
+              temperature: 0.7,
+              max_tokens: 4096,
             }),
             signal: controller.signal,
           });
@@ -192,35 +193,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
             if (attempt < retries) {
               continue;
             }
-            console.warn('GPT-5 timed out; falling back to gpt-4o-mini');
-            // Fallback attempt with gpt-4o-mini (shorter timeout)
-            const fallbackController = new AbortController();
-            const fallbackTimer = setTimeout(() => fallbackController.abort(), 30000);
-            try {
-              const fallbackResp = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${openAIApiKey}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  model: 'gpt-4o-mini',
-                  response_format: { type: 'json_object' },
-                  messages: [
-                    { role: 'system', content: systemMessage },
-                    { role: 'user', content: fullPrompt }
-                  ],
-                  temperature: 0.7,
-                  max_tokens: 4096,
-                }),
-                signal: fallbackController.signal,
-              });
-              return fallbackResp;
-            } catch (_) {
-              throw new Error('AI request timed out');
-            } finally {
-              clearTimeout(fallbackTimer);
-            }
+            throw new Error('AI request timed out');
           }
           throw e;
         } finally {
@@ -230,7 +203,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       return new Response(null, { status: 500 });
     }
 
-    console.log('Calling OpenAI with model: gpt-5-2025-08-07');
+    console.log('Calling OpenAI with model: gpt-4o');
     const response = await callAIWithRetry();
 
     if (!response.ok) {
