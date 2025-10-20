@@ -170,14 +170,13 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4o-mini',
+              model: 'gpt-5-2025-08-07',
               response_format: { type: 'json_object' },
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
               ],
-              temperature: 0.7,
-              max_tokens: 4096,
+              max_completion_tokens: 4096,
             }),
             signal: controller.signal,
           });
