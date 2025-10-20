@@ -172,11 +172,61 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
             },
             body: JSON.stringify({
               model: 'google/gemini-2.5-flash',
-              response_format: { type: 'json_object' },
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
               ],
+              tools: [
+                {
+                  type: 'function',
+                  function: {
+                    name: 'return_study_plan',
+                    description: 'Return the generated study plan as structured JSON',
+                    parameters: {
+                      type: 'object',
+                      additionalProperties: false,
+                      required: ['id','title','description','weakAreas','estimatedDuration','difficultyLevel','dailyLessons'],
+                      properties: {
+                        id: { type: 'string' },
+                        title: { type: 'string' },
+                        description: { type: 'string' },
+                        weakAreas: { type: 'array', items: { type: 'string' }, minItems: 1 },
+                        estimatedDuration: { type: 'number' },
+                        difficultyLevel: { type: 'string', enum: ['easy','medium','hard'] },
+                        dailyLessons: {
+                          type: 'array',
+                          minItems: 1,
+                          items: {
+                            type: 'object',
+                            additionalProperties: false,
+                            required: ['day','topic','description','activities','estimatedTime'],
+                            properties: {
+                              day: { type: 'number' },
+                              topic: { type: 'string' },
+                              description: { type: 'string' },
+                              activities: { type: 'array', items: { type: 'string' } },
+                              estimatedTime: { type: 'number' },
+                              exampleQuestions: {
+                                type: 'array',
+                                items: {
+                                  type: 'object',
+                                  additionalProperties: false,
+                                  required: ['question','solution'],
+                                  properties: {
+                                    question: { type: 'string' },
+                                    solution: { type: 'string' }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              tool_choice: { type: 'function', function: { name: 'return_study_plan' } },
               temperature: 0.7,
               max_tokens: 4096,
             }),
@@ -238,55 +288,67 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     console.log('Lovable AI request successful, parsing response...');
 
     const data = await response.json();
-    let planContent = data.choices?.[0]?.message?.content ?? '';
-    if (typeof planContent !== 'string') {
-      // Some providers may return an already-parsed object when using JSON mode
-      return new Response(JSON.stringify(planContent), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
-    planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
-
-    function extractFirstJsonObject(text: string): string | null {
-      // Strip common code fences
-      let cleaned = text.replace(/^```json[\s\r\n]*/i, '').replace(/```$/i, '').trim();
-      const start = cleaned.indexOf('{');
-      const end = cleaned.lastIndexOf('}');
-      if (start !== -1 && end !== -1 && end > start) {
-        return cleaned.slice(start, end + 1);
-      }
-      return null;
-    }
-
-    function repairJsonString(s: string): string {
-      let repaired = s;
-      // Double any backslash that isn't starting a valid JSON escape sequence
-      repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
-      // Remove trailing commas before closing braces/brackets
-      repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
-      return repaired;
-    }
-
-    const jsonStr = extractFirstJsonObject(planContent);
-    let studyPlan: any;
-    try {
-      const toParse = jsonStr ?? planContent;
+    // Prefer structured tool output when available
+    let studyPlan: any | null = null;
+    const toolArgs = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+    if (toolArgs) {
       try {
-        studyPlan = JSON.parse(toParse);
+        studyPlan = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs;
       } catch (_) {
-        const repaired = repairJsonString(toParse);
-        studyPlan = JSON.parse(repaired);
+        studyPlan = null; // fall back to content parsing
       }
-      if (!studyPlan.id) {
-        studyPlan.id = crypto.randomUUID();
+    }
+
+    if (!studyPlan) {
+      let planContent = data.choices?.[0]?.message?.content ?? '';
+      if (typeof planContent !== 'string') {
+        return new Response(JSON.stringify(planContent), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
-    } catch (parseError) {
-      console.error('Failed to parse study plan JSON:', planContent);
-      return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+
+      planContent = planContent.trim().replace(/^```json\n?|\n?```$/g, '');
+
+      function extractFirstJsonObject(text: string): string | null {
+        let cleaned = text.replace(/^```json[\s\r\n]*/i, '').replace(/```$/i, '').trim();
+        const start = cleaned.indexOf('{');
+        const end = cleaned.lastIndexOf('}');
+        if (start !== -1 && end !== -1 && end > start) {
+          return cleaned.slice(start, end + 1);
+        }
+        return null;
+      }
+
+      function repairJsonString(s: string): string {
+        let repaired = s;
+        // Escape stray backslashes (e.g., LaTeX \(, \))
+        repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
+        // Remove trailing commas
+        repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
+        return repaired;
+      }
+
+      const jsonStr = extractFirstJsonObject(planContent);
+      try {
+        const toParse = jsonStr ?? planContent;
+        try {
+          studyPlan = JSON.parse(toParse);
+        } catch (_) {
+          const repaired = repairJsonString(toParse);
+          studyPlan = JSON.parse(repaired);
+        }
+      } catch (parseError) {
+        console.error('Failed to parse study plan JSON:', planContent);
+        return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    if (!studyPlan.id) {
+      studyPlan.id = crypto.randomUUID();
     }
 
     return new Response(JSON.stringify(studyPlan), {
