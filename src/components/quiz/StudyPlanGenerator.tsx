@@ -369,14 +369,7 @@ export const StudyPlanGenerator = () => {
                 min="1"
                 max="180"
                 value={maxDailyMinutes}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10);
-                  if (!isNaN(value) && value <= 180) {
-                    setMaxDailyMinutes(value);
-                  } else if (e.target.value === '') {
-                    setMaxDailyMinutes(0);
-                  }
-                }}
+                onChange={(e) => setMaxDailyMinutes(parseInt(e.target.value, 10) || 0)}
                 disabled={aiChooseDailyMinutes}
               />
             </div>
