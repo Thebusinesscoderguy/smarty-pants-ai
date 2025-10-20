@@ -89,7 +89,8 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       'Progress logically in a structured progression.',
       'Each day should build on the previous day\'s concepts.',
       'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions (minimum 2, ideally 3).',
-      'Examples should progress from simple to more complex to demonstrate concept mastery.'
+      'Examples should progress from simple to more complex to demonstrate concept mastery.',
+      'Keep each solution concise (3-5 short steps). Avoid overly verbose text.'
     ];
 
     const literatureConstraints = [
@@ -159,10 +160,10 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     - Make activities directly related to the advanced topic, not basic math concepts
     - Use grade-appropriate language and examples throughout`;
 
-    async function callAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
+    async function callAIWithRetry(retries = 1, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 75000);
+        const timer = setTimeout(() => controller.abort(), 55000);
         try {
           const systemMessage = inputType === 'file' 
             ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
@@ -233,7 +234,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
               ],
               tool_choice: { type: 'function', function: { name: 'return_study_plan' } },
               temperature: 0.7,
-              max_tokens: 4096,
+              max_tokens: 8192,
             }),
             signal: controller.signal,
           });
@@ -296,12 +297,33 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
 
     // Prefer structured tool output when available
     let studyPlan: any | null = null;
-    const toolArgs = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    if (toolArgs) {
+    const rawToolArgs = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+    
+    function repairJsonString(s: string): string {
+      let repaired = s;
+      // Escape stray backslashes (e.g., LaTeX \(, \))
+      repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
+      // Remove trailing commas
+      repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
+      return repaired;
+    }
+    
+    if (rawToolArgs) {
       try {
-        studyPlan = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs;
-      } catch (_) {
-        studyPlan = null; // fall back to content parsing
+        studyPlan = typeof rawToolArgs === 'string' ? JSON.parse(rawToolArgs) : rawToolArgs;
+      } catch (e) {
+        console.error('Tool args JSON parse failed, attempting repair...', { 
+          length: String(rawToolArgs).length,
+          preview: String(rawToolArgs).slice(0, 200)
+        });
+        try {
+          const repaired = repairJsonString(String(rawToolArgs));
+          studyPlan = JSON.parse(repaired);
+          console.log('Tool args successfully repaired and parsed');
+        } catch (e2) {
+          console.error('Tool args repair failed, falling back to content parsing');
+          studyPlan = null; // fall back to content parsing
+        }
       }
     }
 
@@ -325,15 +347,6 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         return null;
       }
 
-      function repairJsonString(s: string): string {
-        let repaired = s;
-        // Escape stray backslashes (e.g., LaTeX \(, \))
-        repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
-        // Remove trailing commas
-        repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
-        return repaired;
-      }
-
       const jsonStr = extractFirstJsonObject(planContent);
       try {
         const toParse = jsonStr ?? planContent;
@@ -344,7 +357,10 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
           studyPlan = JSON.parse(repaired);
         }
       } catch (parseError) {
-        console.error('Failed to parse study plan JSON:', planContent);
+        console.error('Failed to parse study plan JSON from content:', {
+          contentLength: planContent.length,
+          contentPreview: planContent.slice(0, 200)
+        });
         return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

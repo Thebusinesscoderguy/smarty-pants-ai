@@ -46,7 +46,7 @@ export const useStudyPlanGenerator = () => {
         }
       });
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 60000);
+        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 90000);
       });
       const result = await Promise.race([invokePromise, timeoutPromise]) as { data: any; error: any };
       clearTimeout(timeoutId);
