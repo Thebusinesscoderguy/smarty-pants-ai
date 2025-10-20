@@ -368,8 +368,22 @@ export const StudyPlanGenerator = () => {
                 type="number"
                 min="1"
                 max="180"
-                value={maxDailyMinutes}
-                onChange={(e) => setMaxDailyMinutes(parseInt(e.target.value, 10) || 0)}
+                value={Number.isNaN(maxDailyMinutes) ? '' : maxDailyMinutes}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setMaxDailyMinutes(NaN);
+                  } else {
+                    const n = parseInt(val, 10);
+                    if (!Number.isNaN(n)) setMaxDailyMinutes(n);
+                  }
+                }}
+                onBlur={() => {
+                  if (!Number.isNaN(maxDailyMinutes)) {
+                    const clamped = Math.min(180, Math.max(1, maxDailyMinutes));
+                    setMaxDailyMinutes(clamped);
+                  }
+                }}
                 disabled={aiChooseDailyMinutes}
               />
             </div>
