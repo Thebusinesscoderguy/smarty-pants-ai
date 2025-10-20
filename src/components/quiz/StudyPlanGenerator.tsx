@@ -378,12 +378,15 @@ export const StudyPlanGenerator = () => {
                     if (!Number.isNaN(n)) setMaxDailyMinutes(n);
                   }
                 }}
-                onBlur={() => {
-                  if (!Number.isNaN(maxDailyMinutes)) {
-                    const clamped = Math.min(180, Math.max(1, maxDailyMinutes));
-                    setMaxDailyMinutes(clamped);
-                  }
-                }}
+onBlur={() => {
+  if (Number.isNaN(maxDailyMinutes)) {
+    // If left empty, reset to default 45
+    setMaxDailyMinutes(45);
+  } else {
+    const clamped = Math.min(180, Math.max(1, maxDailyMinutes));
+    setMaxDailyMinutes(clamped);
+  }
+}}
                 disabled={aiChooseDailyMinutes}
               />
             </div>
