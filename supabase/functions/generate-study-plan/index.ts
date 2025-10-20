@@ -192,7 +192,35 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
             if (attempt < retries) {
               continue;
             }
-            throw new Error('AI request timed out');
+            console.warn('GPT-5 timed out; falling back to gpt-4o-mini');
+            // Fallback attempt with gpt-4o-mini (shorter timeout)
+            const fallbackController = new AbortController();
+            const fallbackTimer = setTimeout(() => fallbackController.abort(), 30000);
+            try {
+              const fallbackResp = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${openAIApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  response_format: { type: 'json_object' },
+                  messages: [
+                    { role: 'system', content: systemMessage },
+                    { role: 'user', content: fullPrompt }
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 4096,
+                }),
+                signal: fallbackController.signal,
+              });
+              return fallbackResp;
+            } catch (_) {
+              throw new Error('AI request timed out');
+            } finally {
+              clearTimeout(fallbackTimer);
+            }
           }
           throw e;
         } finally {
