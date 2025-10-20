@@ -158,7 +158,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     async function callAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 45000);
+        const timer = setTimeout(() => controller.abort(), 75000);
         try {
           const systemMessage = inputType === 'file' 
             ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
@@ -172,6 +172,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
             },
             body: JSON.stringify({
               model: 'google/gemini-2.5-flash',
+              response_format: { type: 'json_object' },
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }

@@ -72,7 +72,9 @@ export const useStudyPlanGenerator = () => {
       if (error?.name === 'AbortError' || /aborted|AbortError|timed out|timeout/i.test(msg)) {
         description = 'Request timed out. Please try again in a moment.';
       } else if (status === 429 || /rate limit/i.test(msg)) {
-        description = 'OpenAI rate limit reached. Please wait and try again shortly.';
+        description = 'AI rate limit reached. Please wait and try again shortly.';
+      } else if (status === 402) {
+        description = 'Payment required for AI usage. Please add credits to your Lovable AI workspace.';
       } else if (typeof status === 'number') {
         description = `Server error (${status}). Please try again.`;
       } else if (msg) {
