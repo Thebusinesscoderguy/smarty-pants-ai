@@ -81,8 +81,10 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
 
     const contextLine = `${gradeLevel ? `Grade level: ${gradeLevel}. ` : ''}${region ? `Curriculum/Country: ${region}. ` : ''}`;
 
+    const actualDays = planDays ?? 14;
     const baseConstraints = [
-      planDays ? `Create exactly ${planDays} daily lessons.` : 'Create 7-14 daily lessons depending on complexity.',
+      `YOU MUST CREATE EXACTLY ${actualDays} DAILY LESSONS - NO MORE, NO LESS.`,
+      `The dailyLessons array MUST contain exactly ${actualDays} lesson objects.`,
       perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
       'Progress logically in a structured progression.',
       'Each day should build on the previous day\'s concepts.',
@@ -115,13 +117,15 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
 
     const fullPrompt = `${contextLine}${prompt}${gradeContext}
 
+    🔴 CRITICAL REQUIREMENT: You MUST generate EXACTLY ${actualDays} daily lessons. Count them carefully before submitting.
+
     Generate a detailed study plan in this exact JSON format only (no markdown, no extra text):
     {
       "id": "unique-study-plan-id",
       "title": "Study Plan for ${titleTemplate}",
       "description": "${descriptionTemplate}",
       "weakAreas": ["Specific Area 1", "Specific Area 2", "Specific Area 3"],
-      "estimatedDuration": ${planDays ?? 14},
+      "estimatedDuration": ${actualDays},
       "difficultyLevel": "medium",
       "dailyLessons": [
         {
@@ -195,7 +199,8 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
                         difficultyLevel: { type: 'string', enum: ['easy','medium','hard'] },
                         dailyLessons: {
                           type: 'array',
-                          minItems: 1,
+                          minItems: actualDays,
+                          maxItems: actualDays,
                           items: {
                             type: 'object',
                             additionalProperties: false,
