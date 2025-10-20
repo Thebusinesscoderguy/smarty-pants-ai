@@ -24,19 +24,34 @@ serve(async (req) => {
 
     // Create different prompts based on input type
     let prompt = '';
+    let titleTemplate = '';
+    let descriptionTemplate = '';
+    let topicTemplate = '';
     
     switch (inputType) {
       case 'file':
-        prompt = `Analyze the uploaded quiz/test content: "${inputData}" and create a comprehensive study plan to address weaknesses.`;
+        prompt = `Analyze this specific text content in detail:\n\n"${inputData}"\n\nCreate a comprehensive study plan that helps students deeply understand THIS SPECIFIC TEXT - its themes, messages, literary devices, author's purpose, and key arguments. Extract the actual content, ideas, and concepts from this text and build lessons around them. Do NOT create generic lessons about "understanding themes" - create lessons about the SPECIFIC themes, messages, and ideas in THIS text.`;
+        titleTemplate = 'the provided text';
+        descriptionTemplate = 'Comprehensive study plan for analyzing and understanding the provided text';
+        topicTemplate = 'Introduction and Key Themes in the Text';
         break;
       case 'chat':
         prompt = `Based on the student's described difficulties: "${inputData}", create a personalized study plan.`;
+        titleTemplate = inputData;
+        descriptionTemplate = `Comprehensive ${gradeLevel || ''} level study plan for mastering ${inputData}`;
+        topicTemplate = `Core Concepts in ${inputData}`;
         break;
       case 'topic':
         prompt = `Create a comprehensive study plan for mastering the advanced topic: "${inputData}".`;
+        titleTemplate = inputData;
+        descriptionTemplate = `Comprehensive ${gradeLevel || ''} level study plan for mastering ${inputData}`;
+        topicTemplate = `Core Concepts in ${inputData}`;
         break;
       default:
         prompt = `Create a study plan based on: "${inputData}".`;
+        titleTemplate = inputData;
+        descriptionTemplate = `Comprehensive study plan for ${inputData}`;
+        topicTemplate = `Core Concepts in ${inputData}`;
     }
 
     const contextLine = `${gradeLevel ? `Grade level: ${gradeLevel}. ` : ''}${region ? `Curriculum/Country: ${region}. ` : ''}`;
@@ -64,16 +79,16 @@ serve(async (req) => {
     Generate a detailed study plan in this exact JSON format only (no markdown, no extra text):
     {
       "id": "unique-study-plan-id",
-      "title": "Advanced Study Plan for ${inputData}",
-      "description": "Comprehensive ${gradeLevel || ''} level study plan for mastering ${inputData}",
+      "title": "Study Plan for ${titleTemplate}",
+      "description": "${descriptionTemplate}",
       "weakAreas": ["Specific Area 1", "Specific Area 2", "Specific Area 3"],
       "estimatedDuration": ${planDays ?? 14},
       "difficultyLevel": "medium",
       "dailyLessons": [
         {
           "day": 1,
-          "topic": "Core Concepts in ${inputData}",
-          "description": "Dive into the fundamental principles and theories specific to ${inputData}.",
+          "topic": "${topicTemplate}",
+          "description": "Dive into the fundamental principles and key ideas.",
           "activities": ["Deep explanation of key concepts", "Real-world applications", "Example questions with solutions"],
           "estimatedTime": ${perDayLimit ?? 45},
           "exampleQuestions": [
@@ -116,7 +131,7 @@ serve(async (req) => {
               model: 'gpt-4o',
               response_format: { type: 'json_object' },
               messages: [
-                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. Start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
+                { role: 'system', content: 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When analyzing specific texts (essays, articles, stories), extract the ACTUAL themes, messages, arguments, and literary devices from that exact text - do not create generic lessons about "how to identify themes." When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.' },
                 { role: 'user', content: fullPrompt }
               ],
               temperature: 0.7,
