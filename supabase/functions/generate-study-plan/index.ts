@@ -176,7 +176,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4o',
+              model: 'google/gemini-2.5-pro',
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
@@ -259,7 +259,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       return new Response(null, { status: 500 });
     }
 
-    console.log('Calling Lovable AI with model: gpt-4o');
+    console.log('Calling Lovable AI with model: google/gemini-2.5-pro');
     const response = await callAIWithRetry();
 
     if (!response.ok) {
