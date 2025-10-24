@@ -35,12 +35,12 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 text-foreground overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-cyan-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-500/5 to-blue-600/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-300/20 to-amber-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-amber-300/20 to-orange-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-orange-200/15 to-amber-300/15 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <Header />
@@ -52,14 +52,14 @@ const Index = () => {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
               {t('hero.title')}
             </h1>
-            <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
               {t('hero.subtitle')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300"
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-primary-foreground border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300"
                 onClick={handleStartLearning}
               >
                 {t('cta.start')}
@@ -74,56 +74,56 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('features.section.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 {t('features.section.subtitle')}
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 hover:from-cyan-500/20 hover:to-blue-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Brain className="h-12 w-12 text-cyan-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-200 hover:from-orange-200 hover:to-amber-200 transition-all duration-300">
+                <Brain className="h-12 w-12 text-orange-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.adaptive.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {t('features.adaptive.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                <MessageSquare className="h-12 w-12 text-blue-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 hover:from-amber-200 hover:to-orange-200 transition-all duration-300">
+                <MessageSquare className="h-12 w-12 text-amber-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.voice.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {t('features.voice.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Lightbulb className="h-12 w-12 text-teal-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-200 hover:from-orange-200 hover:to-amber-200 transition-all duration-300">
+                <Lightbulb className="h-12 w-12 text-orange-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.content.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {t('features.content.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-slate-500/10 to-gray-500/10 border border-slate-500/20 hover:from-slate-500/20 hover:to-gray-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Gamepad2 className="h-12 w-12 text-slate-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 hover:from-amber-200 hover:to-orange-200 transition-all duration-300">
+                <Gamepad2 className="h-12 w-12 text-amber-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.gamified.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {t('features.gamified.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 border border-sky-500/20 hover:from-sky-500/20 hover:to-blue-500/20 transition-all duration-300 backdrop-blur-sm">
-                <BarChart className="h-12 w-12 text-sky-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-200 hover:from-orange-200 hover:to-amber-200 transition-all duration-300">
+                <BarChart className="h-12 w-12 text-orange-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.analytics.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {t('features.analytics.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:from-cyan-500/20 hover:to-teal-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Users className="h-12 w-12 text-cyan-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 hover:from-amber-200 hover:to-orange-200 transition-all duration-300">
+                <Users className="h-12 w-12 text-amber-600 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.collaborative.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {t('features.collaborative.desc')}
                 </p>
               </div>
@@ -136,7 +136,7 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('subjects.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 {t('subjects.subtitle')}
               </p>
             </div>
@@ -152,10 +152,10 @@ const Index = () => {
                 { icon: "🗣️", title: t('subjects.languages.title'), desc: t('subjects.languages.desc') },
                 { icon: "🏃", title: t('subjects.health.title'), desc: t('subjects.health.desc') }
               ].map((subject, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-center backdrop-blur-sm">
+                <div key={index} className="p-6 rounded-xl bg-white border border-border hover:bg-secondary/50 transition-all duration-300 text-center">
                   <div className="text-4xl mb-4">{subject.icon}</div>
-                  <h3 className="text-lg font-semibold mb-2 text-white">{subject.title}</h3>
-                  <p className="text-white/60 text-sm">{subject.desc}</p>
+                  <h3 className="text-lg font-semibold mb-2">{subject.title}</h3>
+                  <p className="text-muted-foreground text-sm">{subject.desc}</p>
                 </div>
               ))}
             </div>
