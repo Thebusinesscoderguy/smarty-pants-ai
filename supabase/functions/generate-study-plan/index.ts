@@ -18,9 +18,9 @@ serve(async (req) => {
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
     
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // Create different prompts based on input type
@@ -89,7 +89,8 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       'Progress logically in a structured progression.',
       'Each day should build on the previous day\'s concepts.',
       'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions (minimum 2, ideally 3).',
-      'Examples should progress from simple to more complex to demonstrate concept mastery.'
+      'Examples should progress from simple to more complex to demonstrate concept mastery.',
+      'Keep each solution concise (3-5 short steps). Avoid overly verbose text.'
     ];
 
     const literatureConstraints = [
@@ -159,23 +160,23 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     - Make activities directly related to the advanced topic, not basic math concepts
     - Use grade-appropriate language and examples throughout`;
 
-    async function callAIWithRetry(retries = 2, delayMs = 1200): Promise<Response> {
+    async function callAIWithRetry(retries = 1, delayMs = 1200): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 75000);
+        const timer = setTimeout(() => controller.abort(), 55000);
         try {
           const systemMessage = inputType === 'file' 
             ? 'You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text. Always respond with valid JSON only.'
             : 'You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n). Always respond with valid JSON only.';
 
-          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          const resp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${openaiApiKey}`,
+              'Authorization': `Bearer ${lovableApiKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4o-mini',
+              model: 'google/gemini-2.5-flash',
               messages: [
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: fullPrompt }
@@ -233,7 +234,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
               ],
               tool_choice: { type: 'function', function: { name: 'return_study_plan' } },
               temperature: 0.7,
-              max_tokens: 4096,
+              max_tokens: 8192,
             }),
             signal: controller.signal,
           });
@@ -258,13 +259,13 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       return new Response(null, { status: 500 });
     }
 
-    console.log('Calling OpenAI with model: gpt-4o-mini');
+    console.log('Calling Lovable AI with model: google/gemini-2.5-flash');
     const response = await callAIWithRetry();
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI error - Status:', response.status);
-      console.error('OpenAI error - Response:', errorText);
+      console.error('Lovable AI error - Status:', response.status);
+      console.error('Lovable AI error - Response:', errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
@@ -273,8 +274,15 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         });
       }
       
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       return new Response(JSON.stringify({ 
-        error: 'OpenAI API error',
+        error: 'Lovable AI API error',
         details: errorText,
         status: response.status 
       }), {
@@ -283,18 +291,39 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       });
     }
 
-    console.log('OpenAI request successful, parsing response...');
+    console.log('Lovable AI request successful, parsing response...');
 
     const data = await response.json();
 
     // Prefer structured tool output when available
     let studyPlan: any | null = null;
-    const toolArgs = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    if (toolArgs) {
+    const rawToolArgs = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+    
+    function repairJsonString(s: string): string {
+      let repaired = s;
+      // Escape stray backslashes (e.g., LaTeX \(, \))
+      repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
+      // Remove trailing commas
+      repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
+      return repaired;
+    }
+    
+    if (rawToolArgs) {
       try {
-        studyPlan = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs;
-      } catch (_) {
-        studyPlan = null; // fall back to content parsing
+        studyPlan = typeof rawToolArgs === 'string' ? JSON.parse(rawToolArgs) : rawToolArgs;
+      } catch (e) {
+        console.error('Tool args JSON parse failed, attempting repair...', { 
+          length: String(rawToolArgs).length,
+          preview: String(rawToolArgs).slice(0, 200)
+        });
+        try {
+          const repaired = repairJsonString(String(rawToolArgs));
+          studyPlan = JSON.parse(repaired);
+          console.log('Tool args successfully repaired and parsed');
+        } catch (e2) {
+          console.error('Tool args repair failed, falling back to content parsing');
+          studyPlan = null; // fall back to content parsing
+        }
       }
     }
 
@@ -318,15 +347,6 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         return null;
       }
 
-      function repairJsonString(s: string): string {
-        let repaired = s;
-        // Escape stray backslashes (e.g., LaTeX \(, \))
-        repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
-        // Remove trailing commas
-        repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
-        return repaired;
-      }
-
       const jsonStr = extractFirstJsonObject(planContent);
       try {
         const toParse = jsonStr ?? planContent;
@@ -337,7 +357,10 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
           studyPlan = JSON.parse(repaired);
         }
       } catch (parseError) {
-        console.error('Failed to parse study plan JSON:', planContent);
+        console.error('Failed to parse study plan JSON from content:', {
+          contentLength: planContent.length,
+          contentPreview: planContent.slice(0, 200)
+        });
         return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
