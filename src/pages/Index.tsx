@@ -35,12 +35,11 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0A0118] via-[#120322] to-[#0A0118] text-foreground overflow-hidden">
+    <div className="min-h-screen bg-[#E8DCC8] text-foreground overflow-hidden">
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500/10 to-fuchsia-600/10 rounded-full blur-3xl animate-glow"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-fuchsia-500/10 to-purple-500/10 rounded-full blur-3xl animate-glow" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/5 to-fuchsia-500/5 rounded-full blur-3xl animate-glow" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-gradient-to-br from-orange-400/30 via-orange-300/20 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl from-orange-300/20 to-transparent rounded-full blur-3xl"></div>
       </div>
 
       <Header />
@@ -48,84 +47,96 @@ const Index = () => {
       <main className="relative z-10 flex-1">
         {/* Hero Section */}
         <section className="px-4 py-20 md:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto text-center">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
-              <span className="bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600 bg-clip-text text-transparent">
-                {t('hero.title')}
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
-              {t('hero.subtitle')}
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white border-0 font-medium px-8 py-4 text-lg shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
-                onClick={handleStartLearning}
-              >
-                {t('cta.start')}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 border border-orange-200 mb-6">
+                  <Target className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm text-orange-600 font-medium">Purpose</span>
+                </div>
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-black">
+                  {t('hero.title')}
+                </h1>
+                <p className="text-lg md:text-xl text-black/70 mb-8 leading-relaxed">
+                  {t('hero.subtitle')}
+                </p>
+                
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-medium px-8 py-6 text-base rounded-full transition-all duration-300"
+                  onClick={handleStartLearning}
+                >
+                  {t('cta.start')}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+              <div className="relative">
+                <div className="aspect-square rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden shadow-2xl">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Brain className="w-48 h-48 text-orange-500" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="px-4 py-20 md:px-6 lg:px-8">
+        <section id="features" className="px-4 py-20 md:px-6 lg:px-8 bg-white/40">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">{t('features.section.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-black">{t('features.section.title')}</h2>
+              <p className="text-xl text-black/60 max-w-3xl mx-auto">
                 {t('features.section.subtitle')}
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                <Brain className="h-12 w-12 text-purple-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4 text-white">{t('features.adaptive.title')}</h3>
-                <p className="text-white/60 leading-relaxed font-light">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+              <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300">
+                <Brain className="h-12 w-12 text-orange-500 mb-6" />
+                <h3 className="text-xl font-semibold mb-3 text-black">{t('features.adaptive.title')}</h3>
+                <p className="text-black/60 leading-relaxed">
                   {t('features.adaptive.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                <MessageSquare className="h-12 w-12 text-fuchsia-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4 text-white">{t('features.voice.title')}</h3>
-                <p className="text-white/60 leading-relaxed font-light">
+              <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300">
+                <MessageSquare className="h-12 w-12 text-orange-500 mb-6" />
+                <h3 className="text-xl font-semibold mb-3 text-black">{t('features.voice.title')}</h3>
+                <p className="text-black/60 leading-relaxed">
                   {t('features.voice.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                <Lightbulb className="h-12 w-12 text-purple-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4 text-white">{t('features.content.title')}</h3>
-                <p className="text-white/60 leading-relaxed font-light">
+              <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300">
+                <Lightbulb className="h-12 w-12 text-orange-500 mb-6" />
+                <h3 className="text-xl font-semibold mb-3 text-black">{t('features.content.title')}</h3>
+                <p className="text-black/60 leading-relaxed">
                   {t('features.content.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                <Gamepad2 className="h-12 w-12 text-fuchsia-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4 text-white">{t('features.gamified.title')}</h3>
-                <p className="text-white/60 leading-relaxed font-light">
+              <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300">
+                <Gamepad2 className="h-12 w-12 text-orange-500 mb-6" />
+                <h3 className="text-xl font-semibold mb-3 text-black">{t('features.gamified.title')}</h3>
+                <p className="text-black/60 leading-relaxed">
                   {t('features.gamified.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                <BarChart className="h-12 w-12 text-purple-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4 text-white">{t('features.analytics.title')}</h3>
-                <p className="text-white/60 leading-relaxed font-light">
+              <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300">
+                <BarChart className="h-12 w-12 text-orange-500 mb-6" />
+                <h3 className="text-xl font-semibold mb-3 text-black">{t('features.analytics.title')}</h3>
+                <p className="text-black/60 leading-relaxed">
                   {t('features.analytics.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
-                <Users className="h-12 w-12 text-fuchsia-400 mb-6" />
-                <h3 className="text-xl font-semibold mb-4 text-white">{t('features.collaborative.title')}</h3>
-                <p className="text-white/60 leading-relaxed font-light">
+              <div className="p-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300">
+                <Users className="h-12 w-12 text-orange-500 mb-6" />
+                <h3 className="text-xl font-semibold mb-3 text-black">{t('features.collaborative.title')}</h3>
+                <p className="text-black/60 leading-relaxed">
                   {t('features.collaborative.desc')}
                 </p>
               </div>
@@ -137,8 +148,8 @@ const Index = () => {
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">{t('subjects.title')}</h2>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 text-black">{t('subjects.title')}</h2>
+              <p className="text-xl text-black/60 max-w-3xl mx-auto">
                 {t('subjects.subtitle')}
               </p>
             </div>
@@ -154,10 +165,10 @@ const Index = () => {
                 { icon: "🗣️", title: t('subjects.languages.title'), desc: t('subjects.languages.desc') },
                 { icon: "🏃", title: t('subjects.health.title'), desc: t('subjects.health.desc') }
               ].map((subject, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/20 transition-all duration-300 text-center">
+                <div key={index} className="p-6 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/5 hover:shadow-lg transition-all duration-300 text-center">
                   <div className="text-4xl mb-4">{subject.icon}</div>
-                  <h3 className="text-lg font-semibold mb-2 text-white">{subject.title}</h3>
-                  <p className="text-white/60 text-sm font-light">{subject.desc}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-black">{subject.title}</h3>
+                  <p className="text-black/60 text-sm">{subject.desc}</p>
                 </div>
               ))}
             </div>

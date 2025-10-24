@@ -49,40 +49,40 @@ export const Header = () => {
   });
 
   return (
-    <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8">
+    <header className="relative z-20 px-4 py-6 md:px-6 lg:px-8 bg-transparent">
       <div className="max-w-6xl mx-auto">
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">T</span>
             </div>
-            <span className="text-2xl font-bold text-white">TeachlyAI</span>
+            <span className="text-2xl font-bold text-black">TeachlyAI</span>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('features')}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-black/70 hover:text-black transition-colors font-medium"
             >
               {featuresText}
             </button>
             <button 
               onClick={() => scrollToSection('pricing')}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-black/70 hover:text-black transition-colors font-medium"
             >
               {pricingText}
             </button>
             <button 
               onClick={() => scrollToSection('about')}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-black/70 hover:text-black transition-colors font-medium"
             >
               {aboutText}
             </button>
             <button 
               onClick={() => scrollToSection('contact')}
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-black/70 hover:text-black transition-colors font-medium"
             >
               {contactText}
             </button>
@@ -91,7 +91,7 @@ export const Header = () => {
                 <Button 
                   onClick={handleSignOut}
                   variant="outline" 
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                  className="border-black/20 bg-white/50 text-black hover:bg-white"
                 >
                   {t('auth.signout')}
                 </Button>
@@ -99,14 +99,14 @@ export const Header = () => {
               <>
                 <Button 
                   onClick={() => navigate('/auth')}
-                  variant="outline" 
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                  variant="ghost" 
+                  className="text-black hover:bg-black/5"
                 >
                   {t('auth.login')}
                 </Button>
                 <Button 
                   onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white border-0"
+                  className="bg-orange-500 hover:bg-orange-600 text-white border-0 rounded-full"
                 >
                   {t('auth.signup')}
                 </Button>
