@@ -35,12 +35,12 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-foreground overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0118] via-[#120322] to-[#0A0118] text-foreground overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-full blur-3xl animate-glow"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-full blur-3xl animate-glow" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-500/10 rounded-full blur-3xl animate-glow" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500/10 to-fuchsia-600/10 rounded-full blur-3xl animate-glow"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-fuchsia-500/10 to-purple-500/10 rounded-full blur-3xl animate-glow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/5 to-fuchsia-500/5 rounded-full blur-3xl animate-glow" style={{ animationDelay: '0.5s' }}></div>
       </div>
 
       <Header />
@@ -49,17 +49,19 @@ const Index = () => {
         {/* Hero Section */}
         <section className="px-4 py-20 md:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight text-white">
-              {t('hero.title')}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600 bg-clip-text text-transparent">
+                {t('hero.title')}
+              </span>
             </h1>
-            <p className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-12 leading-relaxed">
+            <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
               {t('hero.subtitle')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 font-semibold px-8 py-4 text-lg shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] transition-all duration-300"
+                className="bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white border-0 font-medium px-8 py-4 text-lg shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
                 onClick={handleStartLearning}
               >
                 {t('cta.start')}
@@ -80,50 +82,50 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <div className="p-8 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-300">
-                <Brain className="h-12 w-12 text-cyan-400 mb-6" />
+              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
+                <Brain className="h-12 w-12 text-purple-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4 text-white">{t('features.adaptive.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/60 leading-relaxed font-light">
                   {t('features.adaptive.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300">
-                <MessageSquare className="h-12 w-12 text-blue-400 mb-6" />
+              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
+                <MessageSquare className="h-12 w-12 text-fuchsia-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4 text-white">{t('features.voice.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/60 leading-relaxed font-light">
                   {t('features.voice.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-300">
-                <Lightbulb className="h-12 w-12 text-cyan-400 mb-6" />
+              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
+                <Lightbulb className="h-12 w-12 text-purple-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4 text-white">{t('features.content.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/60 leading-relaxed font-light">
                   {t('features.content.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 hover:border-orange-500/50 hover:shadow-[0_0_30px_rgba(249,115,22,0.15)] transition-all duration-300">
-                <Gamepad2 className="h-12 w-12 text-orange-400 mb-6" />
+              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
+                <Gamepad2 className="h-12 w-12 text-fuchsia-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4 text-white">{t('features.gamified.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/60 leading-relaxed font-light">
                   {t('features.gamified.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300">
-                <BarChart className="h-12 w-12 text-blue-400 mb-6" />
+              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
+                <BarChart className="h-12 w-12 text-purple-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4 text-white">{t('features.analytics.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/60 leading-relaxed font-light">
                   {t('features.analytics.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-300">
-                <Users className="h-12 w-12 text-cyan-400 mb-6" />
+              <div className="p-8 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/30 transition-all duration-300">
+                <Users className="h-12 w-12 text-fuchsia-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4 text-white">{t('features.collaborative.title')}</h3>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/60 leading-relaxed font-light">
                   {t('features.collaborative.desc')}
                 </p>
               </div>
@@ -152,10 +154,10 @@ const Index = () => {
                 { icon: "🗣️", title: t('subjects.languages.title'), desc: t('subjects.languages.desc') },
                 { icon: "🏃", title: t('subjects.health.title'), desc: t('subjects.health.desc') }
               ].map((subject, index) => (
-                <div key={index} className="p-6 rounded-xl bg-slate-900/40 backdrop-blur-sm border border-slate-800/50 hover:border-slate-700/50 hover:bg-slate-900/60 transition-all duration-300 text-center">
+                <div key={index} className="p-6 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] hover:border-purple-500/20 transition-all duration-300 text-center">
                   <div className="text-4xl mb-4">{subject.icon}</div>
                   <h3 className="text-lg font-semibold mb-2 text-white">{subject.title}</h3>
-                  <p className="text-white/60 text-sm">{subject.desc}</p>
+                  <p className="text-white/60 text-sm font-light">{subject.desc}</p>
                 </div>
               ))}
             </div>
@@ -172,55 +174,55 @@ const Index = () => {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <Target className="h-6 w-6 text-blue-400" />
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Target className="h-6 w-6 text-purple-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{t('advanced.adaptive.title')}</h3>
-                    <p className="text-white/70">
+                    <p className="text-white/60 font-light">
                       {t('advanced.adaptive.desc')}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-green-500/20 rounded-lg">
-                    <Zap className="h-6 w-6 text-green-400" />
+                  <div className="p-2 bg-fuchsia-500/10 rounded-lg">
+                    <Zap className="h-6 w-6 text-fuchsia-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{t('advanced.feedback.title')}</h3>
-                    <p className="text-white/70">
+                    <p className="text-white/60 font-light">
                       {t('advanced.feedback.desc')}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Shield className="h-6 w-6 text-cyan-400" />
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Shield className="h-6 w-6 text-purple-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{t('advanced.safe.title')}</h3>
-                    <p className="text-white/70">
+                    <p className="text-white/60 font-light">
                       {t('advanced.safe.desc')}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-slate-500/20 rounded-lg">
-                    <Clock className="h-6 w-6 text-slate-400" />
+                  <div className="p-2 bg-fuchsia-500/10 rounded-lg">
+                    <Clock className="h-6 w-6 text-fuchsia-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{t('advanced.availability.title')}</h3>
-                    <p className="text-white/70">
+                    <p className="text-white/60 font-light">
                       {t('advanced.availability.desc')}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl p-8 border border-cyan-500/20 backdrop-blur-sm">
+              <div className="bg-gradient-to-br from-purple-500/5 to-fuchsia-500/5 rounded-2xl p-8 border border-purple-500/10 backdrop-blur-sm">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold mb-2">{t('achievement.title')}</h3>
                   <p className="text-white/70">
@@ -256,54 +258,54 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.individual')}</h3>
                 <div className="text-4xl font-bold mb-6">{t('pricing.individual.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature1')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature2')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature3')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature4')}</li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.individual.feature1')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.individual.feature2')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.individual.feature3')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.individual.feature4')}</span></li>
                 </ul>
                 <Button 
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+                  className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500"
                   onClick={handleStartLearning}
                 >
                   {t('pricing.get.started')}
                 </Button>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-2 border-cyan-500/50 backdrop-blur-sm relative">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/5 to-fuchsia-500/5 border-2 border-purple-500/30 backdrop-blur-sm relative">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white px-4 py-1 rounded-full text-sm font-medium">
                   {t('pricing.most.popular')}
                 </div>
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.family')}</h3>
                 <div className="text-4xl font-bold mb-6">{t('pricing.family.price')}<span className="text-lg text-white/60">{t('pricing.month')}</span></div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature1')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature2')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature3')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature4')}</li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.family.feature1')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.family.feature2')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.family.feature3')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.family.feature4')}</span></li>
                 </ul>
                 <Button 
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                  className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500"
                   onClick={handleStartLearning}
                 >
                   {t('pricing.get.started')}
                 </Button>
               </div>
 
-              <div className="p-8 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="p-8 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.school')}</h3>
                 <div className="text-4xl font-bold mb-6">$32<span className="text-lg text-white/60">/month</span></div>
-                <div className="text-sm text-white/70 mb-4">+ $3 for each additional student</div>
+                <div className="text-sm text-white/60 mb-4 font-light">+ $3 for each additional student</div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature1')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature2')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature3')}</li>
-                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.school.feature4')}</li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.school.feature1')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.school.feature2')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.school.feature3')}</span></li>
+                  <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" /><span className="font-light">{t('pricing.school.feature4')}</span></li>
                 </ul>
-                <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
+                <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/5">
                   {t('pricing.contact.sales')}
                 </Button>
               </div>

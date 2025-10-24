@@ -54,7 +54,7 @@ export const Header = () => {
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">T</span>
             </div>
             <span className="text-2xl font-bold text-white">TeachlyAI</span>
@@ -106,7 +106,7 @@ export const Header = () => {
                 </Button>
                 <Button 
                   onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0"
+                  className="bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white border-0"
                 >
                   {t('auth.signup')}
                 </Button>
@@ -176,7 +176,7 @@ export const Header = () => {
                     </Button>
                     <Button 
                       onClick={() => navigate('/auth?signup=true')}
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0"
+                      className="bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white border-0"
                     >
                       {t('auth.signup')}
                     </Button>
