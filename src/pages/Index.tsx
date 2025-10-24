@@ -35,12 +35,12 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/15 to-violet-600/15 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-violet-400/15 to-purple-600/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/8 to-pink-600/8 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-cyan-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-500/5 to-blue-600/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <Header />
@@ -59,7 +59,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 font-semibold px-8 py-4 text-lg shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300"
                 onClick={handleStartLearning}
               >
                 {t('cta.start')}
@@ -80,48 +80,48 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Brain className="h-12 w-12 text-blue-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 hover:from-cyan-500/20 hover:to-blue-500/20 transition-all duration-300 backdrop-blur-sm">
+                <Brain className="h-12 w-12 text-cyan-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.adaptive.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
                   {t('features.adaptive.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 backdrop-blur-sm">
-                <MessageSquare className="h-12 w-12 text-purple-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
+                <MessageSquare className="h-12 w-12 text-blue-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.voice.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
                   {t('features.voice.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Lightbulb className="h-12 w-12 text-green-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
+                <Lightbulb className="h-12 w-12 text-teal-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.content.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
                   {t('features.content.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Gamepad2 className="h-12 w-12 text-orange-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-slate-500/10 to-gray-500/10 border border-slate-500/20 hover:from-slate-500/20 hover:to-gray-500/20 transition-all duration-300 backdrop-blur-sm">
+                <Gamepad2 className="h-12 w-12 text-slate-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.gamified.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
                   {t('features.gamified.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 hover:from-teal-500/20 hover:to-cyan-500/20 transition-all duration-300 backdrop-blur-sm">
-                <BarChart className="h-12 w-12 text-teal-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 border border-sky-500/20 hover:from-sky-500/20 hover:to-blue-500/20 transition-all duration-300 backdrop-blur-sm">
+                <BarChart className="h-12 w-12 text-sky-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.analytics.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
                   {t('features.analytics.desc')}
                 </p>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 hover:from-indigo-500/20 hover:to-purple-500/20 transition-all duration-300 backdrop-blur-sm">
-                <Users className="h-12 w-12 text-indigo-400 mb-6" />
+              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:from-cyan-500/20 hover:to-teal-500/20 transition-all duration-300 backdrop-blur-sm">
+                <Users className="h-12 w-12 text-cyan-400 mb-6" />
                 <h3 className="text-xl font-semibold mb-4">{t('features.collaborative.title')}</h3>
                 <p className="text-white/70 leading-relaxed">
                   {t('features.collaborative.desc')}
@@ -196,8 +196,8 @@ const Index = () => {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <Shield className="h-6 w-6 text-purple-400" />
+                  <div className="p-2 bg-cyan-500/20 rounded-lg">
+                    <Shield className="h-6 w-6 text-cyan-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{t('advanced.safe.title')}</h3>
@@ -208,8 +208,8 @@ const Index = () => {
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-orange-500/20 rounded-lg">
-                    <Clock className="h-6 w-6 text-orange-400" />
+                  <div className="p-2 bg-slate-500/20 rounded-lg">
+                    <Clock className="h-6 w-6 text-slate-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{t('advanced.availability.title')}</h3>
@@ -220,7 +220,7 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-8 border border-white/10 backdrop-blur-sm">
+              <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl p-8 border border-cyan-500/20 backdrop-blur-sm">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold mb-2">{t('achievement.title')}</h3>
                   <p className="text-white/70">
@@ -235,11 +235,11 @@ const Index = () => {
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <span className="text-white/80">{t('achievement.problems')}</span>
-                    <span className="text-green-400 font-semibold">⚡ {t('achievement.tracking')}</span>
+                    <span className="text-teal-400 font-semibold">⚡ {t('achievement.tracking')}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <span className="text-white/80">{t('achievement.level')}</span>
-                    <span className="text-blue-400 font-semibold">🏆 {t('achievement.growing')}</span>
+                    <span className="text-cyan-400 font-semibold">🏆 {t('achievement.growing')}</span>
                   </div>
                 </div>
               </div>
@@ -266,15 +266,15 @@ const Index = () => {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.individual.feature4')}</li>
                 </ul>
                 <Button 
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
                   onClick={handleStartLearning}
                 >
                   {t('pricing.get.started')}
                 </Button>
               </div>
 
-              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/50 backdrop-blur-sm relative">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-2 border-cyan-500/50 backdrop-blur-sm relative">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
                   {t('pricing.most.popular')}
                 </div>
                 <h3 className="text-2xl font-bold mb-4">{t('pricing.family')}</h3>
@@ -286,7 +286,7 @@ const Index = () => {
                   <li className="flex items-center"><CheckCircle className="h-5 w-5 text-green-400 mr-3" />{t('pricing.family.feature4')}</li>
                 </ul>
                 <Button 
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
                   onClick={handleStartLearning}
                 >
                   {t('pricing.get.started')}
