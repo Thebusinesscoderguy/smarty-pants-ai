@@ -79,8 +79,21 @@ export const useQuizGenerator = () => {
   ): Promise<Quiz | null> => {
     setIsGenerating(true);
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      // Use FileReader to avoid stack overflows from spreading large TypedArrays
+      const base64: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const result = reader.result as string;
+            const idx = result.indexOf(',');
+            resolve(idx >= 0 ? result.slice(idx + 1) : result);
+          } catch (e) {
+            reject(e);
+          }
+        };
+        reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
       const { data, error } = await supabase.functions.invoke('extract-quiz', {
         body: {
           fileBase64: base64,
