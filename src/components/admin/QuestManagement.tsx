@@ -213,7 +213,13 @@ const { isSchoolAdmin } = useUserRole();
       }
       
       console.log('Subjects fetched:', data);
-      setSubjects(data || []);
+      
+      // Remove duplicates by name
+      const uniqueSubjects = data ? data.filter((subject, index, self) =>
+        index === self.findIndex((s) => s.name === subject.name)
+      ) : [];
+      
+      setSubjects(uniqueSubjects);
       
       // If no subjects exist, create some default ones
       if (!data || data.length === 0) {
@@ -668,9 +674,10 @@ const { isSchoolAdmin } = useUserRole();
         id="all-children"
         checked={newQuest.assigned_children.length === 0}
         onCheckedChange={(checked) => {
-          if (checked) {
-            setNewQuest({ ...newQuest, assigned_children: [] });
-          }
+          setNewQuest({ 
+            ...newQuest, 
+            assigned_children: checked ? [] : (children.length > 0 ? [children[0].id] : [])
+          });
         }}
       />
       <label htmlFor="all-children" className="text-sm text-white cursor-pointer">
@@ -810,9 +817,10 @@ const { isSchoolAdmin } = useUserRole();
                         id="ai-all-children"
                         checked={aiQuestParams.assigned_children.length === 0}
                         onCheckedChange={(checked) => {
-                          if (checked) {
-                            setAiQuestParams({ ...aiQuestParams, assigned_children: [] });
-                          }
+                          setAiQuestParams({ 
+                            ...aiQuestParams, 
+                            assigned_children: checked ? [] : (children.length > 0 ? [children[0].id] : [])
+                          });
                         }}
                       />
                       <label htmlFor="ai-all-children" className="text-sm text-white cursor-pointer">
@@ -1105,9 +1113,10 @@ const { isSchoolAdmin } = useUserRole();
                         id="all-children"
                         checked={newQuest.assigned_children.length === 0}
                         onCheckedChange={(checked) => {
-                          if (checked) {
-                            setNewQuest({ ...newQuest, assigned_children: [] });
-                          }
+                          setNewQuest({ 
+                            ...newQuest, 
+                            assigned_children: checked ? [] : (children.length > 0 ? [children[0].id] : [])
+                          });
                         }}
                       />
                       <label htmlFor="all-children" className="text-sm text-white cursor-pointer">
@@ -1250,9 +1259,10 @@ const { isSchoolAdmin } = useUserRole();
                         id="ai-all-children"
                         checked={aiQuestParams.assigned_children.length === 0}
                         onCheckedChange={(checked) => {
-                          if (checked) {
-                            setAiQuestParams({ ...aiQuestParams, assigned_children: [] });
-                          }
+                          setAiQuestParams({ 
+                            ...aiQuestParams, 
+                            assigned_children: checked ? [] : (children.length > 0 ? [children[0].id] : [])
+                          });
                         }}
                       />
                       <label htmlFor="ai-all-children" className="text-sm text-white cursor-pointer">
