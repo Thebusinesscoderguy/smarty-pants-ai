@@ -116,7 +116,15 @@ const AIGenerateQuest = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Quest generation error:', error);
+        throw new Error(error.message || 'Failed to generate quests');
+      }
+
+      if (data?.error) {
+        console.error('Quest generation API error:', data.error);
+        throw new Error(data.error);
+      }
 
       if (data?.quests && Array.isArray(data.quests)) {
         const assignedChildren = assignToAll ? null : selectedChildren;

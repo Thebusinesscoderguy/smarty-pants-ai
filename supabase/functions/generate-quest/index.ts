@@ -11,9 +11,14 @@ serve(async (req) => {
   }
 
   try {
-    const { subject, gradeLevel, type, difficulty, count } = await req.json();
+    console.log("generate-quest: Request received");
+    const body = await req.json();
+    console.log("generate-quest: Body parsed:", JSON.stringify(body));
+    
+    const { subject, gradeLevel, type, difficulty, count } = body;
     
     if (!subject || !gradeLevel || !count) {
+      console.error("generate-quest: Missing required fields", { subject, gradeLevel, count });
       return new Response(
         JSON.stringify({ error: "Subject, gradeLevel, and count are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -43,9 +48,11 @@ Make quests:
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
+      console.error("generate-quest: LOVABLE_API_KEY is not configured");
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    console.log("generate-quest: Calling AI with prompt for", count, "quests");
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -123,15 +130,20 @@ Make quests:
     }
 
     const result = await response.json();
+    console.log("generate-quest: AI response received", JSON.stringify(result).substring(0, 200));
+    
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     
     if (!toolCall) {
+      console.error("generate-quest: No tool call in response", JSON.stringify(result));
       throw new Error("No tool call in response");
     }
 
+    console.log("generate-quest: Tool call arguments:", toolCall.function.arguments);
     const data = JSON.parse(toolCall.function.arguments);
     const quests = data.quests || [];
-
+    
+    console.log("generate-quest: Successfully generated", quests.length, "quests");
     return new Response(
       JSON.stringify({ quests }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
