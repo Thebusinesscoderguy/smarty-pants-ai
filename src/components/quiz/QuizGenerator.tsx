@@ -47,7 +47,9 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
       const quiz = await extractQuizFromFile(uploadedFile, {
         difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
         questionCount: 5,
-        gradeLevel
+        gradeLevel,
+        mode: 'extract',
+        difficultyVariant: quizDifficulty,
       });
       if (!quiz) return;
       const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
@@ -96,7 +98,9 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
       quiz = await extractQuizFromFile(uploadedFile, {
         difficulty,
         questionCount,
-        gradeLevel
+        gradeLevel,
+        mode: 'extract',
+        difficultyVariant: 'same',
       });
     } else {
       quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory);
@@ -315,7 +319,9 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                                 quiz = await extractQuizFromFile(uploadedFile, {
                                   difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
                                   questionCount: 5,
-                                  gradeLevel
+                                  gradeLevel,
+                                  mode: 'extract',
+                                  difficultyVariant: quizDifficulty,
                                 });
                                 title = `${uploadedFile.name.split('.')[0]} (Same Questions)`;
                                 break;
@@ -335,7 +341,9 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                                 quiz = await extractQuizFromFile(uploadedFile, {
                                   difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
                                   questionCount: 10,
-                                  gradeLevel
+                                  gradeLevel,
+                                  mode: 'similar',
+                                  difficultyVariant: quizDifficulty,
                                 });
                                 title = `${uploadedFile.name.split('.')[0]} (Similar Quiz)`;
                                 break;

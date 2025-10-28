@@ -75,7 +75,7 @@ export const useQuizGenerator = () => {
 
   const extractQuizFromFile = async (
     file: File,
-    opts?: { difficulty?: Quiz['difficulty']; questionCount?: number; gradeLevel?: string }
+    opts?: { difficulty?: Quiz['difficulty']; questionCount?: number; gradeLevel?: string; mode?: 'extract' | 'similar'; difficultyVariant?: 'easier' | 'same' | 'harder' }
   ): Promise<Quiz | null> => {
     setIsGenerating(true);
     try {
@@ -88,13 +88,17 @@ export const useQuizGenerator = () => {
           difficulty: opts?.difficulty ?? 'medium',
           questionCount: opts?.questionCount ?? 10,
           gradeLevel: opts?.gradeLevel,
+          mode: opts?.mode ?? 'extract',
+          difficultyVariant: opts?.difficultyVariant ?? 'same',
         },
       });
       if (error) throw error;
       return toQuiz(data, opts?.difficulty ?? 'medium');
     } catch (error: any) {
       console.error('Error extracting quiz:', error);
-      toast({ title: 'Error', description: 'Failed to extract quiz. Ensure the file is clear and readable.', variant: 'destructive' });
+      const status = error?.context?.response?.status || error?.status;
+      const msg = String(error?.message || 'Failed to extract quiz. Ensure the file is clear and readable.');
+      toast({ title: 'Error', description: status ? `${msg} (HTTP ${status})` : msg, variant: 'destructive' });
       return null;
     } finally {
       setIsGenerating(false);

@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { fileBase64, contentType, difficulty = 'medium', questionCount = 10, gradeLevel } = await req.json();
+    const { fileBase64, contentType, difficulty = 'medium', questionCount = 10, gradeLevel, mode = 'extract', difficultyVariant = 'same' } = await req.json();
 
     if (!fileBase64 || !contentType) {
       return new Response(JSON.stringify({ error: 'fileBase64 and contentType are required' }), {
@@ -31,7 +31,21 @@ serve(async (req) => {
 
     const dataUrl = `data:${contentType};base64,${fileBase64}`;
 
-    const systemPrompt = `You are an expert educator and exam parser. Extract a clean quiz from the provided document image. 
+    const modeInstructions = mode === 'similar'
+      ? 'Generate a new quiz with novel questions inspired by the document. Do not copy text verbatim. Use similar concepts and styles, and vary numbers/context while keeping learning objectives aligned.'
+      : 'Extract the questions that actually appear in the document as faithfully as possible.';
+
+    const difficultyInstructions = difficultyVariant === 'easier'
+      ? 'Adjust to be slightly easier than the source (simpler wording, clearer contexts, more obvious distractors).'
+      : difficultyVariant === 'harder'
+      ? 'Adjust to be slightly harder than the source (multi-step reasoning, trickier distractors, deeper analysis).'
+      : 'Match the source difficulty level overall.';
+
+    const systemPrompt = `You are an expert educator and exam parser.
+${modeInstructions}
+${difficultyInstructions}
+
+When building the quiz:
 - Identify each question and its type.
 - If a question is True/False, use type "true_false" and options ["True","False"].
 - If the question is short answer, set type "short_answer" and omit options.
@@ -47,7 +61,7 @@ serve(async (req) => {
   ]
 }`;
 
-    const userPrompt = `Extract a ${difficulty} quiz with about ${questionCount} questions${gradeLevel ? ` for grade level ${gradeLevel}` : ''}. Return ONLY JSON.`;
+    const userPrompt = `Use the attached document image as the source. Create about ${questionCount} ${difficulty} questions${gradeLevel ? ` for grade level ${gradeLevel}` : ''}. Return ONLY JSON as per the schema.`;
 
     const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -73,7 +87,16 @@ serve(async (req) => {
 
     if (!resp.ok) {
       const text = await resp.text();
-      throw new Error(`OpenAI API error (${resp.status}): ${text}`);
+      const status = resp.status;
+      const message = status === 429
+        ? 'Rate limit reached. Please wait and try again.'
+        : (status === 401 || status === 403)
+        ? 'OpenAI authentication failed. Check API key.'
+        : `OpenAI API error (${status})`;
+      return new Response(JSON.stringify({ error: message, details: text }), {
+        status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const ai = await resp.json();
