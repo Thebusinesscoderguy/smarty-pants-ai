@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ export const Header = () => {
           {user ? (
             <>
               <Link to="/quiz-generator" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.studyPlans')}</Link>
+              <ThemeToggle />
               <LanguageSelector />
               <Button 
                 onClick={handleSignOut}
@@ -51,6 +53,7 @@ export const Header = () => {
             </>
           ) : (
             <>
+              <ThemeToggle />
               <LanguageSelector />
               <Button 
                 onClick={() => navigate('/auth')}
