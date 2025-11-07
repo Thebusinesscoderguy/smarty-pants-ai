@@ -631,19 +631,6 @@ export const translations: TranslationData = {
     'adminOverview.monitorStudentProgress': 'Monitor student progress',
     'adminOverview.today': 'Today',
     'adminOverview.loadingOverview': 'Loading overview...',
-    
-    // Authentication (additional keys for modals)
-    'auth.loginTitle': 'Sign In to Your Account',
-    'auth.loginDesc': 'Enter your credentials to access your learning dashboard',
-    'auth.signupTitle': 'Create Your Account',
-    'auth.signupDesc': 'Start your learning journey today',
-    'auth.loggingIn': 'Signing in...',
-    'auth.creatingAccount': 'Creating account...',
-    'auth.loginFailed': 'Login Failed',
-    'auth.signupFailed': 'Signup Failed',
-    'auth.passwordMismatchDesc': 'Please make sure both passwords match',
-    'auth.moreLoginOptions': 'More Login Options',
-    'auth.moreSignupOptions': 'More Signup Options',
 
 
     // Public Pricing page (legacy - kept for backward compatibility)
