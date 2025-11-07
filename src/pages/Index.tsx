@@ -5,18 +5,17 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap } from 'lucide-react';
+import { useState } from 'react';
 
 const Index = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [inputValue, setInputValue] = useState('');
 
-  const handleStartLearning = () => {
-    if (user) {
-      navigate('/chat');
-    } else {
-      navigate('/auth');
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('/auth');
   };
 
   return (
@@ -31,7 +30,7 @@ const Index = () => {
         <div className="container mx-auto px-6 py-20 md:py-32 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Content */}
-            <div className="space-y-6 animate-fade-in col-span-2">
+            <div className="space-y-8 animate-fade-in col-span-2 max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">Purpose</span>
@@ -41,27 +40,28 @@ const Index = () => {
                 Teachly: Where AI Meets Learning
               </h1>
               
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl">
+              <p className="text-lg md:text-xl text-muted-foreground">
                 The AI-powered learning companion that adapts and grows alongside you.
               </p>
               
-              <div className="flex flex-wrap gap-4 pt-4">
-                <Button 
-                  size="lg" 
-                  onClick={handleStartLearning}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-lg"
-                >
-                  Start Learning <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="rounded-full px-8 border-2"
-                >
-                  See How It Works
-                </Button>
-              </div>
+              <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Create a personalized study plan for…"
+                    className="w-full px-6 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors pr-32"
+                  />
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+                  >
+                    Start <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -139,7 +139,7 @@ const Index = () => {
           <div className="text-center">
             <Button 
               size="lg"
-              onClick={handleStartLearning}
+              onClick={() => navigate('/auth')}
               variant="outline"
               className="rounded-full px-8 border-2"
             >
@@ -272,7 +272,7 @@ const Index = () => {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Button 
                 size="lg" 
-                onClick={handleStartLearning}
+                onClick={() => navigate('/auth')}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-lg"
               >
                 Get Started Free <ArrowRight className="ml-2 w-5 h-5" />
