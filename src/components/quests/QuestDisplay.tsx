@@ -57,42 +57,42 @@ export const QuestDisplay = () => {
 
     return (
       <div className="space-y-6">
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <Calendar className="h-5 w-5 text-blue-500" />
               Daily Quests (Demo)
             </CardTitle>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Sign in to get personalized quests based on your learning progress
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {demoQuests.daily.map((quest) => (
-                <div key={quest.id} className="space-y-3 p-4 border border-white/20 rounded-lg">
+                <div key={quest.id} className="space-y-3 p-4 border border-border rounded-lg bg-muted">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">🤖</span>
-                        <h3 className="font-semibold text-white">{quest.title}</h3>
+                        <h3 className="font-semibold text-foreground">{quest.title}</h3>
                         {quest.completed && (
-                          <Badge variant="default" className="bg-green-500">
+                          <Badge variant="default" className="bg-green-600 dark:bg-green-500">
                             ✓ Completed
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">{quest.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{quest.description}</p>
                     </div>
-                    <Badge className="bg-green-500 text-white">
+                    <Badge className="bg-green-600 dark:bg-green-500">
                       {quest.difficulty}
                     </Badge>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Progress</span>
-                      <span className="text-white">{quest.current_value}/{quest.target_value}</span>
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">{quest.current_value}/{quest.target_value}</span>
                     </div>
                     <Progress 
                       value={(quest.current_value / quest.target_value) * 100} 
@@ -105,9 +105,9 @@ export const QuestDisplay = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <Target className="h-5 w-5 text-purple-500" />
               Weekly Quests (Demo)
             </CardTitle>
@@ -115,24 +115,24 @@ export const QuestDisplay = () => {
           <CardContent>
             <div className="space-y-4">
               {demoQuests.weekly.map((quest) => (
-                <div key={quest.id} className="space-y-3 p-4 border border-white/20 rounded-lg">
+                <div key={quest.id} className="space-y-3 p-4 border border-border rounded-lg bg-muted">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">🤖</span>
-                        <h3 className="font-semibold text-white">{quest.title}</h3>
+                        <h3 className="font-semibold text-foreground">{quest.title}</h3>
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">{quest.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{quest.description}</p>
                     </div>
-                    <Badge className="bg-yellow-500 text-white">
+                    <Badge className="bg-yellow-600 dark:bg-yellow-500">
                       {quest.difficulty}
                     </Badge>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Progress</span>
-                      <span className="text-white">{quest.current_value}/{quest.target_value}</span>
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">{quest.current_value}/{quest.target_value}</span>
                     </div>
                     <Progress 
                       value={(quest.current_value / quest.target_value) * 100} 
@@ -149,7 +149,7 @@ export const QuestDisplay = () => {
   }
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading quests...</div>;
+    return <div className="animate-pulse text-foreground">Loading quests...</div>;
   }
 
   const getDifficultyColor = (difficulty: string) => {
@@ -173,9 +173,9 @@ export const QuestDisplay = () => {
   return (
     <div className="space-y-6">
       {/* Daily Quests */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <Calendar className="h-5 w-5 text-blue-500" />
             Daily Quests
           </CardTitle>
@@ -184,23 +184,23 @@ export const QuestDisplay = () => {
           {dailyQuests.length > 0 ? (
             <div className="space-y-4">
               {dailyQuests.map((quest) => (
-                <div key={quest.id} className="space-y-3 p-4 border border-white/20 rounded-lg">
+                <div key={quest.id} className="space-y-3 p-4 border border-border rounded-lg bg-muted">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{getCreatorIcon('ai')}</span>
-                        <h3 className="font-semibold text-white">{quest.title}</h3>
+                        <h3 className="font-semibold text-foreground">{quest.title}</h3>
                         {quest.completed && (
-                          <Badge variant="default" className="bg-green-500">
+                          <Badge variant="default" className="bg-green-600 dark:bg-green-500">
                             ✓ Completed
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">{quest.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{quest.description}</p>
                     </div>
                     <Badge 
                       variant="secondary" 
-                      className={`${getDifficultyColor(quest.difficulty)} text-white`}
+                      className={getDifficultyColor(quest.difficulty)}
                     >
                       {quest.difficulty}
                     </Badge>
@@ -208,8 +208,8 @@ export const QuestDisplay = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Progress</span>
-                      <span className="text-white">{quest.current_value || 0}/{quest.target_value}</span>
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">{quest.current_value || 0}/{quest.target_value}</span>
                     </div>
                     <Progress 
                       value={((quest.current_value || 0) / quest.target_value) * 100} 
@@ -221,9 +221,9 @@ export const QuestDisplay = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300 mb-2">No daily quests available</p>
-              <p className="text-gray-400 text-sm">
+              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-2">No daily quests available</p>
+              <p className="text-muted-foreground text-sm">
                 Start learning and new quests will be generated based on your progress!
               </p>
             </div>
@@ -232,9 +232,9 @@ export const QuestDisplay = () => {
       </Card>
 
       {/* Weekly Quests */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <Target className="h-5 w-5 text-purple-500" />
             Weekly Quests
           </CardTitle>
@@ -243,23 +243,23 @@ export const QuestDisplay = () => {
           {weeklyQuests.length > 0 ? (
             <div className="space-y-4">
               {weeklyQuests.map((quest) => (
-                <div key={quest.id} className="space-y-3 p-4 border border-white/20 rounded-lg">
+                <div key={quest.id} className="space-y-3 p-4 border border-border rounded-lg bg-muted">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{getCreatorIcon('ai')}</span>
-                        <h3 className="font-semibold text-white">{quest.title}</h3>
+                        <h3 className="font-semibold text-foreground">{quest.title}</h3>
                         {quest.completed && (
-                          <Badge variant="default" className="bg-green-500">
+                          <Badge variant="default" className="bg-green-600 dark:bg-green-500">
                             ✓ Completed
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">{quest.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{quest.description}</p>
                     </div>
                     <Badge 
                       variant="secondary" 
-                      className={`${getDifficultyColor(quest.difficulty)} text-white`}
+                      className={getDifficultyColor(quest.difficulty)}
                     >
                       {quest.difficulty}
                     </Badge>
@@ -267,8 +267,8 @@ export const QuestDisplay = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Progress</span>
-                      <span className="text-white">{quest.current_value || 0}/{quest.target_value}</span>
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">{quest.current_value || 0}/{quest.target_value}</span>
                     </div>
                     <Progress 
                       value={((quest.current_value || 0) / quest.target_value) * 100} 
@@ -280,9 +280,9 @@ export const QuestDisplay = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300 mb-2">No weekly quests available</p>
-              <p className="text-gray-400 text-sm">
+              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-2">No weekly quests available</p>
+              <p className="text-muted-foreground text-sm">
                 Complete daily activities to unlock weekly challenges!
               </p>
             </div>

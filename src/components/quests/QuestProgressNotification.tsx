@@ -63,16 +63,17 @@ export const QuestProgressNotification: React.FC<QuestProgressNotificationProps>
           isCompleted 
             ? 'bg-gradient-to-r from-green-500/90 to-emerald-500/90' 
             : 'bg-gradient-to-r from-blue-500/90 to-purple-500/90'
-        } backdrop-blur-sm border-white/20 text-white shadow-2xl`}>
+        } backdrop-blur-sm border-border text-foreground shadow-2xl`}>
           <div className="flex items-center gap-3">
             <motion.div
-              animate={{ rotate: isCompleted ? 360 : 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              initial={{ rotate: 0 }}
+              animate={{ rotate: isCompleted ? [0, -10, 10, -10, 0] : 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
               {isCompleted ? (
-                <Trophy className="h-8 w-8 text-yellow-300" />
+                <Trophy className="h-8 w-8 text-foreground" />
               ) : (
-                <Target className="h-8 w-8 text-white" />
+                <Target className="h-8 w-8 text-foreground" />
               )}
             </motion.div>
             

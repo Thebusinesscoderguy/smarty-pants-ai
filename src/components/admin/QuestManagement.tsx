@@ -484,7 +484,7 @@ const { isSchoolAdmin } = useUserRole();
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading quests...</div>;
+    return <div className="animate-pulse text-foreground">Loading quests...</div>;
   }
 
   return (
@@ -492,8 +492,8 @@ const { isSchoolAdmin } = useUserRole();
       {/* Header with create button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Quest Management</h2>
-          <p className="text-gray-400">
+          <h2 className="text-2xl font-bold text-foreground">Quest Management</h2>
+          <p className="text-muted-foreground">
             Complete quests to earn rewards and track your progress
           </p>
         </div>
@@ -1317,14 +1317,14 @@ const { isSchoolAdmin } = useUserRole();
 
       {/* Subject Summary */}
       {subjects.length > 0 && (
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white text-lg">Available Subjects</CardTitle>
+            <CardTitle className="text-foreground text-lg">Available Subjects</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {subjects.map((subject) => (
-                <Badge key={subject.id} variant="secondary" className="bg-blue-600 text-white">
+                <Badge key={subject.id} variant="secondary">
                   {subject.name}
                 </Badge>
               ))}
@@ -1336,23 +1336,23 @@ const { isSchoolAdmin } = useUserRole();
       {/* Quests list */}
       <div className="grid gap-4">
         {quests.length === 0 ? (
-          <Card className="bg-white/10 border-white/20">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 text-center">
-              <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300">No quests created yet.</p>
-              <p className="text-gray-400 text-sm mt-2">
+              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No quests created yet.</p>
+              <p className="text-muted-foreground text-sm mt-2">
                 Start by creating engaging quests for your students.
               </p>
             </CardContent>
           </Card>
         ) : (
           quests.map((quest) => (
-            <Card key={quest.id} className="bg-white/10 border-white/20">
+            <Card key={quest.id} className="bg-card border-border">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-medium text-white">{quest.title}</h3>
+                      <h3 className="font-medium text-foreground">{quest.title}</h3>
                       <Badge variant={quest.type === 'daily' ? 'default' : 'secondary'}>
                         {quest.type}
                       </Badge>
@@ -1360,26 +1360,26 @@ const { isSchoolAdmin } = useUserRole();
                         {quest.difficulty}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-300 mb-3">{quest.description}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{quest.description}</p>
                     
                     {/* Progress */}
-                    <div className="bg-white/5 rounded-lg p-3 mb-3">
+                    <div className="bg-muted rounded-lg p-3 mb-3">
                       <div className="grid grid-cols-2 gap-4 mb-2">
                         <div className="text-center">
-                          <div className="text-sm font-semibold text-blue-400">
+                          <div className="text-sm font-semibold text-primary">
                             {Number(quest.progress_stats?.average_progress ?? 0).toFixed(1)}/{quest.target_value}
                           </div>
-                          <div className="text-xs text-gray-400">Avg Progress</div>
+                          <div className="text-xs text-muted-foreground">Avg Progress</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-sm font-semibold text-green-400">
+                          <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                             {quest.progress_stats ? `${quest.progress_stats.completion_rate}%` : '0%'}
                           </div>
-                          <div className="text-xs text-gray-400">Completion Rate</div>
+                          <div className="text-xs text-muted-foreground">Completion Rate</div>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex justify-between text-xs text-gray-400">
+                        <div className="flex justify-between text-xs text-muted-foreground">
                           <span>Overall Progress</span>
                           <span>{quest.progress_stats ? `${quest.progress_stats.active_users} active users` : 'No participants yet'}</span>
                         </div>
@@ -1390,7 +1390,7 @@ const { isSchoolAdmin } = useUserRole();
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-4 text-xs text-gray-400">
+                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                       <span>Target: {quest.target_value}</span>
                       {quest.subjects && <span>Subject: {quest.subjects.name}</span>}
                       <span>Created: {new Date(quest.created_at).toLocaleDateString()}</span>
@@ -1404,7 +1404,7 @@ const { isSchoolAdmin } = useUserRole();
                       variant="outline"
                       size="sm"
                       onClick={() => toggleQuestStatus(quest.id, quest.is_active)}
-                      className="text-white border-white/30 hover:bg-white/10"
+                      className="text-foreground border-border hover:bg-muted"
                     >
                       {quest.is_active ? 'Deactivate' : 'Activate'}
                     </Button>
