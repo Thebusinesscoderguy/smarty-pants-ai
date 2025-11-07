@@ -86,12 +86,19 @@ const Index = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  {!inputValue && (
+                    <div 
+                      key={placeholderIndex}
+                      className="absolute left-[168px] top-1/2 -translate-y-1/2 pointer-events-none text-lg text-muted-foreground animate-fade-in"
+                    >
+                      {currentPlaceholders[placeholderIndex]}
+                    </div>
+                  )}
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={currentPlaceholders[placeholderIndex]}
-                    className="w-full pl-[168px] pr-32 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-500"
+                    className="w-full pl-[168px] pr-32 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground focus:outline-none focus:border-primary transition-colors"
                   />
                   <Button
                     type="submit"
