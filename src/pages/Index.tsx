@@ -139,40 +139,42 @@ const Index = () => {
       {/* Why AI Learning Section */}
       <section className="py-20 md:py-32 bg-muted/30" id="features">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
-              <Brain className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">{t('home.smartLearning')}</span>
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
+                <Brain className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">{t('home.smartLearning')}</span>
+              </div>
+              
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground">
+                {t('home.whyAI')}
+              </h2>
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              {t('home.whyAI')}
-            </h2>
-            
-            <div className="space-y-6 text-left mt-12">
-              <div className="flex items-start gap-4 p-6 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-colors">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <div className="w-6 h-6 rounded-lg bg-primary/20"></div>
                 </div>
-                <p className="text-lg text-foreground leading-relaxed">
+                <p className="text-base text-foreground leading-relaxed">
                   {t('home.reason1')}
                 </p>
               </div>
               
-              <div className="flex items-start gap-4 p-6 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-colors">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <div className="w-6 h-6 rounded-lg bg-primary/20"></div>
                 </div>
-                <p className="text-lg text-foreground leading-relaxed">
+                <p className="text-base text-foreground leading-relaxed">
                   {t('home.reason2')}
                 </p>
               </div>
               
-              <div className="flex items-start gap-4 p-6 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-colors">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <div className="w-6 h-6 rounded-lg bg-primary/20"></div>
                 </div>
-                <p className="text-lg text-foreground leading-relaxed">
+                <p className="text-base text-foreground leading-relaxed">
                   {t('home.reason3')}
                 </p>
               </div>
@@ -184,33 +186,35 @@ const Index = () => {
       {/* Features Detail Section */}
       <section className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-16 text-center">
               {t('home.tagline')}
             </h2>
 
-            <div className="relative">
-              <div className="flex flex-wrap justify-center gap-3 mb-16">
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
-                  <span className="text-sm font-medium text-primary">{t('home.stats.grades')}</span>
-                  <span className="text-xs text-muted-foreground">{t('home.stats.gradesDesc')}</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
-                  <span className="text-sm font-medium text-primary">{t('home.stats.subjects')}</span>
-                  <span className="text-xs text-muted-foreground">{t('home.stats.subjectsDesc')}</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
-                  <span className="text-sm font-medium text-primary">{t('home.stats.available')}</span>
-                  <span className="text-xs text-muted-foreground">{t('home.stats.availableDesc')}</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
-                  <span className="text-sm font-medium text-primary">{t('home.stats.feedback')}</span>
-                  <span className="text-xs text-muted-foreground">{t('home.stats.feedbackDesc')}</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
-                  <span className="text-sm font-medium text-primary">{t('home.stats.adaptive')}</span>
-                  <span className="text-xs text-muted-foreground">{t('home.stats.adaptiveDesc')}</span>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16">
+              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.grades')}</div>
+                <div className="text-sm text-muted-foreground text-center">{t('home.stats.gradesDesc')}</div>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.subjects')}</div>
+                <div className="text-sm text-muted-foreground text-center">{t('home.stats.subjectsDesc')}</div>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.available')}</div>
+                <div className="text-sm text-muted-foreground text-center">{t('home.stats.availableDesc')}</div>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.feedback')}</div>
+                <div className="text-sm text-muted-foreground text-center">{t('home.stats.feedbackDesc')}</div>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.adaptive')}</div>
+                <div className="text-sm text-muted-foreground text-center">{t('home.stats.adaptiveDesc')}</div>
               </div>
             </div>
 
