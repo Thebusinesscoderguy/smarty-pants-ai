@@ -218,27 +218,6 @@ const PublicPricing = () => {
             </div>
           </div>
 
-          {/* Demo Section */}
-          <div className="text-center mt-16 mb-12 p-8 bg-card border border-border rounded-2xl shadow-lg">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">{t('publicPricing.demoTitle')}</h2>
-            <p className="text-muted-foreground mb-5">
-              {t('publicPricing.demoDesc')}
-            </p>
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg font-semibold"
-              size="lg"
-              asChild
-            >
-              <Link to="/demo" className="flex items-center gap-2 justify-center">
-                {t('publicPricing.tryDemo')}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div className="text-xs mt-3 text-muted-foreground">
-              {t('publicPricing.demoNote')}
-            </div>
-          </div>
-
           {/* Final CTA */}
           <div className="text-center mt-8 p-8 bg-card border border-border rounded-2xl shadow-lg">
             <h2 className="text-3xl font-bold mb-4 text-foreground">{t('publicPricing.ctaTitle')}</h2>
