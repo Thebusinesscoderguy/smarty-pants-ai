@@ -139,35 +139,43 @@ const Index = () => {
       {/* Why AI Learning Section */}
       <section className="py-20 md:py-32 bg-muted/30" id="features">
         <div className="container mx-auto px-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8">
-            <Brain className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{t('home.smartLearning')}</span>
-          </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-16">
-            {t('home.whyAI')}
-          </h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="space-y-4 p-8 rounded-2xl bg-card border border-border hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold text-primary/20">01</div>
-              <h3 className="text-xl font-semibold text-foreground">
-                {t('home.reason1')}
-              </h3>
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
+              <Brain className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">{t('home.smartLearning')}</span>
             </div>
             
-            <div className="space-y-4 p-8 rounded-2xl bg-card border border-border hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold text-primary/20">02</div>
-              <h3 className="text-xl font-semibold text-foreground">
-                {t('home.reason2')}
-              </h3>
-            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+              {t('home.whyAI')}
+            </h2>
             
-            <div className="space-y-4 p-8 rounded-2xl bg-card border border-border hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold text-primary/20">03</div>
-              <h3 className="text-xl font-semibold text-foreground">
-                {t('home.reason3')}
-              </h3>
+            <div className="space-y-6 text-left mt-12">
+              <div className="flex items-start gap-4 p-6 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-colors">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                </div>
+                <p className="text-lg text-foreground leading-relaxed">
+                  {t('home.reason1')}
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4 p-6 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-colors">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                </div>
+                <p className="text-lg text-foreground leading-relaxed">
+                  {t('home.reason2')}
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4 p-6 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-colors">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                </div>
+                <p className="text-lg text-foreground leading-relaxed">
+                  {t('home.reason3')}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -176,43 +184,45 @@ const Index = () => {
       {/* Features Detail Section */}
       <section className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">
               {t('home.tagline')}
             </h2>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-4xl mx-auto mb-16">
-            <div className="text-center space-y-2 p-6 bg-card border border-border rounded-2xl hover:shadow-md transition-shadow">
-              <div className="text-2xl font-bold text-primary">{t('home.stats.grades')}</div>
-              <div className="text-sm text-muted-foreground">{t('home.stats.gradesDesc')}</div>
+            <div className="relative">
+              <div className="flex flex-wrap justify-center gap-3 mb-16">
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
+                  <span className="text-sm font-medium text-primary">{t('home.stats.grades')}</span>
+                  <span className="text-xs text-muted-foreground">{t('home.stats.gradesDesc')}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
+                  <span className="text-sm font-medium text-primary">{t('home.stats.subjects')}</span>
+                  <span className="text-xs text-muted-foreground">{t('home.stats.subjectsDesc')}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
+                  <span className="text-sm font-medium text-primary">{t('home.stats.available')}</span>
+                  <span className="text-xs text-muted-foreground">{t('home.stats.availableDesc')}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
+                  <span className="text-sm font-medium text-primary">{t('home.stats.feedback')}</span>
+                  <span className="text-xs text-muted-foreground">{t('home.stats.feedbackDesc')}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
+                  <span className="text-sm font-medium text-primary">{t('home.stats.adaptive')}</span>
+                  <span className="text-xs text-muted-foreground">{t('home.stats.adaptiveDesc')}</span>
+                </div>
+              </div>
             </div>
-            <div className="text-center space-y-2 p-6 bg-card border border-border rounded-2xl hover:shadow-md transition-shadow">
-              <div className="text-2xl font-bold text-primary">{t('home.stats.available')}</div>
-              <div className="text-sm text-muted-foreground">{t('home.stats.availableDesc')}</div>
-            </div>
-            <div className="text-center space-y-2 p-6 bg-card border border-border rounded-2xl hover:shadow-md transition-shadow">
-              <div className="text-2xl font-bold text-primary">{t('home.stats.subjects')}</div>
-              <div className="text-sm text-muted-foreground">{t('home.stats.subjectsDesc')}</div>
-            </div>
-            <div className="text-center space-y-2 p-6 bg-card border border-border rounded-2xl hover:shadow-md transition-shadow">
-              <div className="text-2xl font-bold text-primary">{t('home.stats.feedback')}</div>
-              <div className="text-sm text-muted-foreground">{t('home.stats.feedbackDesc')}</div>
-            </div>
-            <div className="text-center space-y-2 p-6 bg-card border border-border rounded-2xl hover:shadow-md transition-shadow">
-              <div className="text-2xl font-bold text-primary">{t('home.stats.adaptive')}</div>
-              <div className="text-sm text-muted-foreground">{t('home.stats.adaptiveDesc')}</div>
-            </div>
-          </div>
 
-          <div className="text-center">
-            <Button 
-              size="lg"
-              onClick={() => navigate('/auth')}
-              className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-            >
-              {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            <div className="text-center">
+              <Button 
+                size="lg"
+                onClick={() => navigate('/auth')}
+                className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+              >
+                {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
