@@ -148,32 +148,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Experience Section */}
-      <section className="py-20 md:py-32 bg-muted/30">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="space-y-6 p-12 bg-card border border-border rounded-3xl shadow-lg">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                Experience the Future Today
-              </h2>
-              
-              <p className="text-lg md:text-xl text-muted-foreground">
-                Our cutting-edge AI learning platform is designed to transform how students interact with education in any environment.
-              </p>
-              
-              <div className="space-y-4 pt-6">
-                <h3 className="text-2xl font-semibold text-foreground">
-                  Next Generation Learning
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Built with precision AI and sophisticated pedagogy, Teachly seamlessly integrates into various environments, from homes to schools, providing personalized assistance and enriching educational experiences.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Advanced Features Section */}
       <section className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-6">
