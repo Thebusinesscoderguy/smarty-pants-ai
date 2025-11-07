@@ -181,7 +181,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       {/* Show role selector if user is authenticated */}
@@ -190,9 +190,9 @@ const Auth = () => {
       ) : (
         <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
           <div className="w-full max-w-md mx-auto">
-            <Card className="glass-dark shadow-2xl rounded-2xl overflow-hidden border-white/10">
-              <CardHeader className="text-center pb-6 bg-gradient-to-b from-white/5 to-transparent">
-                <CardTitle className="text-2xl font-bold gradient-text mb-3">
+            <Card className="shadow-lg rounded-2xl overflow-hidden border-border bg-card">
+              <CardHeader className="text-center pb-6">
+                <CardTitle className="text-2xl font-bold text-foreground mb-3">
                   {t('auth.welcome')}
                 </CardTitle>
                 <p className="text-muted-foreground text-sm leading-relaxed">
@@ -356,10 +356,10 @@ const Auth = () => {
                 
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-white/15" />
+                    <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-card px-3 text-white/50 font-medium">{t('auth.or')}</span>
+                    <span className="bg-card px-3 text-muted-foreground font-medium">{t('auth.or')}</span>
                   </div>
                 </div>
                 
@@ -453,10 +453,10 @@ const Auth = () => {
                 
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-white/15" />
+                    <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-card px-3 text-white/50 font-medium">or</span>
+                    <span className="bg-card px-3 text-muted-foreground font-medium">or</span>
                   </div>
                 </div>
                 
