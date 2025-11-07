@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudentProgress {
   id: string;
@@ -44,6 +45,7 @@ interface QuestWithProgress {
 
 export const ParentDashboard = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -185,7 +187,7 @@ export const ParentDashboard = () => {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading student progress...</p>
+          <p>{t('parentDashboard.loading')}</p>
         </div>
       </div>
     );
@@ -197,8 +199,8 @@ export const ParentDashboard = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Parent Dashboard</h1>
-          <p className="text-white/70">Monitor your children's learning progress and achievements</p>
+          <h1 className="text-3xl font-bold mb-2">{t('parentDashboard.title')}</h1>
+          <p className="text-white/70">{t('parentDashboard.subtitle')}</p>
         </div>
 
         {students.length === 0 ? (
@@ -206,10 +208,10 @@ export const ParentDashboard = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
-                No Students Connected
+                {t('parentDashboard.noStudents')}
               </CardTitle>
               <CardDescription className="text-white/70">
-                You haven't added any children yet. Go to Settings to add your children by name and grade.
+                {t('parentDashboard.noStudentsDesc')}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -220,22 +222,22 @@ export const ParentDashboard = () => {
                 <CardHeader>
                   <CardTitle className="text-white">{student.name}</CardTitle>
                   <CardDescription className="text-white/70">
-                    Grade: {student.lastActivity}
+                    {t('parentDashboard.grade')}: {student.lastActivity}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-400">{student.questProgress.totalActive}</div>
-                      <div className="text-sm text-white/70">Active Quests</div>
+                      <div className="text-sm text-white/70">{t('parentDashboard.activeQuests')}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-400">{student.questProgress.totalCompleted}</div>
-                      <div className="text-sm text-white/70">Completed Quests</div>
+                      <div className="text-sm text-white/70">{t('parentDashboard.completedQuests')}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-orange-400">{student.totalStudyTime}</div>
-                      <div className="text-sm text-white/70">Study Minutes</div>
+                      <div className="text-sm text-white/70">{t('parentDashboard.studyMinutes')}</div>
                     </div>
                   </div>
 
@@ -244,7 +246,7 @@ export const ParentDashboard = () => {
                     <div className="mb-6">
                       <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
                         <Target className="h-4 w-4 text-blue-400" />
-                        Active Quest Progress
+                        {t('parentDashboard.activeQuestProgress')}
                       </h4>
                       <div className="space-y-4">
                         {student.questProgress.activeQuests.slice(0, 5).map((quest) => (
@@ -262,13 +264,13 @@ export const ParentDashboard = () => {
                                   ${quest.type === 'monthly' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : ''}
                                 `}
                               >
-                                {quest.type}
+                                {t(`parentDashboard.${quest.type}`)}
                               </Badge>
                             </div>
                             <div className="space-y-2">
                               <div className="flex justify-between text-sm">
                                 <span className="text-white/70">
-                                  Progress: {quest.current_value} / {quest.target_value}
+                                  {t('parentDashboard.progress')}: {quest.current_value} / {quest.target_value}
                                 </span>
                                 <span className="text-white font-medium">
                                   {quest.progress_percentage}%
@@ -285,7 +287,7 @@ export const ParentDashboard = () => {
                       
                       {student.questProgress.activeQuests.length > 5 && (
                         <p className="text-white/50 text-sm mt-2 text-center">
-                          +{student.questProgress.activeQuests.length - 5} more quests...
+                          +{student.questProgress.activeQuests.length - 5} {t('common.more')} {t('parentDashboard.activeQuests').toLowerCase()}...
                         </p>
                       )}
                     </div>
@@ -296,7 +298,7 @@ export const ParentDashboard = () => {
                     <div className="mb-6">
                       <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-green-400" />
-                        Recently Completed Quests
+                        {t('parentDashboard.recentlyCompleted')}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {student.questProgress.completedQuests.slice(0, 3).map((quest) => (
@@ -316,7 +318,7 @@ export const ParentDashboard = () => {
                     <div>
                       <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-green-400" />
-                        Strong Areas
+                        {t('parentDashboard.strongAreas')}
                       </h4>
                       {student.strongAreas.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
@@ -327,14 +329,14 @@ export const ParentDashboard = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/50 text-sm">No strong areas identified yet</p>
+                        <p className="text-white/50 text-sm">{t('parentDashboard.noStrongAreas')}</p>
                       )}
                     </div>
 
                     <div>
                       <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
                         <Target className="h-4 w-4 text-orange-400" />
-                        Areas for Improvement
+                        {t('parentDashboard.areasForImprovement')}
                       </h4>
                       {student.weakAreas.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
@@ -345,13 +347,13 @@ export const ParentDashboard = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/50 text-sm">No weak areas identified</p>
+                        <p className="text-white/50 text-sm">{t('parentDashboard.noWeakAreas')}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-6 pt-6 border-t border-white/10">
-                    <h4 className="text-white font-semibold mb-3">Current Subjects</h4>
+                    <h4 className="text-white font-semibold mb-3">{t('parentDashboard.currentSubjects')}</h4>
                     {student.currentSubjects.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {student.currentSubjects.map((subject) => (
@@ -361,7 +363,7 @@ export const ParentDashboard = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-white/50 text-sm">No subjects being studied yet</p>
+                      <p className="text-white/50 text-sm">{t('parentDashboard.noSubjects')}</p>
                     )}
                   </div>
                 </CardContent>

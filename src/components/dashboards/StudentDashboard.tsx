@@ -18,10 +18,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const StudentDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [stats, setStats] = useState({
     totalQuizzes: 0,
     averageScore: 0,
@@ -90,22 +92,22 @@ export const StudentDashboard = () => {
 
   const quickActions = [
     {
-      title: "Start AI Chat",
-      description: "Get help with homework or learn something new",
+      title: t('studentDashboard.startAIChat'),
+      description: t('studentDashboard.startAIChatDesc'),
       icon: MessageSquare,
       color: "from-blue-500 to-cyan-500",
       action: () => navigate("/chat")
     },
     {
-      title: "Take a Quiz",
-      description: "Test your knowledge and earn points",
+      title: t('studentDashboard.takeQuiz'),
+      description: t('studentDashboard.takeQuizDesc'),
       icon: BookOpen,
       color: "from-purple-500 to-pink-500",
       action: () => navigate("/quiz-generator")
     },
     {
-      title: "Math Solver",
-      description: "Upload and solve math problems",
+      title: t('studentDashboard.mathSolver'),
+      description: t('studentDashboard.mathSolverDesc'),
       icon: Target,
       color: "from-green-500 to-emerald-500",
       action: () => navigate("/math-solver")
@@ -118,8 +120,8 @@ export const StudentDashboard = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, Student! 🚀</h1>
-          <p className="text-white/70">Ready to continue your learning adventure?</p>
+          <h1 className="text-3xl font-bold mb-2">{t('studentDashboard.welcome')}</h1>
+          <p className="text-white/70">{t('studentDashboard.subtitle')}</p>
         </div>
 
         {/* Stats Grid */}
@@ -127,14 +129,14 @@ export const StudentDashboard = () => {
           <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 backdrop-blur-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-blue-400">{stats.totalQuizzes}</div>
-              <div className="text-sm text-white/70">Quizzes Completed</div>
+              <div className="text-sm text-white/70">{t('studentDashboard.quizzesCompleted')}</div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/30 backdrop-blur-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-400">{stats.averageScore}%</div>
-              <div className="text-sm text-white/70">Average Score</div>
+              <div className="text-sm text-white/70">{t('studentDashboard.averageScore')}</div>
             </CardContent>
           </Card>
           
@@ -142,7 +144,7 @@ export const StudentDashboard = () => {
           <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30 backdrop-blur-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-orange-400">{stats.studyStreak}</div>
-              <div className="text-sm text-white/70">Day Streak</div>
+              <div className="text-sm text-white/70">{t('studentDashboard.dayStreak')}</div>
             </CardContent>
           </Card>
         </div>
@@ -152,10 +154,10 @@ export const StudentDashboard = () => {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-400" />
-              Quick Actions
+              {t('studentDashboard.quickActions')}
             </CardTitle>
             <CardDescription className="text-white/70">
-              Jump into learning with these popular activities
+              {t('studentDashboard.quickActionsDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -183,10 +185,10 @@ export const StudentDashboard = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-400" />
-                Weekly Progress
+                {t('studentDashboard.weeklyProgress')}
               </CardTitle>
               <CardDescription className="text-white/70">
-                {stats.weeklyProgress} / {stats.weeklyGoal} minutes this week
+                {stats.weeklyProgress} / {stats.weeklyGoal} {t('studentDashboard.weeklyProgress')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -195,7 +197,7 @@ export const StudentDashboard = () => {
                 className="mb-4"
               />
               <p className="text-sm text-white/70">
-                Great job! You're {Math.round((stats.weeklyProgress / stats.weeklyGoal) * 100)}% towards your weekly goal.
+                {t('studentDashboard.weeklyGoalProgress').replace('{percent}', Math.round((stats.weeklyProgress / stats.weeklyGoal) * 100).toString())}
               </p>
             </CardContent>
           </Card>
@@ -208,7 +210,7 @@ export const StudentDashboard = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Target className="h-5 w-5 text-orange-400" />
-                Active Quests
+                {t('studentDashboard.activeQuests')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -216,12 +218,12 @@ export const StudentDashboard = () => {
                 {activeQuests.map((quest, index) => (
                   <div key={index} className="p-4 rounded-lg bg-white/5 border border-white/10">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-white">{quest.quests?.title || 'Quest'}</h4>
+                      <h4 className="font-semibold text-white">{quest.quests?.title || t('studentDashboard.questDefault')}</h4>
                       <Badge variant="outline" className="border-orange-500/30 text-orange-400">
                         {quest.current_value || 0} / {quest.quests?.target_value || 1}
                       </Badge>
                     </div>
-                    <p className="text-sm text-white/70 mb-3">{quest.quests?.description || 'Complete this quest to earn rewards!'}</p>
+                    <p className="text-sm text-white/70 mb-3">{quest.quests?.description || t('studentDashboard.questDefaultDesc')}</p>
                     <Progress 
                       value={((quest.current_value || 0) / (quest.quests?.target_value || 1)) * 100} 
                       className="h-2"
