@@ -184,37 +184,37 @@ const Index = () => {
       </section>
 
       {/* Features Detail Section */}
-      <section className="py-20 md:py-32 bg-background">
+      <section className="py-16 md:py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-16 text-center">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-xl md:text-2xl text-foreground mb-8 text-center font-medium">
               {t('home.tagline')}
-            </h2>
+            </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16">
-              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.grades')}</div>
-                <div className="text-sm text-muted-foreground text-center">{t('home.stats.gradesDesc')}</div>
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
+                <span className="text-lg font-bold text-primary">{t('home.stats.grades')}</span>
+                <span className="text-sm text-muted-foreground">{t('home.stats.gradesDesc')}</span>
               </div>
               
-              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.subjects')}</div>
-                <div className="text-sm text-muted-foreground text-center">{t('home.stats.subjectsDesc')}</div>
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
+                <span className="text-lg font-bold text-primary">{t('home.stats.subjects')}</span>
+                <span className="text-sm text-muted-foreground">{t('home.stats.subjectsDesc')}</span>
               </div>
               
-              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.available')}</div>
-                <div className="text-sm text-muted-foreground text-center">{t('home.stats.availableDesc')}</div>
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
+                <span className="text-lg font-bold text-primary">{t('home.stats.available')}</span>
+                <span className="text-sm text-muted-foreground">{t('home.stats.availableDesc')}</span>
               </div>
               
-              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.feedback')}</div>
-                <div className="text-sm text-muted-foreground text-center">{t('home.stats.feedbackDesc')}</div>
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
+                <span className="text-lg font-bold text-primary">{t('home.stats.feedback')}</span>
+                <span className="text-sm text-muted-foreground">{t('home.stats.feedbackDesc')}</span>
               </div>
               
-              <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="text-3xl font-bold text-primary mb-2">{t('home.stats.adaptive')}</div>
-                <div className="text-sm text-muted-foreground text-center">{t('home.stats.adaptiveDesc')}</div>
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
+                <span className="text-lg font-bold text-primary">{t('home.stats.adaptive')}</span>
+                <span className="text-sm text-muted-foreground">{t('home.stats.adaptiveDesc')}</span>
               </div>
             </div>
 
