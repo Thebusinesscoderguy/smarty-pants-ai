@@ -10,7 +10,10 @@ import QuizTaker from './QuizTaker';
 import QuizResults from './QuizResults';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export const QuizLibrary = () => {
+  const { t } = useLanguage();
   const { quizzes, fetchQuizzes, deleteQuiz } = useQuizGenerator();
   const [open, setOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -51,7 +54,7 @@ export const QuizLibrary = () => {
   };
 
   const handleDelete = async (quizId: string) => {
-    if (confirm('Are you sure you want to delete this quiz?')) {
+    if (confirm(t('quizLibrary.deleteConfirm'))) {
       await deleteQuiz(quizId);
     }
   };
@@ -61,8 +64,8 @@ export const QuizLibrary = () => {
       <Card>
         <CardContent className="py-8 text-center">
           <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No quizzes yet</h3>
-          <p className="text-gray-500">Generate your first quiz to get started!</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('quizLibrary.noQuizzes')}</h3>
+          <p className="text-gray-500">{t('quizLibrary.noQuizzesDesc')}</p>
         </CardContent>
       </Card>
     );
@@ -71,8 +74,8 @@ export const QuizLibrary = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Your Quiz Library</h2>
-        <Badge variant="outline">{quizzes.length} quizzes</Badge>
+        <h2 className="text-xl font-semibold">{t('quizLibrary.title')}</h2>
+        <Badge variant="outline">{t('quizLibrary.quizzes').replace('{count}', quizzes.length.toString())}</Badge>
       </div>
       
       <div className="grid gap-4">
@@ -100,22 +103,22 @@ export const QuizLibrary = () => {
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600 space-y-1">
                   <div>
-                    Question types: {[...new Set(quiz.questions.map(q => q.type.replace('_', ' ')))].join(', ')}
+                    {t('quizLibrary.questionTypes')}: {[...new Set(quiz.questions.map(q => q.type.replace('_', ' ')))].join(', ')}
                   </div>
                   {attempts[quiz.id!] && (
                     <div>
-                      Last score: {attempts[quiz.id!].score}/{attempts[quiz.id!].total}
+                      {t('quizLibrary.lastScore')}: {attempts[quiz.id!].score}/{attempts[quiz.id!].total}
                     </div>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setSelectedQuiz(quiz); setMode('take'); setOpen(true); }}>
                     <Play className="h-4 w-4 mr-1" />
-                    Take Quiz
+                    {t('quizLibrary.takeQuiz')}
                   </Button>
                   {attempts[quiz.id!] && (
                     <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setSelectedQuiz(quiz); setMode('results'); setOpen(true); }}>
-                      View Results
+                      {t('quizLibrary.viewResults')}
                     </Button>
                   )}
                   <Button 
@@ -137,7 +140,7 @@ export const QuizLibrary = () => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {mode === 'take' ? (selectedQuiz?.title ?? 'Take Quiz') : (selectedQuiz?.title ? `${selectedQuiz.title} – Results` : 'Results')}
+              {mode === 'take' ? (selectedQuiz?.title ?? t('quizLibrary.takeQuiz')) : (selectedQuiz?.title ? `${selectedQuiz.title} – ${t('quizLibrary.results')}` : t('quizLibrary.results'))}
             </DialogTitle>
           </DialogHeader>
           {selectedQuiz && (

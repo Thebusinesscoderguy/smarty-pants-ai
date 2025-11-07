@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import StudyPlanDaySelector from './StudyPlanDaySelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudyPlan {
   id: string;
@@ -23,6 +24,7 @@ interface StudyPlan {
 }
 
 export const StudyPlanLibrary = () => {
+  const { t } = useLanguage();
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStudyPlan, setSelectedStudyPlan] = useState<StudyPlan | null>(null);
@@ -35,8 +37,8 @@ export const StudyPlanLibrary = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to view your study plans",
+          title: t('studyPlanLibrary.authRequired'),
+          description: t('studyPlanLibrary.loginToView'),
           variant: "destructive"
         });
         return;
@@ -60,8 +62,8 @@ export const StudyPlanLibrary = () => {
     } catch (error: any) {
       console.error('Error fetching study plans:', error);
       toast({
-        title: "Failed to load study plans",
-        description: error.message || "Please try again",
+        title: t('studyPlanLibrary.failedToLoad'),
+        description: error.message || t('studyPlan.tryAgain'),
         variant: "destructive"
       });
     } finally {
@@ -97,8 +99,8 @@ export const StudyPlanLibrary = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to start your study plan",
+          title: t('studyPlanLibrary.authRequired'),
+          description: t('studyPlan.signInToSave'),
           variant: "destructive"
         });
         navigate('/auth');
@@ -120,8 +122,8 @@ export const StudyPlanLibrary = () => {
       localStorage.setItem('active_study_plan_id', studyPlan.id);
       
       toast({
-        title: "Study plan started!",
-        description: `Beginning your ${studyPlan.title} journey`
+        title: t('studyPlan.planStarted'),
+        description: t('studyPlan.beginningJourney').replace('{title}', studyPlan.title)
       });
 
       // Navigate to the first lesson
@@ -129,15 +131,15 @@ export const StudyPlanLibrary = () => {
     } catch (error: any) {
       console.error('Error starting study plan:', error);
       toast({
-        title: "Failed to start study plan",
-        description: error.message || "Please try again",
+        title: t('studyPlan.failedToStart'),
+        description: error.message || t('studyPlan.tryAgain'),
         variant: "destructive"
       });
     }
   };
 
   const handleDeleteStudyPlan = async (planId: string) => {
-    if (!confirm('Are you sure you want to delete this study plan? This action cannot be undone.')) {
+    if (!confirm(t('studyPlanLibrary.deleteConfirm'))) {
       return;
     }
 
@@ -150,8 +152,8 @@ export const StudyPlanLibrary = () => {
       if (error) throw error;
       
       toast({
-        title: "Study plan deleted",
-        description: "The study plan has been removed from your collection"
+        title: t('studyPlanLibrary.planDeleted'),
+        description: t('studyPlanLibrary.failedToDelete')
       });
 
       // Refresh the list
@@ -159,8 +161,8 @@ export const StudyPlanLibrary = () => {
     } catch (error: any) {
       console.error('Error deleting study plan:', error);
       toast({
-        title: "Failed to delete study plan",
-        description: error.message || "Please try again",
+        title: t('studyPlanLibrary.failedToDelete'),
+        description: error.message || t('studyPlan.tryAgain'),
         variant: "destructive"
       });
     }
@@ -179,8 +181,8 @@ export const StudyPlanLibrary = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to start your study plan",
+          title: t('studyPlanLibrary.authRequired'),
+          description: t('studyPlan.signInToSave'),
           variant: "destructive"
         });
         navigate('/auth');
@@ -218,8 +220,8 @@ export const StudyPlanLibrary = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to continue your study plan",
+          title: t('studyPlanLibrary.authRequired'),
+          description: t('studyPlanLibrary.loginToView'),
           variant: "destructive"
         });
         navigate('/auth');
@@ -249,7 +251,7 @@ export const StudyPlanLibrary = () => {
       <Card>
         <CardContent className="py-8 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your study plans...</p>
+          <p className="text-muted-foreground">{t('parentDashboard.loading')}</p>
         </CardContent>
       </Card>
     );
@@ -260,8 +262,8 @@ export const StudyPlanLibrary = () => {
       <Card>
         <CardContent className="py-8 text-center">
           <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">No study plans yet</h3>
-          <p className="text-muted-foreground">Generate your first study plan to get started!</p>
+          <h3 className="text-lg font-medium mb-2">{t('studyPlanLibrary.noPlans')}</h3>
+          <p className="text-muted-foreground">{t('studyPlanLibrary.noPlansDesc')}</p>
         </CardContent>
       </Card>
     );
@@ -270,8 +272,8 @@ export const StudyPlanLibrary = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Your Study Plan Collection</h2>
-        <Badge variant="outline">{studyPlans.length} plans</Badge>
+        <h2 className="text-xl font-semibold">{t('studyPlanLibrary.title')}</h2>
+        <Badge variant="outline">{t('studyPlanLibrary.plans').replace('{count}', studyPlans.length.toString())}</Badge>
       </div>
       
       <div className="grid gap-4">
@@ -326,12 +328,12 @@ export const StudyPlanLibrary = () => {
                   <div className="flex items-center gap-2 pt-2">
                     {isStarted ? (
                       <>
-                        <Button
+                         <Button
                           onClick={() => handleContinueStudyPlan(plan)}
                           className="flex-1"
                         >
                           <Play className="mr-2 h-4 w-4" />
-                          Continue Learning
+                          {t('studyPlanLibrary.continuePlan')}
                         </Button>
                         <Button
                           variant="outline"
@@ -339,7 +341,7 @@ export const StudyPlanLibrary = () => {
                           className="px-3"
                         >
                           <List className="mr-2 h-4 w-4" />
-                          View Index
+                          {t('studyPlanLibrary.viewPlan')}
                         </Button>
                       </>
                     ) : (
@@ -349,7 +351,7 @@ export const StudyPlanLibrary = () => {
                           className="flex-1"
                         >
                           <Play className="mr-2 h-4 w-4" />
-                          Start Plan
+                          {t('studyPlanLibrary.startPlan')}
                         </Button>
                         <Button
                           variant="outline"
@@ -357,7 +359,7 @@ export const StudyPlanLibrary = () => {
                           className="px-3"
                         >
                           <List className="mr-2 h-4 w-4" />
-                          View Index
+                          {t('studyPlanLibrary.viewPlan')}
                         </Button>
                       </>
                     )}

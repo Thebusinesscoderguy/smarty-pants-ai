@@ -44,77 +44,77 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   const handleGenerateQuiz = async () => {
     let quiz: Quiz | null = null;
 
-    switch (inputMethod) {
-      case 'manual':
-        quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
-        break;
-      
-      case 'file':
-        if (uploadType === 'graded_quiz' && generationOption) {
-          // Apply selected generation option on submit
-          if ((generationOption === 'same_questions' || generationOption === 'similar_quiz') && !uploadedFile) {
-            toast({ title: 'Error', description: 'Please upload your graded quiz first.', variant: 'destructive' });
-            return;
-          }
+      switch (inputMethod) {
+        case 'manual':
+          quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
+          break;
+        
+        case 'file':
+          if (uploadType === 'graded_quiz' && generationOption) {
+            // Apply selected generation option on submit
+            if ((generationOption === 'same_questions' || generationOption === 'similar_quiz') && !uploadedFile) {
+              toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorDesc'), variant: 'destructive' });
+              return;
+            }
 
-          switch (generationOption) {
-            case 'same_questions':
-              quiz = await extractQuizFromFile(uploadedFile as File, {
-                difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                questionCount: 5,
-                gradeLevel,
-              });
-              break;
-            case 'mistakes_only':
-              quiz = await quizFromLatestMistakes();
-              break;
-            case 'questions_like_mistakes':
-              quiz = await quizFromLatestMistakes({ targetCount: 10 });
-              break;
-            case 'mistakes_similar':
-              quiz = await quizFromLatestMistakes({ targetCount: 10 });
-              break;
-            case 'similar_quiz':
-              quiz = await extractQuizFromFile(uploadedFile as File, {
-                difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
-                questionCount: 10,
-                gradeLevel,
-              });
-              break;
-            default:
-              // Fallback to default extraction if none selected
-              if (!uploadedFile) {
-                toast({ title: 'Error', description: 'Please upload a file first.', variant: 'destructive' });
-                return;
-              }
-              quiz = await extractQuizFromFile(uploadedFile, { difficulty, questionCount, gradeLevel });
-              break;
+            switch (generationOption) {
+              case 'same_questions':
+                quiz = await extractQuizFromFile(uploadedFile as File, {
+                  difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                  questionCount: 5,
+                  gradeLevel,
+                });
+                break;
+              case 'mistakes_only':
+                quiz = await quizFromLatestMistakes();
+                break;
+              case 'questions_like_mistakes':
+                quiz = await quizFromLatestMistakes({ targetCount: 10 });
+                break;
+              case 'mistakes_similar':
+                quiz = await quizFromLatestMistakes({ targetCount: 10 });
+                break;
+              case 'similar_quiz':
+                quiz = await extractQuizFromFile(uploadedFile as File, {
+                  difficulty: quizDifficulty === 'easier' ? 'easy' : quizDifficulty === 'harder' ? 'hard' : 'medium',
+                  questionCount: 10,
+                  gradeLevel,
+                });
+                break;
+              default:
+                // Fallback to default extraction if none selected
+                if (!uploadedFile) {
+                  toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorDesc'), variant: 'destructive' });
+                  return;
+                }
+                quiz = await extractQuizFromFile(uploadedFile, { difficulty, questionCount, gradeLevel });
+                break;
+            }
+          } else {
+            if (!uploadedFile) {
+              toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorDesc'), variant: 'destructive' });
+              return;
+            }
+            quiz = await extractQuizFromFile(uploadedFile, {
+              difficulty,
+              questionCount,
+              gradeLevel,
+            });
           }
-        } else {
-          if (!uploadedFile) {
-            toast({ title: 'Error', description: 'Please upload a file first.', variant: 'destructive' });
+          break;
+        
+        case 'ai':
+          if (!customInstructions.trim()) {
+            toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorInstructions'), variant: 'destructive' });
             return;
           }
-          quiz = await extractQuizFromFile(uploadedFile, {
-            difficulty,
-            questionCount,
-            gradeLevel,
-          });
-        }
-        break;
-      
-      case 'ai':
-        if (!customInstructions.trim()) {
-          toast({ title: 'Error', description: 'Please provide AI instructions.', variant: 'destructive' });
+          quiz = await generateQuiz(customInstructions, difficulty, questionCount, conversationHistory, gradeLevel);
+          break;
+        
+        default:
+          toast({ title: t('quizGenerator.error'), description: t('quizGenerator.invalidMethod'), variant: 'destructive' });
           return;
-        }
-        quiz = await generateQuiz(customInstructions, difficulty, questionCount, conversationHistory, gradeLevel);
-        break;
-      
-      default:
-        toast({ title: 'Error', description: 'Invalid input method selected.', variant: 'destructive' });
-        return;
-    }
+      }
 
     if (quiz) {
       setGeneratedQuiz(quiz);
@@ -140,9 +140,9 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
       const quiz = await retakeLatestQuiz();
       if (!quiz) return;
       const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Retake)` });
-      if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+      if (savedId) toast({ title: t('quizGenerator.saved'), description: t('quizGenerator.retakeSaved') });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('quizGenerator.failed'), description: e?.message || t('studyPlan.tryAgain'), variant: 'destructive' });
     } finally {
       setCreatingPractice(false);
     }
@@ -154,9 +154,9 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
       const quiz = await quizFromLatestMistakes();
       if (!quiz) return;
       const savedId = await saveQuiz(quiz);
-      if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+      if (savedId) toast({ title: t('quizGenerator.saved'), description: 'Mistakes-only quiz saved to your Library.' });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('quizGenerator.failed'), description: e?.message || t('studyPlan.tryAgain'), variant: 'destructive' });
     } finally {
       setCreatingPractice(false);
     }
@@ -168,9 +168,9 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
       const quiz = await quizFromLatestMistakes({ targetCount: 10 });
       if (!quiz) return;
       const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
-      if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+      if (savedId) toast({ title: t('quizGenerator.saved'), description: 'Mistakes + similar questions quiz saved to your Library.' });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('quizGenerator.failed'), description: e?.message || t('studyPlan.tryAgain'), variant: 'destructive' });
     } finally {
       setCreatingPractice(false);
     }

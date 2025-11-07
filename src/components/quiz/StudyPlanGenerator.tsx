@@ -15,6 +15,7 @@ import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudyPlan {
   id: string;
@@ -39,6 +40,7 @@ interface DailyLesson {
 }
 
 export const StudyPlanGenerator = () => {
+  const { t } = useLanguage();
   const [inputMethod, setInputMethod] = useState<'file' | 'chat' | 'topic'>('file');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
@@ -89,7 +91,7 @@ export const StudyPlanGenerator = () => {
     if (plan) {
       setGeneratedPlan(plan);
     } else {
-      toast({ title: 'Could not generate plan', description: 'Please try again in a moment.', variant: 'destructive' });
+      toast({ title: t('studyPlan.couldNotGenerate'), description: t('studyPlan.tryAgain'), variant: 'destructive' });
     }
   };
 
@@ -101,13 +103,13 @@ export const StudyPlanGenerator = () => {
       
       if (authError) {
         console.error('Auth error:', authError);
-        toast({ title: 'Authentication error', description: 'Please sign in again.', variant: 'destructive' });
+        toast({ title: t('studyPlan.authError'), description: t('studyPlan.signInAgain'), variant: 'destructive' });
         return;
       }
       
       const userId = userData?.user?.id;
       if (!userId) {
-        toast({ title: 'Sign in required', description: 'Please sign in to save your study plan.', variant: 'destructive' });
+        toast({ title: t('studyPlan.signInRequired'), description: t('studyPlan.signInToSave'), variant: 'destructive' });
         return;
       }
 
@@ -135,14 +137,14 @@ export const StudyPlanGenerator = () => {
 
       console.log('Study plan saved successfully:', data);
       toast({ 
-        title: 'Success', 
-        description: 'Study plan has been saved',
+        title: t('studyPlan.success'), 
+        description: t('studyPlan.planSaved'),
       });
     } catch (e: any) {
       console.error('Save error details:', e);
       toast({ 
-        title: 'Failed to Save', 
-        description: e?.message || 'Unable to save study plan. Please check your connection and try again.', 
+        title: t('studyPlan.failedToSave'), 
+        description: e?.message || t('studyPlan.checkConnection'), 
         variant: 'destructive' 
       });
     } finally {
@@ -157,7 +159,7 @@ export const StudyPlanGenerator = () => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       if (!userId) {
-        toast({ title: 'Sign in required', description: 'Please sign in to start your study plan.' });
+        toast({ title: t('studyPlan.signInRequired'), description: t('studyPlan.signInToSave') });
         return;
       }
       const { data, error } = await supabase
@@ -185,9 +187,9 @@ export const StudyPlanGenerator = () => {
         // Navigate to the learning module
         navigate(`/modules`);
       }
-      toast({ title: 'Plan started', description: 'Beginning your personalized learning journey!' });
+      toast({ title: t('studyPlan.planStarted'), description: t('studyPlan.beginningJourney').replace('{title}', generatedPlan.title) });
     } catch (e: any) {
-      toast({ title: 'Failed to start', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('studyPlan.failedToStart'), description: e?.message || t('studyPlan.tryAgain'), variant: 'destructive' });
     } finally {
       setStarting(false);
     }

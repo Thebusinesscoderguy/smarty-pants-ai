@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface QuizTakerProps {
   quiz: Quiz;
@@ -25,6 +26,7 @@ function isCorrectAnswer(selected: string | null, correct: string | undefined | 
 }
 
 export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
+  const { t } = useLanguage();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -100,8 +102,8 @@ const startTimeRef = useRef<number>(Date.now());
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
         toast({
-          title: 'Result calculated',
-          description: `You scored ${score}/${total}. Log in to save your result.`,
+          title: t('quizTaker.resultCalculated'),
+          description: t('quizTaker.scoreDesc').replace('{score}', score.toString()).replace('{total}', total.toString()),
         });
         onComplete({ score, total, saved: false });
         return;
@@ -119,12 +121,12 @@ const startTimeRef = useRef<number>(Date.now());
 
       if (error) {
         console.error('Failed to save attempt:', error);
-        toast({ title: 'Attempt not saved', description: 'Your score was not saved. Please try again.' });
+        toast({ title: t('quizTaker.attemptNotSaved'), description: t('quizTaker.scoreNotSaved') });
         onComplete({ score, total, saved: false });
         return;
       }
 
-      toast({ title: 'Quiz saved', description: `Score: ${score}/${total}` });
+      toast({ title: t('quizTaker.quizSaved'), description: t('quizTaker.scoreResult').replace('{score}', score.toString()).replace('{total}', total.toString()) });
       onComplete({ score, total, saved: true });
     } finally {
       setSubmitting(false);
@@ -134,7 +136,7 @@ const startTimeRef = useRef<number>(Date.now());
   if (!current) {
     return (
       <Card>
-        <CardContent className="py-8 text-center">No questions in this quiz.</CardContent>
+        <CardContent className="py-8 text-center">{t('quizTaker.noQuestions')}</CardContent>
       </Card>
     );
   }
@@ -153,7 +155,7 @@ const startTimeRef = useRef<number>(Date.now());
   return (
     <div className="space-y-4">
       <div>
-        <div className="mb-2 text-sm">Question {index + 1} of {questions.length}</div>
+        <div className="mb-2 text-sm">{t('quizTaker.progress').replace('{current}', (index + 1).toString()).replace('{total}', questions.length.toString())}</div>
         <Progress value={progress} />
       </div>
 
@@ -163,12 +165,12 @@ const startTimeRef = useRef<number>(Date.now());
 
       {qType === 'short_answer' ? (
         <div className="space-y-2">
-          <Label htmlFor="short-answer">Your Answer</Label>
+          <Label htmlFor="short-answer">{t('quizTaker.shortAnswer')}</Label>
           <Input
             id="short-answer"
             value={selected}
             onChange={(e) => handleSelect(qid, e.target.value)}
-            placeholder="Type your answer"
+            placeholder={t('quizTaker.typeAnswer')}
           />
         </div>
       ) : (
@@ -183,12 +185,12 @@ const startTimeRef = useRef<number>(Date.now());
       )}
 
       <div className="flex justify-between pt-2">
-        <Button variant="outline" onClick={goPrev} disabled={index === 0}>Previous</Button>
+        <Button variant="outline" onClick={goPrev} disabled={index === 0}>{t('quizTaker.previous')}</Button>
         {index < questions.length - 1 ? (
-          <Button onClick={goNext}>Next</Button>
+          <Button onClick={goNext}>{t('quizTaker.next')}</Button>
         ) : (
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit Quiz'}
+            {submitting ? t('quizTaker.submitting') : t('quizTaker.submit')}
           </Button>
         )}
       </div>
