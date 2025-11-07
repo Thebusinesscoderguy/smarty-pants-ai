@@ -60,7 +60,7 @@ const Progress = () => {
   };
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-2 bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10">
+    <div className="flex items-center space-x-2 bg-muted/50 rounded-xl p-2 backdrop-blur-sm border border-border">
       <Button
         variant={currentPage === 'chat' ? 'default' : 'ghost'}
         size="sm"
@@ -68,7 +68,7 @@ const Progress = () => {
           setCurrentPage('chat');
           navigate('/chat');
         }}
-        className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200`}
+        className={`${currentPage === 'chat' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200`}
       >
         <MessageSquare className="h-4 w-4 mr-2" />
         Chat
@@ -77,7 +77,7 @@ const Progress = () => {
         variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setCurrentPage('monitoring')}
-        className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200`}
+        className={`${currentPage === 'monitoring' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200`}
       >
         <BarChart3 className="h-4 w-4 mr-2" />
         Dashboard
@@ -89,7 +89,7 @@ const Progress = () => {
           setCurrentPage('settings');
           navigate('/settings');
         }}
-        className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200`}
+        className={`${currentPage === 'settings' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200`}
       >
         <Settings className="h-4 w-4 mr-2" />
         Settings
@@ -126,14 +126,14 @@ const Progress = () => {
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <h3 className="text-3xl font-bold text-foreground mb-2">
               Learning Curriculums
             </h3>
-            <p className="text-white/70 text-lg">Discover and manage personalized learning paths</p>
+            <p className="text-muted-foreground text-lg">Discover and manage personalized learning paths</p>
           </div>
           <Button 
             onClick={() => setIsCurriculumSelectorOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold shadow-lg"
+            className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl font-semibold shadow-lg"
           >
             <BookOpen className="h-5 w-5 mr-2" />
             Browse Curriculums
@@ -141,21 +141,21 @@ const Progress = () => {
         </div>
         
         <div className="grid gap-8">
-          <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-blue-500/30 hover:from-blue-600/30 hover:to-purple-600/30 transition-all duration-300 cursor-pointer group rounded-2xl shadow-xl">
+          <Card className="bg-primary/10 border-primary/30 hover:bg-primary/20 transition-all duration-300 cursor-pointer group rounded-2xl shadow-xl">
             <CardContent className="p-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-6">
-                  <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                    <Sparkles className="h-10 w-10 text-white" />
+                  <div className="p-4 bg-primary rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="h-10 w-10 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Create AI Curriculum</h3>
-                    <p className="text-white/80 text-lg">Let our AI create a personalized curriculum tailored to your learning goals</p>
+                    <h3 className="text-2xl font-bold text-foreground mb-2">Create AI Curriculum</h3>
+                    <p className="text-muted-foreground text-lg">Let our AI create a personalized curriculum tailored to your learning goals</p>
                   </div>
                 </div>
                 <Button 
                   onClick={handleCreateCustomCurriculum}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
+                  className="bg-primary hover:bg-primary/90 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
                 >
                   <Plus className="h-5 w-5 mr-2" />
                   Create Now
@@ -164,20 +164,20 @@ const Progress = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/5 border-white/20 backdrop-blur-sm rounded-2xl shadow-xl">
+          <Card className="bg-card border-border backdrop-blur-sm rounded-2xl shadow-xl">
             <CardHeader className="pb-4">
-              <CardTitle className="text-white text-2xl flex items-center">
-                <Calendar className="mr-3 h-6 w-6 text-blue-400" />
+              <CardTitle className="text-foreground text-2xl flex items-center">
+                <Calendar className="mr-3 h-6 w-6 text-primary" />
                 Active Curriculums
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
-                <Clock className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                <div className="text-white/70 text-lg mb-4">
+                <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <div className="text-muted-foreground text-lg mb-4">
                   No active curriculums found
                 </div>
-                <p className="text-white/50">
+                <p className="text-muted-foreground">
                   Click "Browse Curriculums" or "Create Now" to get started with your learning journey
                 </p>
               </div>
@@ -293,14 +293,14 @@ const Progress = () => {
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <h3 className="text-3xl font-bold text-foreground mb-2">
               Tests & Assessments
             </h3>
-            <p className="text-white/70 text-lg">Track your test performance and take new assessments</p>
+            <p className="text-muted-foreground text-lg">Track your test performance and take new assessments</p>
           </div>
           <Button 
             onClick={() => navigate('/quiz-generator')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold shadow-lg"
+            className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl font-semibold shadow-lg"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Test
@@ -442,27 +442,27 @@ const Progress = () => {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-white/70">Loading your dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       {/* Modern Navigation Bar */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-sm sticky top-0 z-40">
+      <div className="border-b border-border bg-muted/30 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               {renderNavigation()}
             </div>
-            <div className="text-white/60 text-sm">
+            <div className="text-muted-foreground text-sm">
               {user ? `Welcome back, ${user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}` : 'Demo Mode'}
             </div>
           </div>
@@ -498,21 +498,21 @@ const Progress = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="curriculums" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BookOpen className="h-4 w-4 mr-2" />
               Curriculums
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Target className="h-4 w-4 mr-2" />
               Quests
             </TabsTrigger>
             <TabsTrigger 
               value="tests" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <FileText className="h-4 w-4 mr-2" />
               Tests

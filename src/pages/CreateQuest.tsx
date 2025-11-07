@@ -132,7 +132,7 @@ const CreateQuest = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
@@ -140,50 +140,50 @@ const CreateQuest = () => {
           <Button
             variant="ghost"
             onClick={() => navigate('/quests')}
-            className="text-white hover:bg-white/20"
+            className="text-foreground hover:bg-muted"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Quests
           </Button>
 
-          <Card className="bg-white/10 border-white/20 backdrop-blur-xl">
+          <Card className="bg-card border-border backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="text-white">Create New Quest</CardTitle>
+              <CardTitle className="text-foreground">Create New Quest</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-white">Quest Title</Label>
+                  <Label htmlFor="title" className="text-foreground">Quest Title</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Enter quest title"
                     required
-                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-background border-input"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-white">Description</Label>
+                  <Label htmlFor="description" className="text-foreground">Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe the quest"
                     required
-                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-background border-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="type" className="text-white">Type</Label>
+                    <Label htmlFor="type" className="text-foreground">Type</Label>
                     <Select
                       value={formData.type}
                       onValueChange={(value) => setFormData({ ...formData, type: value })}
                     >
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -194,12 +194,12 @@ const CreateQuest = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="difficulty" className="text-white">Difficulty</Label>
+                    <Label htmlFor="difficulty" className="text-foreground">Difficulty</Label>
                     <Select
                       value={formData.difficulty}
                       onValueChange={(value) => setFormData({ ...formData, difficulty: value })}
                     >
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -212,7 +212,7 @@ const CreateQuest = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="target_value" className="text-white">Target Value</Label>
+                  <Label htmlFor="target_value" className="text-foreground">Target Value</Label>
                   <Input
                     id="target_value"
                     type="number"
@@ -220,18 +220,18 @@ const CreateQuest = () => {
                     value={formData.target_value}
                     onChange={(e) => setFormData({ ...formData, target_value: parseInt(e.target.value) })}
                     required
-                    className="bg-white/5 border-white/20 text-white"
+                    className="bg-background border-input"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white">When does it expire?</Label>
+                  <Label className="text-foreground">When does it expire?</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Select
                       value={expirationValue.toString()}
                       onValueChange={(value) => setExpirationValue(Number(value))}
                     >
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -247,7 +247,7 @@ const CreateQuest = () => {
                       value={expirationUnit}
                       onValueChange={(value: 'days' | 'weeks') => setExpirationUnit(value)}
                     >
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -259,21 +259,21 @@ const CreateQuest = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-white">Assign to</Label>
+                  <Label className="text-foreground">Assign to</Label>
                   <RadioGroup value={assignMode} onValueChange={(v) => setAssignMode(v as 'all' | 'specific')} className="grid grid-cols-2 gap-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="all" id="assign-all" />
-                      <Label htmlFor="assign-all" className="text-white">All children</Label>
+                      <Label htmlFor="assign-all" className="text-foreground">All children</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="specific" id="assign-specific" />
-                      <Label htmlFor="assign-specific" className="text-white">Select specific</Label>
+                      <Label htmlFor="assign-specific" className="text-foreground">Select specific</Label>
                     </div>
                   </RadioGroup>
 
                   {assignMode === 'specific' && (
                     children.length === 0 ? (
-                      <p className="text-white/70 text-sm">No children connected yet. Connect children to assign specifically.</p>
+                      <p className="text-muted-foreground text-sm">No children connected yet. Connect children to assign specifically.</p>
                     ) : (
                       <div className="grid sm:grid-cols-2 gap-3">
                         {children.map((child) => {
@@ -290,7 +290,7 @@ const CreateQuest = () => {
                                   );
                                 }}
                               />
-                              <Label htmlFor={`child-${child.id}`} className="text-white">{child.name}</Label>
+                              <Label htmlFor={`child-${child.id}`} className="text-foreground">{child.name}</Label>
                             </div>
                           );
                         })}
@@ -311,7 +311,7 @@ const CreateQuest = () => {
                     type="button"
                     variant="outline"
                     onClick={() => navigate('/quests')}
-                    className="border-white/20 text-white hover:bg-white/20"
+                    className="border-border text-foreground hover:bg-muted"
                   >
                     Cancel
                   </Button>

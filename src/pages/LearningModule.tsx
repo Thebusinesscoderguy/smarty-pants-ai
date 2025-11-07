@@ -183,20 +183,20 @@ const LearningModule = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-        <div className="text-white">Loading your lesson...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-foreground">Loading your lesson...</div>
       </div>
     );
   }
 
   if (!studyPlan || !studyPlan.daily_lessons || studyPlan.daily_lessons.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-        <div className="text-white text-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-foreground text-center">
           <h2 className="text-xl mb-4">No lessons found</h2>
           <button 
             onClick={() => navigate('/quiz-generator')}
-            className="text-blue-400 underline"
+            className="text-primary underline"
           >
             Return to Quiz Generator
           </button>

@@ -28,7 +28,7 @@ const MadeByMe = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
@@ -37,7 +37,7 @@ const MadeByMe = () => {
             <Button
               variant="ghost"
               onClick={() => navigate('/quests')}
-              className="text-white hover:bg-white/20"
+              className="text-foreground hover:bg-muted"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Quests
@@ -45,26 +45,26 @@ const MadeByMe = () => {
             
             <Button
               onClick={() => navigate('/quests/create')}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-primary hover:bg-primary/90"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create Quest
             </Button>
           </div>
 
-          <Card className="bg-white/10 border-white/20 backdrop-blur-xl">
+          <Card className="bg-card border-border backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="text-white">My Created Quests</CardTitle>
+              <CardTitle className="text-foreground">My Created Quests</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-white/70">Loading...</p>
+                <p className="text-muted-foreground">Loading...</p>
               ) : quests.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-white/70 mb-4">No quests created yet</p>
+                  <p className="text-muted-foreground mb-4">No quests created yet</p>
                   <Button
                     onClick={() => navigate('/quests/create')}
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Create Your First Quest
@@ -75,21 +75,21 @@ const MadeByMe = () => {
                   {quests.map((quest) => (
                     <div
                       key={quest.id}
-                      className="bg-white/5 rounded-lg p-4 border border-white/10 hover:border-white/20 transition-colors"
+                      className="bg-muted rounded-lg p-4 border border-border hover:border-primary/50 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-white font-semibold">{quest.title}</h3>
+                            <h3 className="text-foreground font-semibold">{quest.title}</h3>
                             <Badge className={getDifficultyColor(quest.difficulty)}>
                               {quest.difficulty}
                             </Badge>
-                            <Badge variant="outline" className="border-white/20 text-white">
+                            <Badge variant="outline" className="border-border text-foreground">
                               {quest.type}
                             </Badge>
                           </div>
-                          <p className="text-white/70 text-sm mb-2">{quest.description}</p>
-                          <p className="text-white/50 text-xs">
+                          <p className="text-muted-foreground text-sm mb-2">{quest.description}</p>
+                          <p className="text-muted-foreground text-xs">
                             Target: {quest.target_value} | 
                             Rewards: {quest.rewards?.xp || 0} XP
                             {quest.expires_at && ` | Expires: ${new Date(quest.expires_at).toLocaleDateString()}`}

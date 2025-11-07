@@ -83,7 +83,7 @@ const Onboarding = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="animate-pulse">Loading...</div>
       </div>
     );
@@ -92,16 +92,16 @@ const Onboarding = () => {
   // If not a parent or already completed, redirect
   if (userRole !== 'parent' || onboardingStatus?.has_provided_guardian_email) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col">
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center px-4">
-          <Card className="w-full max-w-md bg-white/10 border-white/20">
+          <Card className="w-full max-w-md bg-card border-border">
             <CardHeader className="text-center">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <CardTitle className="text-white">Setup Complete!</CardTitle>
+              <CardTitle className="text-foreground">Setup Complete!</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <p className="text-gray-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Your account setup is complete. You can now start using the platform.
               </p>
               <Button onClick={() => navigate('/progress')} className="w-full">
@@ -116,15 +116,15 @@ const Onboarding = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
       
       <main className="flex-1 flex items-center justify-center px-4">
-        <Card className="w-full max-w-md bg-white/10 border-white/20">
+        <Card className="w-full max-w-md bg-card border-border">
           <CardHeader className="text-center">
-            <Mail className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-            <CardTitle className="text-white">Parent Guardian Contact</CardTitle>
-            <p className="text-gray-300">
+            <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
+            <CardTitle className="text-foreground">Parent Guardian Contact</CardTitle>
+            <p className="text-muted-foreground">
               As a parent account, please provide your email address for account verification and child progress updates.
             </p>
           </CardHeader>
@@ -132,7 +132,7 @@ const Onboarding = () => {
           <CardContent>
             <form onSubmit={handleSubmitEmail} className="space-y-4">
               <div>
-                <Label htmlFor="guardianEmail" className="text-white">
+                <Label htmlFor="guardianEmail" className="text-foreground">
                   Parent/Guardian Email Address
                 </Label>
                 <Input
@@ -141,7 +141,7 @@ const Onboarding = () => {
                   value={guardianEmail}
                   onChange={(e) => setGuardianEmail(e.target.value)}
                   placeholder="parent@example.com"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="bg-background border-input"
                   required
                 />
               </div>
@@ -159,7 +159,7 @@ const Onboarding = () => {
                   type="button"
                   variant="ghost"
                   onClick={handleSkip}
-                  className="w-full text-gray-300 hover:text-white"
+                  className="w-full text-muted-foreground hover:text-foreground"
                 >
                   Skip for now
                 </Button>

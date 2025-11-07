@@ -14,45 +14,45 @@ import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Bra
 
 const SchoolAdmin = () => {
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
       
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">School Administration</h1>
-            <p className="text-gray-400">
+            <p className="text-muted-foreground">
               Complete school management platform with curriculum, payments, and analytics
             </p>
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 bg-white/10">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-white/20">
+            <TabsList className="grid w-full grid-cols-7 bg-muted">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="students" className="data-[state=active]:bg-white/20">
+              <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users className="h-4 w-4 mr-2" />
                 Students
               </TabsTrigger>
-              <TabsTrigger value="curriculum" className="data-[state=active]:bg-white/20">
+              <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BookOpen className="h-4 w-4 mr-2" />
                 Curriculum
               </TabsTrigger>
-              <TabsTrigger value="quests" className="data-[state=active]:bg-white/20">
+              <TabsTrigger value="quests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Target className="h-4 w-4 mr-2" />
                 Quests
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20">
+              <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Analytics
               </TabsTrigger>
-              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-white/20">
+              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Brain className="h-4 w-4 mr-2" />
                 Student Analysis
               </TabsTrigger>
-              <TabsTrigger value="billing" className="data-[state=active]:bg-white/20">
+              <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Billing
               </TabsTrigger>

@@ -160,7 +160,7 @@ const AIGenerateQuest = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
@@ -168,31 +168,31 @@ const AIGenerateQuest = () => {
           <Button
             variant="ghost"
             onClick={() => navigate('/quests')}
-            className="text-white hover:bg-white/20"
+            className="text-foreground hover:bg-muted"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Quests
           </Button>
 
-          <Card className="bg-white/10 border-white/20 backdrop-blur-xl">
+          <Card className="bg-card border-border backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-blue-400" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
                 AI Quest Generation
               </CardTitle>
-              <CardDescription className="text-white/70">
+              <CardDescription className="text-muted-foreground">
                 Generate multiple quests automatically based on subject, grade level, and difficulty. The AI will create engaging, curriculum-aligned quests for your students.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleGenerate} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="subject" className="text-white">Subject *</Label>
+                  <Label htmlFor="subject" className="text-foreground">Subject *</Label>
                   <Select value={subject} onValueChange={setSubject} required>
-                    <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                    <SelectTrigger className="bg-background border-input">
                       <SelectValue placeholder="Select subject" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectContent>
                       <SelectItem value="mathematics">Mathematics</SelectItem>
                       <SelectItem value="science">Science</SelectItem>
                       <SelectItem value="english">English</SelectItem>
@@ -206,25 +206,25 @@ const AIGenerateQuest = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gradeLevel" className="text-white">Grade Level</Label>
+                  <Label htmlFor="gradeLevel" className="text-foreground">Grade Level</Label>
                   <Input
                     id="gradeLevel"
                     value={gradeLevel}
                     onChange={(e) => setGradeLevel(e.target.value)}
                     placeholder="e.g., 6th grade, high school"
                     required
-                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-background border-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-white">Type</Label>
+                    <Label className="text-foreground">Type</Label>
                     <Select value={type} onValueChange={setType}>
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-white/20">
+                      <SelectContent>
                         <SelectItem value="daily">Daily</SelectItem>
                         <SelectItem value="weekly">Weekly</SelectItem>
                       </SelectContent>
@@ -232,12 +232,12 @@ const AIGenerateQuest = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-white">Difficulty</Label>
+                    <Label className="text-foreground">Difficulty</Label>
                     <Select value={difficulty} onValueChange={setDifficulty}>
-                      <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-white/20">
+                      <SelectContent>
                         <SelectItem value="easy">Easy</SelectItem>
                         <SelectItem value="medium">Intermediate</SelectItem>
                         <SelectItem value="hard">Hard</SelectItem>
@@ -246,7 +246,7 @@ const AIGenerateQuest = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="count" className="text-white">Count</Label>
+                    <Label htmlFor="count" className="text-foreground">Count</Label>
                     <Input
                       id="count"
                       type="number"
@@ -255,14 +255,14 @@ const AIGenerateQuest = () => {
                       value={count}
                       onChange={(e) => setCount(parseInt(e.target.value))}
                       required
-                      className="bg-white/5 border-white/20 text-white"
+                      className="bg-background border-input"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-white">Assign to Children</Label>
-                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10">
+                  <Label className="text-foreground">Assign to Children</Label>
+                  <div className="flex items-center justify-between bg-muted p-3 rounded-lg border border-border">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="assign-all"
@@ -273,10 +273,10 @@ const AIGenerateQuest = () => {
                           if (checked) setSelectedChildren([]);
                         }}
                       />
-                      <Label htmlFor="assign-all" className="text-white cursor-pointer">All Children</Label>
+                      <Label htmlFor="assign-all" className="text-foreground cursor-pointer">All Children</Label>
                     </div>
                     {children.length === 0 && (
-                      <span className="text-xs text-white/60">No children linked</span>
+                      <span className="text-xs text-muted-foreground">No children linked</span>
                     )}
                   </div>
 
@@ -285,7 +285,7 @@ const AIGenerateQuest = () => {
                       {children.map((child) => {
                         const checked = selectedChildren.includes(child.id);
                         return (
-                          <div key={child.id} className="flex items-center space-x-2 bg-white/5 p-3 rounded-lg">
+                          <div key={child.id} className="flex items-center space-x-2 bg-muted p-3 rounded-lg">
                             <Checkbox
                               id={`child-${child.id}`}
                               checked={checked}
@@ -296,7 +296,7 @@ const AIGenerateQuest = () => {
                                 );
                               }}
                             />
-                            <Label htmlFor={`child-${child.id}`} className="text-white cursor-pointer">{child.name}</Label>
+                            <Label htmlFor={`child-${child.id}`} className="text-foreground cursor-pointer">{child.name}</Label>
                           </div>
                         );
                       })}
@@ -304,14 +304,14 @@ const AIGenerateQuest = () => {
                   )}
 
                   {children.length === 0 && (
-                    <Alert className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border-white/20 text-white">
+                    <Alert className="bg-primary/10 border-primary/20">
                       <AlertDescription className="flex items-center justify-between gap-4">
                         <span>No children connected yet. Connect children to assign specifically.</span>
                         <Button
                           type="button"
                           variant="secondary"
                           onClick={() => navigate('/monitoring')}
-                          className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                          className="bg-muted hover:bg-muted/80 border-border"
                         >
                           Manage Children
                         </Button>
@@ -323,7 +323,7 @@ const AIGenerateQuest = () => {
                 <Button
                   type="submit"
                   disabled={isGenerating}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="w-full bg-primary hover:bg-primary/90"
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
                   {isGenerating ? 'Generating...' : `Generate ${count} Quest${count > 1 ? 's' : ''}`}
