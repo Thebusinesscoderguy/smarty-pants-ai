@@ -364,24 +364,24 @@ const Demo = () => {
 
   if (!role) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+      <div className="min-h-screen bg-background text-foreground">
         <Header />
         <main className="flex items-center justify-center min-h-[80vh] px-6">
           <div className="text-center max-w-4xl">
             <div className="mb-12">
-              <h1 className="text-7xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+              <h1 className="text-7xl font-bold mb-8 text-foreground">
                 {t('demo.title')}
               </h1>
-              <p className="text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
+              <p className="text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                 {t('demo.subtitle')}
               </p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-12 border border-white/10 shadow-2xl">
+            <div className="bg-card backdrop-blur-xl rounded-3xl p-12 border border-border shadow-2xl">
               <Button 
                 onClick={() => setShowRoleSelection(true)} 
                 size="lg" 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-12 py-6 rounded-2xl text-xl font-semibold shadow-xl"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 rounded-2xl text-xl font-semibold shadow-xl"
               >
                 {t('demo.chooseRole')}
               </Button>
@@ -403,7 +403,7 @@ const Demo = () => {
     const roleTitle = role === 'school' ? 'School Administrator' : role === 'parent' ? 'Parent Dashboard' : 'Student Learning';
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+      <div className="min-h-screen bg-background text-foreground">
         <Header />
         
         <main className="px-6 py-12 max-w-7xl mx-auto">
@@ -411,7 +411,7 @@ const Demo = () => {
             <Button
               onClick={() => navigate('/')}
               variant="outline"
-              className="border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm rounded-xl px-8 py-4 text-lg"
+              className="border-border bg-card hover:bg-muted rounded-xl px-8 py-4 text-lg"
             >
               <ArrowLeft className="mr-3 h-5 w-5" />
               Back to Home
@@ -420,28 +420,28 @@ const Demo = () => {
 
           <div className="text-center">
             <div className="mb-12">
-              <h1 className="text-6xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+              <h1 className="text-6xl font-bold mb-8 text-foreground">
                 {roleTitle} Demo
               </h1>
-              <p className="text-2xl text-slate-300 max-w-5xl mx-auto leading-relaxed">
+              <p className="text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed">
                 You're about to experience TeachlyAI exactly as a real user would. You'll have full access to our platform for 15 minutes - enough time to explore all features including AI chat, voice interactions, file uploads, progress monitoring, and more.
               </p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-12 mb-12 border border-white/10 shadow-2xl">
-              <h3 className="text-3xl font-semibold mb-8 text-white">What you can do in this demo:</h3>
+            <div className="bg-card backdrop-blur-xl rounded-3xl p-12 mb-12 border border-border shadow-2xl">
+              <h3 className="text-3xl font-semibold mb-8">What you can do in this demo:</h3>
               <div className="grid md:grid-cols-2 gap-8 text-left">
                 <div className="space-y-4">
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Chat with AI tutors</p>
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Use voice interactions</p>
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Upload and analyze files</p>
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Create custom tests</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Chat with AI tutors</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Use voice interactions</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Upload and analyze files</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Create custom tests</p>
                 </div>
                 <div className="space-y-4">
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Explore learning curriculums</p>
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Track progress analytics</p>
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Access all subjects</p>
-                  <p className="flex items-center text-slate-200 text-lg"><span className="text-green-400 mr-4 text-xl">✓</span> Try gamification features</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Explore learning curriculums</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Track progress analytics</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Access all subjects</p>
+                  <p className="flex items-center text-foreground text-lg"><span className="text-green-600 mr-4 text-xl">✓</span> Try gamification features</p>
                 </div>
               </div>
             </div>
@@ -449,7 +449,7 @@ const Demo = () => {
             <Button
               onClick={startDemo}
               size="lg"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-16 py-6 rounded-2xl text-2xl font-semibold shadow-xl"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-16 py-6 rounded-2xl text-2xl font-semibold shadow-xl"
             >
               <Play className="mr-4 h-7 w-7" />
               Start 15-Minute Demo
@@ -464,35 +464,35 @@ const Demo = () => {
 
   // Demo is running - show full app interface
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Demo Timer Overlay */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600/90 to-blue-600/90 border-b border-white/20 p-3 backdrop-blur-xl shadow-xl">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-primary border-b border-border p-3 backdrop-blur-xl shadow-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
               size="sm"
-              className="border-white/30 bg-white/20 hover:bg-white/30 text-white rounded-xl px-3 py-1 text-sm font-medium"
+              className="border-border bg-muted hover:bg-muted/80 rounded-xl px-3 py-1 text-sm font-medium"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Exit Demo
             </Button>
-            <span className="text-sm text-white/90 bg-white/20 px-3 py-1 rounded-xl font-medium">Demo Mode</span>
+            <span className="text-sm bg-muted px-3 py-1 rounded-xl font-medium">Demo Mode</span>
           </div>
 
            <div className="flex items-center space-x-3">
              {timeLeft > 0 ? (
                <>
-                 <div className="flex items-center space-x-2 px-3 py-1 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                   <Clock className="h-4 w-4 text-white" />
-                   <span className={`font-mono text-sm font-semibold ${timeLeft <= 120 ? 'text-yellow-300' : 'text-white'}`}>
+                 <div className="flex items-center space-x-2 px-3 py-1 bg-muted rounded-xl backdrop-blur-sm border border-border">
+                   <Clock className="h-4 w-4" />
+                   <span className={`font-mono text-sm font-semibold ${timeLeft <= 120 ? 'text-yellow-600' : ''}`}>
                      {formatTime(timeLeft)} remaining
                    </span>
                  </div>
                </>
              ) : (
-               <div className="text-red-300 font-semibold text-sm bg-red-500/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
+               <div className="text-destructive font-semibold text-sm bg-destructive/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
              )}
            </div>
         </div>
@@ -503,16 +503,16 @@ const Demo = () => {
         <Header />
         
         {/* Modern Navigation Bar */}
-        <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-20 z-40">
+        <div className="border-b border-border bg-card backdrop-blur-xl sticky top-20 z-40">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
+                <div className="flex items-center space-x-2 bg-muted rounded-2xl p-2 backdrop-blur-xl border border-border">
                   <Button
                     variant={currentPage === 'chat' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setCurrentPage('chat')}
-                    className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+                    className="transition-all duration-200 rounded-xl px-4 py-2"
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Chat
@@ -520,8 +520,8 @@ const Demo = () => {
                   <Button
                     variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
                     size="sm"
-                          onClick={() => setCurrentPage('monitoring')}
-                    className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+                    onClick={() => setCurrentPage('monitoring')}
+                    className="transition-all duration-200 rounded-xl px-4 py-2"
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Monitoring
@@ -530,7 +530,7 @@ const Demo = () => {
                     variant={currentPage === 'settings' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setCurrentPage('settings')}
-                    className={`${currentPage === 'settings' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+                    className="transition-all duration-200 rounded-xl px-4 py-2"
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
@@ -538,7 +538,7 @@ const Demo = () => {
                 </div>
               </div>
               
-              <div className="text-white/60 text-sm bg-white/10 px-4 py-2 rounded-xl">
+              <div className="text-muted-foreground text-sm bg-muted px-4 py-2 rounded-xl">
                 Demo Mode
               </div>
             </div>
@@ -551,15 +551,15 @@ const Demo = () => {
               {/* Chat Area */}
               <div className="flex-1 flex flex-col">
                 {/* Chat Container */}
-                <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
+                <div className="flex-1 flex flex-col bg-card backdrop-blur-xl rounded-3xl border border-border shadow-2xl mx-8 mb-8">
                    {/* Messages Area */}
                   <div className="flex-1 p-8 overflow-y-auto space-y-6">
                     {messages.length === 0 ? (
                       <div className="text-center py-16">
-                        <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                          <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                          <h3 className="text-3xl font-bold text-white mb-2">Try Our AI Chat</h3>
-                          <p className="text-slate-300 text-xl mb-4">Type a message below to see our AI in action</p>
+                        <div className="p-8 bg-primary/10 rounded-3xl inline-block mb-8 border border-border">
+                          <MessageSquare className="h-20 w-20 text-primary mx-auto mb-4" />
+                          <h3 className="text-3xl font-bold mb-2">Try Our AI Chat</h3>
+                          <p className="text-muted-foreground text-xl mb-4">Type a message below to see our AI in action</p>
                           
                         </div>
                       </div>
@@ -567,11 +567,11 @@ const Demo = () => {
                       messages.map((message) => (
                         <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
                           <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                            <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
-                              {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
+                            <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-primary' : 'bg-muted'} border border-border`}>
+                              {message.isUser ? <User className="h-5 w-5 text-primary-foreground" /> : <MessageSquare className="h-5 w-5 text-primary" />}
                             </div>
                              <div 
-                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group transition-all duration-200`}
+                               className={`p-6 rounded-3xl ${message.isUser ? 'bg-primary text-primary-foreground' : 'bg-card'} shadow-xl border border-border group transition-all duration-200`}
                              >
                                <p className="text-lg leading-relaxed">{message.content}</p>
                                <div className="flex items-center justify-between mt-3">
@@ -584,7 +584,7 @@ const Demo = () => {
                                        variant="ghost"
                                        size="sm"
                                        onClick={(e) => handleCopyMessage(message.content, e)}
-                                       className="h-7 w-7 p-0 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200"
+                                       className="h-7 w-7 p-0 hover:bg-muted transition-all duration-200"
                                        title="Copy to clipboard"
                                      >
                                        <Copy className="h-4 w-4" />
@@ -596,7 +596,7 @@ const Demo = () => {
                                          e.stopPropagation();
                                          handleTextToSpeech(message.content);
                                        }}
-                                       className="h-7 w-7 p-0 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200"
+                                       className="h-7 w-7 p-0 hover:bg-muted transition-all duration-200"
                                        title="Read aloud"
                                      >
                                        <Volume2 className="h-4 w-4" />
@@ -613,14 +613,14 @@ const Demo = () => {
                     {isLoading && (
                       <div className="flex justify-start">
                         <div className="flex items-start space-x-3 max-w-4xl">
-                          <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
-                            <MessageSquare className="h-5 w-5 text-purple-400" />
+                          <div className="p-3 rounded-2xl bg-muted border border-border">
+                            <MessageSquare className="h-5 w-5 text-primary" />
                           </div>
-                          <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
+                          <div className="p-6 rounded-3xl bg-card shadow-xl border border-border">
                             <div className="flex space-x-2">
-                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
-                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200"></div>
                             </div>
                           </div>
                         </div>
@@ -629,7 +629,7 @@ const Demo = () => {
                   </div>
 
                   {/* Input Area */}
-                  <div className="p-6 border-t border-white/20">
+                  <div className="p-6 border-t border-border">
                     <div className="flex space-x-4">
                       <div className="flex-1 relative">
                         <input
@@ -638,14 +638,14 @@ const Demo = () => {
                           onChange={(e) => setInputMessage(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                           placeholder={timeLeft <= 0 ? "Demo time expired - Sign up to continue!" : "Ask me anything about learning..."}
-                          className="w-full px-6 py-4 pr-20 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm cursor-pointer"
+                          className="w-full px-6 py-4 pr-20 bg-background border border-input rounded-2xl placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring text-lg backdrop-blur-sm cursor-pointer"
                         />
                       </div>
                       
                       <Button
                         onClick={handleSendMessage}
                         disabled={!inputMessage.trim() || isLoading}
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
+                        className="px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
                       >
                         <Send className="h-5 w-5" />
                       </Button>
@@ -655,17 +655,17 @@ const Demo = () => {
               </div>
 
               {/* Sidebar for Previous Chats */}
-              <div className="w-80 bg-white/5 border-l border-white/10 p-4 space-y-4">
+              <div className="w-80 bg-card border-l border-border p-4 space-y-4">
                 <Button
                   onClick={handleNewChat}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl"
+                  className="w-full h-11 text-sm font-medium rounded-xl"
                 >
                   <MessageSquarePlus className="h-4 w-4 mr-2" />
                   New Chat
                 </Button>
 
-                <div className="border-t border-white/20 pt-4">
-                  <h3 className="text-sm font-medium text-white/70 mb-3 px-1">Demo Conversations</h3>
+                <div className="border-t border-border pt-4">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3 px-1">Demo Conversations</h3>
                   <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
                     {chatSessions.map((session) => (
                       <div
@@ -673,15 +673,15 @@ const Demo = () => {
                         onClick={() => handleSelectSession(session.id)}
                         className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                           activeSessionId === session.id
-                            ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
-                            : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                            ? 'bg-primary/20 border border-primary/30'
+                            : 'bg-muted hover:bg-muted/80 border border-border'
                         }`}
                       >
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                          <MessageSquare className="h-3 w-3 text-primary flex-shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm text-white truncate font-medium">{session.title}</p>
-                            <p className="text-xs text-white/60">
+                            <p className="text-sm truncate font-medium">{session.title}</p>
+                            <p className="text-xs text-muted-foreground">
                               {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
                             </p>
                           </div>
@@ -690,9 +690,9 @@ const Demo = () => {
                           size="sm"
                           variant="ghost"
                           onClick={(e) => deleteSession(session.id, e)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-muted flex-shrink-0"
                         >
-                          <Trash2 className="h-3 w-3 text-red-400" />
+                          <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>
                     ))}
@@ -707,97 +707,97 @@ const Demo = () => {
             <div className="flex-1 p-8">
               <div className="space-y-8">
                 <div>
-                  <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold mb-2">
                     Progress Monitoring
                   </h1>
-                  <p className="text-slate-300 text-lg">Track learning progress and performance analytics</p>
+                  <p className="text-muted-foreground text-lg">Track learning progress and performance analytics</p>
                 </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                  <Card className="bg-card border-border backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center">
-                        <BarChart3 className="h-5 w-5 mr-2 text-purple-400" />
+                      <CardTitle className="flex items-center">
+                        <BarChart3 className="h-5 w-5 mr-2 text-primary" />
                         Study Sessions
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white mb-2">24</div>
-                      <p className="text-slate-300">This week</p>
-                      <div className="mt-4 text-sm text-green-400">+18% from last week</div>
+                      <div className="text-3xl font-bold mb-2">24</div>
+                      <p className="text-muted-foreground">This week</p>
+                      <div className="mt-4 text-sm text-green-600">+18% from last week</div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                  <Card className="bg-card border-border backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center">
-                        <MessageSquare className="h-5 w-5 mr-2 text-blue-400" />
+                      <CardTitle className="flex items-center">
+                        <MessageSquare className="h-5 w-5 mr-2 text-primary" />
                         Questions Asked
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white mb-2">156</div>
-                      <p className="text-slate-300">Total questions</p>
-                      <div className="mt-4 text-sm text-green-400">+12% this month</div>
+                      <div className="text-3xl font-bold mb-2">156</div>
+                      <p className="text-muted-foreground">Total questions</p>
+                      <div className="mt-4 text-sm text-green-600">+12% this month</div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                  <Card className="bg-card border-border backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center">
-                        <Settings className="h-5 w-5 mr-2 text-green-400" />
+                      <CardTitle className="flex items-center">
+                        <Settings className="h-5 w-5 mr-2 text-green-600" />
                         Accuracy Score
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white mb-2">87%</div>
-                      <p className="text-slate-300">Average accuracy</p>
-                      <div className="mt-4 text-sm text-green-400">+5% improvement</div>
+                      <div className="text-3xl font-bold mb-2">87%</div>
+                      <p className="text-muted-foreground">Average accuracy</p>
+                      <div className="mt-4 text-sm text-green-600">+5% improvement</div>
                     </CardContent>
                   </Card>
                 </div>
 
                 {/* Subject Progress */}
-                <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                <Card className="bg-card border-border backdrop-blur-xl">
                   <CardHeader>
-                    <CardTitle className="text-white">Subject Progress</CardTitle>
+                    <CardTitle>Subject Progress</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <div className="flex justify-between text-white mb-2">
+                      <div className="flex justify-between mb-2">
                         <span>Mathematics</span>
                         <span>85%</span>
                       </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full" style={{width: '85%'}}></div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div className="bg-primary h-2 rounded-full" style={{width: '85%'}}></div>
                       </div>
                     </div>
                     <div>
-                      <div className="flex justify-between text-white mb-2">
+                      <div className="flex justify-between mb-2">
                         <span>Science</span>
                         <span>72%</span>
                       </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full" style={{width: '72%'}}></div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div className="bg-primary h-2 rounded-full" style={{width: '72%'}}></div>
                       </div>
                     </div>
                     <div>
-                      <div className="flex justify-between text-white mb-2">
+                      <div className="flex justify-between mb-2">
                         <span>English</span>
                         <span>91%</span>
                       </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full" style={{width: '91%'}}></div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div className="bg-primary h-2 rounded-full" style={{width: '91%'}}></div>
                       </div>
                     </div>
                     <div>
-                      <div className="flex justify-between text-white mb-2">
+                      <div className="flex justify-between mb-2">
                         <span>History</span>
                         <span>68%</span>
                       </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full" style={{width: '68%'}}></div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div className="bg-primary h-2 rounded-full" style={{width: '68%'}}></div>
                       </div>
                     </div>
                   </CardContent>
@@ -811,87 +811,83 @@ const Demo = () => {
             <div className="flex-1 p-8">
               <div className="space-y-8">
                 <div>
-                  <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold mb-2">
                     Demo Settings
                   </h1>
-                  <p className="text-slate-300 text-lg">These are demo settings - full version has complete customization</p>
+                  <p className="text-muted-foreground text-lg">These are demo settings - full version has complete customization</p>
                 </div>
 
-                <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                <Card className="bg-card border-border backdrop-blur-xl">
                   <CardHeader>
-                    <CardTitle className="text-white">Learning Preferences</CardTitle>
+                    <CardTitle>Learning Preferences</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-white font-medium">Difficulty Level</label>
-                      <div className="text-slate-300">Currently set to: Intermediate</div>
+                      <label className="font-medium">Difficulty Level</label>
+                      <div className="text-muted-foreground">Currently set to: Intermediate</div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-white font-medium">Preferred Subjects</label>
-                      <div className="text-slate-300">Math, Science, English, History</div>
+                      <label className="font-medium">Preferred Subjects</label>
+                      <div className="text-muted-foreground">Math, Science, English, History</div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-white font-medium">Voice Assistant</label>
-                      <div className="text-slate-300">Enabled with Natural Voice</div>
+                      <label className="font-medium">Voice Assistant</label>
+                      <div className="text-muted-foreground">Enabled with Natural Voice</div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/5 border-white/20 backdrop-blur-xl">
+                <Card className="bg-card border-border backdrop-blur-xl">
                   <CardHeader>
-                    <CardTitle className="text-white">Voice Settings</CardTitle>
+                    <CardTitle>Voice Settings</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-white font-medium">Test Voice</label>
-                      <p className="text-slate-300 text-sm mb-3">Click to test different AI voices</p>
+                      <label className="font-medium">Test Voice</label>
+                      <p className="text-muted-foreground text-sm mb-3">Click to test different AI voices</p>
                       <div className="grid grid-cols-2 gap-3">
                         <Button
                           onClick={() => testVoice('alloy')}
                           variant="outline"
-                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
                           Test Alloy
                         </Button>
                         <Button
                           onClick={() => testVoice('echo')}
                           variant="outline"
-                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
                           Test Echo
                         </Button>
                         <Button
                           onClick={() => testVoice('fable')}
                           variant="outline"
-                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
                           Test Fable
                         </Button>
                         <Button
                           onClick={() => testVoice('nova')}
                           variant="outline"
-                          className="border-white/20 bg-white/10 hover:bg-white/20 text-white"
                         >
                           Test Nova
                         </Button>
                       </div>
                     </div>
-                    <div className="mt-4 p-3 bg-purple-500/20 rounded-xl border border-purple-500/30">
-                      <p className="text-purple-200 text-sm">
+                    <div className="mt-4 p-3 bg-primary/20 rounded-xl border border-primary/30">
+                      <p className="text-sm">
                         💡 Voice works instantly in demo mode! Click any AI message or test button above.
                       </p>
                     </div>
                   </CardContent>
                 </Card>
 
-                <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl p-6 border border-white/10">
-                  <h3 className="text-xl font-semibold text-white mb-3">🚀 Unlock Full Features</h3>
-                  <p className="text-slate-300 mb-4">
+                <div className="bg-primary/10 rounded-2xl p-6 border border-border">
+                  <h3 className="text-xl font-semibold mb-3">🚀 Unlock Full Features</h3>
+                  <p className="text-muted-foreground mb-4">
                     This is just a preview! Sign up to access full settings, personalization, parental controls, progress tracking, and much more.
                   </p>
                   <Button 
                     onClick={() => navigate('/auth?signup=true')}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl"
+                    className="px-6 py-2 rounded-xl"
                   >
                     Get Full Access
                   </Button>
@@ -905,14 +901,14 @@ const Demo = () => {
       {/* Time Warning Modal */}
       {(showTimeWarning || timeLeft <= 0) && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-white/20 max-w-lg w-full shadow-2xl rounded-3xl">
+          <Card className="bg-card border-border max-w-lg w-full shadow-2xl rounded-3xl">
             <CardHeader>
-              <CardTitle className="text-white text-center text-2xl">
+              <CardTitle className="text-center text-2xl">
                 {timeLeft <= 0 ? "Demo Time Complete!" : "Demo Ending Soon!"}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-6">
-              <p className="text-slate-300 text-lg">
+              <p className="text-muted-foreground text-lg">
                 {timeLeft <= 0 
                   ? "Your 15-minute demo has ended. Ready to continue with full access?"
                   : `Only ${formatTime(timeLeft)} left in your demo. Continue with full access to keep learning!`
@@ -921,7 +917,7 @@ const Demo = () => {
               <div className="flex flex-col gap-4">
                 <Button
                   onClick={() => navigate('/auth?signup=true')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-xl text-lg"
+                  className="py-3 rounded-xl text-lg"
                 >
                   Get Full Access
                 </Button>
@@ -929,7 +925,7 @@ const Demo = () => {
                   <Button
                     onClick={() => setShowTimeWarning(false)}
                     variant="outline"
-                    className="border-white/20 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl"
+                    className="py-3 rounded-xl"
                   >
                     Continue Demo
                   </Button>

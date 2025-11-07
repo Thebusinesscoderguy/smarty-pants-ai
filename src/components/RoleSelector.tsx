@@ -48,40 +48,40 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-4">
+          <h1 className="text-3xl font-bold mb-4">
             Welcome! Who is using TeachlyAI?
           </h1>
-          <p className="text-white/70">
+          <p className="text-muted-foreground">
             This helps us personalize your experience
           </p>
         </div>
         
         <div className="grid md:grid-cols-2 gap-6">
           <Card 
-            className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-fuchsia-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+            className="bg-primary/10 border-primary/30 hover:bg-primary/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('parent')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-fuchsia-500/30 transition-colors">
-                <Users className="h-8 w-8 text-purple-400" />
+              <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-fit group-hover:bg-primary/30 transition-colors">
+                <Users className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-white">I'm a Parent</CardTitle>
-              <CardDescription className="text-white/70">
+              <CardTitle>I'm a Parent</CardTitle>
+              <CardDescription>
                 Monitoring and supporting my child's learning
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm text-white/60 mb-4">
+              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
                 <li>• View real progress data</li>
                 <li>• Monitor learning analytics</li>
                 <li>• Track achievements</li>
                 <li>• Manage study plans</li>
               </ul>
               <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white border-0"
+                className="w-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('parent');
@@ -94,27 +94,27 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
           </Card>
 
           <Card 
-            className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-fuchsia-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+            className="bg-primary/10 border-primary/30 hover:bg-primary/20 transition-all cursor-pointer group backdrop-blur-sm"
             onClick={() => handleRoleSelection('child')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-fuchsia-500/30 transition-colors">
-                <Baby className="h-8 w-8 text-purple-400" />
+              <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-fit group-hover:bg-primary/30 transition-colors">
+                <Baby className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-white">I'm a Student</CardTitle>
-              <CardDescription className="text-white/70">
+              <CardTitle>I'm a Student</CardTitle>
+              <CardDescription>
                 Ready to learn and have fun with AI
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm text-white/60 mb-4">
+              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
                 <li>• Interactive AI chat</li>
                 <li>• Fun learning games</li>
                 <li>• Earn achievements</li>
                 <li>• Complete quests</li>
               </ul>
               <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white border-0"
+                className="w-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('child');

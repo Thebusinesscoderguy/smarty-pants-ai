@@ -115,7 +115,7 @@ const ApiKeyForm = () => {
                 <Input
                   type="password"
                   placeholder="Enter your Google API key"
-                  className="bg-transparent border-white/30 text-white"
+                  className="bg-background border-input"
                   {...field}
                 />
               </FormControl>
@@ -133,7 +133,7 @@ const ApiKeyForm = () => {
               <FormControl>
                 <Textarea
                   placeholder="Any additional information we should know"
-                  className="bg-transparent border-white/30 text-white h-24"
+                  className="bg-background border-input h-24"
                   {...field}
                 />
               </FormControl>
@@ -145,7 +145,6 @@ const ApiKeyForm = () => {
         <div className="flex space-x-4 pt-4">
           <Button 
             type="submit" 
-            className="bg-white text-black hover:bg-gray-200"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Saving..." : "Save API Key"}
@@ -153,14 +152,13 @@ const ApiKeyForm = () => {
           <Button 
             type="button" 
             variant="outline" 
-            className="border-white/30 bg-transparent text-white hover:bg-white/10"
             onClick={() => setShowForm(false)}
           >
             Cancel
           </Button>
         </div>
         
-        <p className="text-sm text-white/60 text-center mt-4">
+        <p className="text-sm text-muted-foreground text-center mt-4">
           Your API key is securely handled and encrypted in local storage
         </p>
       </form>
@@ -182,7 +180,7 @@ const ApiKeyForm = () => {
 
   return (
     <>
-      <Card className="p-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-white/10 text-white mb-8 shadow-lg">
+      <Card className="p-6 bg-card border border-border mb-8 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Google API Configuration</h2>
           {googleApiConnected ? (

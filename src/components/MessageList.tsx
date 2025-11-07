@@ -195,16 +195,16 @@ const MessageList: React.FC<MessageListProps> = ({
     const isPdf = fileType === 'pdf';
 
     return (
-      <div className="mt-4 p-4 bg-white/10 rounded-2xl border border-white/20">
+      <div className="mt-4 p-4 bg-muted rounded-2xl border border-border">
         <div className="flex items-center space-x-3 mb-3">
           {isImage ? (
-            <Image className="h-5 w-5 text-blue-400" />
+            <Image className="h-5 w-5 text-primary" />
           ) : isPdf ? (
-            <FileText className="h-5 w-5 text-red-400" />
+            <FileText className="h-5 w-5 text-destructive" />
           ) : (
-            <File className="h-5 w-5 text-gray-400" />
+            <File className="h-5 w-5 text-muted-foreground" />
           )}
-          <span className="text-white/80 text-sm font-medium">
+          <span className="text-sm font-medium">
             {isImage ? 'Image' : isPdf ? 'PDF Document' : 'File'} attached
           </span>
         </div>
@@ -213,7 +213,7 @@ const MessageList: React.FC<MessageListProps> = ({
           <img 
             src={message.fileUrl} 
             alt="Uploaded content" 
-            className="max-w-sm rounded-xl border border-white/20 shadow-lg"
+            className="max-w-sm rounded-xl border border-border shadow-lg"
           />
         )}
         
@@ -221,7 +221,7 @@ const MessageList: React.FC<MessageListProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="border-white/20 bg-white/10 hover:bg-white/20 text-white rounded-xl"
+            className="rounded-xl"
             onClick={() => window.open(message.fileUrl, '_blank')}
           >
             <Download className="h-4 w-4 mr-2" />
@@ -238,27 +238,27 @@ const MessageList: React.FC<MessageListProps> = ({
         <div key={message.id} className={`flex ${message.isFromUser ? 'justify-end' : 'justify-start'}`}>
           <div className={`flex items-start space-x-4 max-w-4xl ${message.isFromUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
             {/* Avatar */}
-            <div className={`p-3 rounded-2xl ${message.isFromUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20 flex-shrink-0`}>
+            <div className={`p-3 rounded-2xl ${message.isFromUser ? 'bg-primary' : 'bg-muted'} border border-border flex-shrink-0`}>
               {message.isFromUser ? (
-                <User className="h-6 w-6 text-white" />
+                <User className="h-6 w-6 text-primary-foreground" />
               ) : (
-                <Bot className="h-6 w-6 text-purple-400" />
+                <Bot className="h-6 w-6 text-primary" />
               )}
             </div>
 
             {/* Message Content */}
             <div className={`p-6 rounded-3xl ${
               message.isFromUser 
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' 
-                : 'bg-white/10 text-white'
-            } shadow-xl border border-white/20 flex-1`}>
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-card text-foreground'
+            } shadow-xl border border-border flex-1`}>
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="font-semibold text-lg">
                     {message.isFromUser ? 'You' : 'AI Tutor'}
                   </span>
                   {message.type === 'voice' && (
-                    <Badge variant="outline" className="border-white/30 text-white/80 bg-white/10">
+                    <Badge variant="outline">
                       Voice
                     </Badge>
                   )}
@@ -284,7 +284,7 @@ const MessageList: React.FC<MessageListProps> = ({
                           onPlayAudio(message.id);
                         }
                       }}
-                      className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2"
+                      className="hover:bg-muted rounded-xl p-2"
                     >
                       {playingAudioId === message.id ? (
                         <Pause className="h-4 w-4" />
@@ -300,7 +300,7 @@ const MessageList: React.FC<MessageListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCopyMessage(message.text)}
-                        className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all duration-200"
+                        className="hover:bg-muted rounded-xl p-2 transition-all duration-200"
                         title="Copy to clipboard"
                       >
                         <Copy className="h-4 w-4" />
@@ -310,7 +310,7 @@ const MessageList: React.FC<MessageListProps> = ({
                         size="sm"
                         onClick={() => handleTextToSpeech(message.id || '', message.text)}
                         disabled={loadingTTS.has(message.id || '')}
-                        className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl p-2 transition-all duration-200"
+                        className="hover:bg-muted rounded-xl p-2 transition-all duration-200"
                         title={speakingMessages.has(message.id || '') ? "Stop speech" : "Read aloud"}
                       >
                         {loadingTTS.has(message.id || '') ? (
@@ -330,7 +330,7 @@ const MessageList: React.FC<MessageListProps> = ({
                     {formatTime(message.timestamp)}
                   </span>
                   {message.tokenCount && (
-                    <Badge variant="outline" className="border-white/20 text-white/60 bg-white/5 text-xs">
+                    <Badge variant="outline" className="text-xs">
                       {message.tokenCount} tokens
                     </Badge>
                   )}
