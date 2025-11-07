@@ -127,6 +127,27 @@ export const translations: TranslationData = {
     'features.cta.subtitle': 'Join thousands of students, families, and schools already transforming their educational journey with our AI-powered platform available in 15+ languages.',
     'features.cta.startTrial': 'Start Free Trial',
     'features.cta.viewDemo': 'View Live Demo',
+    'features.cta.tryDemo': 'Try Demo First',
+    
+    // Language badges
+    'features.lang.english': '🇺🇸 English',
+    'features.lang.spanish': '🇪🇸 Spanish',
+    'features.lang.french': '🇫🇷 French',
+    'features.lang.german': '🇩🇪 German',
+    'features.lang.italian': '🇮🇹 Italian',
+    'features.lang.japanese': '🇯🇵 Japanese',
+    'features.lang.korean': '🇰🇷 Korean',
+    'features.lang.chinese': '🇨🇳 Chinese',
+    'features.lang.russian': '🇷🇺 Russian',
+    
+    // AI Teaching methods
+    'features.method.socratic': 'Socratic Method',
+    'features.method.adaptive': 'Adaptive Learning',
+    'features.method.feedback': 'Instant Feedback',
+    
+    // Analytics examples
+    'features.analytics.mathMastery': 'Mathematics: 87% Mastery',
+    'features.analytics.scienceProgress': 'Science: 65% Progress',
     
     // How It Works Page
     'howItWorks.title': 'How It Works',
