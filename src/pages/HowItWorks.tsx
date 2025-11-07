@@ -67,18 +67,30 @@ const HowItWorks = () => {
     },
     {
       number: 5,
-      title: "Track Progress & Analytics",
-      description: "Monitor your learning journey with comprehensive analytics, performance metrics, and personalized study plans based on your strengths and weaknesses.",
+      title: "Create Personalized Study Plans",
+      description: "Generate AI-powered study plans tailored to your learning goals, schedule, and curriculum requirements with day-by-day breakdowns.",
       icon: TrendingUp,
       details: [
-        "Real-time dashboards showing quiz scores, time spent, and topic mastery",
-        "AI-generated insights identifying your strengths and areas for improvement",
-        "Personalized study plans that adapt to your progress",
-        "Parents receive detailed reports on their children's learning activities"
+        "AI creates comprehensive study schedules based on your topics and available time",
+        "Get daily learning objectives with specific goals and activities",
+        "Combine study plans with quizzes for a complete learning experience",
+        "Save and revisit your study plans anytime from your library"
       ]
     },
     {
       number: 6,
+      title: "Track Progress & Analytics",
+      description: "Monitor your learning journey with comprehensive analytics, performance metrics, and detailed insights into your strengths and weaknesses.",
+      icon: TrendingUp,
+      details: [
+        "Real-time dashboards showing quiz scores, time spent, and topic mastery",
+        "AI-generated insights identifying your strengths and areas for improvement",
+        "Visual progress tracking across all subjects and learning activities",
+        "Parents receive detailed reports on their children's learning activities"
+      ]
+    },
+    {
+      number: 7,
       title: "Earn Rewards & Complete Quests",
       description: "Stay motivated with gamification features including achievement badges, experience points, and subject-specific quests that make learning fun.",
       icon: Trophy,

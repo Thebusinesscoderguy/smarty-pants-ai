@@ -223,18 +223,24 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <Brain className="w-12 h-12 text-primary mb-4" />
+            <div 
+              className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+              onClick={() => navigate(user ? '/quiz-generator' : '/auth')}
+            >
+              <Brain className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                AI Study Assistant
+                AI Study Plans
               </h3>
               <p className="text-muted-foreground leading-relaxed">
-                Get instant help with homework, explanations, and study plans tailored to your curriculum.
+                Generate personalized study plans with daily objectives and comprehensive learning schedules.
               </p>
             </div>
             
-            <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <Users className="w-12 h-12 text-primary mb-4" />
+            <div 
+              className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+              onClick={() => navigate(user ? '/quiz-generator' : '/auth')}
+            >
+              <Users className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-xl font-semibold text-foreground mb-3">
                 Parent Dashboard
               </h3>
