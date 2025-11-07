@@ -5,10 +5,12 @@ import { GraduationCap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Header = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     try {
@@ -29,14 +31,14 @@ export const Header = () => {
         </Link>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/" className="text-foreground/70 hover:text-foreground font-medium transition-colors">Home</Link>
-          <Link to="/features" className="text-foreground/70 hover:text-foreground font-medium transition-colors">Features</Link>
-          <Link to="/how-it-works" className="text-foreground/70 hover:text-foreground font-medium transition-colors">How It Works</Link>
-          <Link to="/pricing" className="text-foreground/70 hover:text-foreground font-medium transition-colors">Pricing</Link>
+          <Link to="/" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.home')}</Link>
+          <Link to="/features" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.features')}</Link>
+          <Link to="/how-it-works" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.howItWorks')}</Link>
+          <Link to="/pricing" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.pricing')}</Link>
           
           {user ? (
             <>
-              <Link to="/quiz-generator" className="text-foreground/70 hover:text-foreground font-medium transition-colors">Study Plans</Link>
+              <Link to="/quiz-generator" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.studyPlans')}</Link>
               <LanguageSelector />
               <Button 
                 onClick={handleSignOut}
@@ -44,7 +46,7 @@ export const Header = () => {
                 size="sm"
                 className="rounded-full"
               >
-                Sign Out
+                {t('nav.signOut')}
               </Button>
             </>
           ) : (
@@ -55,7 +57,7 @@ export const Header = () => {
                 size="sm"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
               >
-                Get Started
+                {t('nav.getStarted')}
               </Button>
             </>
           )}

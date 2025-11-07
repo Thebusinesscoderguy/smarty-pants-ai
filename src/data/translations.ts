@@ -3,8 +3,13 @@ import { TranslationData } from '@/types/language';
 export const translations: TranslationData = {
   en: {
     // Navigation
+    'nav.home': 'Home',
     'nav.features': 'Features',
+    'nav.howItWorks': 'How It Works',
     'nav.pricing': 'Pricing',
+    'nav.studyPlans': 'Study Plans',
+    'nav.signOut': 'Sign Out',
+    'nav.getStarted': 'Get Started',
     'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.chat': 'Chat',
