@@ -8,6 +8,7 @@ import { UserPlus, Mail, Clock, CheckCircle, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudentInvitation {
   id: string;
@@ -29,6 +30,7 @@ export const StudentManagement = () => {
   const [newStudentFirstName, setNewStudentFirstName] = useState('');
   const [newStudentLastName, setNewStudentLastName] = useState('');
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchInvitations();
@@ -101,8 +103,8 @@ export const StudentManagement = () => {
       if (invitationsError) {
         console.error('Error fetching invitations:', invitationsError);
         toast({
-          title: "Error",
-          description: "Failed to load student invitations",
+          title: t('common.error'),
+          description: t('adminStudentManagement.errorLoadingInvitations'),
           variant: "destructive"
         });
         return;
@@ -112,8 +114,8 @@ export const StudentManagement = () => {
     } catch (error: any) {
       console.error('Error in fetchInvitations:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to load invitations",
+        title: t('common.error'),
+        description: error.message || t('adminStudentManagement.errorLoadingInvitations'),
         variant: "destructive"
       });
     } finally {
@@ -124,8 +126,8 @@ export const StudentManagement = () => {
   const inviteStudent = async () => {
     if (!newStudentEmail.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address",
+        title: t('common.error'),
+        description: t('adminStudentManagement.errorEmail'),
         variant: "destructive"
       });
       return;
@@ -133,8 +135,8 @@ export const StudentManagement = () => {
 
     if (!newStudentFirstName.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter the student's first name",
+        title: t('common.error'),
+        description: t('adminStudentManagement.errorFirstName'),
         variant: "destructive"
       });
       return;
@@ -185,19 +187,19 @@ export const StudentManagement = () => {
       if (emailError) {
         console.error('Error calling email function:', emailError);
         toast({
-          title: "Invitation Created",
+          title: t('adminStudentManagement.invitationCreated'),
           description: `Invitation created for ${newStudentEmail} but email failed to send. Share this code manually: ${invitationData.invitation_code}`,
           variant: "destructive"
         });
       } else if (emailData?.success) {
         toast({
-          title: "Invitation Sent Successfully! 📧",
-          description: `Email invitation sent to ${newStudentEmail}. They should receive it shortly.`,
+          title: t('adminStudentManagement.invitationSent'),
+          description: t('adminStudentManagement.invitationSentDesc').replace('{email}', newStudentEmail),
         });
       } else {
         console.error('Email function returned non-success:', emailData);
         toast({
-          title: "Invitation Created",
+          title: t('adminStudentManagement.invitationCreated'),
           description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}. Email may have failed to send.`,
           variant: "destructive"
         });
@@ -214,8 +216,8 @@ export const StudentManagement = () => {
     } catch (error: any) {
       console.error('Error inviting student:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to send invitation",
+        title: t('common.error'),
+        description: error.message || t('adminStudentManagement.errorSendingInvitation'),
         variant: "destructive"
       });
     } finally {
@@ -233,33 +235,33 @@ export const StudentManagement = () => {
       if (error) throw error;
 
       toast({
-        title: "Invitation Deleted",
-        description: "Invitation has been removed",
+        title: t('adminStudentManagement.invitationDeleted'),
+        description: t('adminStudentManagement.invitationDeletedDesc'),
       });
 
       fetchInvitations();
     } catch (error: any) {
       console.error('Error deleting invitation:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete invitation",
+        title: t('common.error'),
+        description: t('adminStudentManagement.errorDeletingInvitation'),
         variant: "destructive"
       });
     }
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-primary">Loading student data...</div>;
+    return <div className="animate-pulse text-primary">{t('adminStudentManagement.loadingStudents')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-primary">Student Management</h2>
+        <h2 className="text-2xl font-bold text-primary">{t('adminStudentManagement.title')}</h2>
         <p className="text-muted-foreground">
-          Invite and manage students in your school
+          {t('adminStudentManagement.subtitle')}
           <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm">
-            ✅ Real Email Invitations
+            {t('adminStudentManagement.realEmailBadge')}
           </span>
         </p>
       </div>
@@ -269,16 +271,16 @@ export const StudentManagement = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-primary">
             <UserPlus className="h-5 w-5" />
-            Invite Student
+            {t('adminStudentManagement.inviteStudent')}
             <Badge variant="secondary" className="bg-green-600">
-              📧 Email Enabled
+              {t('adminStudentManagement.emailEnabled')}
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              placeholder="Email address *"
+              placeholder={t('adminStudentManagement.emailPlaceholder')}
               type="email"
               value={newStudentEmail}
               onChange={(e) => setNewStudentEmail(e.target.value)}
@@ -286,14 +288,14 @@ export const StudentManagement = () => {
               required
             />
             <Input
-              placeholder="First name *"
+              placeholder={t('adminStudentManagement.firstNamePlaceholder')}
               value={newStudentFirstName}
               onChange={(e) => setNewStudentFirstName(e.target.value)}
               className="bg-primary/10 border-primary/20 text-primary"
               required
             />
             <Input
-              placeholder="Last name (optional)"
+              placeholder={t('adminStudentManagement.lastNamePlaceholder')}
               value={newStudentLastName}
               onChange={(e) => setNewStudentLastName(e.target.value)}
               className="bg-primary/10 border-primary/20 text-primary"
@@ -304,7 +306,7 @@ export const StudentManagement = () => {
             disabled={isInviting || !newStudentEmail.trim() || !newStudentFirstName.trim()}
             className="bg-primary hover:bg-primary/90"
           >
-            {isInviting ? "Sending Email..." : "📧 Send Email Invitation"}
+            {isInviting ? t('adminStudentManagement.sendingEmail') : t('adminStudentManagement.sendEmailInvitation')}
           </Button>
         </CardContent>
       </Card>
@@ -312,11 +314,11 @@ export const StudentManagement = () => {
       {/* Invitations List */}
       <Card className="bg-primary/10 border-primary/20">
         <CardHeader>
-          <CardTitle className="text-primary">Student Invitations</CardTitle>
+          <CardTitle className="text-primary">{t('adminStudentManagement.invitationsSectionTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
           {invitations.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No invitations sent yet</p>
+            <p className="text-muted-foreground text-center py-8">{t('adminStudentManagement.noInvitations')}</p>
           ) : (
             <div className="space-y-4">
               {invitations.map((invitation) => (
@@ -342,16 +344,16 @@ export const StudentManagement = () => {
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
                         <span className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
-                          Sent {new Date(invitation.created_at).toLocaleDateString()}
+                          {t('adminStudentManagement.sent')} {new Date(invitation.created_at).toLocaleDateString()}
                         </span>
                         {!invitation.used && (
                           <span>
-                            Expires {new Date(invitation.expires_at).toLocaleDateString()}
+                            {t('adminStudentManagement.expires')} {new Date(invitation.expires_at).toLocaleDateString()}
                           </span>
                         )}
                         {!invitation.used && (
                           <span className="text-primary font-mono">
-                            Code: {invitation.invitation_code}
+                            {t('adminStudentManagement.code')}: {invitation.invitation_code}
                           </span>
                         )}
                       </div>
@@ -359,7 +361,7 @@ export const StudentManagement = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant={invitation.used ? 'default' : 'secondary'}>
-                      {invitation.used ? 'Accepted' : 'Pending'}
+                      {invitation.used ? t('adminStudentManagement.accepted') : t('adminStudentManagement.pending')}
                     </Badge>
                     {!invitation.used && (
                       <Button

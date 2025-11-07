@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Target, Trophy, BookOpen, TrendingUp, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface OverviewStats {
   totalInvitations: number;
@@ -15,6 +16,7 @@ interface OverviewStats {
 }
 
 export const SchoolOverview = () => {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<OverviewStats>({
     totalInvitations: 0,
     activeInvitations: 0,
@@ -67,35 +69,35 @@ export const SchoolOverview = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading overview...</div>;
+    return <div className="animate-pulse">{t('adminOverview.loadingOverview')}</div>;
   }
 
   const statCards = [
     {
-      title: 'Student Invitations',
+      title: t('adminOverview.studentInvitations'),
       value: stats.totalInvitations,
-      subtitle: `${stats.activeInvitations} pending`,
+      subtitle: `${stats.activeInvitations} ${t('adminOverview.pending')}`,
       icon: Users,
       color: 'bg-blue-500'
     },
     {
-      title: 'Active Quests',
+      title: t('adminOverview.activeQuests'),
       value: stats.activeQuests,
-      subtitle: `${stats.totalQuests} total created`,
+      subtitle: `${stats.totalQuests} ${t('adminOverview.totalCreated')}`,
       icon: Target,
       color: 'bg-purple-500'
     },
     {
-      title: 'Achievements',
-      value: 0, // Achievements system removed
-      subtitle: 'System disabled',
+      title: t('adminOverview.achievements'),
+      value: 0,
+      subtitle: t('adminOverview.systemDisabled'),
       icon: Trophy,
       color: 'bg-gray-500'
     },
     {
-      title: 'Subjects',
+      title: t('adminOverview.subjects'),
       value: stats.totalSubjects,
-      subtitle: 'Learning areas',
+      subtitle: t('adminOverview.learningAreas'),
       icon: BookOpen,
       color: 'bg-green-500'
     }
@@ -104,8 +106,8 @@ export const SchoolOverview = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white mb-2">School Overview</h2>
-        <p className="text-gray-400">Monitor your school's learning management system</p>
+        <h2 className="text-2xl font-bold text-white mb-2">{t('adminOverview.title')}</h2>
+        <p className="text-gray-400">{t('adminOverview.subtitle')}</p>
       </div>
 
       {/* Stats Grid */}

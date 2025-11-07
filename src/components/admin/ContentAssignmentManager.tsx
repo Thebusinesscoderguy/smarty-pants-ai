@@ -13,6 +13,7 @@ import { useTestManagement } from '@/hooks/useTestManagement';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { useCurriculumManagement } from '@/hooks/useCurriculumManagement';
 import { useMonitoringData } from '@/hooks/useMonitoringData';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const ContentAssignmentManager = () => {
   const { assignments, loading, createAssignment, deactivateAssignment } = useContentAssignments();
@@ -21,6 +22,7 @@ export const ContentAssignmentManager = () => {
   const { quests } = useQuestManagement();
   const { curricula } = useCurriculumManagement();
   const { studentProgress } = useMonitoringData();
+  const { t } = useLanguage();
 
   const [selectedContentType, setSelectedContentType] = useState<string>('');
   const [selectedContent, setSelectedContent] = useState<string>('');
@@ -95,7 +97,7 @@ export const ContentAssignmentManager = () => {
   };
 
   if (loading) {
-    return <div className="animate-pulse">Loading assignments...</div>;
+    return <div className="animate-pulse">{t('adminContentAssignment.loadingAssignments')}</div>;
   }
 
   return (
@@ -104,23 +106,23 @@ export const ContentAssignmentManager = () => {
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
             <Send className="h-5 w-5" />
-            Content Assignment Manager
+            {t('adminContentAssignment.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Assignment Creation Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Create Assignment</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t('adminContentAssignment.createAssignment')}</h3>
               
               <Select value={selectedContentType} onValueChange={setSelectedContentType}>
                 <SelectTrigger className="bg-card border-border text-foreground">
-                  <SelectValue placeholder="Select content type" />
+                  <SelectValue placeholder={t('adminContentAssignment.selectContentType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="test">Test</SelectItem>
-                  <SelectItem value="quest">Quest</SelectItem>
-                  <SelectItem value="curriculum">Curriculum</SelectItem>
+                  <SelectItem value="test">{t('adminContentAssignment.test')}</SelectItem>
+                  <SelectItem value="quest">{t('adminContentAssignment.quest')}</SelectItem>
+                  <SelectItem value="curriculum">{t('adminContentAssignment.curriculum')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -130,7 +132,7 @@ export const ContentAssignmentManager = () => {
                 disabled={!selectedContentType}
               >
                 <SelectTrigger className="bg-card border-border text-foreground">
-                  <SelectValue placeholder="Select content" />
+                  <SelectValue placeholder={t('adminContentAssignment.selectContent')} />
                 </SelectTrigger>
                 <SelectContent>
                   {getContentOptions().map((option) => (
@@ -143,12 +145,12 @@ export const ContentAssignmentManager = () => {
 
               <Select value={selectedAssignmentType} onValueChange={setSelectedAssignmentType}>
                 <SelectTrigger className="bg-card border-border text-foreground">
-                  <SelectValue placeholder="Assignment type" />
+                  <SelectValue placeholder={t('adminContentAssignment.assignmentType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Students</SelectItem>
-                  <SelectItem value="classification">By Classification</SelectItem>
-                  <SelectItem value="individual">Individual Student</SelectItem>
+                  <SelectItem value="all">{t('adminContentAssignment.allStudents')}</SelectItem>
+                  <SelectItem value="classification">{t('adminContentAssignment.byClassification')}</SelectItem>
+                  <SelectItem value="individual">{t('adminContentAssignment.individualStudent')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -161,8 +163,8 @@ export const ContentAssignmentManager = () => {
                   <SelectTrigger className="bg-card border-border text-foreground">
                     <SelectValue placeholder={
                       selectedAssignmentType === 'individual' 
-                        ? "Select student" 
-                        : "Select classification"
+                        ? t('adminContentAssignment.selectStudent')
+                        : t('adminContentAssignment.selectClassification')
                     } />
                   </SelectTrigger>
                   <SelectContent>
@@ -182,7 +184,7 @@ export const ContentAssignmentManager = () => {
                     className="w-full justify-start text-left font-normal bg-card border-border text-foreground hover:bg-muted"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dueDate ? format(dueDate, "PPP") : "Set due date (optional)"}
+                    {dueDate ? format(dueDate, "PPP") : t('adminContentAssignment.setDueDate')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -201,28 +203,28 @@ export const ContentAssignmentManager = () => {
                 className="w-full"
               >
                 <Send className="h-4 w-4 mr-2" />
-                Create Assignment
+                {t('adminContentAssignment.createAssignmentButton')}
               </Button>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Assignment Preview</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t('adminContentAssignment.assignmentPreview')}</h3>
               <Card className="bg-muted border-border">
                 <CardContent className="p-4 space-y-2">
                   <div className="text-sm text-foreground">
-                    <strong>Content:</strong> {selectedContentType ? `${selectedContentType}: ${getContentOptions().find(o => o.id === selectedContent)?.title || 'Not selected'}` : 'Not selected'}
+                    <strong>{t('adminContentAssignment.content')}:</strong> {selectedContentType ? `${selectedContentType}: ${getContentOptions().find(o => o.id === selectedContent)?.title || t('adminContentAssignment.notSelected')}` : t('adminContentAssignment.notSelected')}
                   </div>
                   <div className="text-sm text-foreground">
-                    <strong>Assignment Type:</strong> {selectedAssignmentType || 'Not selected'}
+                    <strong>{t('adminContentAssignment.assignmentType')}:</strong> {selectedAssignmentType || t('adminContentAssignment.notSelected')}
                   </div>
                   {selectedAssignmentType !== 'all' && (
                     <div className="text-sm text-foreground">
-                      <strong>Target:</strong> {getTargetOptions().find(o => o.id === selectedTarget)?.title || 'Not selected'}
+                      <strong>{t('adminContentAssignment.target')}:</strong> {getTargetOptions().find(o => o.id === selectedTarget)?.title || t('adminContentAssignment.notSelected')}
                     </div>
                   )}
                   {dueDate && (
                     <div className="text-sm text-foreground">
-                      <strong>Due Date:</strong> {format(dueDate, "PPP")}
+                      <strong>{t('adminContentAssignment.dueDate')}:</strong> {format(dueDate, "PPP")}
                     </div>
                   )}
                 </CardContent>
@@ -237,13 +239,13 @@ export const ContentAssignmentManager = () => {
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Active Assignments ({assignments.length})
+            {t('adminContentAssignment.activeAssignments')} ({assignments.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {assignments.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No active assignments</p>
+              <p className="text-muted-foreground text-center py-8">{t('adminContentAssignment.noActiveAssignments')}</p>
             ) : (
               assignments.map((assignment) => (
                 <Card key={assignment.id} className="bg-muted border-border">
@@ -259,11 +261,11 @@ export const ContentAssignmentManager = () => {
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {getAssignmentTypeDisplay(assignment)} • {assignment.student_count || 0} students
+                          {getAssignmentTypeDisplay(assignment)} • {assignment.student_count || 0} {t('adminContentAssignment.students')}
                         </div>
                         {assignment.due_date && (
                           <div className="text-sm text-muted-foreground">
-                            Due: {format(new Date(assignment.due_date), "PPP")}
+                            {t('adminContentAssignment.due')}: {format(new Date(assignment.due_date), "PPP")}
                           </div>
                         )}
                       </div>

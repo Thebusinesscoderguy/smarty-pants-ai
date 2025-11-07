@@ -7,6 +7,7 @@ import { Clock, TrendingUp, Target, BookOpen, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudentAnalytics {
   student_id: string;
@@ -37,6 +38,7 @@ export const EnhancedAnalytics = () => {
   const [timeRange, setTimeRange] = useState<string>('30');
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchAnalytics();
@@ -164,8 +166,8 @@ export const EnhancedAnalytics = () => {
     } catch (error: any) {
       console.error('Error fetching analytics:', error);
       toast({
-        title: "Error",
-        description: "Failed to load analytics data",
+        title: t('common.error'),
+        description: t('adminAnalytics.loadingAnalytics'),
         variant: "destructive"
       });
     } finally {
@@ -178,15 +180,15 @@ export const EnhancedAnalytics = () => {
     : analytics.filter(a => a.student_id === selectedStudent);
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading analytics...</div>;
+    return <div className="animate-pulse">{t('adminAnalytics.loadingAnalytics')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Enhanced Analytics</h2>
-          <p className="text-muted-foreground">Detailed insights into student performance and engagement</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('adminAnalytics.title')}</h2>
+          <p className="text-muted-foreground">{t('adminAnalytics.subtitle')}</p>
         </div>
         
         <div className="flex gap-4">
@@ -195,9 +197,9 @@ export const EnhancedAnalytics = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="7">{t('adminAnalytics.last7Days')}</SelectItem>
+              <SelectItem value="30">{t('adminAnalytics.last30Days')}</SelectItem>
+              <SelectItem value="90">{t('adminAnalytics.last90Days')}</SelectItem>
             </SelectContent>
           </Select>
           
@@ -206,7 +208,7 @@ export const EnhancedAnalytics = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Students</SelectItem>
+              <SelectItem value="all">{t('adminAnalytics.allStudents')}</SelectItem>
               {analytics.map((student) => (
                 <SelectItem key={student.student_id} value={student.student_id}>
                   {student.student_name}
@@ -224,7 +226,7 @@ export const EnhancedAnalytics = () => {
             <div className="flex items-center space-x-2">
               <User className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Students</p>
+                <p className="text-sm text-muted-foreground">{t('adminAnalytics.totalStudents')}</p>
                 <p className="text-2xl font-bold text-foreground">{analytics.length}</p>
               </div>
             </div>
@@ -236,7 +238,7 @@ export const EnhancedAnalytics = () => {
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Minutes</p>
+                <p className="text-sm text-muted-foreground">{t('adminAnalytics.totalMinutes')}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {filteredAnalytics.reduce((sum, a) => sum + a.total_minutes, 0)}
                 </p>
@@ -250,7 +252,7 @@ export const EnhancedAnalytics = () => {
             <div className="flex items-center space-x-2">
               <Target className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Quests Completed</p>
+                <p className="text-sm text-muted-foreground">{t('adminAnalytics.questsCompleted')}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {filteredAnalytics.reduce((sum, a) => sum + a.quest_progress.completed, 0)}
                 </p>
@@ -264,7 +266,7 @@ export const EnhancedAnalytics = () => {
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Achievements</p>
+                <p className="text-sm text-muted-foreground">{t('adminAnalytics.achievements')}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {filteredAnalytics.reduce((sum, a) => sum + a.achievements.earned, 0)}
                 </p>
