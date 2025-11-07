@@ -15,6 +15,8 @@ const Index = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [typewriterText, setTypewriterText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const studyPlanPlaceholders = [
     "Create a personalized study plan for Algebra 1",
@@ -33,16 +35,38 @@ const Index = () => {
   const currentPlaceholders = selectedType === 'study-plan' ? studyPlanPlaceholders : quizPlaceholders;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex((prev) => (prev + 1) % currentPlaceholders.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [currentPlaceholders.length]);
+    setPlaceholderIndex(0);
+    setTypewriterText('');
+    setIsDeleting(false);
+  }, [selectedType]);
 
   useEffect(() => {
-    setPlaceholderIndex(0);
-  }, [selectedType]);
+    const currentText = currentPlaceholders[placeholderIndex];
+    const typingSpeed = isDeleting ? 30 : 50;
+    
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (typewriterText.length < currentText.length) {
+          setTypewriterText(currentText.slice(0, typewriterText.length + 1));
+        } else {
+          // Pause before deleting
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        // Deleting
+        if (typewriterText.length > 0) {
+          setTypewriterText(currentText.slice(0, typewriterText.length - 1));
+        } else {
+          // Move to next placeholder
+          setIsDeleting(false);
+          setPlaceholderIndex((prev) => (prev + 1) % currentPlaceholders.length);
+        }
+      }
+    }, typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [typewriterText, isDeleting, placeholderIndex, currentPlaceholders]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,11 +111,9 @@ const Index = () => {
                     </Select>
                   </div>
                   {!inputValue && (
-                    <div 
-                      key={placeholderIndex}
-                      className="absolute left-[168px] top-1/2 -translate-y-1/2 pointer-events-none text-lg text-muted-foreground animate-fade-in"
-                    >
-                      {currentPlaceholders[placeholderIndex]}
+                    <div className="absolute left-[168px] top-1/2 -translate-y-1/2 pointer-events-none text-lg text-muted-foreground flex items-center">
+                      <span>{typewriterText}</span>
+                      <span className="inline-block w-0.5 h-5 bg-muted-foreground ml-0.5 animate-pulse"></span>
                     </div>
                   )}
                   <input
