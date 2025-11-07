@@ -121,11 +121,11 @@ export const ChatSidebar = ({
   };
 
   return (
-    <div className="w-full md:w-80 bg-gray-800 border-r border-gray-700 p-4 space-y-4 h-full flex flex-col">
+    <div className="w-full md:w-80 bg-card border-r border-border p-4 space-y-4 h-full flex flex-col">
       <div className="flex-shrink-0">
         <Button
           onClick={onNewChat}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 text-sm font-medium"
+          className="w-full bg-primary hover:bg-primary/90 h-11 text-sm font-medium"
         >
           <MessageSquarePlus className="h-4 w-4 mr-2 flex-shrink-0" />
           <span className="truncate">{t('chat.newChat')}</span>

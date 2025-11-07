@@ -28,8 +28,8 @@ export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBu
       <div className={`max-w-[80%] ${message.is_from_user ? 'order-first' : ''}`}>
         <div className={`p-4 rounded-2xl ${
           message.is_from_user 
-            ? 'bg-blue-600 text-white ml-auto' 
-            : 'bg-gray-800 text-gray-100 border border-gray-700'
+            ? 'bg-primary text-primary-foreground ml-auto' 
+            : 'bg-card text-foreground border border-border'
         }`}>
           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
           
@@ -38,7 +38,7 @@ export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBu
               size="sm"
               variant="ghost"
               onClick={() => onPlayAudio?.(message.audioUrl!)}
-              className="mt-2 p-1 hover:bg-white/10 text-gray-300"
+              className="mt-2 p-1 hover:bg-muted text-muted-foreground"
             >
               <Volume2 className="h-4 w-4" />
             </Button>

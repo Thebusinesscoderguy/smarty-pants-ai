@@ -170,14 +170,14 @@ const Chat = () => {
   };
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
+    <div className="flex items-center space-x-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border">
       {/* Study Tools for students */}
       {effectiveRole === 'student' && (
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/quiz-generator')}
-          className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+          className="text-foreground hover:bg-muted transition-all duration-200 rounded-xl px-4 py-2"
         >
           <BarChart3 className="h-4 w-4 mr-2" />
           {t('studyTools.nav.studyTools')}
@@ -190,7 +190,7 @@ const Chat = () => {
           variant={currentPage === 'chat' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setCurrentPage('chat')}
-          className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+          className={`${currentPage === 'chat' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200 rounded-xl px-4 py-2`}
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           {t('chat.nav.chat')}
@@ -203,7 +203,7 @@ const Chat = () => {
           variant="ghost"
           size="sm"
           onClick={() => navigate('/quests')}
-          className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+          className="text-foreground hover:bg-muted transition-all duration-200 rounded-xl px-4 py-2"
         >
           <Trophy className="h-4 w-4 mr-2" />
           Quests
@@ -212,7 +212,7 @@ const Chat = () => {
       
       {/* Show role selection prompt for parents or undefined roles */}
       {(effectiveRole === 'parent' || !effectiveRole) && (
-        <div className="text-white/70 text-sm bg-white/10 px-4 py-2 rounded-xl">
+        <div className="text-muted-foreground text-sm bg-muted px-4 py-2 rounded-xl">
           {t('chat.selectRolePrompt')}
         </div>
       )}
@@ -677,7 +677,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
       
       {/* Modern Navigation Bar */}

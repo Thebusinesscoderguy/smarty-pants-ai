@@ -45,16 +45,16 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="border-t border-gray-700 bg-gray-800 p-4">
+    <div className="border-t border-border bg-card p-4">
       <div className="max-w-4xl mx-auto">
         {selectedFile && (
-          <div className="mb-3 p-3 bg-blue-900/50 rounded-lg flex items-center justify-between border border-blue-800">
-            <span className="text-sm text-gray-300">Selected: {selectedFile.name}</span>
+          <div className="mb-3 p-3 bg-primary/10 rounded-lg flex items-center justify-between border border-primary/20">
+            <span className="text-sm text-foreground">Selected: {selectedFile.name}</span>
             <div className="flex gap-2">
-              <Button size="sm" onClick={onFileUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button size="sm" onClick={onFileUpload} className="bg-primary hover:bg-primary/90">
                 Upload
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)} className="border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Button size="sm" variant="outline" onClick={() => setSelectedFile(null)} className="border-border text-foreground hover:bg-muted">
                 Remove
               </Button>
             </div>

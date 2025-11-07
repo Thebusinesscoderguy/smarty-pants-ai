@@ -29,12 +29,12 @@ const QuestsAchievements = () => {
 
   const renderNavigation = () => (
     <div className="flex justify-center mb-8">
-      <div className="flex gap-2 bg-white/10 backdrop-blur-xl p-2 rounded-lg border border-white/20">
+      <div className="flex gap-2 bg-muted/50 backdrop-blur-xl p-2 rounded-lg border border-border">
         <Button
           onClick={() => navigate('/quiz-generator')}
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/20"
+          className="text-foreground hover:bg-muted"
         >
           <BookOpen className="mr-2 h-4 w-4" />
             Study Tools
@@ -43,7 +43,7 @@ const QuestsAchievements = () => {
           onClick={() => navigate('/chat')}
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/20"
+          className="text-foreground hover:bg-muted"
         >
           <MessageCircle className="mr-2 h-4 w-4" />
             Chat
@@ -51,7 +51,7 @@ const QuestsAchievements = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="text-white bg-white/20"
+          className="text-foreground bg-muted"
           disabled
         >
           <Trophy className="mr-2 h-4 w-4" />
@@ -62,7 +62,7 @@ const QuestsAchievements = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
@@ -72,22 +72,22 @@ const QuestsAchievements = () => {
           
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-white">Quests</h1>
-            <p className="text-xl text-white/80">Complete quests to earn rewards and track your progress</p>
+            <h1 className="text-4xl font-bold text-foreground">Quests</h1>
+            <p className="text-xl text-muted-foreground">Complete quests to earn rewards and track your progress</p>
           </div>
 
           {/* Quest Actions */}
           <div className="flex justify-center gap-4">
             <Button
               onClick={() => navigate('/quests/create')}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-primary hover:bg-primary/90"
             >
               <Plus className="mr-2 h-4 w-4" />
               Made by Me
             </Button>
             <Button
               onClick={() => navigate('/quests/ai-generate')}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90"
             >
               <Target className="mr-2 h-4 w-4" />
               Made by AI
@@ -95,7 +95,7 @@ const QuestsAchievements = () => {
             <Button
               onClick={() => navigate('/quests/made-by-me')}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/20"
+              className="border-border text-foreground hover:bg-muted"
             >
               <List className="mr-2 h-4 w-4" />
               View My Quests
@@ -103,10 +103,10 @@ const QuestsAchievements = () => {
           </div>
 
           {/* Quests Section */}
-          <Card className="bg-white/10 border-white/20 backdrop-blur-xl">
+          <Card className="bg-card border-border backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Target className="h-6 w-6 text-purple-400" />
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <Target className="h-6 w-6 text-primary" />
                 Quests
               </CardTitle>
             </CardHeader>

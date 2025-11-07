@@ -20,13 +20,13 @@ const QuizGeneratorPage = () => {
   const [currentPage, setCurrentPage] = useState<'chat' | 'study'>('study');
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10">
+    <div className="flex items-center space-x-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border">
       {/* Study Tools */}
         <Button
           variant={currentPage === 'study' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setCurrentPage('study')}
-          className={`${currentPage === 'study' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+          className={`${currentPage === 'study' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200 rounded-xl px-4 py-2`}
         >
           <BookOpen className="h-4 w-4 mr-2" />
           {t('studyTools.nav.studyTools')}
@@ -37,7 +37,7 @@ const QuizGeneratorPage = () => {
           variant={currentPage === 'chat' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => { setCurrentPage('chat'); navigate('/chat'); }}
-          className={`${currentPage === 'chat' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-4 py-2`}
+          className={`${currentPage === 'chat' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200 rounded-xl px-4 py-2`}
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           {t('studyTools.nav.chat')}
@@ -48,7 +48,7 @@ const QuizGeneratorPage = () => {
           variant="ghost"
           size="sm"
           onClick={() => navigate('/quests')}
-          className="text-white hover:bg-white/10 transition-all duration-200 rounded-xl px-4 py-2"
+          className="text-foreground hover:bg-muted transition-all duration-200 rounded-xl px-4 py-2"
         >
           <Trophy className="h-4 w-4 mr-2" />
           Quests
@@ -57,11 +57,11 @@ const QuizGeneratorPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
 
       {/* Top navigation matching the rest of the app */}
-      <div className="flex-shrink-0 p-4 border-b border-white/20 bg-white/5 backdrop-blur-sm">
+      <div className="flex-shrink-0 p-4 border-b border-border bg-muted/30 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {renderNavigation()}
@@ -72,10 +72,10 @@ const QuizGeneratorPage = () => {
       <main className="flex-1 p-6 md:px-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('studyTools.title')}</h1>
-          <p className="text-white/80 mb-6">{t('studyTools.subtitle')}</p>
+          <p className="text-muted-foreground mb-6">{t('studyTools.subtitle')}</p>
 
           <Tabs defaultValue="study-plan" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/10 border border-white/20">
+            <TabsList className="grid w-full grid-cols-4 bg-muted border border-border">
               <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
               <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
               <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
