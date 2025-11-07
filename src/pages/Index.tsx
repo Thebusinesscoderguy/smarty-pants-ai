@@ -30,18 +30,20 @@ const Index = () => {
         <div className="container mx-auto px-6 py-20 md:py-32 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Content */}
-            <div className="space-y-8 animate-fade-in col-span-2 max-w-4xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+            <div className="space-y-6 animate-fade-in col-span-2 max-w-5xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Purpose</span>
+                <span className="text-sm font-medium text-foreground">AI-Powered Education</span>
               </div>
               
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
-                Teachly: Where AI Meets Learning
+              <h1 className="text-5xl md:text-6xl lg:text-8xl font-bold text-foreground leading-[1.1] tracking-tight">
+                Learn Smarter,
+                <br />
+                Not Harder
               </h1>
               
-              <p className="text-lg md:text-xl text-muted-foreground">
-                The AI-powered learning companion that adapts and grows alongside you.
+              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Your personal AI tutor that adapts to your learning style, tracks your progress, and makes education engaging through gamification.
               </p>
               
               <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto">
