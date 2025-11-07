@@ -30,8 +30,8 @@ const Index = () => {
         
         <div className="container mx-auto px-6 py-20 md:py-32 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left side - Content */}
-            <div className="space-y-6 animate-fade-in">
+            {/* Content */}
+            <div className="space-y-6 animate-fade-in col-span-2">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">Purpose</span>
@@ -61,20 +61,6 @@ const Index = () => {
                 >
                   See How It Works
                 </Button>
-              </div>
-            </div>
-            
-            {/* Right side - Image */}
-            <div className="relative animate-float">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-card">
-                <img 
-                  src="/images/ai-chat-interface.png" 
-                  alt="Teachly AI Interface"
-                  className="w-full h-auto"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1488590728505-e4f781a29c0e?w=800&auto=format&fit=crop";
-                  }}
-                />
               </div>
             </div>
           </div>
@@ -166,18 +152,7 @@ const Index = () => {
       {/* Experience Section */}
       <section className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-              <img 
-                src="/images/student-dashboard.png" 
-                alt="Student Dashboard"
-                className="w-full h-auto"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=800&auto=format&fit=crop";
-                }}
-              />
-            </div>
-            
+          <div className="max-w-4xl mx-auto text-center">
             <div className="space-y-6">
               <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                 Experience the Future Today
