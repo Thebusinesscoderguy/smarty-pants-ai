@@ -109,7 +109,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Teachly works alongside students and teachers. By handling repetitive tasks, personalizing learning paths, and adapting to every interaction, Teachly helps humans focus on what they do best: create, solve, and grow.
+              Teachly personalizes learning paths and adapts to every interaction. Helping students focus on what they do best: create, solve, and grow.
             </h2>
           </div>
 
@@ -140,10 +140,9 @@ const Index = () => {
             <Button 
               size="lg"
               onClick={() => navigate('/auth')}
-              variant="outline"
-              className="rounded-full px-8 border-2"
+              className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              Request a Demo
+              Get Started <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </div>
         </div>
