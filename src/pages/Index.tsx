@@ -36,10 +36,8 @@ const Index = () => {
                 <span className="text-sm font-medium text-foreground">AI-Powered Education</span>
               </div>
               
-              <h1 className="text-5xl md:text-6xl lg:text-8xl font-bold text-foreground leading-[1.1] tracking-tight">
-                Learn Smarter,
-                <br />
-                Not Harder
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight">
+                Teachly: Where AI Meets Learning
               </h1>
               
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
