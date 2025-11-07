@@ -6,7 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -14,6 +14,35 @@ const Index = () => {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState('');
   const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  const studyPlanPlaceholders = [
+    "Create a personalized study plan for Algebra 1",
+    "Build a study plan for Fundamentals of Physics",
+    "Design a learning path for Adjective Rules",
+    "Plan my week of Trigonometry practice"
+  ];
+
+  const quizPlaceholders = [
+    "Generate a quiz for World Geography",
+    "Make a quick quiz on Photosynthesis",
+    "Test me on English grammar basics",
+    "Create a 10-question quiz for History"
+  ];
+
+  const currentPlaceholders = selectedType === 'study-plan' ? studyPlanPlaceholders : quizPlaceholders;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % currentPlaceholders.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentPlaceholders.length]);
+
+  useEffect(() => {
+    setPlaceholderIndex(0);
+  }, [selectedType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +90,8 @@ const Index = () => {
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={selectedType === 'study-plan' ? t('home.hero.placeholder') : 'Create a quiz for...'}
-                    className="w-full pl-[168px] pr-32 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+                    placeholder={currentPlaceholders[placeholderIndex]}
+                    className="w-full pl-[168px] pr-32 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-500"
                   />
                   <Button
                     type="submit"
