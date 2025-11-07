@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap } from 'lucide-react';
 import { useState } from 'react';
 
@@ -12,6 +13,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState('');
+  const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +46,23 @@ const Index = () => {
               
               <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto">
                 <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                    <Select value={selectedType} onValueChange={(value: 'study-plan' | 'quiz') => setSelectedType(value)}>
+                      <SelectTrigger className="w-[140px] h-10 border-2 border-border bg-background hover:bg-muted rounded-full text-sm font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border border-border">
+                        <SelectItem value="study-plan">Study Plan</SelectItem>
+                        <SelectItem value="quiz">Quiz</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={t('home.hero.placeholder')}
-                    className="w-full px-6 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors pr-32"
+                    placeholder={selectedType === 'study-plan' ? t('home.hero.placeholder') : 'Create a quiz for...'}
+                    className="w-full pl-[168px] pr-32 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
                   />
                   <Button
                     type="submit"
