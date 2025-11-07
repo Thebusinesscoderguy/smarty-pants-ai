@@ -185,13 +185,13 @@ export const EnhancedAnalytics = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Enhanced Analytics</h2>
-          <p className="text-gray-400">Detailed insights into student performance and engagement</p>
+          <h2 className="text-2xl font-bold text-foreground">Enhanced Analytics</h2>
+          <p className="text-muted-foreground">Detailed insights into student performance and engagement</p>
         </div>
         
         <div className="flex gap-4">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white w-32">
+            <SelectTrigger className="bg-card border-border text-foreground w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -202,7 +202,7 @@ export const EnhancedAnalytics = () => {
           </Select>
           
           <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white w-48">
+            <SelectTrigger className="bg-card border-border text-foreground w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -219,25 +219,25 @@ export const EnhancedAnalytics = () => {
 
       {/* Overall Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-blue-400" />
+              <User className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-400">Total Students</p>
-                <p className="text-2xl font-bold text-white">{analytics.length}</p>
+                <p className="text-sm text-muted-foreground">Total Students</p>
+                <p className="text-2xl font-bold text-foreground">{analytics.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-green-400" />
+              <Clock className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-400">Total Minutes</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-sm text-muted-foreground">Total Minutes</p>
+                <p className="text-2xl font-bold text-foreground">
                   {filteredAnalytics.reduce((sum, a) => sum + a.total_minutes, 0)}
                 </p>
               </div>
@@ -245,13 +245,13 @@ export const EnhancedAnalytics = () => {
           </CardContent>
         </Card>
         
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-purple-400" />
+              <Target className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm text-gray-400">Quests Completed</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-sm text-muted-foreground">Quests Completed</p>
+                <p className="text-2xl font-bold text-foreground">
                   {filteredAnalytics.reduce((sum, a) => sum + a.quest_progress.completed, 0)}
                 </p>
               </div>
@@ -259,13 +259,13 @@ export const EnhancedAnalytics = () => {
           </CardContent>
         </Card>
         
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-orange-400" />
+              <TrendingUp className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-400">Achievements</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-sm text-muted-foreground">Achievements</p>
+                <p className="text-2xl font-bold text-foreground">
                   {filteredAnalytics.reduce((sum, a) => sum + a.achievements.earned, 0)}
                 </p>
               </div>
@@ -277,9 +277,9 @@ export const EnhancedAnalytics = () => {
       {/* Individual Student Analytics */}
       <div className="grid gap-6">
         {filteredAnalytics.map((student) => (
-          <Card key={student.student_id} className="bg-white/10 border-white/20">
+          <Card key={student.student_id} className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <User className="h-5 w-5" />
                 {student.student_name}
               </CardTitle>
@@ -288,14 +288,14 @@ export const EnhancedAnalytics = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Time Breakdown */}
                 <div>
-                  <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                  <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Study Time: {student.total_minutes} minutes
                   </h4>
                   <div className="space-y-2">
                     {Object.values(student.subjects).map((subject: any, index) => (
                       <div key={index} className="flex justify-between items-center">
-                        <span className="text-sm text-gray-300">{subject.name}</span>
+                        <span className="text-sm text-foreground">{subject.name}</span>
                         <Badge variant="outline">{subject.minutes} min</Badge>
                       </div>
                     ))}
@@ -304,17 +304,17 @@ export const EnhancedAnalytics = () => {
 
                 {/* Strengths & Weaknesses */}
                 <div>
-                  <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                  <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
                     Performance Analysis
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-xs text-green-400 mb-1">Strengths</p>
+                      <p className="text-xs text-green-600 mb-1">Strengths</p>
                       <div className="flex flex-wrap gap-1">
                         {Object.values(student.subjects).flatMap((subject: any) => 
                           subject.strengths.map((strength: string, idx: number) => (
-                            <Badge key={idx} variant="default" className="text-xs bg-green-500/20 text-green-300">
+                            <Badge key={idx} variant="default" className="text-xs bg-green-100 text-green-700">
                               {strength}
                             </Badge>
                           ))
@@ -322,11 +322,11 @@ export const EnhancedAnalytics = () => {
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs text-red-400 mb-1">Areas for Improvement</p>
+                      <p className="text-xs text-red-600 mb-1">Areas for Improvement</p>
                       <div className="flex flex-wrap gap-1">
                         {Object.values(student.subjects).flatMap((subject: any) => 
                           subject.weaknesses.map((weakness: string, idx: number) => (
-                            <Badge key={idx} variant="default" className="text-xs bg-red-500/20 text-red-300">
+                            <Badge key={idx} variant="default" className="text-xs bg-red-100 text-red-700">
                               {weakness}
                             </Badge>
                           ))
@@ -338,24 +338,24 @@ export const EnhancedAnalytics = () => {
 
                 {/* Progress Indicators */}
                 <div>
-                  <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                  <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
                     <Target className="h-4 w-4" />
                     Progress Indicators
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-300">Quests</span>
+                      <span className="text-sm text-foreground">Quests</span>
                       <Badge variant="outline">
                         {student.quest_progress.completed}/{student.quest_progress.total}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-300">Achievements</span>
+                      <span className="text-sm text-foreground">Achievements</span>
                       <Badge variant="outline">
                         {student.achievements.earned}/{student.achievements.total}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-400">
+                    <div className="text-sm text-muted-foreground">
                       Overall completion rate: {
                         Object.values(student.subjects).length > 0 
                           ? Math.round(Object.values(student.subjects).reduce((avg: number, subject: any) => avg + subject.completion_rate, 0) / Object.values(student.subjects).length)

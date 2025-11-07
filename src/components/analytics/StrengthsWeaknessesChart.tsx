@@ -53,9 +53,9 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
   };
 
   return (
-    <Card className="bg-white/10 border-white/20">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <TrendingUp className="h-5 w-5" />
           {studentName} - Strengths & Weaknesses Progress
         </CardTitle>
@@ -93,23 +93,23 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
         </div>
         
         <div className="mt-6 space-y-3">
-          <h3 className="text-lg font-medium text-white mb-3">Topic Progress Details</h3>
+          <h3 className="text-lg font-medium text-foreground mb-3">Topic Progress Details</h3>
           {data.map((topic, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
                 {getImprovementIcon(topic.improvement)}
                 <div>
-                  <p className="font-medium text-white">{topic.topic}</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="font-medium text-foreground">{topic.topic}</p>
+                  <p className="text-sm text-muted-foreground">
                     Was {topic.past_score}% → Now {topic.current_score}%
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-bold ${topic.improvement >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <p className={`font-bold ${topic.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {topic.improvement > 0 ? '+' : ''}{topic.improvement}%
                 </p>
-                <p className="text-xs text-gray-500">change</p>
+                <p className="text-xs text-muted-foreground">change</p>
               </div>
             </div>
           ))}
@@ -117,10 +117,10 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
         
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-green-400" />
+            <TrendingUp className="h-4 w-4 text-green-600" />
             <div>
-              <p className="text-sm text-gray-400">Most Improved</p>
-              <p className="font-medium text-white">
+              <p className="text-sm text-muted-foreground">Most Improved</p>
+              <p className="font-medium text-foreground">
                 {data.length > 0 ? data.reduce((prev, current) => 
                   prev.improvement > current.improvement ? prev : current
                 ).topic : 'No data'}
@@ -128,10 +128,10 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <TrendingDown className="h-4 w-4 text-red-400" />
+            <TrendingDown className="h-4 w-4 text-red-600" />
             <div>
-              <p className="text-sm text-gray-400">Needs Focus</p>
-              <p className="font-medium text-white">
+              <p className="text-sm text-muted-foreground">Needs Focus</p>
+              <p className="font-medium text-foreground">
                 {data.length > 0 ? data.reduce((prev, current) => 
                   prev.improvement < current.improvement ? prev : current
                 ).topic : 'No data'}

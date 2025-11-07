@@ -41,9 +41,9 @@ export const ProgressBrief = ({
   };
 
   return (
-    <Card className="bg-white/10 border-white/20">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <FileText className="h-5 w-5" />
           Progress Brief - {studentName}
         </CardTitle>
@@ -51,37 +51,37 @@ export const ProgressBrief = ({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-blue-400" />
+            <Target className="h-4 w-4 text-blue-600" />
             <div>
-              <p className="text-xs text-gray-400">Completion</p>
-              <p className="font-medium text-white">{completionPercentage}%</p>
+              <p className="text-xs text-muted-foreground">Completion</p>
+              <p className="font-medium text-foreground">{completionPercentage}%</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-green-400" />
+            <Clock className="h-4 w-4 text-green-600" />
             <div>
-              <p className="text-xs text-gray-400">Study Time</p>
-              <p className="font-medium text-white">{Math.round(totalTimeSpent / 60)}h</p>
+              <p className="text-xs text-muted-foreground">Study Time</p>
+              <p className="font-medium text-foreground">{Math.round(totalTimeSpent / 60)}h</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-purple-400" />
+            <TrendingUp className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-xs text-gray-400">Strengths</p>
-              <p className="font-medium text-white">{strengths.length}</p>
+              <p className="text-xs text-muted-foreground">Strengths</p>
+              <p className="font-medium text-foreground">{strengths.length}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-orange-400" />
+            <Target className="h-4 w-4 text-orange-600" />
             <div>
-              <p className="text-xs text-gray-400">Focus Areas</p>
-              <p className="font-medium text-white">{weakAreas.length}</p>
+              <p className="text-xs text-muted-foreground">Focus Areas</p>
+              <p className="font-medium text-foreground">{weakAreas.length}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-black/20 rounded-lg p-4">
-          <p className="text-gray-300 leading-relaxed">
+        <div className="bg-muted rounded-lg p-4">
+          <p className="text-foreground leading-relaxed">
             {generateBrief()}
           </p>
         </div>

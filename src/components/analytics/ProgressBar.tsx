@@ -77,15 +77,15 @@ export const ProgressBar = ({
     <div className="space-y-2">
       {label && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-white font-medium">{label}</span>
+          <span className="text-foreground font-medium">{label}</span>
           <div className="flex items-center gap-2">
             {showTrend && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-muted-foreground">
                 {getTrendIcon()}
               </span>
             )}
             {showPercentage && (
-              <span className="text-gray-400">{Math.round(percentage)}%</span>
+              <span className="text-muted-foreground">{Math.round(percentage)}%</span>
             )}
           </div>
         </div>
@@ -119,7 +119,7 @@ export const ProgressBar = ({
 
       {/* Value display for non-percentage cases */}
       {!showPercentage && (
-        <div className="text-xs text-gray-400 text-right">
+        <div className="text-xs text-muted-foreground text-right">
           {value} / {max}
         </div>
       )}

@@ -100,9 +100,9 @@ export const ContentAssignmentManager = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Send className="h-5 w-5" />
             Content Assignment Manager
           </CardTitle>
@@ -111,10 +111,10 @@ export const ContentAssignmentManager = () => {
           {/* Assignment Creation Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Create Assignment</h3>
+              <h3 className="text-lg font-semibold text-foreground">Create Assignment</h3>
               
               <Select value={selectedContentType} onValueChange={setSelectedContentType}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-card border-border text-foreground">
                   <SelectValue placeholder="Select content type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,7 +129,7 @@ export const ContentAssignmentManager = () => {
                 onValueChange={setSelectedContent}
                 disabled={!selectedContentType}
               >
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-card border-border text-foreground">
                   <SelectValue placeholder="Select content" />
                 </SelectTrigger>
                 <SelectContent>
@@ -142,7 +142,7 @@ export const ContentAssignmentManager = () => {
               </Select>
 
               <Select value={selectedAssignmentType} onValueChange={setSelectedAssignmentType}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-card border-border text-foreground">
                   <SelectValue placeholder="Assignment type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -158,7 +158,7 @@ export const ContentAssignmentManager = () => {
                   onValueChange={setSelectedTarget}
                   disabled={!selectedAssignmentType}
                 >
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectTrigger className="bg-card border-border text-foreground">
                     <SelectValue placeholder={
                       selectedAssignmentType === 'individual' 
                         ? "Select student" 
@@ -179,7 +179,7 @@ export const ContentAssignmentManager = () => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    className="w-full justify-start text-left font-normal bg-card border-border text-foreground hover:bg-muted"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dueDate ? format(dueDate, "PPP") : "Set due date (optional)"}
@@ -206,22 +206,22 @@ export const ContentAssignmentManager = () => {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Assignment Preview</h3>
-              <Card className="bg-white/5 border-white/10">
+              <h3 className="text-lg font-semibold text-foreground">Assignment Preview</h3>
+              <Card className="bg-muted border-border">
                 <CardContent className="p-4 space-y-2">
-                  <div className="text-sm text-gray-300">
+                  <div className="text-sm text-foreground">
                     <strong>Content:</strong> {selectedContentType ? `${selectedContentType}: ${getContentOptions().find(o => o.id === selectedContent)?.title || 'Not selected'}` : 'Not selected'}
                   </div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-sm text-foreground">
                     <strong>Assignment Type:</strong> {selectedAssignmentType || 'Not selected'}
                   </div>
                   {selectedAssignmentType !== 'all' && (
-                    <div className="text-sm text-gray-300">
+                    <div className="text-sm text-foreground">
                       <strong>Target:</strong> {getTargetOptions().find(o => o.id === selectedTarget)?.title || 'Not selected'}
                     </div>
                   )}
                   {dueDate && (
-                    <div className="text-sm text-gray-300">
+                    <div className="text-sm text-foreground">
                       <strong>Due Date:</strong> {format(dueDate, "PPP")}
                     </div>
                   )}
@@ -233,9 +233,9 @@ export const ContentAssignmentManager = () => {
       </Card>
 
       {/* Active Assignments */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Users className="h-5 w-5" />
             Active Assignments ({assignments.length})
           </CardTitle>
@@ -243,26 +243,26 @@ export const ContentAssignmentManager = () => {
         <CardContent>
           <div className="space-y-4">
             {assignments.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No active assignments</p>
+              <p className="text-muted-foreground text-center py-8">No active assignments</p>
             ) : (
               assignments.map((assignment) => (
-                <Card key={assignment.id} className="bg-white/5 border-white/10">
+                <Card key={assignment.id} className="bg-muted border-border">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-white border-white/30">
+                          <Badge variant="outline" className="text-foreground border-border">
                             {assignment.content_type}
                           </Badge>
-                          <span className="text-white font-medium">
+                          <span className="text-foreground font-medium">
                             {assignment.content_title}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-300">
+                        <div className="text-sm text-muted-foreground">
                           {getAssignmentTypeDisplay(assignment)} • {assignment.student_count || 0} students
                         </div>
                         {assignment.due_date && (
-                          <div className="text-sm text-gray-400">
+                          <div className="text-sm text-muted-foreground">
                             Due: {format(new Date(assignment.due_date), "PPP")}
                           </div>
                         )}
@@ -271,7 +271,7 @@ export const ContentAssignmentManager = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => deactivateAssignment(assignment.id)}
-                        className="text-red-400 border-red-400 hover:bg-red-400/10"
+                        className="text-red-600 border-red-300 hover:bg-red-50"
                       >
                         <X className="h-4 w-4" />
                       </Button>

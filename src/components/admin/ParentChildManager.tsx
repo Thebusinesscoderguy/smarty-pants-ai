@@ -183,7 +183,7 @@ export const ParentChildManager = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading relationships...</div>;
+    return <div className="animate-pulse text-foreground">Loading relationships...</div>;
   }
 
   return (
@@ -191,8 +191,8 @@ export const ParentChildManager = () => {
       {/* Header with create button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Parent-Child Management</h2>
-          <p className="text-gray-400">
+          <h2 className="text-2xl font-bold text-foreground">Parent-Child Management</h2>
+          <p className="text-muted-foreground">
             Manage relationships with your children to share quests and achievements
           </p>
         </div>

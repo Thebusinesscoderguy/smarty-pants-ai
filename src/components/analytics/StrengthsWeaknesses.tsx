@@ -99,28 +99,28 @@ export const StrengthsWeaknesses = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading analytics...</div>;
+    return <div className="animate-pulse text-foreground">Loading analytics...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white">Learning Analytics</h2>
-        <p className="text-gray-400">
+        <h2 className="text-2xl font-bold text-foreground">Learning Analytics</h2>
+        <p className="text-muted-foreground">
           Understand your strengths and weaknesses to improve learning
         </p>
       </div>
 
       {/* Improvement Paragraph */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <Brain className="h-5 w-5" />
             Learning Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-300 leading-relaxed">
+          <p className="text-foreground leading-relaxed">
             {improvementParagraph}
           </p>
         </CardContent>
@@ -129,10 +129,10 @@ export const StrengthsWeaknesses = () => {
       {/* Strengths and Weaknesses */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Strengths */}
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <TrendingUp className="h-5 w-5 text-green-500" />
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <TrendingUp className="h-5 w-5 text-green-600" />
               Strengths
             </CardTitle>
           </CardHeader>
@@ -143,11 +143,11 @@ export const StrengthsWeaknesses = () => {
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-medium text-white">{strength.topic_name}</h4>
-                        <p className="text-sm text-gray-400">{strength.subjects?.name}</p>
+                        <h4 className="font-medium text-foreground">{strength.topic_name}</h4>
+                        <p className="text-sm text-muted-foreground">{strength.subjects?.name}</p>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold text-green-400">
+                        <div className="font-semibold text-green-600">
                           {Math.round(strength.strength_score * 100)}%
                         </div>
                       </div>
@@ -160,7 +160,7 @@ export const StrengthsWeaknesses = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-4">
+              <p className="text-muted-foreground text-center py-4">
                 No strengths identified yet. Keep learning to discover your strengths!
               </p>
             )}
@@ -168,10 +168,10 @@ export const StrengthsWeaknesses = () => {
         </Card>
 
         {/* Areas for Improvement */}
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <TrendingDown className="h-5 w-5 text-orange-500" />
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <TrendingDown className="h-5 w-5 text-orange-600" />
               Areas for Improvement
             </CardTitle>
           </CardHeader>
@@ -182,11 +182,11 @@ export const StrengthsWeaknesses = () => {
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-medium text-white">{weakness.topic_name}</h4>
-                        <p className="text-sm text-gray-400">{weakness.subjects?.name}</p>
+                        <h4 className="font-medium text-foreground">{weakness.topic_name}</h4>
+                        <p className="text-sm text-muted-foreground">{weakness.subjects?.name}</p>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold text-orange-400">
+                        <div className="font-semibold text-orange-600">
                           {Math.round(weakness.strength_score * 100)}%
                         </div>
                       </div>
@@ -199,7 +199,7 @@ export const StrengthsWeaknesses = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-4">
+              <p className="text-muted-foreground text-center py-4">
                 No significant weaknesses detected. Keep up the great work!
               </p>
             )}
