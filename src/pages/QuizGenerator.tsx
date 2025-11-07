@@ -51,7 +51,7 @@ const QuizGeneratorPage = () => {
           className="text-foreground hover:bg-muted transition-all duration-200 rounded-xl px-4 py-2"
         >
           <Trophy className="h-4 w-4 mr-2" />
-          Quests
+          {t('studyTools.nav.quests')}
         </Button>
     </div>
   );

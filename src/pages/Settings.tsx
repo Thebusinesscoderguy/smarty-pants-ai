@@ -18,8 +18,8 @@ const Settings = () => {
 
   const saveChanges = () => {
     toast({
-      title: "Settings Saved",
-      description: "Your settings have been saved successfully.",
+      title: t('settings.saved'),
+      description: t('settings.savedDesc'),
     });
   };
 
@@ -28,7 +28,7 @@ const Settings = () => {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading settings...</p>
+          <p className="text-muted-foreground">{t('settings.loading')}</p>
         </div>
       </div>
     );
@@ -45,12 +45,12 @@ const Settings = () => {
         <div className="mb-12">
           <h1 className="text-6xl font-bold mb-6 flex items-center">
             <SettingsIcon className="mr-6 h-16 w-16 text-primary" />
-            Settings
+            {t('settings.title')}
           </h1>
           <p className="text-muted-foreground text-2xl">
-            {isParent && "Manage your account, subscription, and family settings"}
-            {isChild && "Customize your AI learning experience"}
-            {!isParent && !isChild && "Customize your learning experience and manage your account"}
+            {isParent && t('settings.parentSubtitle')}
+            {isChild && t('settings.studentSubtitle')}
+            {!isParent && !isChild && t('settings.defaultSubtitle')}
           </p>
         </div>
 
@@ -63,14 +63,14 @@ const Settings = () => {
               </div>
               <div>
                 <h3 className="text-foreground font-semibold text-lg">
-                  {isParent && "Parent Account"}
-                  {isChild && "Student Account"}
-                  {!isParent && !isChild && "User Account"}
+                  {isParent && t('settings.parentAccount')}
+                  {isChild && t('settings.studentAccount')}
+                  {!isParent && !isChild && t('settings.userAccount')}
                 </h3>
                 <p className="text-muted-foreground">
-                  {isParent && "Access to family management and billing features"}
-                  {isChild && "Focus on learning customization and voice settings"}
-                  {!isParent && !isChild && "Standard account features"}
+                  {isParent && t('settings.parentAccess')}
+                  {isChild && t('settings.studentAccess')}
+                  {!isParent && !isChild && t('settings.defaultAccess')}
                 </p>
               </div>
             </div>
@@ -96,7 +96,7 @@ const Settings = () => {
               onClick={saveChanges}
               className="bg-primary hover:bg-primary/90 px-16 py-6 rounded-2xl font-semibold text-xl shadow-2xl"
             >
-              Save All Changes
+              {t('settings.saveChanges')}
             </Button>
           </div>
         </div>
