@@ -225,10 +225,7 @@ const Index = () => {
             
             <div 
               className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 cursor-pointer group"
-              onClick={() => {
-                console.log('AI Study Plans card clicked, user:', user);
-                navigate(user ? '/quiz-generator' : '/auth');
-              }}
+              onClick={() => navigate(user ? '/quiz-generator' : '/auth')}
             >
               <Brain className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-xl font-semibold text-foreground mb-3">

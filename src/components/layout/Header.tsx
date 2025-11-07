@@ -36,7 +36,6 @@ export const Header = () => {
           {user ? (
             <>
               <Link to="/quiz-generator" className="text-foreground/70 hover:text-foreground font-medium transition-colors">Study Plans</Link>
-              <Link to="/chat" className="text-foreground/70 hover:text-foreground font-medium transition-colors">AI Tutor</Link>
               <Button 
                 onClick={handleSignOut}
                 variant="outline" 
