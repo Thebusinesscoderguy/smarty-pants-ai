@@ -52,11 +52,6 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
 
       // If user is a child, they don't need to select a role
       if (childData && childData.length > 0) {
-        // Persist session role override for child accounts
-        try {
-          localStorage.setItem('sessionRole', 'student');
-          localStorage.setItem('sessionChildId', user.id);
-        } catch {}
         onRoleSelected('child', user.id);
       }
     } catch (error) {
@@ -89,16 +84,6 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
         .eq('id', targetUserId);
 
       if (error) throw error;
-
-      // Persist session role so UI reflects the chosen experience immediately
-      try {
-        localStorage.setItem('sessionRole', targetRole);
-        if (role === 'child') {
-          if (childId) localStorage.setItem('sessionChildId', childId);
-        } else {
-          localStorage.removeItem('sessionChildId');
-        }
-      } catch {}
 
       console.log('UserRoleSelector: Calling onRoleSelected callback');
       onRoleSelected(role, childId);

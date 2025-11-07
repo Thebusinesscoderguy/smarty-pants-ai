@@ -1862,6 +1862,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       user_quest_progress_detailed: {
@@ -1902,18 +1923,23 @@ export type Database = {
       }
     }
     Functions: {
-      handle_expired_quests: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      handle_expired_quests: { Args: never; Returns: undefined }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       initialize_user_quests: {
         Args: { target_user_id: string }
         Returns: undefined
       }
-      mark_expired_daily_quests_as_failed: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      mark_expired_daily_quests_as_failed: { Args: never; Returns: undefined }
       test_quest_system: {
         Args: { test_user_id?: string }
         Returns: {

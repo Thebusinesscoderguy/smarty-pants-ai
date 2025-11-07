@@ -35,12 +35,6 @@ export const StudentQuestDisplay = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { userRole } = useUserRole();
-  
-  // Get effective role (session role or stored role)
-  const sessionRole = typeof window !== 'undefined' 
-    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
-    : null;
-  const effectiveRole = sessionRole ?? userRole;
 
   useEffect(() => {
     if (isMockDataEnabled()) {
@@ -226,7 +220,7 @@ export const StudentQuestDisplay = () => {
       </div>
 
       {/* Failed Quests - Only show for parents viewing children */}
-      {failedQuests.length > 0 && effectiveRole === 'parent' && (
+      {failedQuests.length > 0 && userRole === 'parent' && (
         <div>
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <Target className="h-5 w-5 text-red-400" />

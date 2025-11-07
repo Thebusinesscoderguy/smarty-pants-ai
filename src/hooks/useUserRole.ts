@@ -18,15 +18,20 @@ export const useUserRole = () => {
       }
 
       try {
-        // Check profile role
-        const { data: profile } = await supabase
-          .from('profiles')
+        // Query user_roles table using secure function
+        const { data: userRoles, error: roleError } = await supabase
+          .from('user_roles')
           .select('role')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
+          .limit(1)
           .single();
 
-        if (profile?.role) {
-          setUserRole(profile.role as UserRole);
+        if (roleError && roleError.code !== 'PGRST116') {
+          console.error('Error fetching user role:', roleError);
+        }
+
+        if (userRoles?.role) {
+          setUserRole(userRoles.role as UserRole);
         }
 
         // Check if user is a school admin

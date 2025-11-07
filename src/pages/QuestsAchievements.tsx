@@ -15,12 +15,6 @@ const QuestsAchievements = () => {
   const { userRole } = useUserRole();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  
-  // Get effective role (session role or stored role)
-  const sessionRole = typeof window !== 'undefined' 
-    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
-    : null;
-  const effectiveRole = sessionRole ?? userRole;
 
   // Redirect only if not logged in
   if (!user) {

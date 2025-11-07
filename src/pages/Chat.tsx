@@ -25,16 +25,6 @@ const Chat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  // Use session role override if present (set by UserRoleSelector)
-  const sessionRole = typeof window !== 'undefined'
-    ? (localStorage.getItem('sessionRole') as 'student' | 'parent' | 'teacher' | null)
-    : null;
-  const effectiveRole = sessionRole ?? userRole;
-  
-  useEffect(() => {
-    console.log('Chat role state', { userRole, sessionRole, effectiveRole });
-  }, [userRole, sessionRole]);
   const [messages, setMessages] = useState<Array<{id: string, content: string, isUser: boolean, timestamp: Date, audioUrl?: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -172,7 +162,7 @@ const Chat = () => {
   const renderNavigation = () => (
     <div className="flex items-center space-x-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border">
       {/* Study Tools for students */}
-      {effectiveRole === 'student' && (
+      {userRole === 'student' && (
         <Button
           variant="ghost"
           size="sm"
@@ -185,7 +175,7 @@ const Chat = () => {
       )}
 
       {/* Chat for students */}
-      {effectiveRole === 'student' && (
+      {userRole === 'student' && (
         <Button
           variant={currentPage === 'chat' ? 'default' : 'ghost'}
           size="sm"
@@ -198,7 +188,7 @@ const Chat = () => {
       )}
 
       {/* Quests & Achievements for students */}
-      {effectiveRole === 'student' && (
+      {userRole === 'student' && (
         <Button
           variant="ghost"
           size="sm"
@@ -211,7 +201,7 @@ const Chat = () => {
       )}
       
       {/* Show role selection prompt for parents or undefined roles */}
-      {(effectiveRole === 'parent' || !effectiveRole) && (
+      {(userRole === 'parent' || !userRole) && (
         <div className="text-muted-foreground text-sm bg-muted px-4 py-2 rounded-xl">
           {t('chat.selectRolePrompt')}
         </div>
