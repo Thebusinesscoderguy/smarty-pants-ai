@@ -41,45 +41,45 @@ const PublicPricing = () => {
               </CardHeader>
               <CardContent className="space-y-6 text-center">
                 <div>
-                  <p className="text-xl mb-2 text-foreground">Full access to all features</p>
-                  <p className="text-muted-foreground mb-4">Start learning immediately</p>
+                  <p className="text-xl mb-2 text-foreground">{t('publicPricing.fullAccess')}</p>
+                  <p className="text-muted-foreground mb-4">{t('publicPricing.startImmediately')}</p>
                 </div>
                 
                 <ul className="space-y-3 text-left">
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Adaptive Learning AI</span>
+                    <span>{t('publicPricing.feature.adaptiveLearning')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Voice Messages & Interactions</span>
+                    <span>{t('publicPricing.feature.voiceMessages')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Unlimited Chat Sessions</span>
+                    <span>{t('publicPricing.feature.unlimitedChat')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>File Uploads & Study Materials</span>
+                    <span>{t('publicPricing.feature.fileUploads')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Progress Tracking & Analytics</span>
+                    <span>{t('publicPricing.feature.progressTracking')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Interactive Quizzes & Tests</span>
+                    <span>{t('publicPricing.feature.quizzes')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Achievement System</span>
+                    <span>{t('publicPricing.feature.achievements')}</span>
                   </li>
                 </ul>
                 
                 <div className="bg-muted p-4 rounded-lg">
-                  <p className="font-medium text-foreground">What you get:</p>
-                  <p className="text-sm text-muted-foreground">Personal AI tutor available 24/7</p>
-                  <p className="text-sm text-muted-foreground">Free trial available - no credit card required</p>
+                  <p className="font-medium text-foreground">{t('publicPricing.whatYouGet')}</p>
+                  <p className="text-sm text-muted-foreground">{t('publicPricing.personalTutor')}</p>
+                  <p className="text-sm text-muted-foreground">{t('publicPricing.freeTrial')}</p>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
@@ -89,12 +89,12 @@ const PublicPricing = () => {
                   asChild
                 >
                   <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
-                    Start Free Trial
+                    {t('publicPricing.startFreeTrial')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  Sign up to start your free trial
+                  {t('publicPricing.signupNote')}
                 </p>
               </CardFooter>
             </Card>
@@ -102,62 +102,62 @@ const PublicPricing = () => {
             {/* Business Plan */}
             <Card className="w-full bg-card border border-border relative hover:shadow-lg transition-all duration-300">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-bold">
-                BUSINESS
+                {t('publicPricing.business')}
               </div>
               <CardHeader className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Users className="h-6 w-6 text-primary" />
-                  <span className="text-lg font-semibold text-foreground">Business</span>
+                  <span className="text-lg font-semibold text-foreground">{t('publicPricing.business')}</span>
                 </div>
-                <CardTitle className="text-4xl font-bold text-foreground">$25/month</CardTitle>
+                <CardTitle className="text-4xl font-bold text-foreground">{t('publicPricing.businessPrice')}</CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  + $5 per additional student
+                  {t('publicPricing.businessDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 text-center">
                 <div>
-                  <p className="text-xl mb-2 text-foreground">Everything in Individual, plus:</p>
-                  <p className="text-muted-foreground mb-4">Multi-user management & advanced analytics</p>
+                  <p className="text-xl mb-2 text-foreground">{t('publicPricing.businessIncludes')}</p>
+                  <p className="text-muted-foreground mb-4">{t('publicPricing.businessFeatures')}</p>
                 </div>
                 
                 <ul className="space-y-3 text-left">
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>All Individual features included</span>
+                    <span>{t('publicPricing.business.feature1')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Admin dashboard & controls</span>
+                    <span>{t('publicPricing.business.feature2')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Student progress monitoring</span>
+                    <span>{t('publicPricing.business.feature3')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Bulk user management</span>
+                    <span>{t('publicPricing.business.feature4')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Team analytics & reporting</span>
+                    <span>{t('publicPricing.business.feature5')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Priority support</span>
+                    <span>{t('publicPricing.business.feature6')}</span>
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Custom integrations available</span>
+                    <span>{t('publicPricing.business.feature7')}</span>
                   </li>
                 </ul>
                 
                 <div className="bg-muted p-4 rounded-lg text-left">
-                  <h4 className="font-semibold mb-2 text-foreground">Flexible pricing example:</h4>
+                  <h4 className="font-semibold mb-2 text-foreground">{t('publicPricing.flexiblePricing')}</h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Admin account: $25/month</li>
-                    <li>• 5 students: $25 + (4 × $5) = $45/month</li>
-                    <li>• 10 students: $25 + (9 × $5) = $70/month</li>
-                    <li>• Scale as you grow, pay only for what you use</li>
+                    <li>{t('publicPricing.example1')}</li>
+                    <li>{t('publicPricing.example2')}</li>
+                    <li>{t('publicPricing.example3')}</li>
+                    <li>{t('publicPricing.scaleNote')}</li>
                   </ul>
                 </div>
               </CardContent>
@@ -168,12 +168,12 @@ const PublicPricing = () => {
                   asChild
                 >
                   <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
-                    Start Free Trial
+                    {t('publicPricing.startFreeTrial')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  Contact us for enterprise solutions
+                  {t('publicPricing.contactEnterprise')}
                 </p>
               </CardFooter>
             </Card>
@@ -181,37 +181,37 @@ const PublicPricing = () => {
 
           {/* FAQ Section */}
           <div className="mt-16 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-8 text-foreground">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-bold text-center mb-8 text-foreground">{t('publicPricing.faqTitle')}</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <Card className="bg-card border-border">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">Is there a free trial?</h3>
+                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq1.q')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Yes! Start your free trial today with full access to all features. No credit card required to begin.
+                    {t('publicPricing.faq1.a')}
                   </p>
                 </CardContent>
               </Card>
               <Card className="bg-card border-border">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">Can I cancel anytime?</h3>
+                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq2.q')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Absolutely. Cancel your subscription at any time from your dashboard with no penalties.
+                    {t('publicPricing.faq2.a')}
                   </p>
                 </CardContent>
               </Card>
               <Card className="bg-card border-border">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">What subjects are supported?</h3>
+                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq3.q')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Our AI tutor supports all major subjects including Math, Science, Languages, History, and more.
+                    {t('publicPricing.faq3.a')}
                   </p>
                 </CardContent>
               </Card>
               <Card className="bg-card border-border">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">Is my data secure?</h3>
+                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq4.q')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Yes, we use enterprise-grade security and never share your personal learning data with third parties.
+                    {t('publicPricing.faq4.a')}
                   </p>
                 </CardContent>
               </Card>
@@ -220,9 +220,9 @@ const PublicPricing = () => {
 
           {/* Demo Section */}
           <div className="text-center mt-16 mb-12 p-8 bg-card border border-border rounded-2xl shadow-lg">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">Try a Live Demo</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">{t('publicPricing.demoTitle')}</h2>
             <p className="text-muted-foreground mb-5">
-              Experience TeachlyAI's AI-powered learning features right now. No signup required—test our chat, analytics, and more in a secure sandbox!
+              {t('publicPricing.demoDesc')}
             </p>
             <Button
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg font-semibold"
@@ -230,23 +230,23 @@ const PublicPricing = () => {
               asChild
             >
               <Link to="/demo" className="flex items-center gap-2 justify-center">
-                Try Demo
+                {t('publicPricing.tryDemo')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <div className="text-xs mt-3 text-muted-foreground">
-              The demo is limited for security and data privacy.
+              {t('publicPricing.demoNote')}
             </div>
           </div>
 
           {/* Final CTA */}
           <div className="text-center mt-8 p-8 bg-card border border-border rounded-2xl shadow-lg">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">Ready to Start Learning?</h2>
+            <h2 className="text-3xl font-bold mb-4 text-foreground">{t('publicPricing.ctaTitle')}</h2>
             <p className="text-muted-foreground mb-6">
-              Join thousands of students already learning faster with AI-powered education.
+              {t('publicPricing.ctaDesc')}
             </p>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg" size="lg" asChild>
-              <Link to="/auth?signup=true">Start Free Trial</Link>
+              <Link to="/auth?signup=true">{t('publicPricing.startFreeTrial')}</Link>
             </Button>
           </div>
         </div>
