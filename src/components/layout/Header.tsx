@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export const Header = () => {
           {user ? (
             <>
               <Link to="/quiz-generator" className="text-foreground/70 hover:text-foreground font-medium transition-colors">Study Plans</Link>
+              <LanguageSelector />
               <Button 
                 onClick={handleSignOut}
                 variant="outline" 
@@ -46,13 +48,16 @@ export const Header = () => {
               </Button>
             </>
           ) : (
-            <Button 
-              onClick={() => navigate('/auth')}
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
-            >
-              Get Started
-            </Button>
+            <>
+              <LanguageSelector />
+              <Button 
+                onClick={() => navigate('/auth')}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
+              >
+                Get Started
+              </Button>
+            </>
           )}
         </nav>
       </div>

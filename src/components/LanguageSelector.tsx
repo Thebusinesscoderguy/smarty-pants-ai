@@ -29,23 +29,23 @@ export const LanguageSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+          size="sm"
+          className="rounded-full"
         >
           <Languages className="h-4 w-4 mr-2" />
           <span className="mr-2">{currentLanguage.flag}</span>
           <span className="hidden sm:inline">{currentLanguage.name}</span>
-          <ChevronDown className="h-4 w-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="bg-gray-900/95 border-white/20 backdrop-blur-sm"
+        className="bg-card border-border z-50"
       >
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => setLanguage(lang.code as any)}
-            className="text-white hover:bg-white/10 cursor-pointer"
+            className="cursor-pointer"
           >
             <span className="mr-3">{lang.flag}</span>
             {lang.name}
