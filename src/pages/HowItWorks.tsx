@@ -21,45 +21,73 @@ const HowItWorks = () => {
   const steps = [
     {
       number: 1,
-      title: t('howItWorks.step1.title'),
-      description: t('howItWorks.step1.desc'),
+      title: "Create Your Account & Select Your Role",
+      description: "Sign up and choose whether you're a student, parent, or school administrator. Each role gets a customized dashboard tailored to their needs.",
       icon: UserPlus,
-      details: [t('howItWorks.step1.detail1'), t('howItWorks.step1.detail2'), t('howItWorks.step1.detail3')]
+      details: [
+        "Student accounts get access to AI tutoring, quizzes, and gamification features",
+        "Parent accounts can monitor multiple children's progress and receive detailed analytics",
+        "School admins can manage entire classes, assign content, and track institution-wide performance"
+      ]
     },
     {
       number: 2,
-      title: t('howItWorks.step2.title'),
-      description: t('howItWorks.step2.desc'),
+      title: "Set Up Your Learning Profile",
+      description: "Customize your learning experience by selecting your grade level, preferred curriculum (e.g., IB, GCSE, US Common Core), and subjects of interest.",
       icon: Target,
-      details: [t('howItWorks.step2.detail1'), t('howItWorks.step2.detail2'), t('howItWorks.step2.detail3')]
+      details: [
+        "Choose from multiple international curricula adapted to your educational system",
+        "Select specific subjects you want to focus on",
+        "Set learning goals and preferences for personalized content delivery"
+      ]
     },
     {
       number: 3,
-      title: t('howItWorks.step3.title'),
-      description: t('howItWorks.step3.desc'),
+      title: "Start Learning with AI Tutor",
+      description: "Engage in one-on-one conversations with your AI tutor using text or voice. Ask questions, get explanations, and explore topics at your own pace.",
       icon: MessageSquare,
-      details: [t('howItWorks.step3.detail1'), t('howItWorks.step3.detail2'), t('howItWorks.step3.detail3')]
+      details: [
+        "Natural conversation flow - ask questions just like you would with a human tutor",
+        "Get detailed explanations with step-by-step breakdowns of complex concepts",
+        "Receive instant feedback and clarifications on any topic",
+        "Switch between text and voice interaction seamlessly"
+      ]
     },
     {
       number: 4,
-      title: t('howItWorks.step4.title'),
-      description: t('howItWorks.step4.desc'),
+      title: "Generate & Take Quizzes",
+      description: "Transform your learning conversations into interactive quizzes. Upload documents or create quizzes from scratch on any topic.",
       icon: Mic,
-      details: [t('howItWorks.step4.detail1'), t('howItWorks.step4.detail2'), t('howItWorks.step4.detail3')]
+      details: [
+        "AI automatically generates quizzes from your chat conversations",
+        "Upload PDFs, images, or documents to create topic-specific quizzes",
+        "Adjust difficulty levels and question counts to match your needs",
+        "Get instant grading and detailed explanations for each answer"
+      ]
     },
     {
       number: 5,
-      title: t('howItWorks.step5.title'),
-      description: t('howItWorks.step5.desc'),
+      title: "Track Progress & Analytics",
+      description: "Monitor your learning journey with comprehensive analytics, performance metrics, and personalized study plans based on your strengths and weaknesses.",
       icon: TrendingUp,
-      details: [t('howItWorks.step5.detail1'), t('howItWorks.step5.detail2'), t('howItWorks.step5.detail3')]
+      details: [
+        "Real-time dashboards showing quiz scores, time spent, and topic mastery",
+        "AI-generated insights identifying your strengths and areas for improvement",
+        "Personalized study plans that adapt to your progress",
+        "Parents receive detailed reports on their children's learning activities"
+      ]
     },
     {
       number: 6,
-      title: t('howItWorks.step6.title'),
-      description: t('howItWorks.step6.desc'),
+      title: "Earn Rewards & Complete Quests",
+      description: "Stay motivated with gamification features including achievement badges, experience points, and subject-specific quests that make learning fun.",
       icon: Trophy,
-      details: [t('howItWorks.step6.detail1'), t('howItWorks.step6.detail2'), t('howItWorks.step6.detail3')]
+      details: [
+        "Complete quests to earn XP and unlock achievement badges",
+        "Level up in different subjects as you master new topics",
+        "Compete with yourself through progress tracking and milestone celebrations",
+        "Administrators can create custom quests for their students"
+      ]
     }
   ];
 
