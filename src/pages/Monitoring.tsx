@@ -34,12 +34,12 @@ const Monitoring = () => {
 
 
   const renderNavigation = () => (
-    <div className="flex items-center justify-center space-x-2 bg-white/5 rounded-2xl p-2 backdrop-blur-xl border border-white/10 mb-8">
+    <div className="flex items-center justify-center space-x-2 bg-muted/50 rounded-2xl p-2 border border-border mb-8">
       <Button
         variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => setCurrentPage('monitoring')}
-        className={`${currentPage === 'monitoring' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'text-white hover:bg-white/10'} transition-all duration-200 rounded-xl px-6 py-3`}
+        className={`${currentPage === 'monitoring' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200 rounded-xl px-6 py-3`}
       >
         <BarChart3 className="h-4 w-4 mr-2" />
         {t('monitoring.nav.monitoring')}
@@ -48,7 +48,7 @@ const Monitoring = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       <main className="px-6 py-12 max-w-7xl mx-auto">
@@ -56,11 +56,11 @@ const Monitoring = () => {
         {renderNavigation()}
         
         <div className="mb-12">
-          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center">
-            <BarChart3 className="mr-6 h-16 w-16 text-purple-400" />
+          <h1 className="text-6xl font-bold mb-6 text-foreground flex items-center">
+            <BarChart3 className="mr-6 h-16 w-16 text-primary" />
             {t('monitoring.title')}
           </h1>
-          <p className="text-white/70 text-2xl">
+          <p className="text-muted-foreground text-2xl">
             {t('monitoring.subtitle')}
           </p>
         </div>
@@ -69,59 +69,59 @@ const Monitoring = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
 
 
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/30 backdrop-blur-sm rounded-2xl">
+          <Card className="bg-card border-border rounded-2xl hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200 text-sm font-medium">{t('monitoring.metrics.studyTime')}</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalStudyTime}h</p>
+                  <p className="text-muted-foreground text-sm font-medium">{t('monitoring.metrics.studyTime')}</p>
+                  <p className="text-foreground text-3xl font-bold">{overviewStats.totalStudyTime}h</p>
                 </div>
-                <div className="p-3 bg-purple-500/20 rounded-xl">
-                  <Clock className="h-6 w-6 text-purple-400" />
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Clock className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 border-orange-500/30 backdrop-blur-sm rounded-2xl">
+          <Card className="bg-card border-border rounded-2xl hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-200 text-sm font-medium">{t('monitoring.metrics.avgCompletion')}</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.avgCompletion}%</p>
+                  <p className="text-muted-foreground text-sm font-medium">{t('monitoring.metrics.avgCompletion')}</p>
+                  <p className="text-foreground text-3xl font-bold">{overviewStats.avgCompletion}%</p>
                 </div>
-                <div className="p-3 bg-orange-500/20 rounded-xl">
-                  <Target className="h-6 w-6 text-orange-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-
-          <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border-yellow-500/30 backdrop-blur-sm rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-yellow-200 text-sm font-medium">{t('monitoring.metrics.quests')}</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalQuests}</p>
-                </div>
-                <div className="p-3 bg-yellow-500/20 rounded-xl">
-                  <Target className="h-6 w-6 text-yellow-400" />
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Target className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
 
-          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 border-emerald-500/30 backdrop-blur-sm rounded-2xl">
+          <Card className="bg-card border-border rounded-2xl hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-emerald-200 text-sm font-medium">{t('monitoring.metrics.lessonsCompleted')}</p>
-                  <p className="text-white text-3xl font-bold">{overviewStats.totalLessonsCompleted}</p>
+                  <p className="text-muted-foreground text-sm font-medium">{t('monitoring.metrics.quests')}</p>
+                  <p className="text-foreground text-3xl font-bold">{overviewStats.totalQuests}</p>
                 </div>
-                <div className="p-3 bg-emerald-500/20 rounded-xl">
-                  <Book className="h-6 w-6 text-emerald-400" />
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Target className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+
+          <Card className="bg-card border-border rounded-2xl hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-sm font-medium">{t('monitoring.metrics.lessonsCompleted')}</p>
+                  <p className="text-foreground text-3xl font-bold">{overviewStats.totalLessonsCompleted}</p>
+                </div>
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Book className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -130,24 +130,24 @@ const Monitoring = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm rounded-xl p-2 mb-8 border border-white/20">
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50 rounded-xl p-2 mb-8 border border-border">
             <TabsTrigger 
               value="overview" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.overview')}
             </TabsTrigger>
             <TabsTrigger 
               value="children" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Users className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.children')}
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Target className="h-4 w-4 mr-2" />
               {t('monitoring.tabs.quests')}

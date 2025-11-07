@@ -115,13 +115,13 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-4">
             Who is using TeachlyAI today?
           </h1>
-          <p className="text-white/70">
+          <p className="text-muted-foreground">
             Select your role to personalize your experience
           </p>
         </div>
@@ -129,27 +129,27 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
         <div className="grid gap-6">
           {/* Parent Option */}
           <Card 
-            className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-fuchsia-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+            className="bg-card border-border hover:shadow-lg transition-all cursor-pointer group"
             onClick={() => handleRoleSelection('parent')}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-fuchsia-500/30 transition-colors">
-                <Users className="h-8 w-8 text-purple-400" />
+              <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit group-hover:bg-primary/20 transition-colors">
+                <Users className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-white">I'm the Parent</CardTitle>
-              <CardDescription className="text-white/70">
+              <CardTitle className="text-foreground">I'm the Parent</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Monitor and support my children's learning progress
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm text-white/60 mb-4">
+              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
                 <li>• View real progress data</li>
                 <li>• Monitor learning analytics</li>
                 <li>• Track achievements</li>
                 <li>• Manage study plans</li>
               </ul>
               <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white border-0"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRoleSelection('parent');
@@ -164,25 +164,25 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
           {/* Children Options */}
           {children.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-white text-center">Or select one of your children:</h3>
+              <h3 className="text-xl font-semibold text-foreground text-center">Or select one of your children:</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {children.map((child) => (
                   <Card 
                     key={child.id}
-                    className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-fuchsia-500/20 transition-all cursor-pointer group backdrop-blur-sm"
+                    className="bg-card border-border hover:shadow-lg transition-all cursor-pointer group"
                     onClick={() => handleRoleSelection('child', child.id)}
                   >
                     <CardHeader className="text-center pb-2">
-                      <div className="mx-auto mb-2 p-3 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-full w-fit group-hover:from-purple-500/30 group-hover:to-fuchsia-500/30 transition-colors">
-                        <Baby className="h-6 w-6 text-purple-400" />
+                      <div className="mx-auto mb-2 p-3 bg-primary/10 rounded-full w-fit group-hover:bg-primary/20 transition-colors">
+                        <Baby className="h-6 w-6 text-primary" />
                       </div>
-                      <CardTitle className="text-white text-lg">
+                      <CardTitle className="text-foreground text-lg">
                         {child.first_name} {child.last_name}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
                       <Button 
-                        className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white border-0"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRoleSelection('child', child.id);
@@ -201,7 +201,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
           {/* If no children, show message that they need to add children first */}
           {children.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-white/70 mb-4">
+              <p className="text-muted-foreground mb-4">
                 No children found in your account. Please add children first to access student features.
               </p>
             </div>
