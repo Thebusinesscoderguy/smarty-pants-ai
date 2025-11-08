@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap } from 'lucide-react';
+import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap, BookOpen, Trophy, Eye, Gamepad2, CheckCircle, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Index = () => {
@@ -136,89 +136,178 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Why AI Learning Section */}
-      <section className="py-20 md:py-32 bg-muted/30" id="features">
+      {/* Core Features Section */}
+      <section className="py-20 md:py-32 bg-background" id="features">
         <div className="container mx-auto px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
-                <Brain className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">{t('home.smartLearning')}</span>
-              </div>
-              
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                {t('home.whyAI')}
-              </h2>
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Powerful Learning Tools</span>
             </div>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <div className="w-6 h-6 rounded-lg bg-primary/20"></div>
-                </div>
-                <p className="text-base text-foreground leading-relaxed">
-                  {t('home.reason1')}
-                </p>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Everything You Need for Academic Success
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Comprehensive tools designed to help students excel, parents stay informed, and learning stay engaging
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Study Plans Feature */}
+            <div className="group bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                <BookOpen className="w-8 h-8 text-primary" />
               </div>
-              
-              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <div className="w-6 h-6 rounded-lg bg-primary/20"></div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Personalized Study Plans</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                AI-generated study plans tailored to your curriculum, learning pace, and goals. Break down complex topics into manageable daily tasks with adaptive scheduling.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Curriculum-aligned content for all subjects</span>
                 </div>
-                <p className="text-base text-foreground leading-relaxed">
-                  {t('home.reason2')}
-                </p>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Adaptive pacing based on your progress</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Smart reminders and progress tracking</span>
+                </div>
               </div>
-              
-              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <div className="w-6 h-6 rounded-lg bg-primary/20"></div>
+            </div>
+
+            {/* Quiz Generator Feature */}
+            <div className="group bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                <Brain className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">AI Quiz Generator</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Create unlimited practice quizzes from any topic, textbook, or study material. Get instant feedback and detailed explanations for every answer.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Generate quizzes from any topic or material</span>
                 </div>
-                <p className="text-base text-foreground leading-relaxed">
-                  {t('home.reason3')}
-                </p>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Instant feedback with explanations</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Track performance and identify weak areas</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Parent Monitoring Feature */}
+            <div className="group bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                <Eye className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Parent Monitoring Dashboard</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Stay informed with real-time insights into your child's learning progress, strengths, and areas that need attention. Comprehensive analytics at your fingertips.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Real-time progress tracking and alerts</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Detailed analytics on strengths & weaknesses</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Activity summaries and engagement metrics</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Gamification Feature */}
+            <div className="group bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-8 hover:shadow-2xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                <Trophy className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Gamification & Rewards</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Make learning fun with quests, achievements, and rewards. Students earn points, unlock badges, and level up as they master new concepts.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Daily quests and learning challenges</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Achievement badges and progress levels</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-foreground">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span>Motivation through rewards and milestones</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Detail Section */}
-      <section className="py-16 md:py-20 bg-background">
+      {/* Why Choose Teachly Section */}
+      <section className="py-20 md:py-32 bg-muted/30">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
-            <p className="text-xl md:text-2xl text-foreground mb-8 text-center font-medium">
-              {t('home.tagline')}
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-3 mb-10">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
-                <span className="text-lg font-bold text-primary">{t('home.stats.grades')}</span>
-                <span className="text-sm text-muted-foreground">{t('home.stats.gradesDesc')}</span>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
+                <Brain className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Smart AI Learning</span>
               </div>
               
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
-                <span className="text-lg font-bold text-primary">{t('home.stats.subjects')}</span>
-                <span className="text-sm text-muted-foreground">{t('home.stats.subjectsDesc')}</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+                Why Teachly Works
+              </h2>
+              
+              <p className="text-xl text-muted-foreground mb-12">
+                Powered by advanced AI that adapts to each student's unique learning style
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Target className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-3">Adaptive Learning</h3>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  AI adjusts difficulty and pacing based on performance, ensuring optimal challenge levels
+                </p>
               </div>
               
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
-                <span className="text-lg font-bold text-primary">{t('home.stats.available')}</span>
-                <span className="text-sm text-muted-foreground">{t('home.stats.availableDesc')}</span>
+              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <BarChart3 className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-3">Data-Driven Insights</h3>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Track progress with detailed analytics that identify strengths and areas for improvement
+                </p>
               </div>
               
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
-                <span className="text-lg font-bold text-primary">{t('home.stats.feedback')}</span>
-                <span className="text-sm text-muted-foreground">{t('home.stats.feedbackDesc')}</span>
-              </div>
-              
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20">
-                <span className="text-lg font-bold text-primary">{t('home.stats.adaptive')}</span>
-                <span className="text-sm text-muted-foreground">{t('home.stats.adaptiveDesc')}</span>
+              <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Gamepad2 className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-3">Engaging Experience</h3>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Gamified learning keeps students motivated and excited to learn every day
+                </p>
               </div>
             </div>
 
-            <div className="text-center">
+            <div className="text-center mt-12">
               <Button 
                 size="lg"
                 onClick={() => navigate('/auth')}
@@ -226,94 +315,6 @@ const Index = () => {
               >
                 {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Advanced Features Section */}
-      <section className="py-20 md:py-32 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{t('home.features')}</span>
-          </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            {t('home.advancedTitle')}
-            <br />
-            {t('home.advancedSubtitle')}
-          </h2>
-          
-          <p className="text-lg md:text-xl text-muted-foreground mb-16 max-w-2xl">
-            {t('home.advancedDesc')}
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <Target className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {t('home.feature.adaptive.title')}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t('home.feature.adaptive.desc')}
-              </p>
-            </div>
-            
-            <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <TrendingUp className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {t('home.feature.progress.title')}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t('home.feature.progress.desc')}
-              </p>
-            </div>
-            
-            <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <Award className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {t('home.feature.gamified.title')}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t('home.feature.gamified.desc')}
-              </p>
-            </div>
-            
-            <div 
-              className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 cursor-pointer group"
-              onClick={() => navigate(user ? '/quiz-generator' : '/auth')}
-            >
-              <Brain className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {t('home.feature.studyPlans.title')}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t('home.feature.studyPlans.desc')}
-              </p>
-            </div>
-            
-            <div 
-              className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300 cursor-pointer group"
-              onClick={() => navigate(user ? '/quiz-generator' : '/auth')}
-            >
-              <Users className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {t('home.feature.parentDash.title')}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t('home.feature.parentDash.desc')}
-              </p>
-            </div>
-            
-            <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-all duration-300">
-              <Sparkles className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {t('home.feature.quizzes.title')}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t('home.feature.quizzes.desc')}
-              </p>
             </div>
           </div>
         </div>
