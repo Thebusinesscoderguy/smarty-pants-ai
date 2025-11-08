@@ -69,6 +69,11 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			boxShadow: {
+				'button': '0 4px 14px 0 hsl(var(--primary) / 0.25)',
+				'button-hover': '0 6px 20px 0 hsl(var(--primary) / 0.35)',
+				'button-glow': '0 0 20px hsl(var(--primary) / 0.3)',
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {
