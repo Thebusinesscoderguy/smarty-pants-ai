@@ -78,8 +78,8 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-200/40 via-amber-100/30 to-background pointer-events-none" />
+      <section className="relative overflow-hidden bg-background">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background pointer-events-none" />
         
         <div className="container mx-auto px-6 py-20 md:py-32 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
