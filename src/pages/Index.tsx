@@ -101,7 +101,7 @@ const Index = () => {
                 <div className="relative group">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
                     <Select value={selectedType} onValueChange={(value: 'study-plan' | 'quiz') => setSelectedType(value)}>
-                      <SelectTrigger className="w-[140px] h-10 border-2 border-border bg-background hover:bg-muted rounded-full text-sm font-medium">
+                      <SelectTrigger className="w-[130px] h-9 border border-border/60 bg-background/80 backdrop-blur-sm hover:bg-muted hover:border-primary/40 rounded-full text-sm font-medium transition-all">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border border-border">
@@ -111,23 +111,23 @@ const Index = () => {
                     </Select>
                   </div>
                   {!inputValue && (
-                    <div className="absolute left-[168px] top-1/2 -translate-y-1/2 pointer-events-none text-lg text-muted-foreground flex items-center">
+                    <div className="absolute left-[160px] top-1/2 -translate-y-1/2 pointer-events-none text-base text-muted-foreground flex items-center">
                       <span>{typewriterText}</span>
-                      <span className="inline-block w-0.5 h-5 bg-muted-foreground ml-0.5 animate-pulse"></span>
+                      <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse"></span>
                     </div>
                   )}
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full pl-[168px] pr-32 py-5 text-lg rounded-full border-2 border-border bg-background text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full pl-[160px] pr-28 py-4 text-base rounded-full border border-border/60 bg-background text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                   <Button
                     type="submit"
-                    size="lg"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+                    size="sm"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 h-9 text-sm font-medium"
                   >
-                    {t('home.hero.start')} <ArrowRight className="ml-2 w-4 h-4" />
+                    {t('home.hero.start')} <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
                   </Button>
                 </div>
               </form>
