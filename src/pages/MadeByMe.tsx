@@ -44,7 +44,7 @@ const MadeByMe = () => {
             </Button>
             
             <Button
-              onClick={() => navigate('/quests/create')}
+              onClick={() => navigate('/quests?create=new')}
               className="bg-primary hover:bg-primary/90"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -63,7 +63,7 @@ const MadeByMe = () => {
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">No quests created yet</p>
                   <Button
-                    onClick={() => navigate('/quests/create')}
+                    onClick={() => navigate('/quests?create=new')}
                     className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="mr-2 h-4 w-4" />

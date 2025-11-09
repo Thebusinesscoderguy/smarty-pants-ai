@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, Target, BookOpen, MessageCircle, Plus, List } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,6 +24,7 @@ const QuestsAchievements = () => {
   const { user } = useAuth();
   const { userRole } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const { createQuest } = useQuestManagement();
 
@@ -34,6 +35,13 @@ const QuestsAchievements = () => {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('create') === 'new') {
+      setIsCreateDialogOpen(true);
+    }
+  }, [location.search]);
   
   const [formData, setFormData] = useState({
     title: '',
