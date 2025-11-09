@@ -91,15 +91,6 @@ const FAQ = () => {
 
               <Card className="bg-card border-border hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">Is my data private and secure?</h3>
-                  <p className="text-muted-foreground">
-                    Yes. We use bank-level encryption, don't sell your data to third parties, and comply with international data protection standards. Parent-student data is kept separate and secure. Your learning journey stays private.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
                   <h3 className="font-semibold text-lg mb-3 text-foreground">What age groups is this suitable for?</h3>
                   <p className="text-muted-foreground">
                     Smarty Pants AI works for students from age 10 to university level. The AI adapts its language, explanations, and difficulty based on the student's level. From middle school math to advanced physics, we've got you covered.
@@ -112,24 +103,6 @@ const FAQ = () => {
                   <h3 className="font-semibold text-lg mb-3 text-foreground">How does the free trial work?</h3>
                   <p className="text-muted-foreground">
                     Start with a 7-day free trial with full access to all features—no credit card required. Explore AI tutoring, create study plans, take quizzes, and see the parent dashboard. If you love it, subscribe. If not, no obligations.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">Can schools and teachers use this?</h3>
-                  <p className="text-muted-foreground">
-                    Yes! We offer special school and district plans with admin dashboards, bulk student management, class-wide progress tracking, and custom curriculum alignment. Contact us for educational institution pricing and features.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">What if I need help or support?</h3>
-                  <p className="text-muted-foreground">
-                    We offer email support, live chat during business hours, comprehensive help documentation, and video tutorials. Our team is dedicated to helping you get the most out of the platform. You're never alone on your learning journey.
                   </p>
                 </CardContent>
               </Card>
