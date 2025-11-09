@@ -94,48 +94,9 @@ export const StudyPlanLibrary = () => {
   };
 
   const handleStartStudyPlan = async (studyPlan: StudyPlan) => {
-    try {
-      // Check authentication first
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) {
-        toast({
-          title: t('studyPlanLibrary.authRequired'),
-          description: t('studyPlan.signInToSave'),
-          variant: "destructive"
-        });
-        navigate('/auth');
-        return;
-      }
-
-      // Update study plan status to active and set started_at
-      const { error } = await supabase
-        .from('study_plans')
-        .update({ 
-          status: 'active', 
-          started_at: new Date().toISOString() 
-        })
-        .eq('id', studyPlan.id);
-
-      if (error) throw error;
-
-      // Store the active study plan ID in localStorage
-      localStorage.setItem('active_study_plan_id', studyPlan.id);
-      
-      toast({
-        title: t('studyPlan.planStarted'),
-        description: t('studyPlan.beginningJourney').replace('{title}', studyPlan.title)
-      });
-
-      // Navigate to the first lesson
-      navigate('/modules?day=1');
-    } catch (error: any) {
-      console.error('Error starting study plan:', error);
-      toast({
-        title: t('studyPlan.failedToStart'),
-        description: error.message || t('studyPlan.tryAgain'),
-        variant: "destructive"
-      });
-    }
+    // Allow viewing and selecting a day without auth; sign-in will be required when a day is selected
+    setSelectedStudyPlan(studyPlan);
+    setShowDaySelector(true);
   };
 
   const handleDeleteStudyPlan = async (planId: string) => {
