@@ -70,7 +70,7 @@ function App() {
               
               
                <Route path="/math-solver" element={<MathSolver />} />
-               <Route path="/quiz-generator" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
+               <Route path="/quiz-generator" element={<QuizGenerator />} />
                <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
                
                <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />

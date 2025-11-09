@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 interface QuizTakerProps {
   quiz: Quiz;
@@ -27,10 +28,12 @@ function isCorrectAnswer(selected: string | null, correct: string | undefined | 
 
 export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-const startTimeRef = useRef<number>(Date.now());
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());
   const perQuestionMsRef = useRef<Record<string, number>>({});
 
@@ -70,6 +73,13 @@ const startTimeRef = useRef<number>(Date.now());
   };
 
   const handleSubmit = async () => {
+    // Check if user is authenticated first
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      setShowSignInDialog(true);
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Commit time for current question
@@ -97,17 +107,6 @@ const startTimeRef = useRef<number>(Date.now());
 
       const total = totalPoints;
       const durationSec = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
-
-      // Try saving attempt if user authenticated
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) {
-        toast({
-          title: t('quizTaker.resultCalculated'),
-          description: t('quizTaker.scoreDesc').replace('{score}', score.toString()).replace('{total}', total.toString()),
-        });
-        onComplete({ score, total, saved: false });
-        return;
-      }
 
       const { error } = await supabase.from('quiz_attempts').insert({
         quiz_id: quiz.id,
@@ -153,11 +152,31 @@ const startTimeRef = useRef<number>(Date.now());
   const progress = Math.round(((index + 1) / questions.length) * 100);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-2 text-sm">{t('quizTaker.progress').replace('{current}', (index + 1).toString()).replace('{total}', questions.length.toString())}</div>
-        <Progress value={progress} />
-      </div>
+    <>
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription>
+              You need to sign in to submit the quiz and save your results. Create a free account to track your progress!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="space-y-4">
+        <div>
+          <div className="mb-2 text-sm">{t('quizTaker.progress').replace('{current}', (index + 1).toString()).replace('{total}', questions.length.toString())}</div>
+          <Progress value={progress} />
+        </div>
 
       <div className="text-base font-medium">
         {current.question}
@@ -194,7 +213,8 @@ const startTimeRef = useRef<number>(Date.now());
           </Button>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

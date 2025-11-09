@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Calendar, Clock, Target, Book, Brain, FileQuestion } from 'lucide-react
 import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DailyLesson {
   day: number;
@@ -40,6 +41,8 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   onSelectDay
 }) => {
   const [creatingQuiz, setCreatingQuiz] = useState<number | null>(null);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
   const { generateQuiz, isGenerating } = useQuizGenerator();
   const navigate = useNavigate();
 
@@ -49,7 +52,16 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
     ? studyPlan.daily_lessons 
     : [];
 
-  const handleStartDay = (day: number) => {
+  const handleStartDay = async (day: number) => {
+    // Allow day 1 without auth, require auth for others
+    if (day !== 1) {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        setAttemptedDay(day);
+        setShowSignInDialog(true);
+        return;
+      }
+    }
     onSelectDay(day);
     onClose();
   };
@@ -93,14 +105,34 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Book className="h-5 w-5" />
-            {studyPlan.title} - Learning Index
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription>
+              You can try Day 1 for free! To access Day {attemptedDay} and beyond, please sign in or create a free account.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Book className="h-5 w-5" />
+              {studyPlan.title} - Learning Index
+            </DialogTitle>
+          </DialogHeader>
         
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -170,7 +202,8 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
           )}
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 };
 
