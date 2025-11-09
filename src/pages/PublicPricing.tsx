@@ -179,45 +179,6 @@ const PublicPricing = () => {
             </Card>
           </div>
 
-          {/* FAQ Section */}
-          <div className="mt-16 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-8 text-foreground">{t('publicPricing.faqTitle')}</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="bg-card border-border">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq1.q')}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {t('publicPricing.faq1.a')}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card border-border">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq2.q')}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {t('publicPricing.faq2.a')}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card border-border">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq3.q')}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {t('publicPricing.faq3.a')}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card border-border">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2 text-foreground">{t('publicPricing.faq4.q')}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {t('publicPricing.faq4.a')}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
           {/* Final CTA */}
           <div className="text-center mt-8 p-8 bg-card border border-border rounded-2xl shadow-lg">
             <h2 className="text-3xl font-bold mb-4 text-foreground">{t('publicPricing.ctaTitle')}</h2>
