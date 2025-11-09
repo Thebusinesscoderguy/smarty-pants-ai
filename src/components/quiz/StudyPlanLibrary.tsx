@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Play, BookOpen, Calendar, Clock, Target, List } from 'lucide-react';
+import { Trash2, Play, BookOpen, Calendar, Target, List } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -39,8 +39,9 @@ export const StudyPlanLibrary = () => {
         toast({
           title: t('studyPlanLibrary.authRequired'),
           description: t('studyPlanLibrary.loginToView'),
-          variant: "destructive"
+          variant: 'destructive',
         });
+        // Do not redirect; allow guests to remain on the page
         return;
       }
 
@@ -51,20 +52,20 @@ export const StudyPlanLibrary = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       // Type cast the data properly to handle the Json type
-      const typedPlans: StudyPlan[] = (data || []).map(plan => ({
+      const typedPlans: StudyPlan[] = (data || []).map((plan) => ({
         ...plan,
-        daily_lessons: Array.isArray(plan.daily_lessons) ? plan.daily_lessons : []
+        daily_lessons: Array.isArray(plan.daily_lessons) ? plan.daily_lessons : [],
       }));
-      
+
       setStudyPlans(typedPlans);
     } catch (error: any) {
       console.error('Error fetching study plans:', error);
       toast({
         title: t('studyPlanLibrary.failedToLoad'),
         description: error.message || t('studyPlan.tryAgain'),
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -77,19 +78,27 @@ export const StudyPlanLibrary = () => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'easy':
+        return 'bg-green-100 text-green-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'hard':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'paused': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'paused':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -105,16 +114,13 @@ export const StudyPlanLibrary = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('study_plans')
-        .delete()
-        .eq('id', planId);
+      const { error } = await supabase.from('study_plans').delete().eq('id', planId);
 
       if (error) throw error;
-      
+
       toast({
         title: t('studyPlanLibrary.planDeleted'),
-        description: t('studyPlanLibrary.failedToDelete')
+        description: t('studyPlanLibrary.failedToDelete'),
       });
 
       // Refresh the list
@@ -124,7 +130,7 @@ export const StudyPlanLibrary = () => {
       toast({
         title: t('studyPlanLibrary.failedToDelete'),
         description: error.message || t('studyPlan.tryAgain'),
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
@@ -136,16 +142,16 @@ export const StudyPlanLibrary = () => {
 
   const handleSelectDay = async (day: number) => {
     if (!selectedStudyPlan) return;
-    
+
     try {
       // Update study plan status to active if not already
       // Auth is enforced upstream in DaySelector when a day is clicked
       if (selectedStudyPlan.status !== 'active') {
         const { error } = await supabase
           .from('study_plans')
-          .update({ 
-            status: 'active', 
-            started_at: new Date().toISOString() 
+          .update({
+            status: 'active',
+            started_at: new Date().toISOString(),
           })
           .eq('id', selectedStudyPlan.id);
 
@@ -157,9 +163,9 @@ export const StudyPlanLibrary = () => {
     } catch (error: any) {
       console.error('Error starting study plan:', error);
       toast({
-        title: "Failed to start study plan",
-        description: error.message || "Please try again",
-        variant: "destructive"
+        title: 'Failed to start study plan',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
       });
     }
   };
@@ -172,9 +178,9 @@ export const StudyPlanLibrary = () => {
         toast({
           title: t('studyPlanLibrary.authRequired'),
           description: t('studyPlanLibrary.loginToView'),
-          variant: "destructive"
+          variant: 'destructive',
         });
-        navigate('/auth');
+        // Do not redirect; allow guests to remain on the page
         return;
       }
 
@@ -189,9 +195,9 @@ export const StudyPlanLibrary = () => {
     } catch (error: any) {
       console.error('Error continuing study plan:', error);
       toast({
-        title: "Failed to continue study plan",
-        description: "Please try logging in again",
-        variant: "destructive"
+        title: 'Failed to continue study plan',
+        description: 'Please try logging in again',
+        variant: 'destructive',
       });
     }
   };
@@ -225,7 +231,7 @@ export const StudyPlanLibrary = () => {
         <h2 className="text-xl font-semibold">{t('studyPlanLibrary.title')}</h2>
         <Badge variant="outline">{t('studyPlanLibrary.plans').replace('{count}', studyPlans.length.toString())}</Badge>
       </div>
-      
+
       <div className="grid gap-4">
         {studyPlans.map((plan) => {
           const dailyLessonsArray = Array.isArray(plan.daily_lessons) ? plan.daily_lessons : [];
@@ -253,7 +259,7 @@ export const StudyPlanLibrary = () => {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="space-y-4">
                   {/* Plan Details */}
@@ -278,42 +284,28 @@ export const StudyPlanLibrary = () => {
                   <div className="flex items-center gap-2 pt-2">
                     {isStarted ? (
                       <>
-                         <Button
-                          onClick={() => handleContinueStudyPlan(plan)}
-                          className="flex-1"
-                        >
+                        <Button onClick={() => handleContinueStudyPlan(plan)} className="flex-1">
                           <Play className="mr-2 h-4 w-4" />
                           {t('studyPlanLibrary.continuePlan')}
                         </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => handleOpenDaySelector(plan)}
-                          className="px-3"
-                        >
+                        <Button variant="outline" onClick={() => handleOpenDaySelector(plan)} className="px-3">
                           <List className="mr-2 h-4 w-4" />
                           {t('studyPlanLibrary.viewPlan')}
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button
-                          onClick={() => handleStartStudyPlan(plan)}
-                          className="flex-1"
-                        >
+                        <Button onClick={() => handleStartStudyPlan(plan)} className="flex-1">
                           <Play className="mr-2 h-4 w-4" />
                           {t('studyPlanLibrary.startPlan')}
                         </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => handleOpenDaySelector(plan)}
-                          className="px-3"
-                        >
+                        <Button variant="outline" onClick={() => handleOpenDaySelector(plan)} className="px-3">
                           <List className="mr-2 h-4 w-4" />
                           {t('studyPlanLibrary.viewPlan')}
                         </Button>
                       </>
                     )}
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -329,10 +321,12 @@ export const StudyPlanLibrary = () => {
                     <div className="pt-2 border-t">
                       <div className="flex justify-between text-sm text-muted-foreground mb-1">
                         <span>Progress</span>
-                        <span>{completedCount}/{dailyLessonsArray.length} lessons completed</span>
+                        <span>
+                          {completedCount}/{dailyLessonsArray.length} lessons completed
+                        </span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-primary h-2 rounded-full transition-all duration-300"
                           style={{ width: `${progressPct}%` }}
                         ></div>
@@ -345,7 +339,7 @@ export const StudyPlanLibrary = () => {
           );
         })}
       </div>
-      
+
       <StudyPlanDaySelector
         studyPlan={selectedStudyPlan}
         isOpen={showDaySelector}
