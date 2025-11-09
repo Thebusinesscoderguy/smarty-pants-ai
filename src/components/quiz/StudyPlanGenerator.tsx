@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
@@ -57,6 +58,8 @@ export const StudyPlanGenerator = () => {
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
   const navigate = useNavigate();
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
 
@@ -159,7 +162,9 @@ export const StudyPlanGenerator = () => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       if (!userId) {
-        toast({ title: t('studyPlan.signInRequired'), description: t('studyPlan.signInToSave') });
+        // Allow proceeding without saving; users can start a day below, which will require sign-in
+        toast({ title: 'Plan ready', description: 'Select a day below to begin.' });
+        setStarting(false);
         return;
       }
       const { data, error } = await supabase
@@ -195,6 +200,16 @@ export const StudyPlanGenerator = () => {
     }
   };
 
+  const handleBeginLearning = async (day: number) => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      setAttemptedDay(day);
+      setShowSignInDialog(true);
+      return;
+    }
+    navigate(`/modules?day=${day}`);
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-500/10 text-green-500 border-green-500/20';
@@ -212,6 +227,24 @@ export const StudyPlanGenerator = () => {
 
   return (
     <div className="space-y-6">
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription>
+              Please sign in or create a free account to start Day {attemptedDay}. You can generate and view the plan without signing in.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -508,20 +541,7 @@ onBlur={() => {
                       <div className="pt-2">
                         <Button
                           size="sm"
-                          onClick={() => {
-                            const chatTitle = `Study Plan ${generatedPlan.title} Day ${lesson.day}`;
-                            const studyContext = `I'm working on Day ${lesson.day} of my study plan for ${generatedPlan.title}. Today's topic is: ${lesson.topic}. 
-
-Description: ${lesson.description}
-
-Activities to focus on:
-${lesson.activities.map(activity => `• ${activity}`).join('\n')}
-
-Please help me learn this topic and answer any questions I have about it.`;
-                            
-                            // Navigate to learning module with specific day
-                            navigate(`/modules?day=${lesson.day}`);
-                          }}
+                          onClick={() => handleBeginLearning(lesson.day)}
                           className="w-full"
                         >
                           Begin Learning

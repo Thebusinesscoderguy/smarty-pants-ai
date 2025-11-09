@@ -109,7 +109,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
           <DialogHeader>
             <DialogTitle>Sign In Required</DialogTitle>
             <DialogDescription>
-              Please sign in or create a free account to start Day {attemptedDay}. You can browse the study plan without signing in.
+              Please sign in or create a free account to start Day {attemptedDay}. You can generate and view the plan without signing in.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
