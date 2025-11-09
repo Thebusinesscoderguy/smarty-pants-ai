@@ -138,19 +138,8 @@ export const StudyPlanLibrary = () => {
     if (!selectedStudyPlan) return;
     
     try {
-      // Check authentication first
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) {
-        toast({
-          title: t('studyPlanLibrary.authRequired'),
-          description: t('studyPlan.signInToSave'),
-          variant: "destructive"
-        });
-        navigate('/auth');
-        return;
-      }
-
       // Update study plan status to active if not already
+      // Auth is enforced upstream in DaySelector when a day is clicked
       if (selectedStudyPlan.status !== 'active') {
         const { error } = await supabase
           .from('study_plans')
