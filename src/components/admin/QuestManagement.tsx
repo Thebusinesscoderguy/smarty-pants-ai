@@ -512,22 +512,19 @@ const { isSchoolAdmin } = useUserRole();
             <DialogHeader>
               <DialogTitle className="text-white">Create New Quest</DialogTitle>
               {creationMethod && (
-                <p className="text-xs text-white/70 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Mode: {creationMethod === 'manual' ? 'Made by Me' : creationMethod === 'ai' ? 'Made by AI' : 'Both'}
                 </p>
               )}
             </DialogHeader>
             {!creationMethod ? (
               <div className="space-y-4 py-6">
-                <p className="text-white/70 text-center mb-6">Choose how you'd like to create your quest</p>
+                <p className="text-foreground/70 text-center mb-6">Choose how you'd like to create your quest</p>
                 <div className="grid grid-cols-1 gap-4">
                   <Button
                     type="button"
-                    onClick={() => { 
-                      setIsDialogOpen(false);
-                      setTimeout(() => navigate('/quests?create=new'), 50);
-                    }}
-                    className="h-auto py-6 bg-purple-600 hover:bg-purple-700 flex flex-col items-center gap-2"
+                    onClick={() => selectCreationMethod('manual')}
+                    className="h-auto py-6 bg-primary text-primary-foreground shadow-button hover:bg-primary/90 hover:shadow-button-hover flex flex-col items-center gap-2"
                   >
                     <Plus className="h-8 w-8" />
                     <span className="text-lg font-semibold">Made by Me</span>
@@ -537,7 +534,7 @@ const { isSchoolAdmin } = useUserRole();
                   <Button
                     type="button"
                     onClick={() => selectCreationMethod('ai')}
-                    className="h-auto py-6 bg-blue-600 hover:bg-blue-700 flex flex-col items-center gap-2"
+                    className="h-auto py-6 bg-primary text-primary-foreground shadow-button hover:bg-primary/90 hover:shadow-button-hover flex flex-col items-center gap-2"
                   >
                     <Sparkles className="h-8 w-8" />
                     <span className="text-lg font-semibold">Made by AI</span>
@@ -548,7 +545,7 @@ const { isSchoolAdmin } = useUserRole();
             ) : creationMethod === 'manual' ? (
               <div className="space-y-4 pr-2 mt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-white border-white/20 hover:bg-white/10">← Back</Button>
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">← Back</Button>
                 </div>
                 <div>
                   <Label htmlFor="title" className="text-white">Quest Title *</Label>
@@ -692,7 +689,7 @@ const { isSchoolAdmin } = useUserRole();
                 <Button
                   onClick={createQuest}
                   disabled={isCreating || !newQuest.title.trim() || !newQuest.description.trim()}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-button hover:shadow-button-hover"
                 >
                   {isCreating ? 'Creating...' : 'Create Quest'}
                 </Button>
@@ -700,7 +697,7 @@ const { isSchoolAdmin } = useUserRole();
             ) : (
               <div className="space-y-4 pr-2 mt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-white border-white/20 hover:bg-white/10">← Back</Button>
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">← Back</Button>
                 </div>
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
                   <div className="flex items-start space-x-3">
