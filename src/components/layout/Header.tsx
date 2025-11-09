@@ -23,19 +23,19 @@ export const Header = () => {
   };
 
   return (
-    <header className="w-full px-6 py-4 bg-primary backdrop-blur-sm border-b border-primary">
+    <header className="w-full px-6 py-4 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-xl font-semibold text-primary-foreground hover:text-primary-foreground/80">
+        <Link to="/" className="flex items-center gap-2 text-xl font-semibold text-foreground hover:text-foreground/80">
           <GraduationCap className="w-6 h-6" />
           Teachly
         </Link>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/" className="text-primary-foreground/90 hover:text-primary-foreground font-medium transition-colors">{t('nav.home')}</Link>
-          <Link to="/features" className="text-primary-foreground/90 hover:text-primary-foreground font-medium transition-colors">{t('nav.features')}</Link>
-          <Link to="/how-it-works" className="text-primary-foreground/90 hover:text-primary-foreground font-medium transition-colors">{t('nav.howItWorks')}</Link>
-          <Link to="/pricing" className="text-primary-foreground/90 hover:text-primary-foreground font-medium transition-colors">{t('nav.pricing')}</Link>
-          <Link to="/faq" className="text-primary-foreground/90 hover:text-primary-foreground font-medium transition-colors">FAQ</Link>
+          <Link to="/" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.home')}</Link>
+          <Link to="/features" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.features')}</Link>
+          <Link to="/how-it-works" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.howItWorks')}</Link>
+          <Link to="/pricing" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.pricing')}</Link>
+          <Link to="/faq" className="text-foreground/70 hover:text-foreground font-medium transition-colors">FAQ</Link>
           
           {user ? (
             <>
@@ -44,7 +44,7 @@ export const Header = () => {
                 onClick={handleSignOut}
                 variant="outline" 
                 size="sm"
-                className="rounded-full border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="rounded-full"
               >
                 {t('nav.signOut')}
               </Button>
@@ -55,7 +55,7 @@ export const Header = () => {
               <Button 
                 onClick={() => navigate('/auth')}
                 size="sm"
-                className="bg-primary-foreground hover:bg-primary-foreground/90 text-primary rounded-full"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
               >
                 {t('nav.getStarted')}
               </Button>
