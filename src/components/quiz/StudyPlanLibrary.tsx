@@ -103,9 +103,7 @@ export const StudyPlanLibrary = () => {
   };
 
   const handleStartStudyPlan = async (studyPlan: StudyPlan) => {
-    // Allow viewing and selecting a day without auth; sign-in will be required when a day is selected
-    setSelectedStudyPlan(studyPlan);
-    setShowDaySelector(true);
+    navigate('/demo');
   };
 
   const handleDeleteStudyPlan = async (planId: string) => {

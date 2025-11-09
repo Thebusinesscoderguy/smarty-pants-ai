@@ -156,48 +156,7 @@ export const StudyPlanGenerator = () => {
   };
 
   const handleStartPlan = async () => {
-    if (!generatedPlan) return;
-    try {
-      setStarting(true);
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-      if (!userId) {
-        // Allow proceeding without saving; users can start a day below, which will require sign-in
-        toast({ title: 'Plan ready', description: 'Select a day below to begin.' });
-        setStarting(false);
-        return;
-      }
-      const { data, error } = await supabase
-        .from('study_plans')
-        .insert([
-          {
-            user_id: userId as any,
-            title: generatedPlan.title,
-            description: generatedPlan.description,
-            weak_areas: generatedPlan.weakAreas,
-            daily_lessons: generatedPlan.dailyLessons as any,
-            estimated_duration: generatedPlan.estimatedDuration,
-            difficulty_level: generatedPlan.difficultyLevel,
-            grade_level: gradeLevel || null,
-            region: region || null,
-            status: 'active',
-            started_at: new Date().toISOString()
-          } as any
-        ])
-        .select('id')
-        .maybeSingle();
-      if (error) throw error;
-      if (data?.id) {
-        try { localStorage.setItem('active_study_plan_id', data.id); } catch {}
-        // Navigate to the learning module
-        navigate(`/modules`);
-      }
-      toast({ title: t('studyPlan.planStarted'), description: t('studyPlan.beginningJourney').replace('{title}', generatedPlan.title) });
-    } catch (e: any) {
-      toast({ title: t('studyPlan.failedToStart'), description: e?.message || t('studyPlan.tryAgain'), variant: 'destructive' });
-    } finally {
-      setStarting(false);
-    }
+    navigate('/demo');
   };
 
   const handleBeginLearning = async (day: number) => {

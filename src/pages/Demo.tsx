@@ -69,11 +69,10 @@ const Demo = () => {
   useEffect(() => {
     const demoUsed = localStorage.getItem('demo_used');
     if (demoUsed) {
-      navigate('/auth');
+      // Allow re-entry without forcing auth; just warn
       toast({
         title: t('demo.timeWarning'),
         description: t('demo.timeWarningDesc'),
-        variant: "destructive"
       });
     }
   }, [navigate, toast]);
