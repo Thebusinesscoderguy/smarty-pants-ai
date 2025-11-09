@@ -53,14 +53,12 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
     : [];
 
   const handleStartDay = async (day: number) => {
-    // Allow day 1 without auth, require auth for others
-    if (day !== 1) {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) {
-        setAttemptedDay(day);
-        setShowSignInDialog(true);
-        return;
-      }
+    // Require auth for starting any day; viewing the plan is allowed without auth
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      setAttemptedDay(day);
+      setShowSignInDialog(true);
+      return;
     }
     onSelectDay(day);
     onClose();
@@ -111,7 +109,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
           <DialogHeader>
             <DialogTitle>Sign In Required</DialogTitle>
             <DialogDescription>
-              You can try Day 1 for free! To access Day {attemptedDay} and beyond, please sign in or create a free account.
+              Please sign in or create a free account to start Day {attemptedDay}. You can browse the study plan without signing in.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
