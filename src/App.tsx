@@ -53,7 +53,7 @@ function App() {
               <Route path="/family-hub" element={<FamilyHub />} />
               <Route path="/parent-onboarding" element={<ParentOnboarding />} />
               <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-               <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
+               <Route path="/modules" element={<LearningModule />} />
                <Route path="/voice" element={<Chat />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />

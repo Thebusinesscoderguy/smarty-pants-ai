@@ -65,13 +65,12 @@ const LearningModule = () => {
         console.log('Auth check result:', { user: !!userData?.user, authError });
         
         if (authError || !userData?.user) {
-          console.error('=== ERROR: Authentication failed ===', authError);
+          console.warn('Guest access to /modules prevented; redirecting back to plan entry.');
           toast({
-            title: "Authentication required",
-            description: "Please log in to access lessons",
-            variant: "destructive"
+            title: "Select a day to begin",
+            description: "Open your study plan and choose a day to start learning.",
           });
-          navigate('/auth');
+          navigate('/quiz-generator');
           return;
         }
 
