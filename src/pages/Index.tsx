@@ -5,8 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap, BookOpen, Trophy, Eye, Gamepad2, CheckCircle, BarChart3, MessageCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Sparkles, Target, TrendingUp, Brain, ArrowRight, Award, Users, Zap, BookOpen, Trophy, Eye, Gamepad2, CheckCircle, BarChart3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Index = () => {
@@ -316,136 +315,6 @@ const Index = () => {
               >
                 {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-12 md:py-16 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
-                <MessageCircle className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-primary">Frequently Asked Questions</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Got Questions? We've Got Answers
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Everything you need to know about Smarty Pants AI
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">What makes Smarty Pants AI unique?</h3>
-                  <p className="text-muted-foreground">
-                    Smarty Pants AI isn't just a chatbot—it's a complete learning platform. It combines AI-powered tutoring with structured study plans, gamified challenges, and dashboards for parents and teachers to monitor progress. ChatGPT can answer questions, but it doesn't organize learning, track progress, or motivate students with achievements.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">How do study plans work?</h3>
-                  <p className="text-muted-foreground">
-                    Our AI creates personalized study plans based on your curriculum, learning pace, and goals. It breaks down topics into manageable daily sessions, suggests practice quizzes, and adapts based on your performance. You'll never feel overwhelmed—just steady, guided progress.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">What types of quizzes are available?</h3>
-                  <p className="text-muted-foreground">
-                    Generate quizzes from any topic, uploaded files, or even your chat conversations. Choose multiple choice, true/false, or open-ended questions. The AI tracks your performance and identifies weak areas to focus on, making every quiz a learning opportunity.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">How does parent monitoring work?</h3>
-                  <p className="text-muted-foreground">
-                    Parents get a comprehensive dashboard showing their child's study time, quiz scores, topics covered, strengths and weaknesses. You can see real progress analytics, not just login times. Stay informed without micromanaging—perfect for busy families.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">What gamification features do you offer?</h3>
-                  <p className="text-muted-foreground">
-                    Earn XP points, unlock achievements, complete daily and weekly quests, and compete on leaderboards. Students can level up by completing lessons, acing quizzes, and maintaining study streaks. Learning becomes engaging and rewarding, not a chore.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">Which curricula do you support?</h3>
-                  <p className="text-muted-foreground">
-                    We support major international curricula including IGCSE, A-Levels, IB, American Common Core, AP, and more. Content is aligned to curriculum standards, ensuring students learn exactly what they need for their exams and coursework.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">Can I upload my own study materials?</h3>
-                  <p className="text-muted-foreground">
-                    Absolutely! Upload PDFs, documents, images, and more. The AI will analyze them and help you study from your own materials. Generate quizzes from your notes, get explanations of complex concepts, and create custom study plans from any content.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">Is my data private and secure?</h3>
-                  <p className="text-muted-foreground">
-                    Yes. We use bank-level encryption, don't sell your data to third parties, and comply with international data protection standards. Parent-student data is kept separate and secure. Your learning journey stays private.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">What age groups is this suitable for?</h3>
-                  <p className="text-muted-foreground">
-                    Smarty Pants AI works for students from age 10 to university level. The AI adapts its language, explanations, and difficulty based on the student's level. From middle school math to advanced physics, we've got you covered.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">How does the free trial work?</h3>
-                  <p className="text-muted-foreground">
-                    Start with a 7-day free trial with full access to all features—no credit card required. Explore AI tutoring, create study plans, take quizzes, and see the parent dashboard. If you love it, subscribe. If not, no obligations.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">Can schools and teachers use this?</h3>
-                  <p className="text-muted-foreground">
-                    Yes! We offer special school and district plans with admin dashboards, bulk student management, class-wide progress tracking, and custom curriculum alignment. Contact us for educational institution pricing and features.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-3 text-foreground">What if I need help or support?</h3>
-                  <p className="text-muted-foreground">
-                    We offer email support, live chat during business hours, comprehensive help documentation, and video tutorials. Our team is dedicated to helping you get the most out of the platform. You're never alone on your learning journey.
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>

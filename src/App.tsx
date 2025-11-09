@@ -22,6 +22,7 @@ import PricingCheckout from './pages/PricingCheckout';
 import Onboarding from './pages/Onboarding';
 import SchoolAdmin from './pages/SchoolAdmin';
 import AcceptInvitation from './pages/AcceptInvitation';
+import FAQ from './pages/FAQ';
 
 
 import MathSolver from './pages/MathSolver';
@@ -62,6 +63,7 @@ function App() {
               <Route path="/features" element={<Features />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/pricing" element={<PublicPricing />} />
+              <Route path="/faq" element={<FAQ />} />
               <Route path="/pricing-checkout" element={<PricingCheckout />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/school-admin" element={<SchoolAdmin />} />

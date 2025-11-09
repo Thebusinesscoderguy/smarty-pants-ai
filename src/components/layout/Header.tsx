@@ -35,6 +35,7 @@ export const Header = () => {
           <Link to="/features" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.features')}</Link>
           <Link to="/how-it-works" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.howItWorks')}</Link>
           <Link to="/pricing" className="text-foreground/70 hover:text-foreground font-medium transition-colors">{t('nav.pricing')}</Link>
+          <Link to="/faq" className="text-foreground/70 hover:text-foreground font-medium transition-colors">FAQ</Link>
           
           {user ? (
             <>
