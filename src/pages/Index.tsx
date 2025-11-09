@@ -89,7 +89,7 @@ const Index = () => {
                 <span className="text-sm font-medium text-foreground">{t('home.badge')}</span>
               </div>
               
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight">
                 {t('home.hero.title')}
               </h1>
               
