@@ -523,20 +523,6 @@ const { isSchoolAdmin } = useUserRole();
                 <div className="grid grid-cols-1 gap-4">
                   <Button
                     type="button"
-                    onClick={() => { 
-                      console.log('Made by Me clicked → /quests/made-by-me');
-                      setIsDialogOpen(false);
-                      setTimeout(() => navigate('/quests/made-by-me'), 50);
-                    }}
-                    className="h-auto py-6 bg-purple-600 hover:bg-purple-700 flex flex-col items-center gap-2"
-                  >
-                    <Plus className="h-8 w-8" />
-                    <span className="text-lg font-semibold">Made by Me</span>
-                    <span className="text-sm opacity-80">Create a custom quest manually</span>
-                  </Button>
-                  
-                  <Button
-                    type="button"
                     onClick={() => selectCreationMethod('ai')}
                     className="h-auto py-6 bg-blue-600 hover:bg-blue-700 flex flex-col items-center gap-2"
                   >
@@ -544,7 +530,6 @@ const { isSchoolAdmin } = useUserRole();
                     <span className="text-lg font-semibold">Made by AI</span>
                     <span className="text-sm opacity-80">Let AI generate engaging quests</span>
                   </Button>
-                  
                   <Button
                     type="button"
                     onClick={() => selectCreationMethod('both')}
