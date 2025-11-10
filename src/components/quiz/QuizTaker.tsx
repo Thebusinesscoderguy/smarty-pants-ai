@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useNavigate } from 'react-router-dom';
+
 
 interface QuizTakerProps {
   quiz: Quiz;
@@ -28,11 +28,11 @@ function isCorrectAnswer(selected: string | null, correct: string | undefined | 
 
 export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  
   const startTimeRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());
   const perQuestionMsRef = useRef<Record<string, number>>({});
@@ -73,17 +73,11 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   };
 
   const handleSubmit = async () => {
-    // Check if user is authenticated first
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) {
-      setShowSignInDialog(true);
-      return;
-    }
-
     setSubmitting(true);
     try {
       // Commit time for current question
       commitTimeForCurrent();
+
       // Score
       let score = 0;
       const answerPayload = questions.map((q: any, i: number) => {
@@ -107,6 +101,14 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
 
       const total = totalPoints;
       const durationSec = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
+
+      // Try to save if user exists, otherwise just finish locally
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        toast({ title: 'Results ready', description: 'Sign in to save your score.' });
+        onComplete({ score, total, saved: false });
+        return;
+      }
 
       const { error } = await supabase.from('quiz_attempts').insert({
         quiz_id: quiz.id,
@@ -153,24 +155,6 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
 
   return (
     <>
-      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Sign In Required</DialogTitle>
-            <DialogDescription>
-              You need to sign in to submit the quiz and save your results. Create a free account to track your progress!
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => navigate('/auth')}>
-              Sign In
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <div className="space-y-4">
         <div>

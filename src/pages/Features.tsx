@@ -38,7 +38,7 @@ const Features = () => {
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/demo')}
             >
               {t('features.startToday')}
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -329,7 +329,7 @@ const Features = () => {
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/demo')}
               >
                 {t('features.cta.startTrial')}
                 <Play className="ml-2 h-5 w-5" />

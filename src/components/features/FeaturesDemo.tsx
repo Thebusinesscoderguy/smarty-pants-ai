@@ -175,7 +175,7 @@ export const FeaturesDemo = () => {
 
   const handleFeatureClick = (feature: Feature) => {
     if (!user) {
-      navigate('/auth');
+      navigate('/demo');
       return;
     }
     navigate(feature.route);
