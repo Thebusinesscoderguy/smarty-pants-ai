@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 
 interface QuizTakerProps {
@@ -28,10 +30,12 @@ function isCorrectAnswer(selected: string | null, correct: string | undefined | 
 
 export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
   
   const startTimeRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());

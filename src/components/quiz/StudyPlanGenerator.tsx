@@ -60,6 +60,8 @@ export const StudyPlanGenerator = () => {
   const [starting, setStarting] = useState(false);
   const navigate = useNavigate();
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
@@ -154,13 +156,14 @@ export const StudyPlanGenerator = () => {
   };
 
   const handleStartPlan = async () => {
-    navigate('/demo');
+    toast({ title: 'Plan ready', description: 'Select a day below to begin.' });
   };
 
   const handleBeginLearning = async (day: number) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) {
-      navigate('/demo');
+      setAttemptedDay(day);
+      setShowSignInDialog(true);
       return;
     }
     navigate(`/modules?day=${day}`);
@@ -183,6 +186,24 @@ export const StudyPlanGenerator = () => {
 
   return (
     <div className="space-y-6">
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription>
+              Please sign in or create a free account to start Day {attemptedDay}. You can generate and view the plan without signing in.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

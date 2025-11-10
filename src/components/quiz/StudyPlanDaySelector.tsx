@@ -41,6 +41,8 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   onSelectDay
 }) => {
   const [creatingQuiz, setCreatingQuiz] = useState<number | null>(null);
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
   const { generateQuiz, isGenerating } = useQuizGenerator();
   const navigate = useNavigate();
 
@@ -53,7 +55,8 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   const handleStartDay = async (day: number) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) {
-      navigate('/demo');
+      setAttemptedDay(day);
+      setShowSignInDialog(true);
       return;
     }
     onSelectDay(day);
@@ -100,6 +103,24 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
 
   return (
     <>
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription>
+              Please sign in or create a free account to start Day {attemptedDay}. You can generate and view the plan without signing in.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">

@@ -174,10 +174,6 @@ export const FeaturesDemo = () => {
     : features.filter(feature => feature.category === selectedCategory);
 
   const handleFeatureClick = (feature: Feature) => {
-    if (!user) {
-      navigate('/demo');
-      return;
-    }
     navigate(feature.route);
   };
 

@@ -103,7 +103,8 @@ export const StudyPlanLibrary = () => {
   };
 
   const handleStartStudyPlan = async (studyPlan: StudyPlan) => {
-    navigate('/demo');
+    setSelectedStudyPlan(studyPlan);
+    setShowDaySelector(true);
   };
 
   const handleDeleteStudyPlan = async (planId: string) => {

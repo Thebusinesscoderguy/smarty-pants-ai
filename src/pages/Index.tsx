@@ -70,7 +70,7 @@ const Index = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/demo');
+    navigate('/quiz-generator');
   };
 
   return (
@@ -310,7 +310,7 @@ const Index = () => {
             <div className="text-center mt-12">
               <Button 
                 size="lg"
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/quiz-generator')}
                 className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
               >
                 {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
@@ -335,7 +335,7 @@ const Index = () => {
             <div className="flex flex-wrap justify-center gap-4 pt-6">
               <Button 
                 size="lg" 
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/quiz-generator')}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-lg"
               >
                 {t('home.cta.getStarted')} <ArrowRight className="ml-2 w-5 h-5" />
