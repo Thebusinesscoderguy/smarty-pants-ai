@@ -9,15 +9,22 @@ import { StudyPlanLibrary } from '@/components/quiz/StudyPlanLibrary';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, BookOpen, Trophy } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 
 const QuizGeneratorPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const { userRole } = useUserRole();
   const [currentPage, setCurrentPage] = useState<'chat' | 'study'>('study');
+
+  const params = new URLSearchParams(location.search);
+  const auto = params.get('auto');
+  const type = params.get('type');
+  const input = params.get('input') || '';
+  const method = (params.get('method') as 'topic' | 'chat' | null) || 'topic';
 
   const renderNavigation = () => (
     <div className="flex items-center space-x-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border">
@@ -74,30 +81,30 @@ const QuizGeneratorPage = () => {
           <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('studyTools.title')}</h1>
           <p className="text-muted-foreground mb-6">{t('studyTools.subtitle')}</p>
 
-          <Tabs defaultValue="study-plan" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-muted border border-border">
-              <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
-              <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
-              <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
-              <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-muted border border-border">
+          <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+          <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
+          <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
+          <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="study-plan" className="mt-6">
-              <StudyPlanGenerator />
-            </TabsContent>
+        <TabsContent value="study-plan" className="mt-6">
+          <StudyPlanGenerator autoGenerate={auto && type !== 'quiz' && input ? { inputMethod: method, input } : undefined} />
+        </TabsContent>
 
-            <TabsContent value="generate" className="mt-6">
-              <EnhancedQuizGenerator />
-            </TabsContent>
+        <TabsContent value="generate" className="mt-6">
+          <EnhancedQuizGenerator conversationHistory={undefined} auto={auto && type === 'quiz' && input ? { mode: 'manual', topic: input } : undefined} />
+        </TabsContent>
 
-            <TabsContent value="quiz-library" className="mt-6">
-              <QuizLibrary />
-            </TabsContent>
+        <TabsContent value="quiz-library" className="mt-6">
+          <QuizLibrary />
+        </TabsContent>
 
-            <TabsContent value="study-library" className="mt-6">
-              <StudyPlanLibrary />
-            </TabsContent>
-          </Tabs>
+        <TabsContent value="study-library" className="mt-6">
+          <StudyPlanLibrary />
+        </TabsContent>
+      </Tabs>
         </div>
       </main>
 

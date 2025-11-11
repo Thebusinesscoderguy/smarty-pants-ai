@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,7 +40,7 @@ interface DailyLesson {
   }>;
 }
 
-export const StudyPlanGenerator = () => {
+export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMethod: 'file' | 'chat' | 'topic'; input: string; gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number } }) => {
   const { t } = useLanguage();
   const [inputMethod, setInputMethod] = useState<'file' | 'chat' | 'topic'>('file');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -62,6 +62,29 @@ export const StudyPlanGenerator = () => {
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
   const [showSignInDialog, setShowSignInDialog] = useState(false);
   const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
+  const autoRanRef = useRef(false);
+
+  useEffect(() => {
+    if (autoGenerate && !autoRanRef.current) {
+      autoRanRef.current = true;
+      setInputMethod(autoGenerate.inputMethod);
+      if (autoGenerate.inputMethod === 'chat') setChatInput(autoGenerate.input);
+      if (autoGenerate.inputMethod === 'topic') setSelectedTopic(autoGenerate.input);
+      if (autoGenerate.gradeLevel) setGradeLevel(autoGenerate.gradeLevel);
+      if (autoGenerate.region) setRegion(autoGenerate.region);
+      if (typeof autoGenerate.days === 'number') setPlanDays(autoGenerate.days);
+      if (typeof autoGenerate.maxDailyMinutes === 'number') setMaxDailyMinutes(autoGenerate.maxDailyMinutes);
+      generateStudyPlan(autoGenerate.input, autoGenerate.inputMethod, {
+        gradeLevel: autoGenerate.gradeLevel,
+        region: autoGenerate.region,
+        days: autoGenerate.days,
+        maxDailyMinutes: autoGenerate.maxDailyMinutes,
+      }).then((plan) => {
+        if (plan) setGeneratedPlan(plan as any);
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGenerate]);
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);

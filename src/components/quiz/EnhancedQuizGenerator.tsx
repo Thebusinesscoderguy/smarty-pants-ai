@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
+  auto?: { mode: 'manual' | 'ai' | 'file'; topic?: string; instructions?: string; difficulty?: 'easy' | 'medium' | 'hard'; questionCount?: number; gradeLevel?: string };
 }
 
-export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGeneratorProps) => {
+export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQuizGeneratorProps) => {
   const [inputMethod, setInputMethod] = useState<'manual' | 'file' | 'ai'>('manual');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
@@ -29,9 +30,34 @@ export const EnhancedQuizGenerator = ({ conversationHistory }: EnhancedQuizGener
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
+const autoRanRef = useRef(false);
   
   const { t } = useLanguage();
   const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes, extractQuizFromFile } = useQuizGenerator();
+
+useEffect(() => {
+  if (auto && !autoRanRef.current) {
+    autoRanRef.current = true;
+    if (auto.mode === 'manual') {
+      setInputMethod('manual');
+      if (auto.topic) setTopic(auto.topic);
+      if (auto.difficulty) setDifficulty(auto.difficulty);
+      if (auto.questionCount) setQuestionCount(auto.questionCount);
+      if (auto.gradeLevel) setGradeLevel(auto.gradeLevel);
+      // Trigger generation directly
+      generateQuiz(auto.topic || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, auto.gradeLevel)
+        .then((q) => q && setGeneratedQuiz(q))
+        .catch(() => {});
+    } else if (auto.mode === 'ai') {
+      setInputMethod('ai');
+      if (auto.instructions) setCustomInstructions(auto.instructions);
+      generateQuiz(auto.instructions || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, auto.gradeLevel)
+        .then((q) => q && setGeneratedQuiz(q))
+        .catch(() => {});
+    }
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [auto]);
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);

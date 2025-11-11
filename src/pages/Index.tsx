@@ -70,7 +70,13 @@ const Index = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/quiz-generator');
+    const params = new URLSearchParams({
+      auto: '1',
+      type: selectedType,
+      method: 'topic',
+      input: inputValue || ''
+    });
+    navigate(`/quiz-generator?${params.toString()}`);
   };
 
   return (
