@@ -70,15 +70,15 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
       setInputMethod(autoGenerate.inputMethod);
       if (autoGenerate.inputMethod === 'chat') setChatInput(autoGenerate.input);
       if (autoGenerate.inputMethod === 'topic') setSelectedTopic(autoGenerate.input);
-      if (autoGenerate.gradeLevel) setGradeLevel(autoGenerate.gradeLevel);
-      if (autoGenerate.region) setRegion(autoGenerate.region);
-      if (typeof autoGenerate.days === 'number') setPlanDays(autoGenerate.days);
-      if (typeof autoGenerate.maxDailyMinutes === 'number') setMaxDailyMinutes(autoGenerate.maxDailyMinutes);
+      // Let AI decide days and minutes for auto-generation
+      setAiChooseDays(true);
+      setAiChooseDailyMinutes(true);
+      // Trigger generation immediately
       generateStudyPlan(autoGenerate.input, autoGenerate.inputMethod, {
-        gradeLevel: autoGenerate.gradeLevel,
-        region: autoGenerate.region,
-        days: autoGenerate.days,
-        maxDailyMinutes: autoGenerate.maxDailyMinutes,
+        gradeLevel: undefined,
+        region: undefined,
+        days: undefined,
+        maxDailyMinutes: undefined,
       }).then((plan) => {
         if (plan) setGeneratedPlan(plan as any);
       }).catch(() => {});
@@ -413,8 +413,6 @@ onBlur={() => {
             onClick={handleGeneratePlan}
             disabled={
               isGenerating ||
-              !gradeLevel.trim() ||
-              !region.trim() ||
               (inputMethod === 'file' && !uploadedFile) ||
               (inputMethod === 'chat' && !chatInput.trim()) ||
               (inputMethod === 'topic' && !selectedTopic.trim())

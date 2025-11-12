@@ -43,15 +43,14 @@ useEffect(() => {
       if (auto.topic) setTopic(auto.topic);
       if (auto.difficulty) setDifficulty(auto.difficulty);
       if (auto.questionCount) setQuestionCount(auto.questionCount);
-      if (auto.gradeLevel) setGradeLevel(auto.gradeLevel);
-      // Trigger generation directly
-      generateQuiz(auto.topic || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, auto.gradeLevel)
+      // Trigger generation directly without requiring grade level
+      generateQuiz(auto.topic || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, undefined)
         .then((q) => q && setGeneratedQuiz(q))
         .catch(() => {});
     } else if (auto.mode === 'ai') {
       setInputMethod('ai');
       if (auto.instructions) setCustomInstructions(auto.instructions);
-      generateQuiz(auto.instructions || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, auto.gradeLevel)
+      generateQuiz(auto.instructions || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, undefined)
         .then((q) => q && setGeneratedQuiz(q))
         .catch(() => {});
     }
@@ -212,21 +211,16 @@ useEffect(() => {
   };
 
   const canGenerate = () => {
-    let base = false;
     switch (inputMethod) {
       case 'manual':
-        base = topic.trim().length > 0;
-        break;
+        return topic.trim().length > 0;
       case 'file':
-        base = uploadedFile !== null;
-        break;
+        return uploadedFile !== null;
       case 'ai':
-        base = customInstructions.trim().length > 0;
-        break;
+        return customInstructions.trim().length > 0;
       default:
-        base = false;
+        return false;
     }
-    return base && gradeLevel.trim().length > 0;
   };
 
   return (
