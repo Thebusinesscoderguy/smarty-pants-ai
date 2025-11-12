@@ -67,9 +67,10 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   useEffect(() => {
     if (autoGenerate && !autoRanRef.current) {
       autoRanRef.current = true;
-      setInputMethod(autoGenerate.inputMethod);
-      if (autoGenerate.inputMethod === 'chat') setChatInput(autoGenerate.input);
-      if (autoGenerate.inputMethod === 'topic') setSelectedTopic(autoGenerate.input);
+      // Force Describe Issues tab for auto-start
+      setInputMethod('chat');
+      setChatInput(autoGenerate.input);
+      setSelectedTopic('');
       // Let AI decide days and minutes for auto-generation
       setAiChooseDays(true);
       setAiChooseDailyMinutes(true);
@@ -179,15 +180,36 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   };
 
   const handleStartPlan = async () => {
-    toast({ title: 'Plan ready', description: 'Select a day below to begin.' });
+    try {
+      setStarting(true);
+      await handleBeginLearning(1);
+    } finally {
+      setStarting(false);
+    }
   };
 
   const handleBeginLearning = async (day: number) => {
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) {
+    const isGuest = !userData?.user;
+    if (isGuest) {
+      if (day === 1 && generatedPlan) {
+        try {
+          localStorage.setItem('guest_study_plan', JSON.stringify(generatedPlan));
+          localStorage.setItem('active_study_plan_id', 'guest');
+        } catch {}
+        navigate(`/modules?day=1`);
+        return;
+      }
       setAttemptedDay(day);
       setShowSignInDialog(true);
       return;
+    }
+    // For signed-in users, if plan hasn't been saved, still allow starting using guest flow
+    if (generatedPlan) {
+      try {
+        localStorage.setItem('guest_study_plan', JSON.stringify(generatedPlan));
+        localStorage.setItem('active_study_plan_id', 'guest');
+      } catch {}
     }
     navigate(`/modules?day=${day}`);
   };
@@ -212,9 +234,9 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogTitle>Unlock more days</DialogTitle>
             <DialogDescription>
-              Please sign in or create a free account to start Day {attemptedDay}. You can generate and view the plan without signing in.
+              Sign in to start Day {attemptedDay}. Guests can start Day 1 for free.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

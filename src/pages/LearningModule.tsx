@@ -45,96 +45,110 @@ const LearningModule = () => {
     const loadStudyPlan = async () => {
       try {
         console.log('=== LearningModule: Starting to load study plan ===');
-        // Get active study plan ID from localStorage
         const planId = localStorage.getItem('active_study_plan_id');
         console.log('Active study plan ID from localStorage:', planId);
-        
-        if (!planId) {
-          console.error('=== ERROR: No active study plan ID found in localStorage ===');
-          toast({
-            title: "No active study plan",
-            description: "Please create a study plan first",
-            variant: "destructive"
-          });
-          navigate('/quiz-generator');
-          return;
-        }
 
         // Check authentication
         const { data: userData, error: authError } = await supabase.auth.getUser();
-        console.log('Auth check result:', { user: !!userData?.user, authError });
-        
-        if (authError || !userData?.user) {
-          console.warn('Guest access to /modules prevented; redirecting back to plan entry.');
-          toast({
-            title: "Select a day to begin",
-            description: "Open your study plan and choose a day to start learning.",
-          });
-          navigate('/quiz-generator');
-          return;
+        const isGuest = !!authError || !userData?.user || planId === 'guest' || !planId;
+        console.log('Auth check result:', { user: !!userData?.user, authError, isGuest });
+
+        let parsedPlan: StudyPlan | null = null;
+        let gradeLevelForContent = 'high school';
+        let dayToUse = 1;
+
+        if (isGuest) {
+          const guestRaw = localStorage.getItem('guest_study_plan');
+          console.log('Guest plan present:', !!guestRaw);
+          if (!guestRaw) {
+            console.error('=== ERROR: No guest study plan found ===');
+            toast({
+              title: "No active study plan",
+              description: "Please create a study plan first",
+              variant: "destructive"
+            });
+            navigate('/quiz-generator');
+            return;
+          }
+          const guest = JSON.parse(guestRaw);
+          parsedPlan = {
+            id: 'guest',
+            title: guest.title,
+            description: guest.description,
+            daily_lessons: Array.isArray(guest.dailyLessons) ? guest.dailyLessons : []
+          };
+          const urlParams = new URLSearchParams(window.location.search);
+          const day = parseInt(urlParams.get('day') || '1');
+          if (day > 1) {
+            toast({
+              title: "Sign in to unlock more",
+              description: "Create a free account to access all study days.",
+            });
+            navigate('/quiz-generator');
+            return;
+          }
+          dayToUse = 1;
+        } else {
+          // Authenticated path - fetch from DB
+          console.log('=== Fetching study plan from database ===');
+          const { data, error } = await supabase
+            .from('study_plans')
+            .select('*')
+            .eq('id', planId)
+            .eq('user_id', userData.user.id)
+            .maybeSingle();
+
+          console.log('Study plan fetch result:', { data, error, planId });
+
+          if (error) {
+            console.error('=== ERROR: Failed to fetch study plan ===', error);
+            throw error;
+          }
+
+          if (!data) {
+            console.error('=== ERROR: No study plan found with ID:', planId, '===');
+            toast({
+              title: "Study plan not found",
+              description: "The study plan may have been deleted or doesn't belong to you",
+              variant: "destructive"
+            });
+            navigate('/quiz-generator');
+            return;
+          }
+
+          parsedPlan = {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            daily_lessons: Array.isArray(data.daily_lessons) ? data.daily_lessons as unknown as DailyLesson[] : []
+          };
+          gradeLevelForContent = data.grade_level || 'high school';
+          const urlParams = new URLSearchParams(window.location.search);
+          dayToUse = parseInt(urlParams.get('day') || '1');
         }
 
-        // Fetch study plan from Supabase
-        console.log('=== Fetching study plan from database ===');
-        const { data, error } = await supabase
-          .from('study_plans')
-          .select('*')
-          .eq('id', planId)
-          .eq('user_id', userData.user.id)
-          .maybeSingle();
-
-        console.log('Study plan fetch result:', { data, error, planId });
-
-        if (error) {
-          console.error('=== ERROR: Failed to fetch study plan ===', error);
-          throw error;
-        }
-
-        if (!data) {
-          console.error('=== ERROR: No study plan found with ID:', planId, '===');
-          toast({
-            title: "Study plan not found",
-            description: "The study plan may have been deleted or doesn't belong to you",
-            variant: "destructive"
-          });
-          navigate('/quiz-generator');
-          return;
-        }
-        
-        // Parse the daily_lessons JSON field
-        const parsedPlan: StudyPlan = {
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          daily_lessons: Array.isArray(data.daily_lessons) ? data.daily_lessons as unknown as DailyLesson[] : []
-        };
-        
         setStudyPlan(parsedPlan);
-        
-        // Get current day from URL params or start with day 1
-        const urlParams = new URLSearchParams(window.location.search);
-        const day = parseInt(urlParams.get('day') || '1');
-        setCurrentDay(day);
+        setCurrentDay(dayToUse);
 
         // Generate actual lesson content for the current lesson
-        const currentLesson = parsedPlan.daily_lessons.find(lesson => lesson.day === day) || parsedPlan.daily_lessons[0];
-        console.log('=== Current lesson lookup ===', { day, currentLesson, totalLessons: parsedPlan.daily_lessons.length });
+        const currentLesson = parsedPlan!.daily_lessons.find(lesson => lesson.day === dayToUse) || parsedPlan!.daily_lessons[0];
+        console.log('=== Current lesson lookup ===', { day: dayToUse, currentLesson, totalLessons: parsedPlan!.daily_lessons.length });
         if (currentLesson) {
           console.log('=== Generating lesson content for topic:', currentLesson.topic, '===');
-          
+
           // Set a basic lesson content first to avoid infinite loading
           setLessonContent(`# ${currentLesson.topic}\n\n## Loading Content...\n\nGenerating detailed lesson content...`);
-          
+
           try {
-          const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
-            body: {
-              topic: currentLesson.topic,
-              description: currentLesson.description,
-              gradeLevel: data.grade_level || 'high school',
-              activities: currentLesson.activities,
-              language: localStorage.getItem('selectedLanguage') || 'en'
-            }
-          });
+            const { data: contentData, error: contentError } = await supabase.functions.invoke('generate-lesson-content', {
+              body: {
+                topic: currentLesson.topic,
+                description: currentLesson.description,
+                gradeLevel: gradeLevelForContent,
+                activities: currentLesson.activities,
+                language: localStorage.getItem('selectedLanguage') || 'en'
+              }
+            });
 
             console.log('Content generation result:', { contentData, contentError });
 
@@ -159,10 +173,10 @@ const LearningModule = () => {
             setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\n**Activities:**\n${currentLesson.activities ? currentLesson.activities.map((activity: string) => `- ${activity}`).join('\n') : 'No specific activities defined.'}`);
           }
         } else {
-          console.error('=== ERROR: No lesson found for day:', day, 'Available lessons:', parsedPlan.daily_lessons.map(l => l.day), '===');
-          setLessonContent(`# No Lesson Found\n\nCould not find lesson content for day ${day}.\n\nAvailable days: ${parsedPlan.daily_lessons.map(l => l.day).join(', ')}`);
+          console.error('=== ERROR: No lesson found for day:', dayToUse, 'Available lessons:', parsedPlan!.daily_lessons.map(l => l.day), '===');
+          setLessonContent(`# No Lesson Found\n\nCould not find lesson content for day ${dayToUse}.\n\nAvailable days: ${parsedPlan!.daily_lessons.map(l => l.day).join(', ')}`);
         }
-        
+
       } catch (error: any) {
         console.error('=== FATAL ERROR: Failed to load study plan ===', error);
         toast({
@@ -224,8 +238,17 @@ const LearningModule = () => {
         onBack={() => navigate('/quiz-generator')}
         onComplete={async (lessonId) => {
           try {
-            // Save user progress
+            // Save user progress (client-side badge/XP, etc.)
             await completeLesson(lessonId);
+
+            if (studyPlan!.id === 'guest') {
+              toast({
+                title: "Lesson completed! 🎉",
+                description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}. Sign in to track progress and unlock all days.`
+              });
+              navigate('/quiz-generator');
+              return;
+            }
 
             // Mark the current day as completed in the study plan JSON
             const updatedLessons = studyPlan!.daily_lessons.map((l) =>
