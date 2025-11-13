@@ -53,7 +53,7 @@ export const Header = () => {
             <>
               <LanguageSelector />
               <Button 
-                onClick={() => navigate('/quiz-generator')}
+                onClick={() => navigate('/auth')}
                 size="sm"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
               >
