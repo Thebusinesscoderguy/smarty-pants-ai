@@ -70,6 +70,14 @@ const Index = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If user is signed in, take them to role selection
+    if (user) {
+      navigate('/dashboard');
+      return;
+    }
+    
+    // Otherwise, take them to demo/quiz-generator
     const params = new URLSearchParams({
       auto: '1',
       type: selectedType,
