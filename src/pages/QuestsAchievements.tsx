@@ -22,7 +22,7 @@ import { toast } from '@/hooks/use-toast';
 
 const QuestsAchievements = () => {
   const { user } = useAuth();
-  const { userRole } = useUserRole();
+  const { userRole, loading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -201,11 +201,11 @@ const QuestsAchievements = () => {
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">Quests</h1>
-            <p className="text-xl text-foreground/80">Complete quests to earn rewards and track your progress</p>
+            <p className="text-xl text-foreground">Complete quests to earn rewards and track your progress</p>
           </div>
 
           {/* Quest Actions - Only for Parents */}
-          {userRole === 'parent' && (
+          {!loading && userRole === 'parent' && (
             <div className="flex justify-center gap-4">
               <Button
                 onClick={() => setIsCreateDialogOpen(true)}
@@ -408,10 +408,10 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground font-semibold">
                 <Target className="h-6 w-6 text-primary" />
-                {userRole === 'parent' ? 'Assigned Quests' : 'My Quests'}
+                {!loading && userRole === 'parent' ? 'Assigned Quests' : 'My Quests'}
               </CardTitle>
-              <p className="text-foreground/70 mt-2">
-                {userRole === 'parent' 
+              <p className="text-foreground mt-2">
+                {!loading && userRole === 'parent' 
                   ? 'View and manage quests assigned to your children' 
                   : 'Complete these quests to earn rewards and level up'}
               </p>
