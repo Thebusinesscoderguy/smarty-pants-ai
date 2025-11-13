@@ -201,34 +201,36 @@ const QuestsAchievements = () => {
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">Quests</h1>
-            <p className="text-xl text-muted-foreground">Complete quests to earn rewards and track your progress</p>
+            <p className="text-xl text-foreground/80">Complete quests to earn rewards and track your progress</p>
           </div>
 
-          {/* Quest Actions */}
-          <div className="flex justify-center gap-4">
-            <Button
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Made by Me
-            </Button>
-            <Button
-              onClick={() => navigate('/quests/ai-generate')}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Target className="mr-2 h-4 w-4" />
-              Made by AI
-            </Button>
-            <Button
-              onClick={() => navigate('/quests/made-by-me')}
-              variant="outline"
-              className="border-border text-foreground hover:bg-muted"
-            >
-              <List className="mr-2 h-4 w-4" />
-              View My Quests
-            </Button>
-          </div>
+          {/* Quest Actions - Only for Parents */}
+          {userRole === 'parent' && (
+            <div className="flex justify-center gap-4">
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Made by Me
+              </Button>
+              <Button
+                onClick={() => navigate('/quests/ai-generate')}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Target className="mr-2 h-4 w-4" />
+                Made by AI
+              </Button>
+              <Button
+                onClick={() => navigate('/quests/made-by-me')}
+                variant="outline"
+                className="border-border text-foreground hover:bg-muted"
+              >
+                <List className="mr-2 h-4 w-4" />
+                View My Quests
+              </Button>
+            </div>
+          )}
 
           {/* Create Quest Dialog */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -404,10 +406,15 @@ const QuestsAchievements = () => {
           {/* Quests Section */}
           <Card className="bg-card border-border backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
+              <CardTitle className="flex items-center gap-2 text-foreground font-semibold">
                 <Target className="h-6 w-6 text-primary" />
-                Quests
+                {userRole === 'parent' ? 'Assigned Quests' : 'My Quests'}
               </CardTitle>
+              <p className="text-foreground/70 mt-2">
+                {userRole === 'parent' 
+                  ? 'View and manage quests assigned to your children' 
+                  : 'Complete these quests to earn rewards and level up'}
+              </p>
             </CardHeader>
             <CardContent>
               <StudentQuestDisplay />
