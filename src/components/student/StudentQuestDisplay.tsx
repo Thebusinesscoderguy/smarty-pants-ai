@@ -150,7 +150,7 @@ export const StudentQuestDisplay = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-2">{t('questDisplay.yourQuests')}</h2>
-        <p className="text-muted-foreground">{t('questDisplay.completeQuests')}</p>
+        <p className="text-foreground/90">{t('questDisplay.completeQuests')}</p>
       </div>
 
       {/* Active Quests */}
@@ -185,7 +185,7 @@ export const StudentQuestDisplay = () => {
                         </Badge>
                         <div className={`w-2 h-2 rounded-full ${quest.difficulty === 'basic' ? 'bg-green-500' : quest.difficulty === 'intermediate' ? 'bg-yellow-500' : 'bg-red-500'}`} />
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{quest.description}</p>
+                      <p className="text-sm text-foreground/80 mb-3">{quest.description}</p>
                       {quest.subjects && (
                         <Badge variant="secondary" className="text-xs">
                           {quest.subjects.name}
@@ -202,7 +202,7 @@ export const StudentQuestDisplay = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground/80">Progress</span>
                       <span className="text-foreground">
                         {quest.current_value}/{quest.target_value}
                       </span>
@@ -236,7 +236,7 @@ export const StudentQuestDisplay = () => {
                       <Target className="h-5 w-5 text-destructive" />
                       <div>
                         <h4 className="font-medium text-foreground">{quest.title}</h4>
-                        <p className="text-sm text-muted-foreground">{quest.description}</p>
+                        <p className="text-sm text-foreground/80">{quest.description}</p>
                         <p className="text-xs text-destructive mt-1">
                           Progress: {quest.current_value}/{quest.target_value}
                         </p>
@@ -277,7 +277,7 @@ export const StudentQuestDisplay = () => {
                       <CheckCircle className="h-5 w-5 text-primary" />
                       <div>
                         <h4 className="font-medium text-foreground">{quest.title}</h4>
-                        <p className="text-sm text-muted-foreground">{quest.description}</p>
+                        <p className="text-sm text-foreground/80">{quest.description}</p>
                       </div>
                     </div>
                     <div className="text-right">
