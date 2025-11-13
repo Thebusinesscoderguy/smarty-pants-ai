@@ -149,23 +149,23 @@ export const StudentQuestDisplay = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white mb-2">{t('questDisplay.yourQuests')}</h2>
-        <p className="text-gray-400">{t('questDisplay.completeQuests')}</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('questDisplay.yourQuests')}</h2>
+        <p className="text-muted-foreground">{t('questDisplay.completeQuests')}</p>
       </div>
 
       {/* Active Quests */}
       <div>
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-blue-400" />
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Target className="h-5 w-5 text-primary" />
           {t('questDisplay.activeQuests')} ({activeQuests.length})
         </h3>
         
         {activeQuests.length === 0 ? (
-          <Card className="bg-white/10 border-white/20">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 text-center">
-              <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300">No active quests available.</p>
-              <p className="text-gray-400 text-sm mt-2">
+              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-foreground">No active quests available.</p>
+              <p className="text-muted-foreground text-sm mt-2">
                 Complete lessons and activities to unlock new quests!
               </p>
             </CardContent>
@@ -173,26 +173,26 @@ export const StudentQuestDisplay = () => {
         ) : (
           <div className="grid gap-4">
             {activeQuests.map((quest) => (
-              <Card key={quest.id} className="bg-white/10 border-white/20">
+              <Card key={quest.id} className="bg-card border-border">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium text-white">{quest.title}</h4>
+                        <h4 className="font-medium text-foreground">{quest.title}</h4>
                         <Badge variant="outline" className="text-xs">
                           {quest.type === 'daily' ? <Clock className="h-4 w-4" /> : <Target className="h-4 w-4" />}
                           <span className="ml-1">{quest.type}</span>
                         </Badge>
                         <div className={`w-2 h-2 rounded-full ${quest.difficulty === 'basic' ? 'bg-green-500' : quest.difficulty === 'intermediate' ? 'bg-yellow-500' : 'bg-red-500'}`} />
                       </div>
-                      <p className="text-sm text-gray-300 mb-3">{quest.description}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{quest.description}</p>
                       {quest.subjects && (
                         <Badge variant="secondary" className="text-xs">
                           {quest.subjects.name}
                         </Badge>
                       )}
                       {quest.reward && (
-                        <div className="flex items-center gap-1 text-xs text-purple-400 mt-2">
+                        <div className="flex items-center gap-1 text-xs text-accent mt-2">
                           <Gift className="h-3 w-3" />
                           {quest.reward}
                         </div>
@@ -202,8 +202,8 @@ export const StudentQuestDisplay = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Progress</span>
-                      <span className="text-white">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">
                         {quest.current_value}/{quest.target_value}
                       </span>
                     </div>
@@ -222,32 +222,32 @@ export const StudentQuestDisplay = () => {
       {/* Failed Quests - Only show for parents viewing children */}
       {failedQuests.length > 0 && userRole === 'parent' && (
         <div>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 text-red-400" />
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5 text-destructive" />
             Failed Quests ({failedQuests.length})
           </h3>
           
           <div className="grid gap-4">
             {failedQuests.map((quest) => (
-              <Card key={quest.id} className="bg-red-500/10 border-red-500/30">
+              <Card key={quest.id} className="bg-destructive/10 border-destructive/30">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Target className="h-5 w-5 text-red-400" />
+                      <Target className="h-5 w-5 text-destructive" />
                       <div>
-                        <h4 className="font-medium text-white">{quest.title}</h4>
-                        <p className="text-sm text-gray-400">{quest.description}</p>
-                        <p className="text-xs text-red-400 mt-1">
+                        <h4 className="font-medium text-foreground">{quest.title}</h4>
+                        <p className="text-sm text-muted-foreground">{quest.description}</p>
+                        <p className="text-xs text-destructive mt-1">
                           Progress: {quest.current_value}/{quest.target_value}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant="destructive" className="bg-red-500/20 text-red-300">
+                      <Badge variant="destructive">
                         Failed
                       </Badge>
                       {quest.expires_at && (
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           Expired: {new Date(quest.expires_at).toLocaleDateString()}
                         </p>
                       )}
@@ -270,27 +270,27 @@ export const StudentQuestDisplay = () => {
           
           <div className="grid gap-4">
             {completedQuests.slice(0, 5).map((quest) => (
-              <Card key={quest.id} className="bg-white/10 border-white/20 opacity-75">
+              <Card key={quest.id} className="bg-card border-border">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-400" />
+                      <CheckCircle className="h-5 w-5 text-primary" />
                       <div>
-                        <h4 className="font-medium text-white">{quest.title}</h4>
-                        <p className="text-sm text-gray-400">{quest.description}</p>
+                        <h4 className="font-medium text-foreground">{quest.title}</h4>
+                        <p className="text-sm text-muted-foreground">{quest.description}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant="default" className="bg-green-500/20 text-green-300">
+                      <Badge variant="secondary">
                         Completed
                       </Badge>
                       {quest.completed_at && (
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {new Date(quest.completed_at).toLocaleDateString()}
                         </p>
                       )}
                       {quest.reward && (
-                        <div className="flex items-center gap-1 text-xs text-purple-400 mt-1">
+                        <div className="flex items-center gap-1 text-xs text-accent mt-1">
                           <Trophy className="h-3 w-3" />
                           {quest.reward}
                         </div>
