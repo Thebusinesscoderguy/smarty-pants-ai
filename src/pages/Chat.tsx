@@ -199,13 +199,6 @@ const Chat = () => {
           {t('chat.nav.quests')}
         </Button>
       )}
-      
-      {/* Show role selection prompt for parents or undefined roles */}
-      {(userRole === 'parent' || !userRole) && (
-        <div className="text-muted-foreground text-sm bg-muted px-4 py-2 rounded-xl">
-          {t('chat.selectRolePrompt')}
-        </div>
-      )}
     </div>
   );
 
