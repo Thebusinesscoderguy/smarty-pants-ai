@@ -671,13 +671,13 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       <Header />
       
       {/* Modern Navigation Bar */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0 z-40">
+      <div className="border-b border-border bg-card/50 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               {renderNavigation()}
             </div>
-            <div className="text-white/60 text-sm bg-white/10 px-4 py-2 rounded-xl">
+            <div className="text-muted-foreground text-sm bg-muted px-4 py-2 rounded-xl">
               {user ? `${t('chat.welcome')}, ${user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}` : t('chat.demoMode')}
             </div>
           </div>
@@ -690,36 +690,36 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
           {/* Welcome Section - Only show when no messages and showWelcome is true */}
           {showWelcome && messages.length === 0 && (
             <div className="p-8">
-              <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent flex items-center">
-                <MessageSquare className="mr-4 h-14 w-14 text-purple-400" />
+              <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent flex items-center">
+                <MessageSquare className="mr-4 h-14 w-14 text-primary" />
                 {t('chat.title')}
               </h1>
-              <p className="text-slate-300 text-xl">
+              <p className="text-muted-foreground text-xl">
                 {t('chat.subtitle')}
               </p>
             </div>
           )}
 
           {/* Chat Container */}
-          <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl mx-8 mb-8">
+          <div className="flex-1 flex flex-col bg-card rounded-3xl border border-border shadow-lg mx-8 mb-8">
             {/* Messages Area */}
             <div className="flex-1 p-8 overflow-y-auto space-y-6">
               {messages.length === 0 && showWelcome ? (
                 <div className="text-center py-16">
-                  <div className="p-8 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl inline-block mb-8 border border-white/10">
-                    <MessageSquare className="h-20 w-20 text-purple-400 mx-auto mb-4" />
-                    <h3 className="text-3xl font-bold text-white mb-2">{t('chat.readyToLearn')}</h3>
-                    <p className="text-slate-300 text-xl">{t('chat.startConversation')}</p>
+                  <div className="p-8 bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl inline-block mb-8 border border-border">
+                    <MessageSquare className="h-20 w-20 text-primary mx-auto mb-4" />
+                    <h3 className="text-3xl font-bold text-foreground mb-2">{t('chat.readyToLearn')}</h3>
+                    <p className="text-muted-foreground text-xl">{t('chat.startConversation')}</p>
                   </div>
                 </div>
               ) : (
                 messages.map((message) => (
                   <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                      <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-white/10'} border border-white/20`}>
-                        {message.isUser ? <User className="h-5 w-5 text-white" /> : <MessageSquare className="h-5 w-5 text-purple-400" />}
+                      <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-primary' : 'bg-muted'} border border-border`}>
+                        {message.isUser ? <User className="h-5 w-5 text-primary-foreground" /> : <MessageSquare className="h-5 w-5 text-primary" />}
                       </div>
-                      <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : 'bg-white/10 text-white'} shadow-xl border border-white/20 group`}>
+                      <div className={`p-6 rounded-3xl ${message.isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'} shadow-md border border-border group`}>
                         <p className="text-lg leading-relaxed">{message.content}</p>
                         <div className="flex items-center justify-between mt-3">
                           <p className="text-sm opacity-70">
@@ -731,7 +731,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                                 onClick={() => handleCopyMessage(message.content)}
                                 variant="ghost"
                                 size="sm"
-                                className="p-1 h-auto hover:bg-white/10"
+                                className="p-1 h-auto hover:bg-muted"
                                 title="Copy to clipboard"
                               >
                                 <Copy className="h-4 w-4" />
@@ -740,7 +740,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                                 onClick={() => handleTextToSpeech(message.content)}
                                 variant="ghost"
                                 size="sm"
-                                className="p-1 h-auto hover:bg-white/10"
+                                className="p-1 h-auto hover:bg-muted"
                                 title={t('chat.readAloud')}
                               >
                                 <Volume2 className="h-4 w-4" />
@@ -757,14 +757,14 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="flex items-start space-x-3 max-w-4xl">
-                    <div className="p-3 rounded-2xl bg-white/10 border border-white/20">
-                      <MessageSquare className="h-5 w-5 text-purple-400" />
+                    <div className="p-3 rounded-2xl bg-muted border border-border">
+                      <MessageSquare className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="p-6 rounded-3xl bg-white/10 text-white shadow-xl border border-white/20">
+                    <div className="p-6 rounded-3xl bg-muted text-foreground shadow-md border border-border">
                       <div className="flex space-x-2">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200"></div>
                       </div>
                     </div>
                   </div>
@@ -774,18 +774,18 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
             </div>
 
             {/* Input Area */}
-            <div className="p-6 border-t border-white/20">
+            <div className="p-6 border-t border-border">
               {selectedFile && (
-                <div className="mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm">
+                <div className="mb-4 p-4 bg-muted rounded-2xl border border-border flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Upload className="h-5 w-5 text-blue-400" />
-                    <span className="text-white font-medium">{selectedFile.name}</span>
+                    <Upload className="h-5 w-5 text-primary" />
+                    <span className="text-foreground font-medium">{selectedFile.name}</span>
                   </div>
                   <Button
                     onClick={() => setSelectedFile(null)}
                     variant="ghost"
                     size="sm"
-                    className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
                   >
                     ×
                   </Button>
@@ -800,7 +800,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder={t('chat.placeholder')}
-                    className="w-full px-6 py-4 pr-28 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 text-lg backdrop-blur-sm"
+                    className="w-full px-6 py-4 pr-28 bg-background border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 text-lg"
                   />
                   
                   <input
@@ -810,7 +810,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                     className="hidden"
                     accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                   />
-                  
+                   
                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-1">
                      <Button
                        onClick={handleVoiceToggle}
@@ -818,8 +818,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                        size="sm"
                        className={`p-2 h-8 w-8 transition-all duration-200 rounded-lg ${
                          isRecording 
-                           ? 'text-red-400 bg-red-400/20 hover:bg-red-400/30' 
-                           : 'text-white/70 hover:text-white hover:bg-white/10'
+                           ? 'text-destructive bg-destructive/20 hover:bg-destructive/30' 
+                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                        }`}
                        title={isRecording ? t('chat.stopRecording') : t('chat.recordVoice')}
                      >
@@ -830,7 +830,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                        onClick={handleFileUpload}
                        variant="ghost"
                        size="sm"
-                       className="p-2 h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+                       className="p-2 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all duration-200"
                        title={t('chat.uploadFile')}
                      >
                        <Upload className="h-4 w-4" />
@@ -841,7 +841,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                 <Button
                   onClick={handleSendMessage}
                   disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-2xl font-semibold shadow-xl disabled:opacity-50"
+                  className="bg-primary hover:bg-primary/90 px-8 py-4 rounded-2xl font-semibold shadow-button disabled:opacity-50"
                 >
                   <Send className="h-5 w-5" />
                 </Button>
@@ -851,19 +851,19 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
         </div>
 
         {/* Sidebar for Previous Chats */}
-        <div className="w-80 bg-white/5 border-l border-white/10 p-4 space-y-4">
+        <div className="w-80 bg-card border-l border-border p-4 space-y-4">
           <Button
             onClick={handleNewChat}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-sm font-medium rounded-xl"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-sm font-medium rounded-xl"
           >
             <MessageSquarePlus className="h-4 w-4 mr-2" />
             {t('chat.newChat')}
           </Button>
 
-          <Separator className="bg-white/20" />
+          <Separator className="bg-border" />
 
           <div>
-            <h3 className="text-sm font-medium text-white/70 mb-3 px-1">{t('chat.previousChats')}</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3 px-1">{t('chat.previousChats')}</h3>
             <ScrollArea className="h-[calc(100vh-300px)]">
               <div className="space-y-2">
                 {chatSessions.map((session) => (
@@ -872,15 +872,15 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                     onClick={() => handleSelectSession(session.id)}
                     className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                       activeSessionId === session.id
-                        ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30'
-                        : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                        ? 'bg-primary/10 border border-primary/30'
+                        : 'bg-muted hover:bg-muted/80 border border-border'
                     }`}
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <MessageSquare className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                      <MessageSquare className="h-3 w-3 text-primary flex-shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-white truncate font-medium">{session.title}</p>
-                        <p className="text-xs text-white/60">
+                        <p className="text-sm text-foreground truncate font-medium">{session.title}</p>
+                        <p className="text-xs text-muted-foreground">
                           {new Date(session.created_at).toLocaleDateString()} • {session.message_count} {t('chat.messages')}
                         </p>
                       </div>
@@ -889,9 +889,9 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
                       size="sm"
                       variant="ghost"
                       onClick={(e) => deleteSession(session.id, e)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-white/10 flex-shrink-0"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto hover:bg-muted flex-shrink-0"
                     >
-                      <Trash2 className="h-3 w-3 text-red-400" />
+                      <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
                   </div>
                 ))}
