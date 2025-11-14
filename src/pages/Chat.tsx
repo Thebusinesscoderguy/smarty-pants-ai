@@ -164,10 +164,10 @@ const Chat = () => {
       {/* Study Tools for students */}
       {userRole === 'student' && (
         <Button
-          variant="default"
+          variant="ghost"
           size="sm"
           onClick={() => navigate('/quiz-generator')}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2"
+          className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
         >
           <BookOpen className="h-4 w-4 mr-2" />
           Study Tools
@@ -177,10 +177,10 @@ const Chat = () => {
       {/* Chat for students */}
       {userRole === 'student' && (
         <Button
-          variant="ghost"
+          variant="default"
           size="sm"
           onClick={() => {}}
-          className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           Chat
