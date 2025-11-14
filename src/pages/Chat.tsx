@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX, Trophy, Copy } from 'lucide-react';
+import { MessageSquare, Send, User, Bot, Settings, BarChart3, Upload, Mic, MicOff, Volume2, MessageSquarePlus, Trash2, VolumeX, Trophy, Copy, BookOpen } from 'lucide-react';
 import { useVoiceSettings } from '@/hooks/useVoiceSettings';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -160,30 +160,30 @@ const Chat = () => {
   };
 
   const renderNavigation = () => (
-    <div className="flex items-center space-x-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border">
+    <div className="flex items-center gap-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border w-fit">
       {/* Study Tools for students */}
       {userRole === 'student' && (
         <Button
-          variant="ghost"
+          variant="default"
           size="sm"
           onClick={() => navigate('/quiz-generator')}
-          className="text-foreground hover:bg-muted transition-all duration-200 rounded-xl px-4 py-2"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2"
         >
-          <BarChart3 className="h-4 w-4 mr-2" />
-          {t('studyTools.nav.studyTools')}
+          <BookOpen className="h-4 w-4 mr-2" />
+          Study Tools
         </Button>
       )}
 
       {/* Chat for students */}
       {userRole === 'student' && (
         <Button
-          variant={currentPage === 'chat' ? 'default' : 'ghost'}
+          variant="ghost"
           size="sm"
-          onClick={() => setCurrentPage('chat')}
-          className={`${currentPage === 'chat' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200 rounded-xl px-4 py-2`}
+          onClick={() => {}}
+          className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
-          {t('chat.nav.chat')}
+          Chat
         </Button>
       )}
 
@@ -192,11 +192,11 @@ const Chat = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/quests')}
-          className="text-foreground hover:bg-muted transition-all duration-200 rounded-xl px-4 py-2"
+          onClick={() => navigate('/quests-achievements')}
+          className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
         >
           <Trophy className="h-4 w-4 mr-2" />
-          {t('chat.nav.quests')}
+          Quests
         </Button>
       )}
     </div>
