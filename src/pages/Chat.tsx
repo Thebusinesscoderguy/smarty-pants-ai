@@ -170,7 +170,7 @@ const Chat = () => {
           className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
         >
           <BookOpen className="h-4 w-4 mr-2" />
-          Study Tools
+          Study Plan
         </Button>
       )}
 
@@ -179,7 +179,7 @@ const Chat = () => {
         <Button
           variant="default"
           size="sm"
-          onClick={() => {}}
+          onClick={() => navigate('/chat')}
           className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
@@ -192,7 +192,7 @@ const Chat = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/quests-achievements')}
+          onClick={() => navigate('/quests')}
           className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
         >
           <Trophy className="h-4 w-4 mr-2" />
