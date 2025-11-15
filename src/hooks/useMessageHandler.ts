@@ -135,38 +135,50 @@ export const useMessageHandler = () => {
         let buffer = '';
         let fullText = '';
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+            const chunk = decoder.decode(value, { stream: true });
+            buffer += chunk;
+            
+            // Process complete lines
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || trimmed.startsWith(':')) continue;
+              
+              if (trimmed.startsWith('data: ')) {
+                const data = trimmed.slice(6);
+                if (data === '[DONE]') continue;
 
-              try {
-                const parsed = JSON.parse(data);
-                const content = parsed.content;
-                if (content) {
-                  fullText += content;
-                  // Update the message in real-time
-                  setMessages(prev => 
-                    prev.map(m => 
-                      m.id === aiMessageId 
-                        ? { ...m, text: fullText }
-                        : m
-                    )
-                  );
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.content;
+                  if (content) {
+                    fullText += content;
+                    // Update immediately for each token
+                    setMessages(prev => 
+                      prev.map(m => 
+                        m.id === aiMessageId 
+                          ? { ...m, text: fullText }
+                          : m
+                      )
+                    );
+                    // Force scroll to bottom as text appears
+                    scrollToBottom();
+                  }
+                } catch (e) {
+                  console.error('Error parsing stream data:', e);
                 }
-              } catch (e) {
-                // Skip invalid JSON
               }
             }
           }
+        } catch (error) {
+          console.error('Stream reading error:', error);
         }
 
         if (!fullText) {
