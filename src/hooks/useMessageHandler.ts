@@ -109,76 +109,71 @@ export const useMessageHandler = () => {
         setMessages(prev => prev.filter(m => m.id !== processingMessageId).concat(streamingMessage));
 
         // Generate AI response using OpenAI's chat completion API with streaming
-        const completionResponse = await supabase.functions.invoke('chat-completion', {
-          body: {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(`https://twfzlbockonxopuindaw.supabase.co/functions/v1/chat-completion`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0MDE5NTAsImV4cCI6MjA1ODk3Nzk1MH0.MKUGpLxfF5bhtqOAo0aBs0daOMpMfkIqgwZ2ntIvQi4'}`
+          },
+          body: JSON.stringify({
             messages: [
               ...conversationHistory,
               { role: "user", content: userMessage }
             ],
             language: localStorage.getItem('selectedLanguage') || 'en'
-          }
+          })
         });
 
-        if (completionResponse.error) {
-          throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+        if (!response.ok || !response.body) {
+          throw new Error('Failed to get response from AI');
         }
 
-        // Handle streaming response
-        let aiResponseText = '';
-        const response = new Response(completionResponse.data);
-        const reader = response.body?.getReader();
+        // Process streaming response
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let buffer = '';
+        let fullText = '';
 
-        if (reader) {
-          let buffer = '';
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                try {
-                  const data = JSON.parse(line.slice(6));
-                  if (data.content) {
-                    aiResponseText += data.content;
-                    
-                    // Update the streaming message in real-time
-                    setMessages(prev => prev.map(msg => 
-                      msg.id === aiMessageId 
-                        ? { ...msg, text: aiResponseText }
-                        : msg
-                    ));
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.content;
+                if (content) {
+                  fullText += content;
+                  // Update the message in real-time
+                  setMessages(prev => 
+                    prev.map(m => 
+                      m.id === aiMessageId 
+                        ? { ...m, text: fullText }
+                        : m
+                    )
+                  );
                 }
+              } catch (e) {
+                // Skip invalid JSON
               }
             }
           }
-        } else {
-          // Fallback for non-streaming response
-          console.log('Non-streaming response received:', completionResponse.data);
-          
-          if (typeof completionResponse.data === 'string') {
-            aiResponseText = completionResponse.data;
-          } else if (completionResponse.data.content) {
-            aiResponseText = completionResponse.data.content;
-          } else {
-            console.error('Unexpected response format:', completionResponse.data);
-            aiResponseText = "I'm sorry, I encountered an issue processing your request.";
-          }
-          
-          setMessages(prev => prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { ...msg, text: aiResponseText }
-              : msg
-          ));
         }
+
+        if (!fullText) {
+          throw new Error('Failed to generate AI response');
+        }
+
+        const aiResponseText = fullText;
         
         // Check if this is a quiz question and update state
         if (isQuizMode && aiResponseText.includes('?')) {
