@@ -161,44 +161,38 @@ const Chat = () => {
 
   const renderNavigation = () => (
     <div className="flex items-center gap-2 bg-muted/50 rounded-2xl p-2 backdrop-blur-xl border border-border w-fit">
-      {/* Study Tools for students */}
-      {userRole === 'student' && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/quiz-generator')}
-          className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
-        >
-          <BookOpen className="h-4 w-4 mr-2" />
-          Study Plan
-        </Button>
-      )}
+      {/* Study Plan */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/quiz-generator')}
+        className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
+      >
+        <BookOpen className="h-4 w-4 mr-2" />
+        Study Plan
+      </Button>
 
-      {/* Chat for students */}
-      {userRole === 'student' && (
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => navigate('/chat')}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2"
-        >
-          <MessageSquare className="h-4 w-4 mr-2" />
-          Chat
-        </Button>
-      )}
+      {/* Chat */}
+      <Button
+        variant="default"
+        size="sm"
+        onClick={() => navigate('/chat')}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2"
+      >
+        <MessageSquare className="h-4 w-4 mr-2" />
+        Chat
+      </Button>
 
-      {/* Quests & Achievements for students */}
-      {userRole === 'student' && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/quests')}
-          className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
-        >
-          <Trophy className="h-4 w-4 mr-2" />
-          Quests
-        </Button>
-      )}
+      {/* Quests */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate('/quests')}
+        className="text-foreground hover:bg-muted rounded-xl px-4 py-2"
+      >
+        <Trophy className="h-4 w-4 mr-2" />
+        Quests
+      </Button>
     </div>
   );
 
