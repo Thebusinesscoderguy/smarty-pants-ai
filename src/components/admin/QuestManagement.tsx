@@ -503,14 +503,14 @@ const { isSchoolAdmin } = useUserRole();
           if (!open) setCreationMethod(null);
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-purple-600 hover:bg-purple-700">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
               Create Quest
             </Button>
           </DialogTrigger>
-          <DialogContent ref={dialogContentRef} className="bg-gray-900 border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent ref={dialogContentRef} className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white">Create New Quest</DialogTitle>
+              <DialogTitle className="text-foreground">Create New Quest</DialogTitle>
               {creationMethod && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Mode: {creationMethod === 'manual' ? 'Made by Me' : creationMethod === 'ai' ? 'Made by AI' : 'Both'}
@@ -548,52 +548,52 @@ const { isSchoolAdmin } = useUserRole();
                   <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">← Back</Button>
                 </div>
                 <div>
-                  <Label htmlFor="title" className="text-white">Quest Title *</Label>
+                  <Label htmlFor="title" className="text-foreground">Quest Title *</Label>
                   <Input
                     id="title"
                     value={newQuest.title}
                     onChange={(e) => setNewQuest({ ...newQuest, title: e.target.value })}
                     placeholder="Complete 5 Math Problems"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="description" className="text-white">Description *</Label>
+                  <Label htmlFor="description" className="text-foreground">Description *</Label>
                   <Textarea
                     id="description"
                     value={newQuest.description}
                     onChange={(e) => setNewQuest({ ...newQuest, description: e.target.value })}
                     placeholder="Practice arithmetic and problem-solving skills"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                     rows={3}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="type" className="text-white">Type</Label>
+                    <Label htmlFor="type" className="text-foreground">Type</Label>
                     <Select value={newQuest.type} onValueChange={(value: 'daily' | 'weekly') => setNewQuest({ ...newQuest, type: value })}>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        <SelectItem value="daily" className="text-white hover:bg-gray-700">Daily</SelectItem>
-                        <SelectItem value="weekly" className="text-white hover:bg-gray-700">Weekly</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="difficulty" className="text-white">Difficulty</Label>
+                    <Label htmlFor="difficulty" className="text-foreground">Difficulty</Label>
                     <Select value={newQuest.difficulty} onValueChange={(value: 'basic' | 'intermediate' | 'hard') => setNewQuest({ ...newQuest, difficulty: value })}>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        <SelectItem value="basic" className="text-white hover:bg-gray-700">Basic</SelectItem>
-                        <SelectItem value="intermediate" className="text-white hover:bg-gray-700">Intermediate</SelectItem>
-                        <SelectItem value="hard" className="text-white hover:bg-gray-700">Hard</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="basic">Basic</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -601,7 +601,7 @@ const { isSchoolAdmin } = useUserRole();
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="targetValue" className="text-white">Target Value</Label>
+                    <Label htmlFor="targetValue" className="text-foreground">Target Value</Label>
                     <Input
                       id="targetValue"
                       type="text"
@@ -613,20 +613,20 @@ const { isSchoolAdmin } = useUserRole();
                         }
                       }}
                       placeholder="1"
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="subject" className="text-white">Subject</Label>
+                    <Label htmlFor="subject" className="text-foreground">Subject</Label>
                     <Select value={newQuest.subject_id} onValueChange={(value) => setNewQuest({ ...newQuest, subject_id: value })}>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue placeholder="Select subject" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        <SelectItem value="" className="text-white hover:bg-gray-700">All Subjects</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="">All Subjects</SelectItem>
                         {subjects.map((subject) => (
-                          <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-gray-700">
+                          <SelectItem key={subject.id} value={subject.id}>
                             {subject.name}
                           </SelectItem>
                         ))}
@@ -636,8 +636,8 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
 
                 <div>
-                  <Label className="text-white mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
-                  <div className="space-y-2 p-3 bg-white/5 rounded-md border border-white/10">
+                  <Label className="text-foreground mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
+                  <div className="space-y-2 p-3 bg-muted/30 rounded-md border border-border">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="all-children"
@@ -649,7 +649,7 @@ const { isSchoolAdmin } = useUserRole();
                           });
                         }}
                       />
-                      <label htmlFor="all-children" className="text-sm text-white cursor-pointer">
+                      <label htmlFor="all-children" className="text-sm text-foreground cursor-pointer">
                         {isSchoolAdmin ? 'All Students' : 'All Children'}
                       </label>
                     </div>
@@ -673,13 +673,13 @@ const { isSchoolAdmin } = useUserRole();
                               }
                             }}
                           />
-                          <label htmlFor={`child-${child.id}`} className="text-sm text-white cursor-pointer">
+                          <label htmlFor={`child-${child.id}`} className="text-sm text-foreground cursor-pointer">
                             {child.first_name} {child.last_name}
                           </label>
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {isSchoolAdmin ? 'No students linked to your school yet.' : 'No children linked yet.'}
                       </p>
                     )}
@@ -699,12 +699,12 @@ const { isSchoolAdmin } = useUserRole();
                 <div className="flex items-center justify-between mb-2">
                   <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">← Back</Button>
                 </div>
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
                   <div className="flex items-start space-x-3">
-                    <Sparkles className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="text-white font-medium mb-1">AI Quest Generation</h4>
-                      <p className="text-sm text-white/70">
+                      <h4 className="text-foreground font-medium mb-1">AI Quest Generation</h4>
+                      <p className="text-sm text-muted-foreground">
                         Generate multiple quests automatically based on subject, grade level, and difficulty. 
                         The AI will create engaging, curriculum-aligned quests for your students.
                       </p>
@@ -713,14 +713,14 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
 
                 <div>
-                  <Label htmlFor="ai-subject" className="text-white">Subject *</Label>
+                  <Label htmlFor="ai-subject" className="text-foreground">Subject *</Label>
                   <Select value={aiQuestParams.subject_id} onValueChange={(value) => setAiQuestParams({ ...aiQuestParams, subject_id: value })}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="bg-background border-input text-foreground">
                       <SelectValue placeholder="Select subject" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectContent className="bg-popover border-border">
                       {subjects.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-gray-700">
+                        <SelectItem key={subject.id} value={subject.id}>
                           {subject.name}
                         </SelectItem>
                       ))}
@@ -729,46 +729,46 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
 
                 <div>
-                  <Label htmlFor="grade-level" className="text-white">Grade Level</Label>
+                  <Label htmlFor="grade-level" className="text-foreground">Grade Level</Label>
                   <Input
                     id="grade-level"
                     value={aiQuestParams.grade_level}
                     onChange={(e) => setAiQuestParams({ ...aiQuestParams, grade_level: e.target.value })}
                     placeholder="e.g., 6th grade, high school"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="ai-type" className="text-white">Type</Label>
+                    <Label htmlFor="ai-type" className="text-foreground">Type</Label>
                     <Select value={aiQuestParams.type} onValueChange={(value: 'daily' | 'weekly') => setAiQuestParams({ ...aiQuestParams, type: value })}>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        <SelectItem value="daily" className="text-white hover:bg-gray-700">Daily</SelectItem>
-                        <SelectItem value="weekly" className="text-white hover:bg-gray-700">Weekly</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="ai-difficulty" className="text-white">Difficulty</Label>
+                    <Label htmlFor="ai-difficulty" className="text-foreground">Difficulty</Label>
                     <Select value={aiQuestParams.difficulty} onValueChange={(value: 'basic' | 'intermediate' | 'hard') => setAiQuestParams({ ...aiQuestParams, difficulty: value })}>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        <SelectItem value="basic" className="text-white hover:bg-gray-700">Basic</SelectItem>
-                        <SelectItem value="intermediate" className="text-white hover:bg-gray-700">Intermediate</SelectItem>
-                        <SelectItem value="hard" className="text-white hover:bg-gray-700">Hard</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="basic">Basic</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="quest-count" className="text-white">Count</Label>
+                    <Label htmlFor="quest-count" className="text-foreground">Count</Label>
                     <Input
                       id="quest-count"
                       type="number"
@@ -776,14 +776,14 @@ const { isSchoolAdmin } = useUserRole();
                       max="10"
                       value={aiQuestParams.count}
                       onChange={(e) => setAiQuestParams({ ...aiQuestParams, count: parseInt(e.target.value) || 3 })}
-                      className="bg-white/10 border-white/20 text-white"
+                      className="bg-background border-input text-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-white mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
-                  <div className="space-y-2 p-3 bg-white/5 rounded-md border border-white/10 max-h-40 overflow-y-auto">
+                  <Label className="text-foreground mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
+                  <div className="space-y-2 p-3 bg-muted/30 rounded-md border border-border max-h-40 overflow-y-auto">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="ai-all-children"
@@ -795,7 +795,7 @@ const { isSchoolAdmin } = useUserRole();
                           });
                         }}
                       />
-                      <label htmlFor="ai-all-children" className="text-sm text-white cursor-pointer">
+                      <label htmlFor="ai-all-children" className="text-sm text-foreground cursor-pointer">
                         {isSchoolAdmin ? 'All Students' : 'All Children'}
                       </label>
                     </div>
@@ -818,7 +818,7 @@ const { isSchoolAdmin } = useUserRole();
                             }
                           }}
                         />
-                        <label htmlFor={`ai-child-${child.id}`} className="text-sm text-white cursor-pointer">
+                        <label htmlFor={`ai-child-${child.id}`} className="text-sm text-foreground cursor-pointer">
                           {child.first_name} {child.last_name}
                         </label>
                       </div>
@@ -826,7 +826,7 @@ const { isSchoolAdmin } = useUserRole();
                   </div>
                 </div>
 
-                <Button onClick={generateAIQuests} disabled={isGenerating} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                <Button onClick={generateAIQuests} disabled={isGenerating} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
