@@ -13,12 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel } = await req.json();
+    const { topic, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel, language } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
+
+    function getLanguageName(code: string): string {
+      const languages: Record<string, string> = {
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
+        'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
+        'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish', 'pl': 'Polish', 'nl': 'Dutch'
+      };
+      return languages[code] || 'English';
+    }
+
+    const targetLanguage = language && language !== 'en' ? getLanguageName(language) : null;
 
     // Create context from conversation history if provided
     let context = '';
@@ -28,7 +39,11 @@ serve(async (req) => {
         .join('\n');
     }
 
-    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}" for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.
+    const languageInstruction = targetLanguage 
+      ? `\n\n🔴 CRITICAL: Generate ALL quiz content (questions, options, answers, explanations) in ${targetLanguage}. Every single word must be in ${targetLanguage}.`
+      : '';
+
+    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}" for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.${languageInstruction}
     ${context ? `Base the questions on this conversation context:\n${context}\n\n` : ''}
     Generate questions in this exact JSON format only (no markdown, no extra text):
     {
@@ -67,7 +82,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: 'gpt-4o',
             messages: [
-              { role: 'system', content: 'You are an expert educator creating quiz questions. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy for any question, skip that question and do not include it in the quiz. Only create questions with information you are confident is accurate and consistent. Always respond with valid JSON only.' },
+              { role: 'system', content: `You are an expert educator creating quiz questions. CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy for any question, skip that question and do not include it in the quiz. Only create questions with information you are confident is accurate and consistent.${languageInstruction} Always respond with valid JSON only.` },
               { role: 'user', content: prompt }
             ],
             temperature: 0.5,

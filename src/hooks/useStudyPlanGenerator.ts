@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudyPlan {
   id: string;
@@ -26,6 +27,7 @@ interface DailyLesson {
 
 export const useStudyPlanGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const { language } = useLanguage();
 
   const generateStudyPlan = async (
     inputData: string,
@@ -42,7 +44,8 @@ export const useStudyPlanGenerator = () => {
           gradeLevel: opts?.gradeLevel,
           region: opts?.region,
           days: opts?.days,
-          maxDailyMinutes: opts?.maxDailyMinutes
+          maxDailyMinutes: opts?.maxDailyMinutes,
+          language
         }
       });
       const timeoutPromise = new Promise<never>((_, reject) => {
