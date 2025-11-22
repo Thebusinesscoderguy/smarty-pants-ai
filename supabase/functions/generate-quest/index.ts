@@ -15,7 +15,7 @@ serve(async (req) => {
     const body = await req.json();
     console.log("generate-quest: Body parsed:", JSON.stringify(body));
     
-    const { subject, gradeLevel, type, difficulty, count } = body;
+    const { subject, gradeLevel, type, difficulty, count, language } = body;
     
     if (!subject || !gradeLevel || !count) {
       console.error("generate-quest: Missing required fields", { subject, gradeLevel, count });
@@ -25,9 +25,23 @@ serve(async (req) => {
       );
     }
 
-    const userPrompt = `Generate ${count} ${difficulty} ${type} quest${count > 1 ? 's' : ''} for ${subject} at ${gradeLevel} level. Each quest should be unique and engaging.`;
+    function getLanguageName(code: string): string {
+      const languages: Record<string, string> = {
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
+        'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
+        'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish', 'pl': 'Polish', 'nl': 'Dutch'
+      };
+      return languages[code] || 'English';
+    }
 
-    const systemPrompt = `You are a quest generation assistant. Generate educational quests based on provided parameters.
+    const targetLanguage = language && language !== 'en' ? getLanguageName(language) : null;
+    const languageInstruction = targetLanguage 
+      ? ` Generate quest titles and descriptions in ${targetLanguage}.`
+      : '';
+
+    const userPrompt = `Generate ${count} ${difficulty} ${type} quest${count > 1 ? 's' : ''} for ${subject} at ${gradeLevel} level. Each quest should be unique and engaging.${languageInstruction}`;
+
+    const systemPrompt = `You are a quest generation assistant. Generate educational quests based on provided parameters.${targetLanguage ? ` When generating quests, write all text (titles and descriptions) in ${targetLanguage}.` : ''}
 
 For each quest, return a JSON object with this exact structure:
 {

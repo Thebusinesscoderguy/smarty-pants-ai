@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface QuizQuestion {
   id?: string;
@@ -28,6 +29,7 @@ export const useQuizGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const { user } = useAuth();
+  const { language } = useLanguage();
 
   const toQuiz = (data: any, difficulty: Quiz['difficulty']): Quiz => ({
     title: data.title,
@@ -54,7 +56,7 @@ export const useQuizGenerator = () => {
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-quiz', {
-        body: { topic, difficulty, questionCount, conversationHistory, gradeLevel },
+        body: { topic, difficulty, questionCount, conversationHistory, gradeLevel, language },
       });
       if (error) throw error;
       return toQuiz(data, difficulty);

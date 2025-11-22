@@ -14,11 +14,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AIGenerateQuest = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createQuest } = useQuestManagement();
+  const { language } = useLanguage();
   
   const [subject, setSubject] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
@@ -112,7 +114,8 @@ const AIGenerateQuest = () => {
           type,
           difficulty,
           count,
-          userId: user?.id 
+          userId: user?.id,
+          language
         }
       });
 
