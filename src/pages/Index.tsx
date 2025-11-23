@@ -156,13 +156,13 @@ const Index = () => {
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">Powerful Learning Tools</span>
+              <span className="text-sm font-medium text-foreground">{t('home.features.badge')}</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Everything You Need for Academic Success
+              {t('home.features.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Comprehensive tools designed to help students excel, parents stay informed, and learning stay engaging
+              {t('home.features.subtitle')}
             </p>
           </div>
 
@@ -172,22 +172,22 @@ const Index = () => {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 <BookOpen className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Personalized Study Plans</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t('home.features.studyPlans.title')}</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                AI-generated study plans tailored to your curriculum, learning pace, and goals. Break down complex topics into manageable daily tasks with adaptive scheduling.
+                {t('home.features.studyPlans.desc')}
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Curriculum-aligned content for all subjects</span>
+                  <span>{t('home.features.studyPlans.feature1')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Adaptive pacing based on your progress</span>
+                  <span>{t('home.features.studyPlans.feature2')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Smart reminders and progress tracking</span>
+                  <span>{t('home.features.studyPlans.feature3')}</span>
                 </div>
               </div>
             </div>
@@ -197,22 +197,22 @@ const Index = () => {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 <Brain className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">AI Quiz Generator</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t('home.features.quizGen.title')}</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Create unlimited practice quizzes from any topic, textbook, or study material. Get instant feedback and detailed explanations for every answer.
+                {t('home.features.quizGen.desc')}
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Generate quizzes from any topic or material</span>
+                  <span>{t('home.features.quizGen.feature1')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Instant feedback with explanations</span>
+                  <span>{t('home.features.quizGen.feature2')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Track performance and identify weak areas</span>
+                  <span>{t('home.features.quizGen.feature3')}</span>
                 </div>
               </div>
             </div>
@@ -222,22 +222,22 @@ const Index = () => {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 <Eye className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Parent Monitoring Dashboard</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t('home.features.parentMonitoring.title')}</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Stay informed with real-time insights into your child's learning progress, strengths, and areas that need attention. Comprehensive analytics at your fingertips.
+                {t('home.features.parentMonitoring.desc')}
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Real-time progress tracking and alerts</span>
+                  <span>{t('home.features.parentMonitoring.feature1')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Detailed analytics on strengths & weaknesses</span>
+                  <span>{t('home.features.parentMonitoring.feature2')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Activity summaries and engagement metrics</span>
+                  <span>{t('home.features.parentMonitoring.feature3')}</span>
                 </div>
               </div>
             </div>
@@ -247,22 +247,22 @@ const Index = () => {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 <Trophy className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Gamification & Rewards</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{t('home.features.gamification.title')}</h3>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Make learning fun with quests, achievements, and rewards. Students earn points, unlock badges, and level up as they master new concepts.
+                {t('home.features.gamification.desc')}
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Daily quests and learning challenges</span>
+                  <span>{t('home.features.gamification.feature1')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Achievement badges and progress levels</span>
+                  <span>{t('home.features.gamification.feature2')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span>Motivation through rewards and milestones</span>
+                  <span>{t('home.features.gamification.feature3')}</span>
                 </div>
               </div>
             </div>
@@ -277,15 +277,15 @@ const Index = () => {
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-6">
                 <Brain className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Smart AI Learning</span>
+                <span className="text-sm font-medium text-foreground">{t('home.why.badge')}</span>
               </div>
               
               <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Why Teachly Works
+                {t('home.why.title')}
               </h2>
               
               <p className="text-xl text-muted-foreground mb-12">
-                Powered by advanced AI that adapts to each student's unique learning style
+                {t('home.why.subtitle')}
               </p>
             </div>
             
@@ -294,9 +294,9 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <Target className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">Adaptive Learning</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{t('home.why.adaptive.title')}</h3>
                 <p className="text-base text-muted-foreground leading-relaxed">
-                  AI adjusts difficulty and pacing based on performance, ensuring optimal challenge levels
+                  {t('home.why.adaptive.desc')}
                 </p>
               </div>
               
@@ -304,9 +304,9 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">Data-Driven Insights</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{t('home.why.insights.title')}</h3>
                 <p className="text-base text-muted-foreground leading-relaxed">
-                  Track progress with detailed analytics that identify strengths and areas for improvement
+                  {t('home.why.insights.desc')}
                 </p>
               </div>
               
@@ -314,9 +314,9 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <Gamepad2 className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">Engaging Experience</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{t('home.why.engaging.title')}</h3>
                 <p className="text-base text-muted-foreground leading-relaxed">
-                  Gamified learning keeps students motivated and excited to learn every day
+                  {t('home.why.engaging.desc')}
                 </p>
               </div>
             </div>

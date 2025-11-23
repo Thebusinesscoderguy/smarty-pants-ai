@@ -165,7 +165,7 @@ const QuestsAchievements = () => {
           className="text-foreground hover:bg-muted"
         >
           <BookOpen className="mr-2 h-4 w-4" />
-            Study Tools
+          {t('quests.nav.studyTools')}
         </Button>
         <Button
           onClick={() => navigate('/chat')}
@@ -174,7 +174,7 @@ const QuestsAchievements = () => {
           className="text-foreground hover:bg-muted"
         >
           <MessageCircle className="mr-2 h-4 w-4" />
-            Chat
+          {t('quests.nav.chat')}
         </Button>
         <Button
           variant="ghost"
@@ -183,7 +183,7 @@ const QuestsAchievements = () => {
           disabled
         >
           <Trophy className="mr-2 h-4 w-4" />
-            Quests
+          {t('quests.nav.quests')}
         </Button>
       </div>
     </div>
@@ -200,8 +200,8 @@ const QuestsAchievements = () => {
           
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-foreground">Quests</h1>
-            <p className="text-xl text-foreground">Complete quests to earn rewards and track your progress</p>
+            <h1 className="text-4xl font-bold text-foreground">{t('quests.nav.quests')}</h1>
+            <p className="text-xl text-foreground">{t('quests.subtitle')}</p>
           </div>
 
           {/* Quest Actions - Only for Parents */}
@@ -212,14 +212,14 @@ const QuestsAchievements = () => {
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Made by Me
+                {t('quests.madeByMe')}
               </Button>
               <Button
                 onClick={() => navigate('/quests/ai-generate')}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Target className="mr-2 h-4 w-4" />
-                Made by AI
+                {t('quests.madeByAI')}
               </Button>
               <Button
                 onClick={() => navigate('/quests/made-by-me')}
@@ -227,7 +227,7 @@ const QuestsAchievements = () => {
                 className="border-border text-foreground hover:bg-muted"
               >
                 <List className="mr-2 h-4 w-4" />
-                View My Quests
+                {t('quests.viewMyQuests')}
               </Button>
             </div>
           )}
@@ -236,34 +236,34 @@ const QuestsAchievements = () => {
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Quest</DialogTitle>
+                <DialogTitle>{t('quests.createNew')}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Quest Title</Label>
+                  <Label htmlFor="title">{t('quests.questTitle')}</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Enter quest title"
+                    placeholder={t('quests.questTitle')}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('quests.description')}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe the quest"
+                    placeholder={t('quests.description')}
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="type">Type</Label>
+                    <Label htmlFor="type">{t('quests.type')}</Label>
                     <Select
                       value={formData.type}
                       onValueChange={(value) => setFormData({ ...formData, type: value })}
@@ -272,14 +272,14 @@ const QuestsAchievements = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="daily">{t('quests.daily')}</SelectItem>
+                        <SelectItem value="weekly">{t('quests.weekly')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="difficulty">Difficulty</Label>
+                    <Label htmlFor="difficulty">{t('quests.difficulty')}</Label>
                     <Select
                       value={formData.difficulty}
                       onValueChange={(value) => setFormData({ ...formData, difficulty: value })}
@@ -288,16 +288,16 @@ const QuestsAchievements = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="easy">Easy</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="hard">Hard</SelectItem>
+                        <SelectItem value="easy">{t('quests.easy')}</SelectItem>
+                        <SelectItem value="medium">{t('quests.medium')}</SelectItem>
+                        <SelectItem value="hard">{t('quests.hard')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="target_value">Target Value</Label>
+                  <Label htmlFor="target_value">{t('quests.targetValue')}</Label>
                   <Input
                     id="target_value"
                     type="number"
@@ -309,7 +309,7 @@ const QuestsAchievements = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>When does it expire?</Label>
+                  <Label>{t('quests.expirationQuestion')}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Select
                       value={expirationValue.toString()}
@@ -335,29 +335,29 @@ const QuestsAchievements = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="days">Days</SelectItem>
-                        <SelectItem value="weeks">Weeks</SelectItem>
+                        <SelectItem value="days">{t('quests.days')}</SelectItem>
+                        <SelectItem value="weeks">{t('quests.weeks')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Assign to</Label>
+                  <Label>{t('quests.assignTo')}</Label>
                   <RadioGroup value={assignMode} onValueChange={(v) => setAssignMode(v as 'all' | 'specific')} className="grid grid-cols-2 gap-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="all" id="assign-all" />
-                      <Label htmlFor="assign-all">All children</Label>
+                      <Label htmlFor="assign-all">{t('quests.allChildren')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="specific" id="assign-specific" />
-                      <Label htmlFor="assign-specific">Select specific</Label>
+                      <Label htmlFor="assign-specific">{t('quests.selectSpecific')}</Label>
                     </div>
                   </RadioGroup>
 
                   {assignMode === 'specific' && (
                     children.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No children connected yet.</p>
+                      <p className="text-muted-foreground text-sm">{t('quests.noChildren')}</p>
                     ) : (
                       <div className="grid sm:grid-cols-2 gap-3">
                         {children.map((child) => {
@@ -389,14 +389,14 @@ const QuestsAchievements = () => {
                     disabled={isSubmitting}
                     className="flex-1"
                   >
-                    {isSubmitting ? 'Creating...' : 'Create Quest'}
+                    {isSubmitting ? t('quests.creating') : t('quests.create')}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
                   >
-                    Cancel
+                    {t('quests.cancel')}
                   </Button>
                 </div>
               </form>
@@ -408,12 +408,12 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground font-semibold">
                 <Target className="h-6 w-6 text-primary" />
-                {!loading && userRole === 'parent' ? 'Assigned Quests' : 'My Quests'}
+                {!loading && userRole === 'parent' ? t('quests.assignedQuests') : t('quests.myQuests')}
               </CardTitle>
               <p className="text-foreground mt-2">
                 {!loading && userRole === 'parent' 
-                  ? 'View and manage quests assigned to your children' 
-                  : 'Complete these quests to earn rewards and level up'}
+                  ? t('quests.viewManageDesc')
+                  : t('quests.completeToEarn')}
               </p>
             </CardHeader>
             <CardContent>
