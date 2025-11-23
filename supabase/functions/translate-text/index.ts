@@ -7,63 +7,62 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Use OpenAI for reliable translation
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+// Use DeepL for reliable translation
+const DEEPL_API_KEY = Deno.env.get('DEEPL_API_KEY');
 
-async function translateWithOpenAI(text: string, sourceLang: string, targetLang: string): Promise<string> {
-  if (!OPENAI_API_KEY) {
-    throw new Error('OpenAI API key not configured');
+// DeepL language code mapping
+function getDeepLCode(langCode: string): string {
+  const mapping: { [key: string]: string } = {
+    'en': 'EN',
+    'es': 'ES',
+    'fr': 'FR',
+    'de': 'DE',
+    'zh': 'ZH',
+    'ja': 'JA',
+    'pt': 'PT-PT',
+    'it': 'IT',
+    'ru': 'RU',
+    'ar': 'AR'
+  };
+  return mapping[langCode] || langCode.toUpperCase();
+}
+
+async function translateWithDeepL(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  if (!DEEPL_API_KEY) {
+    throw new Error('DeepL API key not configured');
   }
 
-  const languageNames: { [key: string]: string } = {
-    'en': 'English',
-    'es': 'Spanish', 
-    'fr': 'French',
-    'de': 'German',
-    'zh': 'Chinese',
-    'ja': 'Japanese',
-    'pt': 'Portuguese',
-    'it': 'Italian',
-    'ru': 'Russian',
-    'ar': 'Arabic'
-  };
+  const targetLangCode = getDeepLCode(targetLang);
+  const sourceLangCode = getDeepLCode(sourceLang);
 
-  const sourceLanguage = languageNames[sourceLang] || sourceLang;
-  const targetLanguage = languageNames[targetLang] || targetLang;
+  // Try free API first, fallback to pro
+  const apiUrl = 'https://api-free.deepl.com/v2/translate';
+  
+  const params = new URLSearchParams({
+    auth_key: DEEPL_API_KEY,
+    text: text,
+    target_lang: targetLangCode,
+    source_lang: sourceLangCode
+  });
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a professional translator. Translate the given text from ${sourceLanguage} to ${targetLanguage}. Only return the translated text, no explanations or additional content.`
-        },
-        {
-          role: 'user',
-          content: text
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 1000
-    }),
+    body: params.toString(),
   });
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`OpenAI API error: ${response.status} ${error}`);
+    throw new Error(`DeepL API error: ${response.status} ${error}`);
   }
 
   const data = await response.json();
-  const translatedText = data.choices[0]?.message?.content?.trim();
+  const translatedText = data.translations?.[0]?.text;
   
   if (!translatedText) {
-    throw new Error('No translation received from OpenAI');
+    throw new Error('No translation received from DeepL');
   }
 
   return translatedText;
@@ -99,20 +98,20 @@ serve(async (req) => {
     console.log(`Translation request: "${text}" from ${sourceLang} to ${targetLang}`);
 
     try {
-      const translatedText = await translateWithOpenAI(text, sourceLang, targetLang);
+      const translatedText = await translateWithDeepL(text, sourceLang, targetLang);
       
       return new Response(JSON.stringify({ 
         translatedText,
         originalText: text,
         targetLang,
         sourceLang,
-        service: 'OpenAI'
+        service: 'DeepL'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 
     } catch (error) {
-      console.error('OpenAI translation failed:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('DeepL translation failed:', error instanceof Error ? error.message : 'Unknown error');
       
       // Return original text as fallback
       return new Response(JSON.stringify({ 
