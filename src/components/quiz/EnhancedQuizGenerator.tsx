@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { FileUploadZone } from './FileUploadZone';
-import { QuizTaker } from './QuizTaker';
-import { Loader2, Plus, Save, Trash2, FileQuestion, Brain, BookOpen, CheckCircle2, Eye, Play } from 'lucide-react';
+import { Loader2, Plus, Save, Trash2, FileQuestion, Brain, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -31,7 +30,6 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
-  const [quizMode, setQuizMode] = useState<'preview' | 'take'>('preview');
 const autoRanRef = useRef(false);
   
   const { t } = useLanguage();
@@ -506,7 +504,7 @@ useEffect(() => {
       {generatedQuiz && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center justify-between">
               <div>
                 <CardTitle>{generatedQuiz.title}</CardTitle>
                 <CardDescription>{generatedQuiz.description}</CardDescription>
@@ -522,118 +520,80 @@ useEffect(() => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-muted/50 rounded-lg border-2 border-primary/20">
-              <p className="text-sm font-medium mb-3 text-center">Choose how to view this quiz:</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  size="lg"
-                  variant={quizMode === 'preview' ? 'default' : 'outline'}
-                  onClick={() => setQuizMode('preview')}
-                  className="h-auto py-4 flex-col gap-2"
-                >
-                  <Eye className="h-5 w-5" />
-                  <span>Preview with Answers</span>
-                </Button>
-                <Button
-                  size="lg"
-                  variant={quizMode === 'take' ? 'default' : 'outline'}
-                  onClick={() => setQuizMode('take')}
-                  className="h-auto py-4 flex-col gap-2"
-                >
-                  <Play className="h-5 w-5" />
-                  <span>Take Quiz</span>
-                </Button>
-              </div>
+            <div className="space-y-4">
+              {generatedQuiz.questions.map((question, index) => (
+                <div key={index} className="p-4 border rounded-lg bg-card">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-medium">Question {index + 1}</h4>
+                    <Badge variant="secondary" className="text-xs">
+                      {question.type.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                  <p className="mb-3">{question.question}</p>
+                  
+                  {question.options && (
+                    <div className="space-y-1 mb-3">
+                      {question.options.map((option, optIndex) => (
+                        <div 
+                          key={optIndex}
+                          className={`p-2 rounded text-sm ${
+                            option === question.correct_answer 
+                              ? 'bg-green-500/10 text-green-600 border border-green-500/20 font-medium' 
+                              : 'bg-muted/50'
+                          }`}
+                        >
+                          {String.fromCharCode(65 + optIndex)}. {option}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {!question.options && (
+                    <div className="p-2 bg-green-500/10 text-green-600 border border-green-500/20 rounded text-sm font-medium mb-3">
+                      Answer: {question.correct_answer}
+                    </div>
+                  )}
+                  
+                  {question.explanation && (
+                    <div className="text-sm text-muted-foreground bg-blue-500/10 border border-blue-500/20 p-2 rounded">
+                      <strong>Explanation:</strong> {question.explanation}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
-            {quizMode === 'preview' ? (
-              <div className="space-y-4">
-                {generatedQuiz.questions.map((question, index) => (
-                  <div key={index} className="p-4 border rounded-lg bg-card">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium">Question {index + 1}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {question.type.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="mb-3">{question.question}</p>
-                    
-                    {question.options && (
-                      <div className="space-y-1 mb-3">
-                        {question.options.map((option, optIndex) => (
-                          <div 
-                            key={optIndex}
-                            className={`p-2 rounded text-sm ${
-                              option === question.correct_answer 
-                                ? 'bg-green-500/10 text-green-600 border border-green-500/20 font-medium' 
-                                : 'bg-muted/50'
-                            }`}
-                          >
-                            {String.fromCharCode(65 + optIndex)}. {option}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {!question.options && (
-                      <div className="p-2 bg-green-500/10 text-green-600 border border-green-500/20 rounded text-sm font-medium mb-3">
-                        Answer: {question.correct_answer}
-                      </div>
-                    )}
-                    
-                    {question.explanation && (
-                      <div className="text-sm text-muted-foreground bg-blue-500/10 border border-blue-500/20 p-2 rounded">
-                        <strong>Explanation:</strong> {question.explanation}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <QuizTaker 
-                quiz={generatedQuiz} 
-                onComplete={() => {
-                  setGeneratedQuiz(null);
-                  setQuizMode('preview');
-                }}
-              />
-            )}
-
-            {quizMode === 'preview' && (
-              <>
-                {inputMethod === 'file' && (
-                  <div className="space-y-3 pt-4">
-                    <div className="text-sm font-medium">Practice options from your last quiz</div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating}>
-                        {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
-                      </Button>
-                      <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating}>
-                        {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
-                      </Button>
-                      <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating}>
-                        {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <Button onClick={handleSaveQuiz} className="flex-1">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Quiz
+            {inputMethod === 'file' && (
+              <div className="space-y-3 pt-4">
+                <div className="text-sm font-medium">Practice options from your last quiz</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setGeneratedQuiz(null)}
-                    className="flex-1"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Discard
+                  <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
+                  </Button>
+                  <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
                   </Button>
                 </div>
-              </>
+              </div>
             )}
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleSaveQuiz} className="flex-1">
+                <Save className="mr-2 h-4 w-4" />
+                Save Quiz
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setGeneratedQuiz(null)}
+                className="flex-1"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Discard
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
