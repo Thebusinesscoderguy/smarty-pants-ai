@@ -271,6 +271,51 @@ useEffect(() => {
                   </Select>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="enhanced-grade">Grade Level</Label>
+                  <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select grade level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
+                        <SelectItem key={gl} value={gl}>{gl}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="enhanced-questionCount">Number of Questions</Label>
+                  <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="enhanced-quizMode">Quiz Mode</Label>
+                  <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="take">Take Quiz</SelectItem>
+                      <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="file" className="space-y-4">
@@ -483,7 +528,7 @@ useEffect(() => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="take">Take Quiz</SelectItem>
-                  <SelectItem value="view">View Answers</SelectItem>
+                  <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
                 </SelectContent>
               </Select>
             </div>
