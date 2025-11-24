@@ -178,11 +178,11 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="questionCount">Number of Questions</Label>
                   <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -203,7 +203,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="take">Take Quiz</SelectItem>
-                      <SelectItem value="view">View Answers</SelectItem>
+                      <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -287,11 +287,11 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="questionCount">Number of Questions</Label>
                     <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -312,7 +312,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="take">Take Quiz</SelectItem>
-                        <SelectItem value="view">View Answers</SelectItem>
+                        <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
