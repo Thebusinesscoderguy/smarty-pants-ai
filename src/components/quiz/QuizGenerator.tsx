@@ -28,6 +28,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [gradeLevel, setGradeLevel] = useState<string>('');
   const [creatingPractice, setCreatingPractice] = useState(false);
+  const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
   
   const { isGenerating, generateQuiz, saveQuiz, extractQuizFromFile, retakeLatestQuiz, quizFromLatestMistakes } = useQuizGenerator();
 
@@ -177,20 +178,35 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="questionCount">Number of Questions</Label>
-                <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="15">15</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="questionCount">Number of Questions</Label>
+                  <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="quizMode">Quiz Mode</Label>
+                  <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="take">Take Quiz</SelectItem>
+                      <SelectItem value="view">View Answers</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {conversationHistory && conversationHistory.length > 0 && (
@@ -271,20 +287,35 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="questionCount">Number of Questions</Label>
-                  <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="questionCount">Number of Questions</Label>
+                    <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3</SelectItem>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="15">15</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="quizMode">Quiz Mode</Label>
+                    <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="take">Take Quiz</SelectItem>
+                        <SelectItem value="view">View Answers</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {uploadedFile && uploadType === 'graded_quiz' && (
