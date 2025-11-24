@@ -520,26 +520,32 @@ useEffect(() => {
                 </Badge>
               </div>
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button
-                variant={quizMode === 'preview' ? 'default' : 'outline'}
-                onClick={() => setQuizMode('preview')}
-                className="flex-1"
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Preview with Answers
-              </Button>
-              <Button
-                variant={quizMode === 'take' ? 'default' : 'outline'}
-                onClick={() => setQuizMode('take')}
-                className="flex-1"
-              >
-                <Play className="mr-2 h-4 w-4" />
-                Take Quiz
-              </Button>
-            </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="p-4 bg-muted/50 rounded-lg border-2 border-primary/20">
+              <p className="text-sm font-medium mb-3 text-center">Choose how to view this quiz:</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  size="lg"
+                  variant={quizMode === 'preview' ? 'default' : 'outline'}
+                  onClick={() => setQuizMode('preview')}
+                  className="h-auto py-4 flex-col gap-2"
+                >
+                  <Eye className="h-5 w-5" />
+                  <span>Preview with Answers</span>
+                </Button>
+                <Button
+                  size="lg"
+                  variant={quizMode === 'take' ? 'default' : 'outline'}
+                  onClick={() => setQuizMode('take')}
+                  className="h-auto py-4 flex-col gap-2"
+                >
+                  <Play className="h-5 w-5" />
+                  <span>Take Quiz</span>
+                </Button>
+              </div>
+            </div>
+
             {quizMode === 'preview' ? (
               <div className="space-y-4">
                 {generatedQuiz.questions.map((question, index) => (
