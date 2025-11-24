@@ -12,6 +12,7 @@ import { Loader2, Plus, Save, Trash2, FileQuestion, Brain, BookOpen, CheckCircle
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { QuizTaker } from './QuizTaker';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
@@ -30,6 +31,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
+  const [quizMode, setQuizMode] = useState<'take_quiz' | 'view_answers'>('take_quiz');
 const autoRanRef = useRef(false);
   
   const { t } = useLanguage();
@@ -456,21 +458,36 @@ useEffect(() => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
-            <Input
-              id="questionCount"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={String(questionCount)}
-              onChange={(e) => {
-                const v = e.target.value.replace(/[^0-9]/g, '');
-                const num = Math.max(1, Math.min(50, parseInt(v || '0', 10)));
-                setQuestionCount(num);
-              }}
-              className="w-32"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
+              <Input
+                id="questionCount"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={String(questionCount)}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9]/g, '');
+                  const num = Math.max(1, Math.min(50, parseInt(v || '0', 10)));
+                  setQuestionCount(num);
+                }}
+                className="w-32"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quizMode">{t('quizGenerator.quizMode')}</Label>
+              <Select value={quizMode} onValueChange={(value: 'take_quiz' | 'view_answers') => setQuizMode(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select quiz mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="take_quiz">{t('quizGenerator.takeQuiz')}</SelectItem>
+                  <SelectItem value="view_answers">{t('quizGenerator.viewAnswers')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {conversationHistory && conversationHistory.length > 0 && (
@@ -501,7 +518,40 @@ useEffect(() => {
         </CardContent>
       </Card>
 
-      {generatedQuiz && (
+      {generatedQuiz && quizMode === 'take_quiz' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{generatedQuiz.title}</CardTitle>
+                <CardDescription>{generatedQuiz.description}</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={getDifficultyColor(generatedQuiz.difficulty)}>
+                  {generatedQuiz.difficulty}
+                </Badge>
+                <Badge variant="outline">
+                  {generatedQuiz.questions.length} questions
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <QuizTaker 
+              quiz={generatedQuiz} 
+              onComplete={(result) => {
+                toast({ 
+                  title: t('quizTaker.complete'), 
+                  description: t('quizTaker.scoreResult').replace('{score}', result.score.toString()).replace('{total}', result.total.toString()) 
+                });
+                setGeneratedQuiz(null);
+              }} 
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {generatedQuiz && quizMode === 'view_answers' && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
