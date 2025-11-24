@@ -30,6 +30,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
+  const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
 const autoRanRef = useRef(false);
   
   const { t } = useLanguage();
@@ -456,21 +457,36 @@ useEffect(() => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
-            <Input
-              id="questionCount"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={String(questionCount)}
-              onChange={(e) => {
-                const v = e.target.value.replace(/[^0-9]/g, '');
-                const num = Math.max(1, Math.min(50, parseInt(v || '0', 10)));
-                setQuestionCount(num);
-              }}
-              className="w-32"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
+              <Input
+                id="questionCount"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={String(questionCount)}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9]/g, '');
+                  const num = Math.max(1, Math.min(50, parseInt(v || '0', 10)));
+                  setQuestionCount(num);
+                }}
+                className="w-32"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="quizMode">Quiz Mode</Label>
+              <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="take">Take Quiz</SelectItem>
+                  <SelectItem value="view">View Answers</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {conversationHistory && conversationHistory.length > 0 && (
@@ -537,7 +553,7 @@ useEffect(() => {
                         <div 
                           key={optIndex}
                           className={`p-2 rounded text-sm ${
-                            option === question.correct_answer 
+                            quizMode === 'view' && option === question.correct_answer 
                               ? 'bg-green-500/10 text-green-600 border border-green-500/20 font-medium' 
                               : 'bg-muted/50'
                           }`}
@@ -548,13 +564,13 @@ useEffect(() => {
                     </div>
                   )}
                   
-                  {!question.options && (
+                  {!question.options && quizMode === 'view' && (
                     <div className="p-2 bg-green-500/10 text-green-600 border border-green-500/20 rounded text-sm font-medium mb-3">
                       Answer: {question.correct_answer}
                     </div>
                   )}
                   
-                  {question.explanation && (
+                  {quizMode === 'view' && question.explanation && (
                     <div className="text-sm text-muted-foreground bg-blue-500/10 border border-blue-500/20 p-2 rounded">
                       <strong>Explanation:</strong> {question.explanation}
                     </div>
