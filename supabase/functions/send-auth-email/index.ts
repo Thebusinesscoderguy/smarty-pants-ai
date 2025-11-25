@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,8 +17,19 @@ serve(async (req) => {
   }
 
   try {
+    // Verify the JWT from Supabase Auth
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
     const body = await req.json();
     const { user, email_data } = body;
+    
+    console.log('Received auth email request:', {
+      user_email: user.email,
+      action_type: email_data.email_action_type
+    });
     
     console.log('Auth email request:', { 
       email: user.email, 

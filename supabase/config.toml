@@ -49,6 +49,3 @@ file_size_limit = "50MiB"
 
 [functions.send-auth-email]
 verify_jwt = false
-
-[functions.send-auth-email.environment]
-RESEND_API_KEY = "re_9hzdoRyo_PGYzQZtGDf2zbFky21GEjLgc"
