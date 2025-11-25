@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
+import { Resend } from "npm:resend@4.0.0";
+
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,40 +14,6 @@ serve(async (req) => {
   }
 
   try {
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    const hookSecret = Deno.env.get('AUTH_HOOK_SECRET');
-    
-    if (!resendApiKey) {
-      console.error('RESEND_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'Email service not configured' }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Verify webhook signature if secret is set
-    if (hookSecret) {
-      const payload = await req.text();
-      const headers = Object.fromEntries(req.headers);
-      const wh = new Webhook(hookSecret);
-      
-      try {
-        wh.verify(payload, headers);
-      } catch (err) {
-        console.error('Webhook verification failed:', err);
-        return new Response(
-          JSON.stringify({ error: 'Invalid signature' }),
-          { 
-            status: 401,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-    }
-
     const body = await req.json();
     const { user, email_data } = body;
     
@@ -110,39 +78,25 @@ serve(async (req) => {
 
     // Send email via Resend
     console.log('Sending email via Resend...');
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Teachly <teachlyai.com@gmail.com>',
-        to: [user.email],
-        subject: subject,
-        html: htmlContent,
-      }),
+    
+    const { data, error } = await resend.emails.send({
+      from: 'Teachly <onboarding@resend.dev>',
+      to: [user.email],
+      subject: subject,
+      html: htmlContent,
     });
 
-    console.log('Resend API response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Resend API error:', errorText);
-      
+    if (error) {
+      console.error('Resend error:', error);
       return new Response(
-        JSON.stringify({ 
-          error: 'Failed to send email',
-          details: errorText 
-        }),
+        JSON.stringify({ error: 'Failed to send email', details: error }),
         { 
-          status: response.status,
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    const data = await response.json();
     console.log('Email sent successfully:', data);
 
     return new Response(
