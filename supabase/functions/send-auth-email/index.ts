@@ -17,12 +17,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify the JWT from Supabase Auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
     const body = await req.json();
     const { user, email_data } = body;
     
