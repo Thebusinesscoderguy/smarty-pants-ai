@@ -46,3 +46,6 @@ max_frequency = "1s"
 enabled = true
 port = 54325
 file_size_limit = "50MiB"
+
+[functions.send-auth-email]
+verify_jwt = false
