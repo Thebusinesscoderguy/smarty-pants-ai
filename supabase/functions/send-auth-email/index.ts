@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const hookSecret = Deno.env.get('AUTH_HOOK_SECRET') as string;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +16,21 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const payload = await req.text();
+    const headers = Object.fromEntries(req.headers);
+    
+    // Verify webhook signature
+    const wh = new Webhook(hookSecret);
+    let body;
+    try {
+      body = wh.verify(payload, headers);
+    } catch (error) {
+      console.error('Webhook verification failed:', error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     console.log('Received auth hook payload:', JSON.stringify(body, null, 2));
     
