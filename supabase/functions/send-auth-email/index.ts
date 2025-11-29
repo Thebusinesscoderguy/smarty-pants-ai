@@ -18,26 +18,32 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { user, email_data } = body;
     
-    console.log('Received auth email request:', {
-      user_email: user.email,
-      action_type: email_data.email_action_type
-    });
+    console.log('Received auth hook payload:', JSON.stringify(body, null, 2));
     
-    console.log('Auth email request:', { 
-      email: user.email, 
-      type: email_data.email_action_type 
-    });
+    // Supabase Auth Hook sends data directly in the body
+    const email = body.email || body.user?.email;
+    const token_hash = body.token_hash;
+    const email_action_type = body.email_action_type || body.email_data?.email_action_type;
+    const site_url = body.site_url || body.email_data?.site_url || Deno.env.get('SITE_URL') || 'https://teachly.com';
+    
+    if (!email || !token_hash || !email_action_type) {
+      console.error('Missing required fields:', { email, token_hash, email_action_type });
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log('Processing auth email:', { email, type: email_action_type });
 
     // Determine email subject and content based on action type
     let subject = '';
     let htmlContent = '';
     
-    const siteUrl = email_data.site_url || Deno.env.get('SITE_URL') || 'https://teachly.com';
-    const confirmUrl = `${siteUrl}/auth/confirm?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}`;
+    const confirmUrl = `${site_url}/auth/confirm?token_hash=${token_hash}&type=${email_action_type}`;
     
-    switch (email_data.email_action_type) {
+    switch (email_action_type) {
       case 'signup':
         subject = 'Confirm your email for Teachly';
         htmlContent = `
@@ -89,7 +95,7 @@ serve(async (req) => {
     
     const { data, error } = await resend.emails.send({
       from: 'Teachly <onboarding@resend.dev>',
-      to: [user.email],
+      to: [email],
       subject: subject,
       html: htmlContent,
     });
