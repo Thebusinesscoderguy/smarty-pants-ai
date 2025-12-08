@@ -11,14 +11,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
 
 const Onboarding = () => {
   const [guardianEmail, setGuardianEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showChildrenManagement, setShowChildrenManagement] = useState(false);
   const { setGuardianEmail: saveGuardianEmail, onboardingStatus } = useOnboarding();
   const { user, isSchoolAdmin } = useAuth();
   const navigate = useNavigate();
@@ -71,17 +69,12 @@ const Onboarding = () => {
     try {
       setIsSubmitting(true);
       await saveGuardianEmail(guardianEmail);
-      // Show children management instead of navigating away
-      setShowChildrenManagement(true);
+      navigate('/progress');
     } catch (error) {
       console.error('Failed to save guardian email:', error);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleChildrenManagementComplete = () => {
-    navigate('/progress');
   };
 
   const handleSkip = () => {
@@ -92,19 +85,6 @@ const Onboarding = () => {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  // Show children management after guardian email
-  if (showChildrenManagement) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center px-4 py-8">
-          <ChildrenManagement onComplete={handleChildrenManagementComplete} />
-        </main>
-        <Footer />
       </div>
     );
   }
