@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { UserRoleSelector } from '@/components/onboarding/UserRoleSelector';
+import { AddChildrenFirst } from '@/components/onboarding/AddChildrenFirst';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -26,13 +27,46 @@ const Auth = () => {
   
   const isSignup = searchParams.get('signup') === 'true';
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState<'auth' | 'add-children' | 'role-selector'>('auth');
+  const [checkingChildren, setCheckingChildren] = useState(false);
 
   useEffect(() => {
-    if (user && !showRoleSelector) {
-      setShowRoleSelector(true);
+    if (user && onboardingStep === 'auth') {
+      checkUserChildren();
     }
-  }, [user, showRoleSelector]);
+  }, [user, onboardingStep]);
+
+  const checkUserChildren = async () => {
+    if (!user) return;
+    
+    setCheckingChildren(true);
+    try {
+      const { data: children, error } = await supabase
+        .from('children')
+        .select('id')
+        .eq('parent_id', user.id);
+
+      if (error) throw error;
+
+      // If no children, show add children step first
+      if (!children || children.length === 0) {
+        setOnboardingStep('add-children');
+      } else {
+        // If children exist, go straight to role selector
+        setOnboardingStep('role-selector');
+      }
+    } catch (error) {
+      console.error('Error checking children:', error);
+      // Default to add children step on error
+      setOnboardingStep('add-children');
+    } finally {
+      setCheckingChildren(false);
+    }
+  };
+
+  const handleChildrenAdded = () => {
+    setOnboardingStep('role-selector');
+  };
 
   const handleRoleSelected = (role: 'parent' | 'child', childId?: string) => {
     console.log('Auth: handleRoleSelected called', { role, childId });
@@ -67,9 +101,9 @@ const Auth = () => {
         return;
       }
 
-      // If successful login, show role selector
+      // If successful login, useEffect will handle the onboarding flow
       if (data?.session) {
-        setShowRoleSelector(true);
+        // The useEffect will detect the user and check for children
       }
     } catch (error: any) {
       setError(t('auth.error.unexpected'));
@@ -119,9 +153,9 @@ const Auth = () => {
         return;
       }
 
-      // If we have a session, show role selector
+      // If we have a session, useEffect will handle the onboarding flow
       if (data?.session) {
-        setShowRoleSelector(true);
+        // The useEffect will detect the user and check for children
       }
     } catch (error: any) {
       setError('An unexpected error occurred. Please try again.');
@@ -180,25 +214,52 @@ const Auth = () => {
     }
   };
 
+  // Show loading while checking children
+  if (user && checkingChildren) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show add children step
+  if (user && onboardingStep === 'add-children') {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <AddChildrenFirst onComplete={handleChildrenAdded} />
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show role selector
+  if (user && onboardingStep === 'role-selector') {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <UserRoleSelector onRoleSelected={handleRoleSelected} />
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       
-      {/* Show role selector if user is authenticated */}
-      {user && showRoleSelector ? (
-        <UserRoleSelector onRoleSelected={handleRoleSelected} />
-      ) : (
-        <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
-          <div className="w-full max-w-md mx-auto">
-            <Card className="shadow-lg rounded-2xl overflow-hidden border-border bg-card">
-              <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold text-foreground mb-3">
-                  {t('auth.welcome')}
-                </CardTitle>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {t('auth.subtitle')}
-                </p>
-              </CardHeader>
+      <main className="flex items-center justify-center min-h-[80vh] px-4 py-12">
+        <div className="w-full max-w-md mx-auto">
+          <Card className="shadow-lg rounded-2xl overflow-hidden border-border bg-card">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl font-bold text-foreground mb-3">
+                {t('auth.welcome')}
+              </CardTitle>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {t('auth.subtitle')}
+              </p>
+            </CardHeader>
             
             <CardContent className="p-6">
             {signupSuccess && (
@@ -504,7 +565,6 @@ const Auth = () => {
           </Card>
           </div>
         </main>
-      )}
       
       <Footer />
     </div>
