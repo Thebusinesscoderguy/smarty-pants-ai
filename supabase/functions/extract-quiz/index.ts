@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,27 +18,36 @@ serve(async (req) => {
     console.log('Extract-quiz function invoked');
     
     const body = await req.json();
-    const { fileBase64, contentType, difficulty = 'medium', questionCount = 10, gradeLevel, mode = 'extract', difficultyVariant = 'same' } = body;
+    const { fileUrl, fileBase64, contentType, difficulty = 'medium', questionCount = 10, gradeLevel, mode = 'extract', difficultyVariant = 'same' } = body;
 
-    if (!fileBase64 || !contentType) {
-      console.error('Missing required fields: fileBase64 or contentType');
-      return new Response(JSON.stringify({ error: 'fileBase64 and contentType are required' }), {
+    // Support both URL-based (new) and base64-based (legacy) approaches
+    let imageUrl: string;
+    
+    if (fileUrl) {
+      // New approach: file already uploaded to storage
+      console.log(`Processing file from URL: ${fileUrl}`);
+      imageUrl = fileUrl;
+    } else if (fileBase64 && contentType) {
+      // Legacy approach: base64 encoded file (limited to smaller files)
+      const fileSizeBytes = Math.ceil(fileBase64.length * 0.75);
+      console.log(`Processing base64 file: type=${contentType}, size=${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB`);
+      
+      // For base64, limit to 10MB to avoid memory issues
+      if (fileSizeBytes > 10 * 1024 * 1024) {
+        console.error('Base64 file too large:', fileSizeBytes);
+        return new Response(JSON.stringify({ 
+          error: 'File too large for direct upload. Please try again - the system will use optimized upload for large files.' 
+        }), {
+          status: 413,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      imageUrl = `data:${contentType};base64,${fileBase64}`;
+    } else {
+      console.error('Missing required fields: fileUrl or (fileBase64 and contentType)');
+      return new Response(JSON.stringify({ error: 'fileUrl or (fileBase64 and contentType) are required' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Log file size for debugging
-    const fileSizeBytes = Math.ceil(fileBase64.length * 0.75); // Approximate decoded size
-    console.log(`Processing file: type=${contentType}, size=${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB`);
-
-    // Reject files that are too large (>100MB decoded)
-    if (fileSizeBytes > 100 * 1024 * 1024) {
-      console.error('File too large:', fileSizeBytes);
-      return new Response(JSON.stringify({ 
-        error: 'File too large for processing. Please use a file under 100MB.' 
-      }), {
-        status: 413,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -47,8 +57,6 @@ serve(async (req) => {
       console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
-
-    const dataUrl = `data:${contentType};base64,${fileBase64}`;
 
     const modeInstructions = mode === 'similar'
       ? 'Generate a new quiz with novel questions inspired by the document. Do not copy text verbatim. Use similar concepts and styles, and vary numbers/context while keeping learning objectives aligned.'
@@ -98,7 +106,7 @@ When building the quiz:
             role: 'user',
             content: [
               { type: 'text', text: userPrompt },
-              { type: 'image_url', image_url: { url: dataUrl, detail: 'low' } }
+              { type: 'image_url', image_url: { url: imageUrl, detail: 'low' } }
             ] as any
           }
         ],
