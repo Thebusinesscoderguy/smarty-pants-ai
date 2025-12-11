@@ -81,6 +81,17 @@ export const useQuizGenerator = () => {
   ): Promise<Quiz | null> => {
     setIsGenerating(true);
     try {
+      // Limit file size to 20MB for the vision API to avoid memory issues
+      const maxSize = 20 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast({ 
+          title: 'File too large', 
+          description: 'Please use a file under 20MB for quiz extraction. Try compressing the file or using fewer pages.', 
+          variant: 'destructive' 
+        });
+        return null;
+      }
+
       // Use FileReader to avoid stack overflows from spreading large TypedArrays
       const base64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -96,6 +107,7 @@ export const useQuizGenerator = () => {
         reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
         reader.readAsDataURL(file);
       });
+
       const { data, error } = await supabase.functions.invoke('extract-quiz', {
         body: {
           fileBase64: base64,
@@ -107,13 +119,24 @@ export const useQuizGenerator = () => {
           difficultyVariant: opts?.difficultyVariant ?? 'same',
         },
       });
+
       if (error) throw error;
       return toQuiz(data, opts?.difficulty ?? 'medium');
     } catch (error: any) {
       console.error('Error extracting quiz:', error);
       const status = error?.context?.response?.status || error?.status;
       const msg = String(error?.message || 'Failed to extract quiz. Ensure the file is clear and readable.');
-      toast({ title: 'Error', description: status ? `${msg} (HTTP ${status})` : msg, variant: 'destructive' });
+      
+      // Check for memory-related errors
+      if (msg.toLowerCase().includes('memory') || status === 500) {
+        toast({ 
+          title: 'Processing Error', 
+          description: 'The file is too complex to process. Try using a smaller file or an image instead of PDF.', 
+          variant: 'destructive' 
+        });
+      } else {
+        toast({ title: 'Error', description: status ? `${msg} (HTTP ${status})` : msg, variant: 'destructive' });
+      }
       return null;
     } finally {
       setIsGenerating(false);
