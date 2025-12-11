@@ -19,7 +19,7 @@ export const FileUploadZone = ({
   onFileRemove,
   uploadedFile,
   acceptedFileTypes = ['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png'],
-  maxFileSize = 50 * 1024 * 1024, // 50MB
+  maxFileSize = 100 * 1024 * 1024, // 100MB
   disabled = false
 }: FileUploadZoneProps) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
