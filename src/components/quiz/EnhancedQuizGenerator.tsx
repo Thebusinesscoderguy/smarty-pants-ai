@@ -22,7 +22,8 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [inputMethod, setInputMethod] = useState<'manual' | 'file' | 'ai'>('manual');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [questionCount, setQuestionCount] = useState(5);
+  const [questionCountInput, setQuestionCountInput] = useState('5');
+  const getQuestionCount = () => Math.max(1, Math.min(50, parseInt(questionCountInput || '5', 10)));
   const [gradeLevel, setGradeLevel] = useState<string>('');
   const [customInstructions, setCustomInstructions] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -43,7 +44,7 @@ useEffect(() => {
       setInputMethod('manual');
       if (auto.topic) setTopic(auto.topic);
       if (auto.difficulty) setDifficulty(auto.difficulty);
-      if (auto.questionCount) setQuestionCount(auto.questionCount);
+      if (auto.questionCount) setQuestionCountInput(String(auto.questionCount));
       // Trigger generation directly without requiring grade level
       generateQuiz(auto.topic || '', auto.difficulty || 'medium', auto.questionCount || 5, conversationHistory, undefined)
         .then((q) => q && setGeneratedQuiz(q))
@@ -72,7 +73,7 @@ useEffect(() => {
 
       switch (inputMethod) {
         case 'manual':
-          quiz = await generateQuiz(topic, difficulty, questionCount, conversationHistory, gradeLevel);
+          quiz = await generateQuiz(topic, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         case 'file':
@@ -113,7 +114,7 @@ useEffect(() => {
                   toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorDesc'), variant: 'destructive' });
                   return;
                 }
-                quiz = await extractQuizFromFile(uploadedFile, { difficulty, questionCount, gradeLevel });
+                quiz = await extractQuizFromFile(uploadedFile, { difficulty, questionCount: getQuestionCount(), gradeLevel });
                 break;
             }
           } else {
@@ -123,7 +124,7 @@ useEffect(() => {
             }
             quiz = await extractQuizFromFile(uploadedFile, {
               difficulty,
-              questionCount,
+              questionCount: getQuestionCount(),
               gradeLevel,
             });
           }
@@ -134,7 +135,7 @@ useEffect(() => {
             toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorInstructions'), variant: 'destructive' });
             return;
           }
-          quiz = await generateQuiz(customInstructions, difficulty, questionCount, conversationHistory, gradeLevel);
+          quiz = await generateQuiz(customInstructions, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         default:
@@ -288,19 +289,27 @@ useEffect(() => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="enhanced-questionCount">Number of Questions</Label>
-                  <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="enhanced-questionCount">Number of Questions (max 50)</Label>
+                  <Input
+                    id="enhanced-questionCount"
+                    type="text"
+                    inputMode="numeric"
+                    value={questionCountInput}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9]/g, '');
+                      setQuestionCountInput(v);
+                    }}
+                    onBlur={() => {
+                      const num = parseInt(questionCountInput || '0', 10);
+                      if (num > 50) {
+                        setQuestionCountInput('50');
+                      } else if (num < 1 && questionCountInput !== '') {
+                        setQuestionCountInput('1');
+                      }
+                    }}
+                    placeholder="5"
+                    className="w-32"
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -504,18 +513,25 @@ useEffect(() => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
+              <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')} (max 50)</Label>
               <Input
                 id="questionCount"
                 type="text"
                 inputMode="numeric"
-                pattern="[0-9]*"
-                value={String(questionCount)}
+                value={questionCountInput}
                 onChange={(e) => {
                   const v = e.target.value.replace(/[^0-9]/g, '');
-                  const num = Math.max(1, Math.min(50, parseInt(v || '0', 10)));
-                  setQuestionCount(num);
+                  setQuestionCountInput(v);
                 }}
+                onBlur={() => {
+                  const num = parseInt(questionCountInput || '0', 10);
+                  if (num > 50) {
+                    setQuestionCountInput('50');
+                  } else if (num < 1 && questionCountInput !== '') {
+                    setQuestionCountInput('1');
+                  }
+                }}
+                placeholder="5"
                 className="w-32"
               />
             </div>
