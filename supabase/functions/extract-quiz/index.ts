@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -15,17 +14,37 @@ serve(async (req) => {
   }
 
   try {
-    const { fileBase64, contentType, difficulty = 'medium', questionCount = 10, gradeLevel, mode = 'extract', difficultyVariant = 'same' } = await req.json();
+    console.log('Extract-quiz function invoked');
+    
+    const body = await req.json();
+    const { fileBase64, contentType, difficulty = 'medium', questionCount = 10, gradeLevel, mode = 'extract', difficultyVariant = 'same' } = body;
 
     if (!fileBase64 || !contentType) {
+      console.error('Missing required fields: fileBase64 or contentType');
       return new Response(JSON.stringify({ error: 'fileBase64 and contentType are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // Log file size for debugging
+    const fileSizeBytes = Math.ceil(fileBase64.length * 0.75); // Approximate decoded size
+    console.log(`Processing file: type=${contentType}, size=${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB`);
+
+    // Reject files that are too large (>15MB decoded to be safe)
+    if (fileSizeBytes > 15 * 1024 * 1024) {
+      console.error('File too large:', fileSizeBytes);
+      return new Response(JSON.stringify({ 
+        error: 'File too large for processing. Please use a file under 15MB or try an image instead of PDF.' 
+      }), {
+        status: 413,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
 
@@ -63,6 +82,8 @@ When building the quiz:
 
     const userPrompt = `Use the attached document image as the source. Create about ${questionCount} ${difficulty} questions${gradeLevel ? ` for grade level ${gradeLevel}` : ''}. Return ONLY JSON as per the schema.`;
 
+    console.log('Calling OpenAI Vision API...');
+    
     const resp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -77,17 +98,19 @@ When building the quiz:
             role: 'user',
             content: [
               { type: 'text', text: userPrompt },
-              { type: 'image_url', image_url: { url: dataUrl } }
+              { type: 'image_url', image_url: { url: dataUrl, detail: 'low' } }
             ] as any
           }
         ],
         temperature: 0.3,
+        max_tokens: 4000,
       }),
     });
 
     if (!resp.ok) {
       const text = await resp.text();
       const status = resp.status;
+      console.error(`OpenAI API error: status=${status}, response=${text}`);
       const message = status === 429
         ? 'Rate limit reached. Please wait and try again.'
         : (status === 401 || status === 403)
@@ -103,6 +126,8 @@ When building the quiz:
     let content = ai.choices?.[0]?.message?.content ?? '';
     content = content.trim().replace(/^```json\n?|\n?```$/g, '');
 
+    console.log('OpenAI response received, parsing JSON...');
+
     let quizData;
     try {
       quizData = JSON.parse(content);
@@ -110,6 +135,8 @@ When building the quiz:
       console.error('Failed to parse extracted quiz JSON:', content);
       throw new Error('Failed to extract a valid quiz from the document');
     }
+
+    console.log(`Quiz extracted successfully: ${quizData.questions?.length || 0} questions`);
 
     return new Response(JSON.stringify(quizData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
