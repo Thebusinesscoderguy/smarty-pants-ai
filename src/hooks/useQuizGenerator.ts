@@ -92,24 +92,59 @@ export const useQuizGenerator = () => {
         return null;
       }
 
-      // Use FileReader to avoid stack overflows from spreading large TypedArrays
-      const base64: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const result = reader.result as string;
-            const idx = result.indexOf(',');
-            resolve(idx >= 0 ? result.slice(idx + 1) : result);
-          } catch (e) {
-            reject(e);
-          }
+      let requestBody: Record<string, any>;
+      
+      // For files > 5MB, upload to storage first to avoid memory issues
+      const useStorageUpload = file.size > 5 * 1024 * 1024;
+      
+      if (useStorageUpload) {
+        // Upload to Supabase storage
+        const fileName = `quiz-extract/${Date.now()}-${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('study_materials')
+          .upload(fileName, file, { contentType: file.type });
+        
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error('Failed to upload file for processing');
+        }
+        
+        // Get signed URL (valid for 1 hour) since bucket is private
+        const { data: urlData, error: urlError } = await supabase.storage
+          .from('study_materials')
+          .createSignedUrl(fileName, 3600);
+        
+        if (urlError || !urlData?.signedUrl) {
+          console.error('Failed to create signed URL:', urlError);
+          throw new Error('Failed to get file URL for processing');
+        }
+        
+        requestBody = {
+          fileUrl: urlData.signedUrl,
+          difficulty: opts?.difficulty ?? 'medium',
+          questionCount: opts?.questionCount ?? 10,
+          gradeLevel: opts?.gradeLevel,
+          mode: opts?.mode ?? 'extract',
+          difficultyVariant: opts?.difficultyVariant ?? 'same',
         };
-        reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
-        reader.readAsDataURL(file);
-      });
+      } else {
+        // For small files, use base64 (faster for small files)
+        const base64: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const result = reader.result as string;
+              const idx = result.indexOf(',');
+              resolve(idx >= 0 ? result.slice(idx + 1) : result);
+            } catch (e) {
+              reject(e);
+            }
+          };
+          reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
 
-      const { data, error } = await supabase.functions.invoke('extract-quiz', {
-        body: {
+        requestBody = {
           fileBase64: base64,
           contentType: file.type,
           difficulty: opts?.difficulty ?? 'medium',
@@ -117,7 +152,11 @@ export const useQuizGenerator = () => {
           gradeLevel: opts?.gradeLevel,
           mode: opts?.mode ?? 'extract',
           difficultyVariant: opts?.difficultyVariant ?? 'same',
-        },
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('extract-quiz', {
+        body: requestBody,
       });
 
       if (error) throw error;
