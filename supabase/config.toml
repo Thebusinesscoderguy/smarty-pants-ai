@@ -45,4 +45,4 @@ max_frequency = "1s"
 [storage]
 enabled = true
 port = 54325
-file_size_limit = "50MiB"
+file_size_limit = "100MiB"
