@@ -31,11 +31,11 @@ serve(async (req) => {
     const fileSizeBytes = Math.ceil(fileBase64.length * 0.75); // Approximate decoded size
     console.log(`Processing file: type=${contentType}, size=${(fileSizeBytes / 1024 / 1024).toFixed(2)}MB`);
 
-    // Reject files that are too large (>15MB decoded to be safe)
-    if (fileSizeBytes > 15 * 1024 * 1024) {
+    // Reject files that are too large (>100MB decoded)
+    if (fileSizeBytes > 100 * 1024 * 1024) {
       console.error('File too large:', fileSizeBytes);
       return new Response(JSON.stringify({ 
-        error: 'File too large for processing. Please use a file under 15MB or try an image instead of PDF.' 
+        error: 'File too large for processing. Please use a file under 100MB.' 
       }), {
         status: 413,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

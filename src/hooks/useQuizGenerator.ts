@@ -81,12 +81,12 @@ export const useQuizGenerator = () => {
   ): Promise<Quiz | null> => {
     setIsGenerating(true);
     try {
-      // Limit file size to 20MB for the vision API to avoid memory issues
-      const maxSize = 20 * 1024 * 1024;
+      // Limit file size to 100MB
+      const maxSize = 100 * 1024 * 1024;
       if (file.size > maxSize) {
         toast({ 
           title: 'File too large', 
-          description: 'Please use a file under 20MB for quiz extraction. Try compressing the file or using fewer pages.', 
+          description: 'Please use a file under 100MB for quiz extraction.', 
           variant: 'destructive' 
         });
         return null;
