@@ -44,9 +44,19 @@ export const FileUploadZone = ({
     }
   }, [onFileUpload, acceptedFileTypes, maxFileSize]);
 
+  // Build proper MIME type accept object for react-dropzone
+  const acceptMimeTypes = {
+    'application/pdf': ['.pdf'],
+    'application/msword': ['.doc'],
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    'text/plain': ['.txt'],
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: acceptedFileTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
+    accept: acceptMimeTypes,
     maxSize: maxFileSize,
     multiple: false,
     disabled
