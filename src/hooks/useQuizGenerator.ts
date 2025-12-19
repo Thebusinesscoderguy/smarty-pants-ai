@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { pdfFirstPageToJpegFile } from '@/utils/pdfFirstPageToImage';
 
 export interface QuizQuestion {
   id?: string;
@@ -81,44 +82,49 @@ export const useQuizGenerator = () => {
   ): Promise<Quiz | null> => {
     setIsGenerating(true);
     try {
-      // Limit file size to 100MB
+      // Limit file size to 100MB (input file)
       const maxSize = 100 * 1024 * 1024;
       if (file.size > maxSize) {
-        toast({ 
-          title: 'File too large', 
-          description: 'Please use a file under 100MB for quiz extraction.', 
-          variant: 'destructive' 
+        toast({
+          title: 'File too large',
+          description: 'Please use a file under 100MB for quiz extraction.',
+          variant: 'destructive'
         });
         return null;
       }
 
+      // IMPORTANT: OpenAI “vision” expects an image.
+      // For PDFs, convert the FIRST page to a JPEG and extract from that.
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+      const processingFile = isPdf ? await pdfFirstPageToJpegFile(file) : file;
+
       let requestBody: Record<string, any>;
-      
+
       // For files > 5MB, upload to storage first to avoid memory issues
-      const useStorageUpload = file.size > 5 * 1024 * 1024;
-      
+      const useStorageUpload = processingFile.size > 5 * 1024 * 1024;
+
       if (useStorageUpload) {
         // Upload to Supabase storage
-        const fileName = `quiz-extract/${Date.now()}-${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const fileName = `quiz-extract/${Date.now()}-${processingFile.name}`;
+        const { error: uploadError } = await supabase.storage
           .from('study_materials')
-          .upload(fileName, file, { contentType: file.type });
-        
+          .upload(fileName, processingFile, { contentType: processingFile.type });
+
         if (uploadError) {
           console.error('Storage upload error:', uploadError);
-          throw new Error('Failed to upload file for processing');
+          throw new Error(uploadError.message || 'Failed to upload file for processing');
         }
-        
+
         // Get signed URL (valid for 1 hour) since bucket is private
         const { data: urlData, error: urlError } = await supabase.storage
           .from('study_materials')
           .createSignedUrl(fileName, 3600);
-        
+
         if (urlError || !urlData?.signedUrl) {
           console.error('Failed to create signed URL:', urlError);
-          throw new Error('Failed to get file URL for processing');
+          throw new Error(urlError?.message || 'Failed to get file URL for processing');
         }
-        
+
         requestBody = {
           fileUrl: urlData.signedUrl,
           difficulty: opts?.difficulty ?? 'medium',
@@ -141,12 +147,12 @@ export const useQuizGenerator = () => {
             }
           };
           reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(processingFile);
         });
 
         requestBody = {
           fileBase64: base64,
-          contentType: file.type,
+          contentType: processingFile.type,
           difficulty: opts?.difficulty ?? 'medium',
           questionCount: opts?.questionCount ?? 10,
           gradeLevel: opts?.gradeLevel,
@@ -165,13 +171,13 @@ export const useQuizGenerator = () => {
       console.error('Error extracting quiz:', error);
       const status = error?.context?.response?.status || error?.status;
       const msg = String(error?.message || 'Failed to extract quiz. Ensure the file is clear and readable.');
-      
+
       // Check for memory-related errors
       if (msg.toLowerCase().includes('memory') || status === 500) {
-        toast({ 
-          title: 'Processing Error', 
-          description: 'The file is too complex to process. Try using a smaller file or an image instead of PDF.', 
-          variant: 'destructive' 
+        toast({
+          title: 'Processing Error',
+          description: 'The file is too complex to process. Try using a smaller file or an image instead of PDF.',
+          variant: 'destructive'
         });
       } else {
         toast({ title: 'Error', description: status ? `${msg} (HTTP ${status})` : msg, variant: 'destructive' });
