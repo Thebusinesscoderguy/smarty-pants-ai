@@ -98,11 +98,28 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   const handleGeneratePlan = async () => {
     let inputData = '';
     let inputType = inputMethod;
+    let fileBase64: string | undefined;
+    let fileContentType: string | undefined;
 
     switch (inputMethod) {
       case 'file':
         if (!uploadedFile) return;
-        inputData = uploadedFile.name; // In real implementation, would process file content
+        // Convert file to base64 for vision API
+        try {
+          const arrayBuffer = await uploadedFile.arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = '';
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          fileBase64 = btoa(binary);
+          fileContentType = uploadedFile.type || 'application/octet-stream';
+          inputData = uploadedFile.name; // Still pass filename for context
+        } catch (err) {
+          console.error('Error reading file:', err);
+          toast({ title: 'Error reading file', description: 'Could not read the uploaded file', variant: 'destructive' });
+          return;
+        }
         break;
       case 'chat':
         if (!chatInput.trim()) return;
@@ -114,7 +131,14 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
         break;
     }
 
-    const plan = await generateStudyPlan(inputData, inputType, { gradeLevel, region, days: aiChooseDays ? undefined : planDays, maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes });
+    const plan = await generateStudyPlan(inputData, inputType, { 
+      gradeLevel, 
+      region, 
+      days: aiChooseDays ? undefined : planDays, 
+      maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes,
+      fileBase64,
+      fileContentType
+    });
     if (plan) {
       setGeneratedPlan(plan);
     } else {

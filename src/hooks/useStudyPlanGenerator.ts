@@ -32,7 +32,14 @@ export const useStudyPlanGenerator = () => {
   const generateStudyPlan = async (
     inputData: string,
     inputType: 'file' | 'chat' | 'topic',
-    opts?: { gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number }
+    opts?: { 
+      gradeLevel?: string; 
+      region?: string; 
+      days?: number; 
+      maxDailyMinutes?: number;
+      fileBase64?: string;
+      fileContentType?: string;
+    }
   ): Promise<StudyPlan | null> => {
     setIsGenerating(true);
     let timeoutId: any;
@@ -45,6 +52,8 @@ export const useStudyPlanGenerator = () => {
           region: opts?.region,
           days: opts?.days,
           maxDailyMinutes: opts?.maxDailyMinutes,
+          fileBase64: opts?.fileBase64,
+          fileContentType: opts?.fileContentType,
           language
         }
       });

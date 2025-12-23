@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes, language } = await req.json();
-    console.log('Received request:', { inputType, gradeLevel, days, maxDailyMinutes, language, inputDataLength: inputData?.length });
+    const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes, language, fileBase64, fileContentType } = await req.json();
+    console.log('Received request:', { inputType, gradeLevel, days, maxDailyMinutes, language, inputDataLength: inputData?.length, hasFile: !!fileBase64 });
     
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
@@ -180,8 +180,33 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         const timer = setTimeout(() => controller.abort(), 55000);
         try {
           const systemMessage = inputType === 'file' 
-            ? `You are a literature professor analyzing a specific text. Your job is to discuss the ACTUAL content of the text provided - the specific themes, passages, arguments, and literary devices used by THIS author in THIS text. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what literary devices the author ACTUALLY uses, and what arguments they MAKE. Every lesson must reference specific content from the provided text.${languageInstruction} Always respond with valid JSON only.`
+            ? `You are a literature professor analyzing a specific document. Your job is to discuss the ACTUAL content of the document provided - the specific themes, passages, arguments, and concepts. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what concepts are covered, and what the content ACTUALLY teaches. Every lesson must reference specific content from the provided document.${languageInstruction} Always respond with valid JSON only.`
             : `You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n).${languageInstruction} Always respond with valid JSON only.`;
+
+          // Build messages - use multimodal if we have a file
+          let userContent: any;
+          if (inputType === 'file' && fileBase64 && fileContentType) {
+            // Use vision API with the file
+            const mimeType = fileContentType.startsWith('image/') ? fileContentType : 
+              fileContentType === 'application/pdf' ? 'application/pdf' : 
+              fileContentType.includes('word') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : fileContentType;
+            
+            userContent = [
+              { 
+                type: 'text', 
+                text: `Analyze this uploaded document (filename: ${inputData}) and ${fullPrompt}` 
+              },
+              { 
+                type: 'image_url', 
+                image_url: { 
+                  url: `data:${mimeType};base64,${fileBase64}` 
+                } 
+              }
+            ];
+            console.log('Using vision API with file type:', mimeType);
+          } else {
+            userContent = fullPrompt;
+          }
 
           const resp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
@@ -193,7 +218,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
               model: 'google/gemini-2.5-flash',
               messages: [
                 { role: 'system', content: systemMessage },
-                { role: 'user', content: fullPrompt }
+                { role: 'user', content: userContent }
               ],
               tools: [
                 {
@@ -247,7 +272,6 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
                 }
               ],
               tool_choice: { type: 'function', function: { name: 'return_study_plan' } },
-              temperature: 0.7,
               max_tokens: 8192,
             }),
             signal: controller.signal,
