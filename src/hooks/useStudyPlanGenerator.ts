@@ -37,12 +37,13 @@ export const useStudyPlanGenerator = () => {
       region?: string; 
       days?: number; 
       maxDailyMinutes?: number;
-      fileBase64?: string;
-      fileContentType?: string;
+      fileUrl?: string;
+      fileType?: 'pdf' | 'image' | 'docx' | 'text';
     }
   ): Promise<StudyPlan | null> => {
     setIsGenerating(true);
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    
     try {
       const invokePromise = supabase.functions.invoke('generate-study-plan', {
         body: {
@@ -52,14 +53,16 @@ export const useStudyPlanGenerator = () => {
           region: opts?.region,
           days: opts?.days,
           maxDailyMinutes: opts?.maxDailyMinutes,
-          fileBase64: opts?.fileBase64,
-          fileContentType: opts?.fileContentType,
+          fileUrl: opts?.fileUrl,
+          fileType: opts?.fileType,
           language
         }
       });
+      
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 90000);
+        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 120000); // 2 min timeout for large files
       });
+      
       const result = await Promise.race([invokePromise, timeoutPromise]) as { data: any; error: any };
       clearTimeout(timeoutId);
 
@@ -75,14 +78,30 @@ export const useStudyPlanGenerator = () => {
         throw new Error('No study plan returned');
       }
 
+      // Check for error responses from the edge function
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       return data as StudyPlan;
     } catch (error: any) {
       console.error('Error generating study plan:', error);
       const status = error?.context?.response?.status || error?.status;
       const msg = String(error?.message || '');
+      const errorCode = error?.errorCode;
+      
       let description = 'Failed to generate study plan.';
-      if (error?.name === 'AbortError' || /aborted|AbortError|timed out|timeout/i.test(msg)) {
-        description = 'Request timed out. Please try again in a moment.';
+      
+      if (errorCode === 'PDF_NO_TEXT') {
+        description = 'This PDF appears to be scanned or image-based. Please upload a text-based PDF or take a photo of the content.';
+      } else if (errorCode === 'FILE_TOO_LARGE') {
+        description = 'File is too large to process. Please try a smaller file (under 50MB).';
+      } else if (errorCode === 'UNSUPPORTED_FILE') {
+        description = 'This file type is not supported. Please upload a PDF, image, DOCX, or text file.';
+      } else if (errorCode === 'STORAGE_ERROR') {
+        description = 'Failed to access the uploaded file. Please try uploading again.';
+      } else if (error?.name === 'AbortError' || /aborted|AbortError|timed out|timeout/i.test(msg)) {
+        description = 'Request timed out. Large files may take longer - please try again.';
       } else if (status === 429 || /rate limit/i.test(msg)) {
         description = 'AI rate limit reached. Please wait and try again shortly.';
       } else if (status === 402) {
@@ -92,6 +111,7 @@ export const useStudyPlanGenerator = () => {
       } else if (msg) {
         description = msg;
       }
+      
       toast({
         title: "Error",
         description,
@@ -99,7 +119,7 @@ export const useStudyPlanGenerator = () => {
       });
       return null;
     } finally {
-      try { clearTimeout(timeoutId); } catch {}
+      if (timeoutId) clearTimeout(timeoutId);
       setIsGenerating(false);
     }
   };

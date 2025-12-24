@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle, Upload } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +24,7 @@ interface StudyPlan {
   description: string;
   weakAreas: string[];
   dailyLessons: DailyLesson[];
-  estimatedDuration: number; // days
+  estimatedDuration: number;
   difficultyLevel: 'easy' | 'medium' | 'hard';
 }
 
@@ -33,11 +33,21 @@ interface DailyLesson {
   topic: string;
   description: string;
   activities: string[];
-  estimatedTime: number; // minutes
+  estimatedTime: number;
   exampleQuestions?: Array<{
     question: string;
     solution: string;
   }>;
+}
+
+type FileType = 'pdf' | 'image' | 'docx' | 'text';
+
+function getFileType(fileName: string): FileType {
+  const ext = fileName.toLowerCase().split('.').pop() || '';
+  if (ext === 'pdf') return 'pdf';
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (['doc', 'docx'].includes(ext)) return 'docx';
+  return 'text';
 }
 
 export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMethod: 'file' | 'chat' | 'topic'; input: string; gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number } }) => {
@@ -54,7 +64,8 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   const [maxDailyMinutes, setMaxDailyMinutes] = useState<number>(45);
   const [aiChooseDailyMinutes, setAiChooseDailyMinutes] = useState<boolean>(false);
   const [generatedPlan, setGeneratedPlan] = useState<StudyPlan | null>(null);
-  const [mistakeBasedMode, setMistakeBasedMode] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -67,14 +78,11 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   useEffect(() => {
     if (autoGenerate && !autoRanRef.current) {
       autoRanRef.current = true;
-      // Force Describe Issues tab for auto-start
       setInputMethod('chat');
       setChatInput(autoGenerate.input);
       setSelectedTopic('');
-      // Let AI decide days and minutes for auto-generation
       setAiChooseDays(true);
       setAiChooseDailyMinutes(true);
-      // Trigger generation immediately
       generateStudyPlan(autoGenerate.input, autoGenerate.inputMethod, {
         gradeLevel: undefined,
         region: undefined,
@@ -84,7 +92,6 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
         if (plan) setGeneratedPlan(plan as any);
       }).catch(() => {});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoGenerate]);
 
   const handleFileUpload = (file: File) => {
@@ -93,38 +100,96 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
 
   const handleFileRemove = () => {
     setUploadedFile(null);
+    setUploadProgress(0);
+  };
+
+  const uploadFileToStorage = async (file: File): Promise<{ signedUrl: string; fileType: FileType } | null> => {
+    setIsUploading(true);
+    setUploadProgress(10);
+    
+    try {
+      // Get user ID or generate anonymous ID for folder structure
+      const { data: userData } = await supabase.auth.getUser();
+      const folderId = userData?.user?.id || crypto.randomUUID();
+      
+      // Create unique file path
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${folderId}/${timestamp}-${sanitizedFileName}`;
+      
+      setUploadProgress(30);
+      
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('study_materials')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+      
+      setUploadProgress(70);
+      
+      // Create signed URL (valid for 1 hour)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('study_materials')
+        .createSignedUrl(filePath, 3600);
+      
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        console.error('Signed URL error:', signedUrlError);
+        throw new Error('Failed to create access URL for file');
+      }
+      
+      setUploadProgress(100);
+      
+      const fileType = getFileType(file.name);
+      console.log(`File uploaded successfully: ${filePath}, type: ${fileType}, size: ${file.size} bytes`);
+      
+      return {
+        signedUrl: signedUrlData.signedUrl,
+        fileType
+      };
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      toast({
+        title: 'Upload Failed',
+        description: error.message || 'Failed to upload file. Please try again.',
+        variant: 'destructive'
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleGeneratePlan = async () => {
     let inputData = '';
     let inputType = inputMethod;
-    let fileBase64: string | undefined;
-    let fileContentType: string | undefined;
+    let fileUrl: string | undefined;
+    let fileType: FileType | undefined;
 
     switch (inputMethod) {
       case 'file':
         if (!uploadedFile) return;
-        // Convert file to base64 for vision API
-        try {
-          const arrayBuffer = await uploadedFile.arrayBuffer();
-          const bytes = new Uint8Array(arrayBuffer);
-          let binary = '';
-          for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          fileBase64 = btoa(binary);
-          fileContentType = uploadedFile.type || 'application/octet-stream';
-          inputData = uploadedFile.name; // Still pass filename for context
-        } catch (err) {
-          console.error('Error reading file:', err);
-          toast({ title: 'Error reading file', description: 'Could not read the uploaded file', variant: 'destructive' });
-          return;
-        }
+        
+        // Upload file to Supabase Storage first
+        const uploadResult = await uploadFileToStorage(uploadedFile);
+        if (!uploadResult) return;
+        
+        fileUrl = uploadResult.signedUrl;
+        fileType = uploadResult.fileType;
+        inputData = uploadedFile.name;
         break;
+        
       case 'chat':
         if (!chatInput.trim()) return;
         inputData = chatInput;
         break;
+        
       case 'topic':
         if (!selectedTopic.trim()) return;
         inputData = selectedTopic;
@@ -136,11 +201,13 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
       region, 
       days: aiChooseDays ? undefined : planDays, 
       maxDailyMinutes: aiChooseDailyMinutes ? undefined : maxDailyMinutes,
-      fileBase64,
-      fileContentType
+      fileUrl,
+      fileType
     });
+    
     if (plan) {
       setGeneratedPlan(plan);
+      setUploadProgress(0);
     } else {
       toast({ title: t('studyPlan.couldNotGenerate'), description: t('studyPlan.tryAgain'), variant: 'destructive' });
     }
@@ -228,7 +295,6 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
       setShowSignInDialog(true);
       return;
     }
-    // For signed-in users, if plan hasn't been saved, still allow starting using guest flow
     if (generatedPlan) {
       try {
         localStorage.setItem('guest_study_plan', JSON.stringify(generatedPlan));
@@ -253,6 +319,8 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
     'English Grammar', 'Literature', 'Spanish I', 'Spanish II', 'Computer Science', 'SAT Math', 'SAT Reading'
   ];
 
+  const isProcessing = isGenerating || isUploading;
+
   return (
     <div className="space-y-6">
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
@@ -273,6 +341,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -299,7 +368,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                     <Button
                       variant={uploadType === 'study_material' ? "default" : "outline"}
                       onClick={() => setUploadType('study_material')}
-                      disabled={isGenerating}
+                      disabled={isProcessing}
                       className="justify-start"
                     >
                       <BookOpen className="mr-2 h-4 w-4" />
@@ -308,7 +377,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                     <Button
                       variant={uploadType === 'graded_quiz' ? "default" : "outline"}
                       onClick={() => setUploadType('graded_quiz')}
-                      disabled={isGenerating}
+                      disabled={isProcessing}
                       className="justify-start"
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -326,8 +395,20 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                     onFileRemove={handleFileRemove}
                     uploadedFile={uploadedFile}
                     acceptedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png']}
-                    disabled={isGenerating}
+                    maxFileSize={100 * 1024 * 1024}
+                    disabled={isProcessing}
                   />
+                  
+                  {/* Upload progress indicator */}
+                  {isUploading && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Upload className="h-4 w-4 animate-pulse" />
+                        <span>Uploading file...</span>
+                      </div>
+                      <Progress value={uploadProgress} className="h-2" />
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
@@ -341,7 +422,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Describe the topics you found difficult, specific questions you got wrong, or areas where you need more practice..."
                   rows={4}
-                  disabled={isGenerating}
+                  disabled={isProcessing}
                 />
               </div>
             </TabsContent>
@@ -356,7 +437,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                       variant={selectedTopic === topic ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedTopic(selectedTopic === topic ? '' : topic)}
-                      disabled={isGenerating}
+                      disabled={isProcessing}
                     >
                       {topic}
                     </Button>
@@ -441,15 +522,11 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                     if (!Number.isNaN(n)) setMaxDailyMinutes(n);
                   }
                 }}
-onBlur={() => {
-  if (Number.isNaN(maxDailyMinutes)) {
-    // If left empty, reset to default 45
-    setMaxDailyMinutes(45);
-  } else {
-    const clamped = Math.min(180, Math.max(1, maxDailyMinutes));
-    setMaxDailyMinutes(clamped);
-  }
-}}
+                onBlur={() => {
+                  if (Number.isNaN(maxDailyMinutes)) {
+                    setMaxDailyMinutes(45);
+                  }
+                }}
                 disabled={aiChooseDailyMinutes}
               />
             </div>
@@ -457,24 +534,21 @@ onBlur={() => {
 
           <Button 
             onClick={handleGeneratePlan}
-            disabled={
-              isGenerating ||
-              (inputMethod === 'file' && !uploadedFile) ||
-              (inputMethod === 'chat' && !chatInput.trim()) ||
-              (inputMethod === 'topic' && !selectedTopic.trim())
-            }
+            disabled={isProcessing || (inputMethod === 'file' && !uploadedFile) || (inputMethod === 'chat' && !chatInput.trim()) || (inputMethod === 'topic' && !selectedTopic.trim())}
             className="w-full"
           >
-            {isGenerating ? (
+            {isUploading ? (
+              <>
+                <Upload className="mr-2 h-4 w-4 animate-pulse" />
+                Uploading File...
+              </>
+            ) : isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating Study Plan...
               </>
             ) : (
-              <>
-                <BookOpen className="mr-2 h-4 w-4" />
-                Generate Study Plan
-              </>
+              'Generate Study Plan'
             )}
           </Button>
         </CardContent>
@@ -483,94 +557,97 @@ onBlur={() => {
       {generatedPlan && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
-                <CardTitle>{generatedPlan.title}</CardTitle>
-                <CardDescription>{generatedPlan.description}</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  {generatedPlan.title}
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  {generatedPlan.description}
+                </CardDescription>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-2">
-                  {!mistakeBasedMode && (
-                    <Badge className={getDifficultyColor(generatedPlan.difficultyLevel)}>
-                      {generatedPlan.difficultyLevel}
-                    </Badge>
-                  )}
-                  <Badge variant="outline">
-                    {generatedPlan.estimatedDuration} days
-                  </Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Button className="flex-1 md:flex-none" onClick={handleStartPlan} disabled={starting}>
-                    {starting ? 'Starting…' : 'Start Study Plan'}
-                  </Button>
-                  <Button variant="outline" className="flex-1 md:flex-none" onClick={handleSavePlan} disabled={saving}>
-                    {saving ? 'Saving…' : 'Save Plan'}
-                  </Button>
-                </div>
-              </div>
+              <Badge className={getDifficultyColor(generatedPlan.difficultyLevel)}>
+                {generatedPlan.difficultyLevel}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Weak Areas Analysis */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-yellow-500" />
-                <h4 className="font-medium">Areas for Improvement</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <Calendar className="h-5 w-5 mx-auto mb-2" />
+                <p className="text-2xl font-bold">{generatedPlan.estimatedDuration}</p>
+                <p className="text-sm text-muted-foreground">Days</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {generatedPlan.weakAreas.map((area, index) => (
-                  <Badge key={index} variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-                    {area}
-                  </Badge>
-                ))}
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <Target className="h-5 w-5 mx-auto mb-2" />
+                <p className="text-2xl font-bold">{generatedPlan.weakAreas?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Focus Areas</p>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <BookOpen className="h-5 w-5 mx-auto mb-2" />
+                <p className="text-2xl font-bold">{generatedPlan.dailyLessons?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Lessons</p>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <TrendingUp className="h-5 w-5 mx-auto mb-2" />
+                <p className="text-2xl font-bold">
+                  {generatedPlan.dailyLessons?.reduce((sum, l) => sum + (l.estimatedTime || 0), 0) || 0}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Minutes</p>
               </div>
             </div>
 
-            {/* Daily Lessons */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-blue-500" />
-                <h4 className="font-medium">Daily Study Plan</h4>
+            {generatedPlan.weakAreas && generatedPlan.weakAreas.length > 0 && (
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  Areas to Focus On
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {generatedPlan.weakAreas.map((area, idx) => (
+                    <Badge key={idx} variant="secondary">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
               </div>
+            )}
+
+            <div>
+              <h4 className="font-medium mb-3">Daily Lessons</h4>
               <div className="space-y-3">
-                {generatedPlan.dailyLessons.map((lesson, index) => (
-                  <Card key={index} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4 space-y-3">
+                {generatedPlan.dailyLessons?.map((lesson, idx) => (
+                  <Card key={idx} className="border-l-4 border-l-primary">
+                    <CardContent className="p-4">
                       <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
                             <Badge variant="outline">Day {lesson.day}</Badge>
-                            <h5 className="font-medium">{lesson.topic}</h5>
+                            <span className="text-sm text-muted-foreground">
+                              {lesson.estimatedTime} min
+                            </span>
                           </div>
-                          <p className="text-sm text-muted-foreground">{lesson.description}</p>
-                          <div className="space-y-1">
-                            {lesson.activities.map((activity, actIndex) => (
-                              <div key={actIndex} className="flex items-center gap-2 text-sm">
-                                <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                {activity}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <div className="text-xs text-muted-foreground">
-                            {lesson.estimatedTime} min
-                          </div>
-                          {lesson.exampleQuestions && lesson.exampleQuestions.length > 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              {lesson.exampleQuestions.length} example{lesson.exampleQuestions.length !== 1 ? 's' : ''}
-                            </Badge>
+                          <h5 className="font-medium">{lesson.topic}</h5>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {lesson.description}
+                          </p>
+                          {lesson.activities && lesson.activities.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {lesson.activities.slice(0, 3).map((activity, aIdx) => (
+                                <Badge key={aIdx} variant="secondary" className="text-xs">
+                                  {activity}
+                                </Badge>
+                              ))}
+                            </div>
                           )}
                         </div>
-                      </div>
-
-                      <div className="pt-2">
-                        <Button
+                        <Button 
+                          variant="ghost" 
                           size="sm"
                           onClick={() => handleBeginLearning(lesson.day)}
-                          className="w-full"
                         >
-                          Begin Learning
+                          Start
                         </Button>
                       </div>
                     </CardContent>
@@ -579,25 +656,36 @@ onBlur={() => {
               </div>
             </div>
 
-            {/* Progress Tracking */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <h4 className="font-medium">Progress Overview</h4>
-              </div>
-              <Card className="bg-muted/20">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Overall Progress</span>
-                      <span>0/{generatedPlan.dailyLessons.length} days</span>
-                    </div>
-                    <Progress value={0} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleStartPlan} 
+                disabled={starting}
+                className="flex-1"
+              >
+                {starting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  'Start Study Plan'
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleSavePlan}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Plan'
+                )}
+              </Button>
             </div>
-
           </CardContent>
         </Card>
       )}
