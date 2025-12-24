@@ -12,8 +12,18 @@ serve(async (req) => {
   }
 
   try {
-    const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes, language, fileBase64, fileContentType } = await req.json();
-    console.log('Received request:', { inputType, gradeLevel, days, maxDailyMinutes, language, inputDataLength: inputData?.length, hasFile: !!fileBase64 });
+    const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes, language, fileUrl, fileType } = await req.json();
+    
+    console.log('[generate-study-plan] Received request:', { 
+      inputType, 
+      gradeLevel, 
+      days, 
+      maxDailyMinutes, 
+      language, 
+      inputDataLength: inputData?.length,
+      hasFileUrl: !!fileUrl,
+      fileType
+    });
     
     const planDays = typeof days === 'number' && days > 0 ? Math.min(30, Math.max(1, days)) : undefined;
     const perDayLimit = typeof maxDailyMinutes === 'number' && maxDailyMinutes > 0 ? Math.min(180, Math.max(10, maxDailyMinutes)) : undefined;
@@ -21,6 +31,113 @@ serve(async (req) => {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY is not configured');
+    }
+
+    // Process file if provided
+    let extractedContent = '';
+    let imageBase64: string | null = null;
+    let imageMimeType: string | null = null;
+
+    if (inputType === 'file' && fileUrl) {
+      console.log(`[generate-study-plan] Downloading file from URL, type: ${fileType}`);
+      
+      try {
+        const fileResponse = await fetch(fileUrl);
+        if (!fileResponse.ok) {
+          console.error(`[generate-study-plan] Failed to download file: ${fileResponse.status}`);
+          return new Response(JSON.stringify({ 
+            error: 'Failed to access the uploaded file. Please try uploading again.',
+            errorCode: 'STORAGE_ERROR'
+          }), {
+            status: 422,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        const arrayBuffer = await fileResponse.arrayBuffer();
+        const fileSize = arrayBuffer.byteLength;
+        console.log(`[generate-study-plan] File downloaded, size: ${fileSize} bytes`);
+        
+        // Check file size (50MB limit for processing)
+        if (fileSize > 50 * 1024 * 1024) {
+          return new Response(JSON.stringify({ 
+            error: 'File is too large to process. Please try a smaller file (under 50MB).',
+            errorCode: 'FILE_TOO_LARGE'
+          }), {
+            status: 422,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        switch (fileType) {
+          case 'pdf':
+            // For PDFs, we'll convert to base64 and use vision API
+            // The Gemini model can handle PDFs directly
+            const pdfBytes = new Uint8Array(arrayBuffer);
+            let pdfBinary = '';
+            for (let i = 0; i < pdfBytes.length; i++) {
+              pdfBinary += String.fromCharCode(pdfBytes[i]);
+            }
+            imageBase64 = btoa(pdfBinary);
+            imageMimeType = 'application/pdf';
+            console.log(`[generate-study-plan] PDF prepared for vision API, base64 length: ${imageBase64.length}`);
+            break;
+            
+          case 'image':
+            // Convert image to base64 for vision API
+            const imgBytes = new Uint8Array(arrayBuffer);
+            let imgBinary = '';
+            for (let i = 0; i < imgBytes.length; i++) {
+              imgBinary += String.fromCharCode(imgBytes[i]);
+            }
+            imageBase64 = btoa(imgBinary);
+            // Determine MIME type from file extension
+            const ext = inputData.toLowerCase().split('.').pop() || '';
+            imageMimeType = ext === 'png' ? 'image/png' : 
+                           ext === 'gif' ? 'image/gif' : 
+                           ext === 'webp' ? 'image/webp' : 'image/jpeg';
+            console.log(`[generate-study-plan] Image prepared for vision API, mime: ${imageMimeType}`);
+            break;
+            
+          case 'docx':
+            // For DOCX, extract text content
+            // Using a simple approach - the AI can still analyze structure
+            const docxBytes = new Uint8Array(arrayBuffer);
+            let docxBinary = '';
+            for (let i = 0; i < docxBytes.length; i++) {
+              docxBinary += String.fromCharCode(docxBytes[i]);
+            }
+            imageBase64 = btoa(docxBinary);
+            imageMimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            console.log(`[generate-study-plan] DOCX prepared for vision API`);
+            break;
+            
+          case 'text':
+            // Plain text files - extract content directly
+            const decoder = new TextDecoder('utf-8');
+            extractedContent = decoder.decode(arrayBuffer);
+            console.log(`[generate-study-plan] Text extracted, length: ${extractedContent.length} chars`);
+            break;
+            
+          default:
+            return new Response(JSON.stringify({ 
+              error: 'This file type is not supported. Please upload a PDF, image, DOCX, or text file.',
+              errorCode: 'UNSUPPORTED_FILE'
+            }), {
+              status: 422,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+        }
+      } catch (fileError: any) {
+        console.error('[generate-study-plan] File processing error:', fileError);
+        return new Response(JSON.stringify({ 
+          error: `Failed to process file: ${fileError.message}`,
+          errorCode: 'FILE_PROCESSING_ERROR'
+        }), {
+          status: 422,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     function getLanguageName(code: string): string {
@@ -43,51 +160,47 @@ serve(async (req) => {
     let descriptionTemplate = '';
     let topicTemplate = '';
     
+    // Use extracted content if available, otherwise use inputData
+    const contentToAnalyze = extractedContent || inputData;
+    
     switch (inputType) {
       case 'file':
-        prompt = `🔴 CRITICAL: ANALYZE THIS EXACT TEXT - NOT GENERIC CONCEPTS 🔴
+        prompt = `🔴 CRITICAL: ANALYZE THIS EXACT DOCUMENT - NOT GENERIC CONCEPTS 🔴
 
-TEXT TO ANALYZE:
-"${inputData}"
-
-YOUR JOB: Create a study plan that teaches students about THIS SPECIFIC TEXT'S content.
+${extractedContent ? `DOCUMENT TEXT CONTENT:\n"${contentToAnalyze.slice(0, 15000)}"\n\n` : 'DOCUMENT: See the attached file.\n\n'}
+YOUR JOB: Create a study plan that teaches students about THIS SPECIFIC DOCUMENT'S content.
 
 ✅ CORRECT APPROACH:
-- "Day 1: Brooks argues that dining tables create family bonds through shared ritual"
-- "Day 2: Analyzing Brooks' use of personal anecdotes to support his thesis"
-- "Day 3: The metaphor of the dining table as community anchor in Brooks' essay"
+- Reference specific passages, quotes, or arguments from THIS document
+- "Day 1: Understanding [specific concept from the document]"
+- "Day 2: Analyzing [specific section/chapter from the document]"
 
 ❌ WRONG APPROACH (DO NOT DO THIS):
 - "Day 1: Understanding themes and messages in texts"
-- "Day 2: Identifying literary devices"
-- "Day 3: Analyzing author's purpose"
+- Generic lessons about "how to analyze documents"
 
 MANDATORY REQUIREMENTS:
-1. Every lesson must reference SPECIFIC passages, quotes, or arguments from THIS text
-2. Use direct quotes from the text to support each lesson
-3. Discuss the ACTUAL themes found in THIS text, not how to find themes
-4. Analyze THIS author's specific literary choices, not generic literary devices
-5. Connect every concept to a concrete example from THIS text
-
-Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as a metaphor for family unity, seen when he writes '[specific quote from text]'"`;
-        titleTemplate = 'the provided text';
-        descriptionTemplate = 'Comprehensive study plan for analyzing and understanding the provided text';
-        topicTemplate = 'Introduction and Key Themes in the Text';
+1. Every lesson must reference SPECIFIC content from THIS document
+2. Use direct quotes when possible
+3. Discuss the ACTUAL concepts found in THIS document`;
+        titleTemplate = inputData || 'the provided document';
+        descriptionTemplate = 'Comprehensive study plan for analyzing and understanding the provided document';
+        topicTemplate = 'Introduction and Key Concepts from the Document';
         break;
       case 'chat':
-        prompt = `Based on the student's described difficulties: "${inputData}", create a personalized study plan.`;
+        prompt = `Based on the student's described difficulties: "${contentToAnalyze}", create a personalized study plan.`;
         titleTemplate = inputData;
         descriptionTemplate = `Comprehensive ${gradeLevel || ''} level study plan for mastering ${inputData}`;
         topicTemplate = `Core Concepts in ${inputData}`;
         break;
       case 'topic':
-        prompt = `Create a comprehensive study plan for mastering the advanced topic: "${inputData}".`;
+        prompt = `Create a comprehensive study plan for mastering the advanced topic: "${contentToAnalyze}".`;
         titleTemplate = inputData;
         descriptionTemplate = `Comprehensive ${gradeLevel || ''} level study plan for mastering ${inputData}`;
         topicTemplate = `Core Concepts in ${inputData}`;
         break;
       default:
-        prompt = `Create a study plan based on: "${inputData}".`;
+        prompt = `Create a study plan based on: "${contentToAnalyze}".`;
         titleTemplate = inputData;
         descriptionTemplate = `Comprehensive study plan for ${inputData}`;
         topicTemplate = `Core Concepts in ${inputData}`;
@@ -102,112 +215,58 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       perDayLimit ? `Each lesson estimatedTime must be <= ${perDayLimit} minutes.` : 'Estimate realistic time commitments (30-60 minutes per day).',
       'Progress logically in a structured progression.',
       'Each day should build on the previous day\'s concepts.',
-      'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions (minimum 2, ideally 3).',
-      'Examples should progress from simple to more complex to demonstrate concept mastery.',
-      'Keep each solution concise (3-5 short steps). Avoid overly verbose text.'
+      'CRITICAL: Each lesson MUST include 2-3 example questions with detailed solutions.',
+      'Keep each solution concise (3-5 short steps).'
     ];
 
-    const literatureConstraints = [
-      '🔴 MANDATORY: Reference specific passages, quotes, or paragraphs from the text in EVERY lesson',
-      'Include direct quotes from the text to support analysis',
-      'Connect each literary concept to a specific example from THIS text',
-      'Never write "identify the themes" - write what the themes ARE',
-      'Never write "analyze the author\'s purpose" - write what the purpose IS'
-    ];
+    const constraints = baseConstraints.join('\n- ');
 
-    const mathConstraints = [
-      'Start Day 1 with essential foundations: define key variables, terms, and notation before proceeding.',
-      'For example, if teaching y = mx + b, first define what y, m, x, and b represent.',
-      'Build from appropriate foundations but avoid overly elementary concepts unrelated to the topic.',
-      'FORMATTING: For math questions, structure solutions as numbered steps with clear spacing.',
-      'FORMATTING: Use proper LaTeX notation enclosed in \\( \\) for inline math or $$ $$ for display math.',
-      'FORMATTING: Each solution step should be on its own line with clear explanations.',
-      'FORMATTING: Use bullet points or numbered lists for multi-step processes.'
-    ];
+    const gradeContext = gradeLevel ? `\n\nCRITICAL: This is for a ${gradeLevel} student. Content must be appropriate for this grade level.` : '';
 
-    const specificConstraints = inputType === 'file' ? literatureConstraints : mathConstraints;
-    const constraints = [...baseConstraints, ...specificConstraints].join('\n- ');
+    const fullPrompt = `${contextLine}${prompt}${gradeContext}${languageInstruction}
 
-    const gradeContext = gradeLevel ? `\n\nCRITICAL: This is for a ${gradeLevel} student. Content must be appropriate for this grade level. Do NOT include elementary concepts unless specifically relevant to building toward the advanced topic. Start with concepts appropriate for ${gradeLevel} level understanding.` : '';
+    🔴 CRITICAL REQUIREMENT: You MUST generate EXACTLY ${actualDays} daily lessons. Count them carefully.
 
-    const fullPrompt = `${contextLine}${prompt}${gradeContext}
-
-    🔴 CRITICAL REQUIREMENT: You MUST generate EXACTLY ${actualDays} daily lessons. Count them carefully before submitting.
-
-    Generate a detailed study plan in this exact JSON format only (no markdown, no extra text):
-    {
-      "id": "unique-study-plan-id",
-      "title": "Study Plan for ${titleTemplate}",
-      "description": "${descriptionTemplate}",
-      "weakAreas": ["Specific Area 1", "Specific Area 2", "Specific Area 3"],
-      "estimatedDuration": ${actualDays},
-      "difficultyLevel": "medium",
-      "dailyLessons": [
-        {
-          "day": 1,
-          "topic": "${topicTemplate}",
-          "description": "Dive into the fundamental principles and key ideas.",
-          "activities": ["Deep explanation of key concepts", "Real-world applications", "Example questions with solutions"],
-          "estimatedTime": ${perDayLimit ?? 45},
-            "exampleQuestions": [
-            {
-              "question": "Close reading: \"[Insert exact quote from the provided text]\"",
-              "solution": "**Step 1:** Identify devices and diction choices\\n\\n**Step 2:** Analyze syntax (sentence type, length, punctuation) and its effect\\n\\n**Step 3:** Explain how this passage advances today's theme\\n\\n**Final Insight:** [Insight tied to this specific text]"
-            },
-            {
-              "question": "How does the text develop [specific theme] across a scene/section? Cite two quotes.",
-              "solution": "**Step 1:** Summarize the scene with brief textual evidence\\n\\n**Step 2:** Link devices (imagery, motif, irony) to meaning\\n\\n**Step 3:** Synthesize what the text claims about the theme"
-            },
-            {
-              "question": "Syntax focus: Select one sentence and analyze its structure and impact.",
-              "solution": "**Step 1:** Classify sentence type (simple/compound/complex/periodic)\\n\\n**Step 2:** Note punctuation and rhythm\\n\\n**Step 3:** Connect syntax to tone/theme and reader effect"
-            }
-          ]
-        }
-      ]
-    }
+    Generate a detailed study plan. Use the return_study_plan function to return the result.
+    
     Requirements:
-    - Target the EXACT topic specified - no generic math introductions
     - ${constraints}
-    - MANDATORY: Every lesson must have 2-3 example questions minimum (preferably 3)
-    - Each day should build progressively within the SPECIFIC subject area
-    - Make activities directly related to the advanced topic, not basic math concepts
-    - Use grade-appropriate language and examples throughout`;
+    - MANDATORY: Every lesson must have 2-3 example questions minimum
+    - Each day should build progressively`;
 
-    async function callAIWithRetry(retries = 1, delayMs = 1200): Promise<Response> {
+    // Build messages array
+    let userContent: any;
+    if (imageBase64 && imageMimeType) {
+      // Use vision API with the file
+      userContent = [
+        { 
+          type: 'text', 
+          text: `Analyze this uploaded document (filename: ${inputData}) and ${fullPrompt}` 
+        },
+        { 
+          type: 'image_url', 
+          image_url: { 
+            url: `data:${imageMimeType};base64,${imageBase64}` 
+          } 
+        }
+      ];
+      console.log('[generate-study-plan] Using vision API with file');
+    } else {
+      userContent = fullPrompt;
+      console.log('[generate-study-plan] Using text-only API');
+    }
+
+    const systemMessage = inputType === 'file' 
+      ? `You are an expert educator analyzing a specific document. Your job is to discuss the ACTUAL content of the document provided - the specific themes, passages, arguments, and concepts. Create lessons about what the content ACTUALLY teaches. Every lesson must reference specific content from the provided document. Always respond using the return_study_plan function.`
+      : `You are an expert educational consultant who creates comprehensive, grade-appropriate study plans. Build knowledge progressively. For math content, format solutions with clear numbered steps and LaTeX notation. Always respond using the return_study_plan function.`;
+
+    async function callAIWithRetry(retries = 2, delayMs = 2000): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 55000);
+        const timer = setTimeout(() => controller.abort(), 90000); // 90 second timeout
         try {
-          const systemMessage = inputType === 'file' 
-            ? `You are a literature professor analyzing a specific document. Your job is to discuss the ACTUAL content of the document provided - the specific themes, passages, arguments, and concepts. NEVER create generic lessons about "how to identify themes" or "understanding literary devices." Instead, create lessons about what the themes ARE in this specific work, what concepts are covered, and what the content ACTUALLY teaches. Every lesson must reference specific content from the provided document.${languageInstruction} Always respond with valid JSON only.`
-            : `You are an expert educational consultant who specializes in creating comprehensive, grade-appropriate study plans. When given math topics, start with essential foundations and definitions before progressing to complex concepts. Build knowledge progressively from appropriate foundations. For math content, format solutions with clear numbered steps, proper spacing, and LaTeX notation (use \\( \\) for inline math). Each step should be clearly separated with line breaks (\\n\\n).${languageInstruction} Always respond with valid JSON only.`;
-
-          // Build messages - use multimodal if we have a file
-          let userContent: any;
-          if (inputType === 'file' && fileBase64 && fileContentType) {
-            // Use vision API with the file
-            const mimeType = fileContentType.startsWith('image/') ? fileContentType : 
-              fileContentType === 'application/pdf' ? 'application/pdf' : 
-              fileContentType.includes('word') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : fileContentType;
-            
-            userContent = [
-              { 
-                type: 'text', 
-                text: `Analyze this uploaded document (filename: ${inputData}) and ${fullPrompt}` 
-              },
-              { 
-                type: 'image_url', 
-                image_url: { 
-                  url: `data:${mimeType};base64,${fileBase64}` 
-                } 
-              }
-            ];
-            console.log('Using vision API with file type:', mimeType);
-          } else {
-            userContent = fullPrompt;
-          }
-
+          console.log(`[generate-study-plan] AI call attempt ${attempt + 1}/${retries + 1}`);
+          
           const resp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -239,8 +298,6 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
                         difficultyLevel: { type: 'string', enum: ['easy','medium','hard'] },
                         dailyLessons: {
                           type: 'array',
-                          minItems: actualDays,
-                          maxItems: actualDays,
                           items: {
                             type: 'object',
                             additionalProperties: false,
@@ -276,34 +333,39 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
             }),
             signal: controller.signal,
           });
+          
+          clearTimeout(timer);
+          
           if (resp.ok) return resp;
+          
           if (resp.status === 429 && attempt < retries) {
+            console.log(`[generate-study-plan] Rate limited, waiting ${delayMs}ms before retry`);
             await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
             continue;
           }
+          
           return resp;
         } catch (e) {
+          clearTimeout(timer);
           if ((e as Error).name === 'AbortError') {
+            console.log('[generate-study-plan] Request timed out');
             if (attempt < retries) {
               continue;
             }
-            throw new Error('AI request timed out');
+            throw new Error('AI request timed out after multiple attempts');
           }
           throw e;
-        } finally {
-          clearTimeout(timer);
         }
       }
       return new Response(null, { status: 500 });
     }
 
-    console.log('Calling Lovable AI with model: google/gemini-2.5-flash');
+    console.log('[generate-study-plan] Calling Lovable AI');
     const response = await callAIWithRetry();
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error - Status:', response.status);
-      console.error('Lovable AI error - Response:', errorText);
+      console.error('[generate-study-plan] AI error - Status:', response.status, 'Response:', errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
@@ -320,7 +382,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       }
       
       return new Response(JSON.stringify({ 
-        error: 'Lovable AI API error',
+        error: 'AI service temporarily unavailable. Please try again.',
         details: errorText,
         status: response.status 
       }), {
@@ -329,19 +391,17 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       });
     }
 
-    console.log('Lovable AI request successful, parsing response...');
+    console.log('[generate-study-plan] AI request successful, parsing response...');
 
     const data = await response.json();
 
-    // Prefer structured tool output when available
+    // Parse study plan from tool call
     let studyPlan: any | null = null;
     const rawToolArgs = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     
     function repairJsonString(s: string): string {
       let repaired = s;
-      // Escape stray backslashes (e.g., LaTeX \(, \))
       repaired = repaired.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
-      // Remove trailing commas
       repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
       return repaired;
     }
@@ -349,18 +409,16 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     if (rawToolArgs) {
       try {
         studyPlan = typeof rawToolArgs === 'string' ? JSON.parse(rawToolArgs) : rawToolArgs;
+        console.log('[generate-study-plan] Successfully parsed tool args');
       } catch (e) {
-        console.error('Tool args JSON parse failed, attempting repair...', { 
-          length: String(rawToolArgs).length,
-          preview: String(rawToolArgs).slice(0, 200)
-        });
+        console.error('[generate-study-plan] Tool args JSON parse failed, attempting repair...');
         try {
           const repaired = repairJsonString(String(rawToolArgs));
           studyPlan = JSON.parse(repaired);
-          console.log('Tool args successfully repaired and parsed');
+          console.log('[generate-study-plan] Tool args successfully repaired and parsed');
         } catch (e2) {
-          console.error('Tool args repair failed, falling back to content parsing');
-          studyPlan = null; // fall back to content parsing
+          console.error('[generate-study-plan] Tool args repair failed');
+          studyPlan = null;
         }
       }
     }
@@ -395,10 +453,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
           studyPlan = JSON.parse(repaired);
         }
       } catch (parseError) {
-        console.error('Failed to parse study plan JSON from content:', {
-          contentLength: planContent.length,
-          contentPreview: planContent.slice(0, 200)
-        });
+        console.error('[generate-study-plan] Failed to parse study plan JSON');
         return new Response(JSON.stringify({ error: 'Failed to generate valid study plan format' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -411,16 +466,14 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     }
 
     // Normalize and enforce exact number of days
-    const targetDays = actualDays; // from earlier calculation
+    const targetDays = actualDays;
 
-    // Ensure dailyLessons is an array
     let lessons: any[] = Array.isArray(studyPlan.dailyLessons)
       ? studyPlan.dailyLessons
       : (studyPlan.dailyLessons && typeof studyPlan.dailyLessons === 'object')
         ? Object.values(studyPlan.dailyLessons)
         : [];
 
-    // Basic cleanup and ordering
     lessons = lessons
       .filter((l) => l && typeof l === 'object')
       .map((l, idx) => ({
@@ -436,7 +489,6 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
       }))
       .sort((a, b) => a.day - b.day);
 
-    // Reindex, clamp times, and enforce exact count
     lessons = lessons.map((l, i) => ({
       ...l,
       day: i + 1,
@@ -453,7 +505,7 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
         lessons.push({
           day: i,
           topic: `Day ${i}: Continue Building Mastery`,
-          description: 'Auto-generated placeholder. Focus on consolidating previous concepts and applying them to new problems.',
+          description: 'Focus on consolidating previous concepts and applying them to new problems.',
           activities: ['Review prior day\'s concepts', 'Apply to 2–3 new problems', 'Reflect and summarize learnings'],
           estimatedTime: perDayLimit ?? 45,
           exampleQuestions: []
@@ -464,12 +516,14 @@ Example: Instead of "Metaphor is when..." write "Brooks uses the dining table as
     studyPlan.dailyLessons = lessons;
     studyPlan.estimatedDuration = targetDays;
 
+    console.log(`[generate-study-plan] Successfully generated plan with ${lessons.length} lessons`);
+
     return new Response(JSON.stringify(studyPlan), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in generate-study-plan function:', error);
+    console.error('[generate-study-plan] Error:', error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
       { 
