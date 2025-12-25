@@ -100,16 +100,42 @@ serve(async (req) => {
             break;
             
           case 'docx':
-            // For DOCX, extract text content
-            // Using a simple approach - the AI can still analyze structure
-            const docxBytes = new Uint8Array(arrayBuffer);
-            let docxBinary = '';
-            for (let i = 0; i < docxBytes.length; i++) {
-              docxBinary += String.fromCharCode(docxBytes[i]);
+            // Extract text from DOCX (which is a ZIP containing XML files)
+            try {
+              // Import JSZip for DOCX extraction
+              const JSZip = (await import('https://esm.sh/jszip@3.10.1')).default;
+              const zip = await JSZip.loadAsync(arrayBuffer);
+              
+              // DOCX stores content in word/document.xml
+              const docXml = await zip.file('word/document.xml')?.async('text');
+              if (docXml) {
+                // Extract text from XML, removing tags
+                extractedContent = docXml
+                  .replace(/<w:p[^>]*>/g, '\n') // Paragraphs become newlines
+                  .replace(/<w:tab[^>]*\/>/g, '\t') // Tabs
+                  .replace(/<w:br[^>]*\/>/g, '\n') // Line breaks
+                  .replace(/<[^>]+>/g, '') // Remove all XML tags
+                  .replace(/&lt;/g, '<')
+                  .replace(/&gt;/g, '>')
+                  .replace(/&amp;/g, '&')
+                  .replace(/&quot;/g, '"')
+                  .replace(/&apos;/g, "'")
+                  .replace(/\n{3,}/g, '\n\n') // Normalize multiple newlines
+                  .trim();
+                console.log(`[generate-study-plan] DOCX text extracted, length: ${extractedContent.length} chars`);
+              } else {
+                throw new Error('Could not find document content in DOCX');
+              }
+            } catch (docxError: any) {
+              console.error('[generate-study-plan] DOCX extraction failed:', docxError.message);
+              return new Response(JSON.stringify({ 
+                error: 'Could not extract text from DOCX file. Please try a different file or copy/paste the content.',
+                errorCode: 'DOCX_EXTRACTION_FAILED'
+              }), {
+                status: 422,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
             }
-            imageBase64 = btoa(docxBinary);
-            imageMimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            console.log(`[generate-study-plan] DOCX prepared for vision API`);
             break;
             
           case 'text':
