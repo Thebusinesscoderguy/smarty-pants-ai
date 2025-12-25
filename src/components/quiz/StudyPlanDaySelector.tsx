@@ -239,25 +239,30 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                     )}
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-                    <Button 
-                      onClick={() => handleStartDay(lesson.day)}
-                      size="sm"
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
-                    >
-                      Start
-                    </Button>
-                    <Button 
-                      onClick={() => handleCreateQuiz(lesson)}
-                      variant="outline"
-                      size="sm"
-                      disabled={creatingQuiz === lesson.day || isGenerating}
-                      className="border-orange-400 text-orange-600 hover:bg-orange-50"
-                    >
-                      <Brain className="mr-1 h-3 w-3" />
-                      {creatingQuiz === lesson.day ? '...' : 'Quiz'}
-                    </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant="secondary" className="text-xs">
+                      {lesson.practiceQuestions || 2} examples
+                    </Badge>
                   </div>
+                </div>
+                
+                {/* Full width buttons row */}
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    onClick={() => handleStartDay(lesson.day)}
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+                  >
+                    Begin Learning
+                  </Button>
+                  <Button 
+                    onClick={() => handleCreateQuiz(lesson)}
+                    variant="outline"
+                    disabled={creatingQuiz === lesson.day || isGenerating}
+                    className="flex-1 border-orange-400 text-orange-600 hover:bg-orange-50 rounded-full"
+                  >
+                    <Brain className="mr-2 h-4 w-4" />
+                    {creatingQuiz === lesson.day ? 'Creating...' : 'Take Quiz'}
+                  </Button>
                 </div>
               </div>
             ))}
