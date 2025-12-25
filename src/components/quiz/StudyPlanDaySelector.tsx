@@ -101,6 +101,9 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
     }
   };
 
+  const totalMinutes = dailyLessons.reduce((sum, l) => sum + (l.estimatedTime || 0), 0);
+  const focusAreas = [...new Set(dailyLessons.map(l => l.topic.split(':')[0].trim()))];
+
   return (
     <>
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
@@ -123,82 +126,150 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
       </Dialog>
 
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Book className="h-5 w-5" />
-              {studyPlan.title} - Learning Index
-            </DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          {/* Header with action buttons at top */}
+          <DialogHeader className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <DialogTitle className="flex items-center gap-2 text-xl">
+                  <Book className="h-5 w-5" />
+                  {studyPlan.title}
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  {studyPlan.description}
+                </DialogDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleStartDay(1)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  Start Plan
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-orange-500 text-orange-500 hover:bg-orange-50"
+                  onClick={onClose}
+                >
+                  Save & Close
+                </Button>
+              </div>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                <div className="text-2xl font-bold">{dailyLessons.length}</div>
+                <div className="text-xs text-muted-foreground">Days</div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <Target className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                <div className="text-2xl font-bold">{focusAreas.length}</div>
+                <div className="text-xs text-muted-foreground">Focus Areas</div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <Book className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                <div className="text-2xl font-bold">{dailyLessons.length}</div>
+                <div className="text-xs text-muted-foreground">Lessons</div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <Clock className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                <div className="text-2xl font-bold">{totalMinutes}</div>
+                <div className="text-xs text-muted-foreground">Total Minutes</div>
+              </div>
+            </div>
+
+            {/* Focus areas badges */}
+            {focusAreas.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <Target className="h-4 w-4" />
+                  Areas to Focus On
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {focusAreas.map((area, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-xs">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Daily Lessons section */}
+          <div className="space-y-3 mt-4">
+            <h3 className="font-semibold text-lg">Daily Lessons</h3>
+            
             {dailyLessons.map((lesson) => (
-              <Card key={lesson.day} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+              <div 
+                key={lesson.day} 
+                className="border-l-4 border-orange-400 bg-muted/30 rounded-r-lg p-4 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-3">
                       <Badge variant="outline" className="font-medium">
                         Day {lesson.day}
                       </Badge>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {lesson.estimatedTime}min
-                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {lesson.estimatedTime} min
+                      </span>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium text-sm mb-1">{lesson.topic}</h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {lesson.description}
-                      </p>
-                    </div>
+                    <h4 className="font-medium">{lesson.topic}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {lesson.description}
+                    </p>
                     
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Target className="h-3 w-3" />
-                        <span>{lesson.activities?.length || 0} activities</span>
+                    {lesson.activities && lesson.activities.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {lesson.activities.slice(0, 3).map((activity, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs font-normal">
+                            {activity}
+                          </Badge>
+                        ))}
+                        {lesson.activities.length > 3 && (
+                          <Badge variant="outline" className="text-xs font-normal">
+                            +{lesson.activities.length - 3} more
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <FileQuestion className="h-3 w-3" />
-                        <span>{lesson.practiceQuestions || 0} practice questions</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Button 
-                        onClick={() => handleStartDay(lesson.day)}
-                        className="w-full"
-                        size="sm"
-                      >
-                        Start Day {lesson.day}
-                      </Button>
-                      
-                      <Button 
-                        onClick={() => handleCreateQuiz(lesson)}
-                        variant="outline"
-                        className="w-full"
-                        size="sm"
-                        disabled={creatingQuiz === lesson.day || isGenerating}
-                      >
-                        <Brain className="mr-2 h-3 w-3" />
-                        {creatingQuiz === lesson.day ? 'Creating...' : 'Create Quiz'}
-                      </Button>
-                    </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                    <Button 
+                      onClick={() => handleStartDay(lesson.day)}
+                      size="sm"
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      Start
+                    </Button>
+                    <Button 
+                      onClick={() => handleCreateQuiz(lesson)}
+                      variant="outline"
+                      size="sm"
+                      disabled={creatingQuiz === lesson.day || isGenerating}
+                      className="border-orange-400 text-orange-600 hover:bg-orange-50"
+                    >
+                      <Brain className="mr-1 h-3 w-3" />
+                      {creatingQuiz === lesson.day ? '...' : 'Quiz'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ))}
+            
+            {dailyLessons.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Book className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No lessons found in this study plan</p>
+              </div>
+            )}
           </div>
-          
-          {dailyLessons.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Book className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No lessons found in this study plan</p>
-            </div>
-          )}
-        </div>
-      </DialogContent>
+        </DialogContent>
       </Dialog>
     </>
   );
