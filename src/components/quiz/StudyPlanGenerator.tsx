@@ -10,9 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle, Upload } from 'lucide-react';
+import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle, Upload, Brain } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
+import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -69,8 +70,10 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
 
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [creatingQuizDay, setCreatingQuizDay] = useState<number | null>(null);
   const navigate = useNavigate();
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
+  const { generateQuiz, isGenerating: isGeneratingQuiz } = useQuizGenerator();
   const [showSignInDialog, setShowSignInDialog] = useState(false);
   const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
   const autoRanRef = useRef(false);
@@ -302,6 +305,38 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
       } catch {}
     }
     navigate(`/modules?day=${day}`);
+  };
+
+  const handleTakeQuiz = async (lesson: DailyLesson) => {
+    setCreatingQuizDay(lesson.day);
+    try {
+      const quizPrompt = `Create a quiz for: ${lesson.topic}
+
+Description: ${lesson.description}
+
+Activities covered: ${lesson.activities?.join(', ') || 'General topic coverage'}
+
+Please generate 5 questions that test understanding of this topic.`;
+
+      const quiz = await generateQuiz(quizPrompt, 'medium', 5);
+
+      if (quiz) {
+        toast({
+          title: 'Quiz created!',
+          description: `Generated quiz for Day ${lesson.day}: ${lesson.topic}`,
+        });
+        navigate('/quiz-generator');
+      }
+    } catch (e: any) {
+      console.error('Error creating quiz:', e);
+      toast({
+        title: 'Failed to create quiz',
+        description: e?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreatingQuizDay(null);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -642,13 +677,24 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
                             </div>
                           )}
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleBeginLearning(lesson.day)}
-                        >
-                          Start
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleBeginLearning(lesson.day)}
+                          >
+                            Start Learning
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleTakeQuiz(lesson)}
+                            disabled={creatingQuizDay === lesson.day || isGeneratingQuiz}
+                          >
+                            <Brain className="mr-2 h-4 w-4" />
+                            {creatingQuizDay === lesson.day ? 'Creating...' : 'Take Quiz'}
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
