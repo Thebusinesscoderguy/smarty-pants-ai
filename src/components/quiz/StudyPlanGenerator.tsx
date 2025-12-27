@@ -653,48 +653,40 @@ Please generate 5 questions that test understanding of this topic.`;
               <h4 className="font-medium mb-3">Daily Lessons</h4>
               <div className="space-y-3">
                 {generatedPlan.dailyLessons?.map((lesson, idx) => (
-                  <Card key={idx} className="border-l-4 border-l-primary">
+                  <Card key={idx} className="border-l-4 border-orange-400">
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline">Day {lesson.day}</Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {lesson.estimatedTime} min
-                            </span>
-                          </div>
-                          <h5 className="font-medium">{lesson.topic}</h5>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {lesson.description}
-                          </p>
-                          {lesson.activities && lesson.activities.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {lesson.activities.slice(0, 3).map((activity, aIdx) => (
-                                <Badge key={aIdx} variant="secondary" className="text-xs">
-                                  {activity}
-                                </Badge>
-                              ))}
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="font-medium">Day {lesson.day}</Badge>
+                        <h5 className="font-semibold">{lesson.topic}</h5>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {lesson.description}
+                      </p>
+                      {lesson.activities && lesson.activities.length > 0 && (
+                        <div className="space-y-1 mb-4">
+                          {lesson.activities.map((activity, aIdx) => (
+                            <div key={aIdx} className="flex items-start gap-2 text-sm">
+                              <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                              <span>{activity}</span>
                             </div>
-                          )}
+                          ))}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleBeginLearning(lesson.day)}
-                          >
-                            Start Learning
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleTakeQuiz(lesson)}
-                            disabled={creatingQuizDay === lesson.day || isGeneratingQuiz}
-                          >
-                            <Brain className="mr-2 h-4 w-4" />
-                            {creatingQuizDay === lesson.day ? 'Creating...' : 'Take Quiz'}
-                          </Button>
-                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => handleBeginLearning(lesson.day)}
+                          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+                        >
+                          Begin Learning
+                        </Button>
+                        <Button 
+                          onClick={() => handleTakeQuiz(lesson)}
+                          disabled={creatingQuizDay === lesson.day || isGeneratingQuiz}
+                          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+                        >
+                          <Brain className="mr-2 h-4 w-4" />
+                          {creatingQuizDay === lesson.day ? 'Creating...' : 'Take Quiz'}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
