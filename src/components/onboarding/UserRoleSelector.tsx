@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Baby, UserCheck } from 'lucide-react';
+import { Users, Baby } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useViewingMode } from '@/contexts/ViewingModeContext';
 
 interface Child {
   id: string;
@@ -18,40 +19,42 @@ interface UserRoleSelectorProps {
 
 export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
   const { user } = useAuth();
+  const { setChildMode, setParentMode } = useViewingMode();
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchChildren();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchChildren = async () => {
     if (!user) return;
 
     try {
-      // Get children from the children table
       const { data: childrenData } = await supabase
         .from('children')
         .select('*')
         .eq('parent_id', user.id);
 
       if (childrenData && childrenData.length > 0) {
-        const children = childrenData.map(child => ({
-          id: child.id,
-          first_name: child.first_name,
-          last_name: child.last_name
-        }));
-        setChildren(children);
+        setChildren(
+          childrenData.map((child) => ({
+            id: child.id,
+            first_name: child.first_name,
+            last_name: child.last_name,
+          }))
+        );
       }
 
-      // Check if this user is a child in parent_child_relationships (for backward compatibility)
+      // If logged-in account is itself a child, auto-set child mode
       const { data: childData } = await supabase
         .from('parent_child_relationships')
         .select('parent_id')
         .eq('child_id', user.id);
 
-      // If user is a child, they don't need to select a role
       if (childData && childData.length > 0) {
+        setChildMode(user.id);
         onRoleSelected('child', user.id);
       }
     } catch (error) {
@@ -60,39 +63,39 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
   };
 
   const handleRoleSelection = async (role: 'parent' | 'child', childId?: string) => {
-    console.log('UserRoleSelector: Role selected', { role, childId, userId: user?.id });
-    
     if (!user) return;
-    
+
     setLoading(true);
     try {
-      let targetUserId = user.id;
-      let targetRole = role === 'parent' ? 'parent' : 'student';
-
-      // If selecting a child, use the child's ID
-      if (role === 'child' && childId) {
-        targetUserId = childId;
+      // Persist “view as” mode for UI gating.
+      if (role === 'parent') {
+        setParentMode();
+      } else if (childId) {
+        setChildMode(childId);
       }
 
-      // Update the profile with the selected role
+      // Backward compatibility: update profiles.role
+      let targetUserId = user.id;
+      const targetRole = role === 'parent' ? 'parent' : 'student';
+      if (role === 'child' && childId) targetUserId = childId;
+
       const { error } = await supabase
         .from('profiles')
         .update({
           role: targetRole as 'student' | 'parent' | 'teacher',
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', targetUserId);
 
       if (error) throw error;
 
-      console.log('UserRoleSelector: Calling onRoleSelected callback');
       onRoleSelected(role, childId);
     } catch (error) {
       console.error('Error setting role:', error);
       toast({
-        title: "Error",
-        description: "Failed to set role. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to set role. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -103,17 +106,12 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">
-            Who is using TeachlyAI today?
-          </h1>
-          <p className="text-muted-foreground">
-            Select your role to personalize your experience
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-4">Who is using TeachlyAI today?</h1>
+          <p className="text-muted-foreground">Select your role to personalize your experience</p>
         </div>
-        
+
         <div className="grid gap-6">
-          {/* Parent Option */}
-          <Card 
+          <Card
             className="bg-card border-border hover:shadow-lg transition-all cursor-pointer group"
             onClick={() => handleRoleSelection('parent')}
           >
@@ -122,9 +120,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                 <Users className="h-8 w-8 text-primary" />
               </div>
               <CardTitle className="text-foreground">I'm the Parent</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Monitor and support my children's learning progress
-              </CardDescription>
+              <CardDescription className="text-muted-foreground">Monitor and support my children's learning progress</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
@@ -133,7 +129,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                 <li>• Track achievements</li>
                 <li>• Manage study plans</li>
               </ul>
-              <Button 
+              <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -146,13 +142,12 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
             </CardContent>
           </Card>
 
-          {/* Children Options */}
           {children.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-foreground text-center">Or select one of your children:</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {children.map((child) => (
-                  <Card 
+                  <Card
                     key={child.id}
                     className="bg-card border-border hover:shadow-lg transition-all cursor-pointer group"
                     onClick={() => handleRoleSelection('child', child.id)}
@@ -166,7 +161,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <Button 
+                      <Button
                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -183,7 +178,6 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
             </div>
           )}
 
-          {/* If no children, show message that they need to add children first */}
           {children.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">

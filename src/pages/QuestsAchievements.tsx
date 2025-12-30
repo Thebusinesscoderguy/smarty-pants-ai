@@ -19,10 +19,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useViewingMode } from '@/contexts/ViewingModeContext';
 
 const QuestsAchievements = () => {
   const { user } = useAuth();
   const { userRole, loading } = useUserRole();
+  const { viewingMode } = useViewingMode();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -33,22 +35,25 @@ const QuestsAchievements = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  const isParentView = !loading && userRole === 'parent' && viewingMode.mode === 'parent';
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get('create') === 'new') {
+    // Only parents (in parent view) can deep-link into creating quests.
+    if (isParentView && params.get('create') === 'new') {
       setIsCreateDialogOpen(true);
     }
-  }, [location.search]);
-  
+  }, [location.search, isParentView]);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     type: 'daily',
     difficulty: 'medium',
-    target_value: 1
+    target_value: 1,
   });
 
   const [expirationValue, setExpirationValue] = useState<number>(1);
@@ -63,7 +68,7 @@ const QuestsAchievements = () => {
     const fetchChildren = async () => {
       if (!user) return;
       try {
-        const { data: rels, error: relError } = await supabase
+        const { data: rels } = await supabase
           .from('parent_child_relationships')
           .select('child_id')
           .eq('parent_id', user.id);
@@ -100,7 +105,7 @@ const QuestsAchievements = () => {
             id: p.id as string,
             name: p.display_name || 'Child',
           }));
-        } catch (profileErr) {
+        } catch {
           mapped = childIds.map((id: string) => ({ id, name: 'Child' }));
         }
         setChildren(mapped);
@@ -114,11 +119,25 @@ const QuestsAchievements = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isParentView) {
+      toast({
+        title: 'Not allowed',
+        description: 'Only parents can create quests.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       if (assignMode === 'specific' && selectedChildren.length === 0) {
-        toast({ title: 'Select children', description: 'Choose at least one child to assign this quest.', variant: 'destructive' });
+        toast({
+          title: 'Select children',
+          description: 'Choose at least one child to assign this quest.',
+          variant: 'destructive',
+        });
         setIsSubmitting(false);
         return;
       }
@@ -133,7 +152,7 @@ const QuestsAchievements = () => {
         rewards: { xp: formData.difficulty === 'easy' ? 10 : formData.difficulty === 'medium' ? 25 : 50 },
         requirements: {},
         assigned_children: assignMode === 'specific' ? selectedChildren : null,
-        expires_at: expiresAt
+        expires_at: expiresAt,
       });
 
       setIsCreateDialogOpen(false);
@@ -142,7 +161,7 @@ const QuestsAchievements = () => {
         description: '',
         type: 'daily',
         difficulty: 'medium',
-        target_value: 1
+        target_value: 1,
       });
       setExpirationValue(1);
       setExpirationUnit('days');
@@ -158,30 +177,15 @@ const QuestsAchievements = () => {
   const renderNavigation = () => (
     <div className="flex justify-center mb-8">
       <div className="flex gap-2 bg-muted/50 backdrop-blur-xl p-2 rounded-lg border border-border">
-        <Button
-          onClick={() => navigate('/quiz-generator')}
-          variant="ghost"
-          size="sm"
-          className="text-foreground hover:bg-muted"
-        >
+        <Button onClick={() => navigate('/quiz-generator')} variant="ghost" size="sm" className="text-foreground hover:bg-muted">
           <BookOpen className="mr-2 h-4 w-4" />
           {t('quests.nav.studyTools')}
         </Button>
-        <Button
-          onClick={() => navigate('/chat')}
-          variant="ghost"
-          size="sm"
-          className="text-foreground hover:bg-muted"
-        >
+        <Button onClick={() => navigate('/chat')} variant="ghost" size="sm" className="text-foreground hover:bg-muted">
           <MessageCircle className="mr-2 h-4 w-4" />
           {t('quests.nav.chat')}
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-foreground bg-muted"
-          disabled
-        >
+        <Button variant="ghost" size="sm" className="text-foreground bg-muted" disabled>
           <Trophy className="mr-2 h-4 w-4" />
           {t('quests.nav.quests')}
         </Button>
@@ -192,40 +196,30 @@ const QuestsAchievements = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Navigation */}
           {renderNavigation()}
-          
+
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">{t('quests.nav.quests')}</h1>
             <p className="text-xl text-foreground">{t('quests.subtitle')}</p>
           </div>
 
-          {/* Quest Actions - Only for Parents */}
-          {!loading && userRole === 'parent' && (
+          {/* Quest Actions - Only for Parents (and only in Parent view) */}
+          {isParentView && (
             <div className="flex justify-center gap-4">
-              <Button
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('quests.madeByMe')}
               </Button>
-              <Button
-                onClick={() => navigate('/quests/ai-generate')}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
+              <Button onClick={() => navigate('/quests/ai-generate')} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Target className="mr-2 h-4 w-4" />
                 {t('quests.madeByAI')}
               </Button>
-              <Button
-                onClick={() => navigate('/quests/made-by-me')}
-                variant="outline"
-                className="border-border text-foreground hover:bg-muted"
-              >
+              <Button onClick={() => navigate('/quests/made-by-me')} variant="outline" className="border-border text-foreground hover:bg-muted">
                 <List className="mr-2 h-4 w-4" />
                 {t('quests.viewMyQuests')}
               </Button>
@@ -264,10 +258,7 @@ const QuestsAchievements = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="type">{t('quests.type')}</Label>
-                    <Select
-                      value={formData.type}
-                      onValueChange={(value) => setFormData({ ...formData, type: value })}
-                    >
+                    <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -311,10 +302,7 @@ const QuestsAchievements = () => {
                 <div className="space-y-2">
                   <Label>{t('quests.expirationQuestion')}</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    <Select
-                      value={expirationValue.toString()}
-                      onValueChange={(value) => setExpirationValue(Number(value))}
-                    >
+                    <Select value={expirationValue.toString()} onValueChange={(value) => setExpirationValue(Number(value))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -327,10 +315,7 @@ const QuestsAchievements = () => {
                       </SelectContent>
                     </Select>
 
-                    <Select
-                      value={expirationUnit}
-                      onValueChange={(value: 'days' | 'weeks') => setExpirationUnit(value)}
-                    >
+                    <Select value={expirationUnit} onValueChange={(value: 'days' | 'weeks') => setExpirationUnit(value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -344,7 +329,11 @@ const QuestsAchievements = () => {
 
                 <div className="space-y-3">
                   <Label>{t('quests.assignTo')}</Label>
-                  <RadioGroup value={assignMode} onValueChange={(v) => setAssignMode(v as 'all' | 'specific')} className="grid grid-cols-2 gap-4">
+                  <RadioGroup
+                    value={assignMode}
+                    onValueChange={(v) => setAssignMode(v as 'all' | 'specific')}
+                    className="grid grid-cols-2 gap-4"
+                  >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="all" id="assign-all" />
                       <Label htmlFor="assign-all">{t('quests.allChildren')}</Label>
@@ -355,8 +344,8 @@ const QuestsAchievements = () => {
                     </div>
                   </RadioGroup>
 
-                  {assignMode === 'specific' && (
-                    children.length === 0 ? (
+                  {assignMode === 'specific' &&
+                    (children.length === 0 ? (
                       <p className="text-muted-foreground text-sm">{t('quests.noChildren')}</p>
                     ) : (
                       <div className="grid sm:grid-cols-2 gap-3">
@@ -379,23 +368,14 @@ const QuestsAchievements = () => {
                           );
                         })}
                       </div>
-                    )
-                  )}
+                    ))}
                 </div>
 
                 <div className="flex gap-2">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1"
-                  >
+                  <Button type="submit" disabled={isSubmitting} className="flex-1">
                     {isSubmitting ? t('quests.creating') : t('quests.create')}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsCreateDialogOpen(false)}
-                  >
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     {t('quests.cancel')}
                   </Button>
                 </div>
@@ -408,13 +388,9 @@ const QuestsAchievements = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground font-semibold">
                 <Target className="h-6 w-6 text-primary" />
-                {!loading && userRole === 'parent' ? t('quests.assignedQuests') : t('quests.myQuests')}
+                {isParentView ? t('quests.assignedQuests') : t('quests.myQuests')}
               </CardTitle>
-              <p className="text-foreground mt-2">
-                {!loading && userRole === 'parent' 
-                  ? t('quests.viewManageDesc')
-                  : t('quests.completeToEarn')}
-              </p>
+              <p className="text-foreground mt-2">{isParentView ? t('quests.viewManageDesc') : t('quests.completeToEarn')}</p>
             </CardHeader>
             <CardContent>
               <StudentQuestDisplay />
