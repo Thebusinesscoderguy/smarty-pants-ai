@@ -13,9 +13,9 @@ serve(async (req) => {
   try {
     const { topic, description, gradeLevel = 'high school', activities, language = 'en' } = await req.json();
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     if (!topic) {
@@ -53,14 +53,16 @@ For mathematical expressions, use proper LaTeX notation:
 
 Keep it focused on practical learning. Be concise but thorough. Aim for 800-1000 words maximum.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('[generate-lesson-content] Calling Lovable AI for topic:', topic);
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -71,25 +73,37 @@ Keep it focused on practical learning. Be concise but thorough. Aim for 800-1000
             content: prompt
           }
         ],
-        max_tokens: 3000,
-        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('[generate-lesson-content] AI gateway error:', response.status, errorData);
+      
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI response data:', JSON.stringify(data, null, 2));
+    console.log('[generate-lesson-content] AI response received');
     
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.error('No content in response. Full response:', data);
-      throw new Error(`No content generated from OpenAI. Response: ${JSON.stringify(data)}`);
+      console.error('[generate-lesson-content] No content in response:', data);
+      throw new Error('No content generated from AI');
     }
 
     return new Response(JSON.stringify({ content }), {
@@ -97,7 +111,7 @@ Keep it focused on practical learning. Be concise but thorough. Aim for 800-1000
     });
 
   } catch (error: any) {
-    console.error('Error in generate-lesson-content:', error);
+    console.error('[generate-lesson-content] Error:', error);
     return new Response(JSON.stringify({ 
       error: error.message || 'Internal server error' 
     }), {
