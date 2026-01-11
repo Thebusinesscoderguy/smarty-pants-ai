@@ -608,6 +608,38 @@ Please generate 5 questions that test understanding of this topic.`;
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Start and Save buttons at the top */}
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleStartPlan} 
+                disabled={starting}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {starting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  'Start Study Plan'
+                )}
+              </Button>
+              <Button 
+                onClick={handleSavePlan}
+                disabled={saving}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Plan'
+                )}
+              </Button>
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-muted rounded-lg">
                 <Calendar className="h-5 w-5 mx-auto mb-2" />
@@ -694,36 +726,6 @@ Please generate 5 questions that test understanding of this topic.`;
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleStartPlan} 
-                disabled={starting}
-                className="flex-1"
-              >
-                {starting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Starting...
-                  </>
-                ) : (
-                  'Start Study Plan'
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleSavePlan}
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Plan'
-                )}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       )}
