@@ -60,108 +60,151 @@ Make quests:
 - Age-appropriate for the grade level
 - Varied and engaging`;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("generate-quest: LOVABLE_API_KEY is not configured");
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      console.error("generate-quest: OPENAI_API_KEY is not configured");
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
-    console.log("generate-quest: Calling AI with prompt for", count, "quests");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const safeCount = typeof count === "number" ? count : parseInt(String(count), 10);
+    if (!Number.isFinite(safeCount) || safeCount < 1 || safeCount > 10) {
+      return new Response(
+        JSON.stringify({ error: "count must be a number between 1 and 10" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const normalizedType = String(type || "daily").toLowerCase() === "weekly" ? "weekly" : "daily";
+    const normalizedDifficulty = (() => {
+      const d = String(difficulty || "medium").toLowerCase();
+      if (d === "easy" || d === "hard") return d;
+      return "medium";
+    })();
+
+    const toolSchema = {
+      type: "object",
+      properties: {
+        quests: {
+          type: "array",
+          minItems: 1,
+          maxItems: safeCount,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              title: { type: "string" },
+              description: { type: "string" },
+              type: { type: "string", enum: ["daily", "weekly"] },
+              difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
+              target_value: { type: "number" },
+              rewards: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  xp: { type: "number" }
+                },
+                required: ["xp"]
+              },
+              requirements: { type: "object" }
+            },
+            required: [
+              "title",
+              "description",
+              "type",
+              "difficulty",
+              "target_value",
+              "rewards",
+              "requirements"
+            ]
+          }
+        }
+      },
+      required: ["quests"],
+      additionalProperties: false
+    } as const;
+
+    console.log("generate-quest: Calling OpenAI for", safeCount, "quests");
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: `Generate ${safeCount} ${normalizedDifficulty} ${normalizedType} quest${safeCount > 1 ? "s" : ""} for ${subject} at ${gradeLevel} level. Each quest should be unique and engaging.${languageInstruction}`
+          }
         ],
         tools: [
           {
             type: "function",
             function: {
               name: "generate_quests",
-              description: `Generate ${count} quest${count > 1 ? 's' : ''} with structured data`,
-              parameters: {
-                type: "object",
-                properties: {
-                  quests: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        type: { type: "string", enum: ["daily", "weekly"] },
-                        difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
-                        target_value: { type: "number" },
-                        rewards: {
-                          type: "object",
-                          properties: {
-                            xp: { type: "number" }
-                          },
-                          required: ["xp"]
-                        },
-                        requirements: { type: "object" }
-                      },
-                      required: ["title", "description", "type", "difficulty", "target_value", "rewards", "requirements"],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                required: ["quests"],
-                additionalProperties: false
-              }
+              description: `Generate ${safeCount} quest${safeCount > 1 ? "s" : ""} with structured data`,
+              parameters: toolSchema
             }
           }
         ],
-        tool_choice: { type: "function", function: { name: "generate_quests" } }
-      }),
+        tool_choice: { type: "function", function: { name: "generate_quests" } },
+        temperature: 0.7,
+        max_tokens: 1200
+      })
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("generate-quest: OpenAI error", response.status, errorText);
+
+      if (response.status === 401 || response.status === 403) {
+        return new Response(
+          JSON.stringify({ error: "OpenAI authentication error. Check OPENAI_API_KEY." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
+          JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required, please add funds to your Lovable AI workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+
       return new Response(
-        JSON.stringify({ error: "AI gateway error" }),
+        JSON.stringify({ error: "OpenAI request failed" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const result = await response.json();
-    console.log("generate-quest: AI response received", JSON.stringify(result).substring(0, 200));
-    
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
-    
-    if (!toolCall) {
-      console.error("generate-quest: No tool call in response", JSON.stringify(result));
-      throw new Error("No tool call in response");
+
+    if (!toolCall?.function?.arguments) {
+      console.error("generate-quest: No tool call arguments", JSON.stringify(result));
+      throw new Error("AI did not return structured quest data");
     }
 
-    console.log("generate-quest: Tool call arguments:", toolCall.function.arguments);
-    const data = JSON.parse(toolCall.function.arguments);
-    const quests = data.quests || [];
-    
+    let parsed: any;
+    try {
+      parsed = JSON.parse(toolCall.function.arguments);
+    } catch (e) {
+      console.error("generate-quest: Failed to parse tool arguments", toolCall.function.arguments);
+      throw new Error("Failed to parse AI response");
+    }
+
+    const quests = Array.isArray(parsed?.quests) ? parsed.quests : [];
+
     console.log("generate-quest: Successfully generated", quests.length, "quests");
-    return new Response(
-      JSON.stringify({ quests }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ quests }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   } catch (error) {
     console.error("generate-quest error:", error);
     return new Response(
