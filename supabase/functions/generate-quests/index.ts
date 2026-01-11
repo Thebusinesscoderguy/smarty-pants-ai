@@ -44,31 +44,58 @@ serve(async (req) => {
     };
     const difficulty = difficultyMap[rawDifficulty] || 'medium';
 
-    // Build prompt
-    const systemPrompt = `You are an educational quest designer. Generate engaging learning quests for students.
+    // Build prompt - quests MUST be tied to trackable platform activities
+    const systemPrompt = `You are an educational quest designer. Generate engaging learning quests that are TRACKABLE within the platform.
+
+IMPORTANT: All quests MUST be tied to one of these trackable activities:
+1. lesson_completed - Complete lessons/study plan days
+2. quiz_completed - Complete quizzes (can require minimum score)
+3. test_completed - Complete tests (can require minimum score)
+
 Always respond with valid JSON containing a "quests" array.
 Each quest must have these exact fields:
-- title: string (catchy, action-oriented)
-- description: string (clear learning goal, 1-2 sentences)
+- title: string (catchy, action-oriented, mention the activity type)
+- description: string (clear goal tied to platform activity, 1-2 sentences)
 - type: "${rawType}" (use exactly this value)
-- difficulty: "${rawDifficulty}" (use exactly this value from the request)
-- target_value: number (1-10 based on difficulty)
+- difficulty: "${rawDifficulty}" (use exactly this value)
+- target_value: number (how many times to do the activity, 1-10 based on difficulty)
 - is_active: true
+- requirements: object with trigger_type (one of: lesson_completed, quiz_completed, test_completed) and optionally min_percentage (50-100) for quiz/test quests
 
 ${language !== 'English' ? `Generate all content in ${language}.` : ''}`;
 
     const userPrompt = `Generate ${count} ${rawType} educational quests for ${subject} at ${gradeLevel} level with ${rawDifficulty} difficulty.
 
+CRITICAL: Each quest must be trackable. Use these patterns:
+- Lesson quests: "Complete X lessons" with trigger_type: "lesson_completed"
+- Quiz quests: "Complete X quizzes" or "Score X% on quizzes" with trigger_type: "quiz_completed" and optional min_percentage
+- Test quests: "Pass X tests" with trigger_type: "test_completed" and min_percentage
+
 Return ONLY valid JSON in this exact format:
 {
   "quests": [
     {
-      "title": "Quest Title",
-      "description": "What the student needs to do",
+      "title": "Complete 3 Math Lessons",
+      "description": "Finish 3 lessons in your study plan to master the basics",
       "type": "${rawType}",
       "difficulty": "${rawDifficulty}",
       "target_value": 3,
-      "is_active": true
+      "is_active": true,
+      "requirements": {
+        "trigger_type": "lesson_completed"
+      }
+    },
+    {
+      "title": "Quiz Champion: Score 80%+",
+      "description": "Complete 2 quizzes with at least 80% score",
+      "type": "${rawType}",
+      "difficulty": "${rawDifficulty}",
+      "target_value": 2,
+      "is_active": true,
+      "requirements": {
+        "trigger_type": "quiz_completed",
+        "min_percentage": 80
+      }
     }
   ]
 }`;
