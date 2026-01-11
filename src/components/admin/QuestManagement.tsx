@@ -313,6 +313,14 @@ const { isSchoolAdmin } = useUserRole();
 
     try {
       setIsGenerating(true);
+      
+      console.log('[QuestManagement] Calling generate-quests with:', {
+        subject: selectedSubject.name,
+        gradeLevel: aiQuestParams.grade_level || 'middle school',
+        difficulty: aiQuestParams.difficulty,
+        questType: aiQuestParams.type,
+        count: aiQuestParams.count
+      });
 
       const { data, error } = await supabase.functions.invoke('generate-quests', {
         body: {
@@ -324,10 +332,24 @@ const { isSchoolAdmin } = useUserRole();
         }
       });
 
-      if (error) throw error;
+      console.log('[QuestManagement] generate-quests response:', { data, error });
+
+      if (error) {
+        console.error('[QuestManagement] Edge function error:', error);
+        // Try to extract more details from the error
+        const errorMessage = error.message || 'Edge function failed';
+        const errorDetails = error.context?.body ? JSON.stringify(error.context.body) : '';
+        throw new Error(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`);
+      }
+
+      // Check if data contains an error (function returned 200 but with error payload)
+      if (data?.error) {
+        console.error('[QuestManagement] Function returned error:', data.error, data.details);
+        throw new Error(data.error + (data.details ? `: ${data.details}` : ''));
+      }
 
       if (!data?.quests || data.quests.length === 0) {
-        throw new Error('No quests were generated');
+        throw new Error('No quests were generated - AI returned empty response');
       }
 
       // Insert generated quests into database
@@ -371,10 +393,10 @@ const { isSchoolAdmin } = useUserRole();
       });
 
     } catch (error: any) {
-      console.error('Error generating quests:', error);
+      console.error('[QuestManagement] Error generating quests:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to generate quests",
+        title: "Quest Generation Failed",
+        description: error.message || "Failed to generate quests. Check console for details.",
         variant: "destructive"
       });
     } finally {
