@@ -1321,8 +1321,7 @@ export const translations: TranslationData = {
     'quizResults.noAttempts': 'No attempts yet',
     'quizResults.takeQuizFirst': 'Take the quiz to see your results.',
     
-    // Chat Messages & AI Responses
-    'chat.welcomeMessage': "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
+    // Chat Messages & AI Responses (additional)
     'chat.welcomeMessageShort': "Hello! I'm your AI tutor. What would you like to learn about?",
     'chat.curriculumWelcome': "Welcome! I'm ready to help you learn {title}. This curriculum covers {subjects} for {gradeLevel} students. What would you like to start with?",
     'chat.newChatStarted': 'New chat started!',
