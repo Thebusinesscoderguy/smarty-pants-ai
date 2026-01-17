@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,19 @@ export const AdaptiveQuizEngine = () => {
     resetQuiz,
     saveQuizToLibrary,
   } = useAdaptiveQuiz();
+
+  // Track the previous question index to detect when a new question loads
+  const prevQuestionIndexRef = useRef(currentQuestionIndex);
+
+  // Reset feedback state when moving to a new question
+  useEffect(() => {
+    if (currentQuestionIndex !== prevQuestionIndexRef.current) {
+      setSelectedAnswer('');
+      setShowFeedback(false);
+      setLastResult(null);
+      prevQuestionIndexRef.current = currentQuestionIndex;
+    }
+  }, [currentQuestionIndex]);
 
   const getQuestionCount = () => Math.max(1, Math.min(50, parseInt(questionCountInput || '10', 10)));
 
