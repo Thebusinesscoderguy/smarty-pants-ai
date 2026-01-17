@@ -1321,6 +1321,104 @@ export const translations: TranslationData = {
     'quizResults.noAttempts': 'No attempts yet',
     'quizResults.takeQuizFirst': 'Take the quiz to see your results.',
     
+    // Chat Messages & AI Responses
+    'chat.welcomeMessage': "Hello! I'm your AI tutor. I can help you learn anything - just ask me a question, upload a file, or start a conversation. What would you like to explore today?",
+    'chat.welcomeMessageShort': "Hello! I'm your AI tutor. What would you like to learn about?",
+    'chat.curriculumWelcome': "Welcome! I'm ready to help you learn {title}. This curriculum covers {subjects} for {gradeLevel} students. What would you like to start with?",
+    'chat.newChatStarted': 'New chat started!',
+    'chat.newChatWelcome': "Hello! I'm your AI tutor. I can help you learn anything. What would you like to explore today?",
+    'chat.aiThinking': 'AI is thinking...',
+    'chat.askAnything': 'Ask me anything about learning...',
+    'chat.aiLearningAssistant': 'AI Learning Assistant',
+    'chat.tokensUsedLabel': 'tokens used',
+    'chat.quizModeLabel': 'Quiz Mode',
+    'chat.monthlyLimitReached': 'Monthly token limit reached. Please upgrade your plan.',
+    'chat.voiceResponsesEnabled': 'Voice responses enabled',
+    'chat.voiceResponsesDisabled': 'Voice responses disabled',
+    
+    // Error Messages
+    'error.apiKeyError': 'OpenAI API Key Error',
+    'error.apiKeyNotConfigured': 'The OpenAI API key is not configured on the server. Please contact the administrator to set up the OpenAI API key in Supabase secrets.',
+    'error.tokenLimitReached': 'Token Limit Reached',
+    'error.tokenLimitDesc': "You've reached your monthly token limit of {limit} tokens. Please try again next month or contact support for an upgraded plan.",
+    'error.downloadFailed': 'Download Failed',
+    'error.downloadFailedDesc': 'Failed to generate report. Please try again.',
+    'error.failedToGetResponse': 'Failed to get tutor response. Please try again.',
+    'error.apiConfigError': 'API Configuration Error',
+    'error.apiConfigDesc': 'OpenAI API key not configured properly. Please contact the administrator.',
+    'error.rateLimitExceeded': 'Rate Limit Exceeded',
+    'error.rateLimitDesc': 'Too many requests. Please try again in a few minutes.',
+    'error.serviceTimeout': 'Service Timeout',
+    'error.serviceTimeoutDesc': 'Voice service is taking too long to respond. Please try again.',
+    'error.networkError': 'Network Error',
+    'error.networkErrorDesc': 'Network connection issue. Please check your internet connection.',
+    'error.browserRestriction': 'Browser Restriction',
+    'error.browserRestrictionDesc': 'Browser blocked audio playback. The voice was generated successfully.',
+    'error.audioGenFailed': 'Audio Generation Failed',
+    'error.audioGenFailedDesc': 'The voice service did not return audio content. Please try again.',
+    'error.voiceTestFailed': 'Voice test failed. Please check console for details.',
+    'error.invalidOrExpiredInvitation': 'Invalid or expired invitation code.',
+    'error.failedToAddChild': 'Failed to add child. Please try again.',
+    'error.enterBothNames': 'Please enter both first and last name',
+    'error.addAtLeastOneChild': 'Add at least one child to continue',
+    
+    // Success Messages
+    'success.childAdded': '{name} has been added!',
+    'success.voiceChanged': 'Voice Changed',
+    'success.selectedVoice': 'Selected {voice} voice',
+    
+    // Invitation Page
+    'invitation.enterCode': 'Enter Invitation Code',
+    'invitation.codePlaceholder': 'Enter your invitation code',
+    'invitation.validateButton': 'Validate Invitation',
+    'invitation.validating': 'Validating invitation...',
+    'invitation.goHome': 'Go Home',
+    'invitation.join': 'Join {schoolName}',
+    'invitation.invitedTo': "You've been invited to join {schoolName} as a student.",
+    
+    // Add Children / Family Setup
+    'addChildren.title': "Let's Set Up Your Family",
+    'addChildren.subtitle': 'Add your children to personalize their learning experience',
+    'addChildren.addChild': 'Add a Child',
+    'addChildren.enterInfo': "Enter your child's information below",
+    'addChildren.firstName': 'First Name *',
+    'addChildren.lastName': 'Last Name *',
+    'addChildren.firstNamePlaceholder': 'Enter first name',
+    'addChildren.lastNamePlaceholder': 'Enter last name',
+    'addChildren.gradeLevel': 'Grade Level (Optional)',
+    'addChildren.selectGrade': 'Select grade level',
+    'addChildren.adding': 'Adding...',
+    'addChildren.addChildButton': 'Add Child',
+    'addChildren.yourChildren': 'Your Children ({count})',
+    'addChildren.continueButton': 'Continue to Choose Profile',
+    
+    // Tutor Chat
+    'tutorChat.welcomeTitle': 'Hello! I\'m your AI tutor for today\'s lesson: "{title}".',
+    'tutorChat.welcomeDesc': "I'm here to guide you through this topic using interactive questioning and discussion. Instead of just telling you information, I'll help you discover and understand concepts through conversation.",
+    'tutorChat.startQuestion': "Let's start: What do you already know about this topic, or what would you like to learn first?",
+    'tutorChat.thinking': 'Thinking...',
+    
+    // Lesson Viewer
+    'lessonViewer.loading': 'Loading...',
+    'lessonViewer.moreDetail': 'More Detail',
+    'lessonViewer.lessDetail': 'Less Detail',
+    'lessonViewer.summarize': 'Summarize',
+    'lessonViewer.askQuestion': 'Ask Question',
+    
+    // Parent Child Manager
+    'parentChildManager.childIdPlaceholder': "Enter child's user ID",
+    'parentChildManager.childIdHelp': 'Ask the child to go to Settings to find their User ID, or ask them to create an account first.',
+    'parentChildManager.howToConnect': 'How to Connect Your Child',
+    'parentChildManager.step1': 'Have your child create an account on TeachlyAI',
+    'parentChildManager.step2': 'Ask them to go to Settings and find their User ID',
+    'parentChildManager.step3': 'Enter their User ID in the field above',
+    'parentChildManager.step4': 'Click "Link Child" to connect their account',
+    
+    // Test Creator
+    'testCreator.testTitleLabel': 'Test Title *',
+    'testCreator.testTitlePlaceholder': 'Enter test title',
+    'testCreator.questionPlaceholder': 'Enter your question',
+    
   },
   es: {
     'nav.features': 'Características',
