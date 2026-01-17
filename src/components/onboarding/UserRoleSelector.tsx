@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useViewingMode } from '@/contexts/ViewingModeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Child {
   id: string;
@@ -20,6 +21,7 @@ interface UserRoleSelectorProps {
 export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
   const { user } = useAuth();
   const { setChildMode, setParentMode } = useViewingMode();
+  const { t } = useLanguage();
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -67,7 +69,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
 
     setLoading(true);
     try {
-      // Persist “view as” mode for UI gating.
+      // Persist "view as" mode for UI gating.
       if (role === 'parent') {
         setParentMode();
       } else if (childId) {
@@ -93,8 +95,8 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
     } catch (error) {
       console.error('Error setting role:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to set role. Please try again.',
+        title: t('roleSelector.error'),
+        description: t('roleSelector.errorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -106,8 +108,8 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">Who is using TeachlyAI today?</h1>
-          <p className="text-muted-foreground">Select your role to personalize your experience</p>
+          <h1 className="text-3xl font-bold text-foreground mb-4">{t('roleSelector.welcome')}</h1>
+          <p className="text-muted-foreground">{t('roleSelector.selectRole')}</p>
         </div>
 
         <div className="grid gap-6">
@@ -119,15 +121,15 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
               <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit group-hover:bg-primary/20 transition-colors">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-foreground">I'm the Parent</CardTitle>
-              <CardDescription className="text-muted-foreground">Monitor and support my children's learning progress</CardDescription>
+              <CardTitle className="text-foreground">{t('roleSelector.imParent')}</CardTitle>
+              <CardDescription className="text-muted-foreground">{t('roleSelector.parentDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• View real progress data</li>
-                <li>• Monitor learning analytics</li>
-                <li>• Track achievements</li>
-                <li>• Manage study plans</li>
+                <li>• {t('roleSelector.viewRealProgress')}</li>
+                <li>• {t('roleSelector.monitorAnalytics')}</li>
+                <li>• {t('roleSelector.trackAchievements')}</li>
+                <li>• {t('roleSelector.manageStudyPlans')}</li>
               </ul>
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -137,14 +139,14 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                 }}
                 disabled={loading}
               >
-                Continue as Parent
+                {t('roleSelector.continueAsParent')}
               </Button>
             </CardContent>
           </Card>
 
           {children.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground text-center">Or select one of your children:</h3>
+              <h3 className="text-xl font-semibold text-foreground text-center">{t('roleSelector.orSelectChild')}</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {children.map((child) => (
                   <Card
@@ -169,7 +171,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
                         }}
                         disabled={loading}
                       >
-                        Continue as {child.first_name}
+                        {t('roleSelector.continueAs')} {child.first_name}
                       </Button>
                     </CardContent>
                   </Card>
@@ -181,7 +183,7 @@ export const UserRoleSelector = ({ onRoleSelected }: UserRoleSelectorProps) => {
           {children.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                No children found in your account. Please add children first to access student features.
+                {t('roleSelector.noChildren')}
               </p>
             </div>
           )}

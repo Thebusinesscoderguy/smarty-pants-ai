@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, File, X, FileText, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FileUploadZoneProps {
   onFileUpload: (file: File) => void;
@@ -23,6 +24,7 @@ export const FileUploadZone = ({
   disabled = false
 }: FileUploadZoneProps) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     setUploadError(null);
@@ -30,11 +32,11 @@ export const FileUploadZone = ({
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0];
       if (error.code === 'file-too-large') {
-        setUploadError(`File is too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB`);
+        setUploadError(`${t('fileUpload.fileTooLarge')} ${maxFileSize / (1024 * 1024)}MB`);
       } else if (error.code === 'file-invalid-type') {
-        setUploadError(`Invalid file type. Accepted types: ${acceptedFileTypes.join(', ')}`);
+        setUploadError(`${t('fileUpload.invalidType')} ${acceptedFileTypes.join(', ')}`);
       } else {
-        setUploadError('File upload failed. Please try again.');
+        setUploadError(t('fileUpload.uploadFailed'));
       }
       return;
     }
@@ -42,7 +44,7 @@ export const FileUploadZone = ({
     if (acceptedFiles.length > 0) {
       onFileUpload(acceptedFiles[0]);
     }
-  }, [onFileUpload, acceptedFileTypes, maxFileSize]);
+  }, [onFileUpload, acceptedFileTypes, maxFileSize, t]);
 
   // Build proper MIME type accept object for react-dropzone
   const acceptMimeTypes = {
@@ -139,14 +141,14 @@ export const FileUploadZone = ({
             )} />
             <div>
               <p className="text-sm font-medium">
-                {isDragActive ? "Drop your file here" : "Upload a file"}
+                {isDragActive ? t('fileUpload.dropHere') : t('fileUpload.uploadFile')}
               </p>
               <p className="text-xs text-muted-foreground">
-                Drag & drop or click to browse
+                {t('fileUpload.dragDrop')}
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
-              Supported: {acceptedFileTypes.join(', ')} (max {maxFileSize / (1024 * 1024)}MB)
+              {t('fileUpload.supported')} {acceptedFileTypes.join(', ')} {t('fileUpload.max')} {maxFileSize / (1024 * 1024)}MB)
             </p>
           </div>
         </div>

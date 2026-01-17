@@ -5,6 +5,7 @@ import { Users, Baby } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RoleSelectorProps {
   onRoleSelected: (role: 'parent' | 'child') => void;
@@ -12,6 +13,7 @@ interface RoleSelectorProps {
 
 export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
 
   const handleRoleSelection = async (role: 'parent' | 'child') => {
@@ -32,14 +34,14 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
 
       onRoleSelected(role);
       toast({
-        title: "Role Selected",
-        description: `Welcome! You're now set up as a ${role}.`
+        title: t('roleSelector.roleSelected'),
+        description: `${t('roleSelector.welcomeRole')} ${role}.`
       });
     } catch (error) {
       console.error('Error setting role:', error);
       toast({
-        title: "Error",
-        description: "Failed to set role. Please try again.",
+        title: t('roleSelector.error'),
+        description: t('roleSelector.errorDescription'),
         variant: "destructive"
       });
     } finally {
@@ -52,10 +54,10 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">
-            Welcome! Who is using TeachlyAI?
+            {t('roleSelector.welcome')}
           </h1>
           <p className="text-muted-foreground">
-            This helps us personalize your experience
+            {t('roleSelector.selectRole')}
           </p>
         </div>
         
@@ -68,17 +70,17 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
               <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-fit group-hover:bg-primary/30 transition-colors">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle>I'm a Parent</CardTitle>
+              <CardTitle>{t('roleSelector.imParent')}</CardTitle>
               <CardDescription>
-                Monitoring and supporting my child's learning
+                {t('roleSelector.parentDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• View real progress data</li>
-                <li>• Monitor learning analytics</li>
-                <li>• Track achievements</li>
-                <li>• Manage study plans</li>
+                <li>• {t('roleSelector.viewRealProgress')}</li>
+                <li>• {t('roleSelector.monitorAnalytics')}</li>
+                <li>• {t('roleSelector.trackAchievements')}</li>
+                <li>• {t('roleSelector.manageStudyPlans')}</li>
               </ul>
               <Button 
                 className="w-full"
@@ -88,7 +90,7 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
                 }}
                 disabled={loading}
               >
-                Continue as Parent
+                {t('roleSelector.continueAsParent')}
               </Button>
             </CardContent>
           </Card>
@@ -101,17 +103,17 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
               <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-fit group-hover:bg-primary/30 transition-colors">
                 <Baby className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle>I'm a Student</CardTitle>
+              <CardTitle>{t('roleSelector.imStudent')}</CardTitle>
               <CardDescription>
-                Ready to learn and have fun with AI
+                {t('roleSelector.studentDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• Interactive AI chat</li>
-                <li>• Fun learning games</li>
-                <li>• Earn achievements</li>
-                <li>• Complete quests</li>
+                <li>• {t('roleSelector.interactiveChat')}</li>
+                <li>• {t('roleSelector.funLearning')}</li>
+                <li>• {t('roleSelector.earnAchievements')}</li>
+                <li>• {t('roleSelector.completeQuests')}</li>
               </ul>
               <Button 
                 className="w-full"
@@ -121,7 +123,7 @@ export const RoleSelector = ({ onRoleSelected }: RoleSelectorProps) => {
                 }}
                 disabled={loading}
               >
-                Continue as Student
+                {t('roleSelector.continueAsStudent')}
               </Button>
             </CardContent>
           </Card>

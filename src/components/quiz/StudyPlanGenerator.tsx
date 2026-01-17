@@ -501,10 +501,10 @@ Please generate 5 questions that test understanding of this topic.`;
           {/* Grade level, region, plan constraints */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="gradeLevel">Grade Level</Label>
+              <Label htmlFor="gradeLevel">{t('studyPlan.gradeLevel')}</Label>
               <Select value={gradeLevel} onValueChange={setGradeLevel}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select grade level" />
+                  <SelectValue placeholder={t('studyPlan.selectGradeLevel')} />
                 </SelectTrigger>
                 <SelectContent>
                   {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
@@ -514,10 +514,10 @@ Please generate 5 questions that test understanding of this topic.`;
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="region">Curriculum/Country</Label>
+              <Label htmlFor="region">{t('studyPlan.curriculum')}</Label>
               <Select value={region} onValueChange={setRegion}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select curriculum/country" />
+                  <SelectValue placeholder={t('studyPlan.selectCurriculum')} />
                 </SelectTrigger>
                 <SelectContent>
                   {['International','United States','United Kingdom','International Baccalaureate','Cambridge International','Australia','France'].map(r => (
@@ -531,9 +531,9 @@ Please generate 5 questions that test understanding of this topic.`;
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="planDays">Plan length (days)</Label>
+                <Label htmlFor="planDays">{t('studyPlan.planLength')}</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">AI decide</span>
+                  <span className="text-xs text-muted-foreground">{t('studyPlan.aiDecide')}</span>
                   <Switch checked={aiChooseDays} onCheckedChange={setAiChooseDays} />
                 </div>
               </div>
@@ -552,9 +552,9 @@ Please generate 5 questions that test understanding of this topic.`;
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="maxDailyMinutes">Max study time per day (minutes)</Label>
+                <Label htmlFor="maxDailyMinutes">{t('studyPlan.maxStudyTime')}</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">AI decide</span>
+                  <span className="text-xs text-muted-foreground">{t('studyPlan.aiDecide')}</span>
                   <Switch checked={aiChooseDailyMinutes} onCheckedChange={setAiChooseDailyMinutes} />
                 </div>
               </div>
@@ -591,15 +591,15 @@ Please generate 5 questions that test understanding of this topic.`;
             {isUploading ? (
               <>
                 <Upload className="mr-2 h-4 w-4 animate-pulse" />
-                Uploading File...
+                {t('studyPlan.uploadingFile')}
               </>
             ) : isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating Study Plan...
+                {t('studyPlan.generating')}
               </>
             ) : (
-              'Generate Study Plan'
+              t('studyPlan.generate')
             )}
           </Button>
         </CardContent>
