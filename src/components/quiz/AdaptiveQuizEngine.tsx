@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Brain, Zap, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle, RotateCcw, Trophy } from 'lucide-react';
+import { Loader2, Brain, Zap, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle, RotateCcw, Trophy, Save } from 'lucide-react';
 import { useAdaptiveQuiz, type DifficultyLevel, type AdaptiveQuizConfig } from '@/hooks/useAdaptiveQuiz';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -40,6 +40,9 @@ export const AdaptiveQuizEngine = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [lastResult, setLastResult] = useState<{ isCorrect: boolean; earnedPoints: number } | null>(null);
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
+
   const {
     isActive,
     isLoading,
@@ -54,6 +57,7 @@ export const AdaptiveQuizEngine = () => {
     startQuiz,
     submitAnswer,
     resetQuiz,
+    saveQuizToLibrary,
   } = useAdaptiveQuiz();
 
   const getQuestionCount = () => Math.max(1, Math.min(50, parseInt(questionCountInput || '10', 10)));
@@ -85,6 +89,20 @@ export const AdaptiveQuizEngine = () => {
     setSelectedAnswer('');
     setShowFeedback(false);
     setLastResult(null);
+  };
+
+  const handleSaveQuiz = async () => {
+    setIsSaving(true);
+    const success = await saveQuizToLibrary();
+    setIsSaving(false);
+    if (success) {
+      setHasSaved(true);
+    }
+  };
+
+  const handleReset = () => {
+    setHasSaved(false);
+    resetQuiz();
   };
 
   const getDifficultyInfo = (diff: DifficultyLevel) => {
@@ -291,11 +309,36 @@ export const AdaptiveQuizEngine = () => {
               ))}
             </div>
           </div>
-
-          <Button onClick={resetQuiz} className="w-full" size="lg">
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Start New Quiz
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleSaveQuiz} 
+              variant="outline"
+              className="flex-1" 
+              size="lg"
+              disabled={isSaving || hasSaved}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : hasSaved ? (
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Saved to Library
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save to Library
+                </>
+              )}
+            </Button>
+            <Button onClick={handleReset} className="flex-1" size="lg">
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Start New Quiz
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
