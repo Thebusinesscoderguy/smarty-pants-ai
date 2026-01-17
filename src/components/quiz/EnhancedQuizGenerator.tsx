@@ -275,10 +275,10 @@ useEffect(() => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="enhanced-grade">Grade Level</Label>
+                  <Label htmlFor="enhanced-grade">{t('quizGenerator.gradeLevel')}</Label>
                   <Select value={gradeLevel} onValueChange={setGradeLevel}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select grade level" />
+                      <SelectValue placeholder={t('quizGenerator.selectGrade')} />
                     </SelectTrigger>
                     <SelectContent>
                       {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
@@ -289,7 +289,7 @@ useEffect(() => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="enhanced-questionCount">Number of Questions (max 50)</Label>
+                  <Label htmlFor="enhanced-questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
                   <Input
                     id="enhanced-questionCount"
                     type="text"
@@ -313,14 +313,14 @@ useEffect(() => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="enhanced-quizMode">Quiz Mode</Label>
+                  <Label htmlFor="enhanced-quizMode">{t('quizGenerator.quizMode')}</Label>
                   <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select mode" />
+                      <SelectValue placeholder={t('quizGenerator.selectMode')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="take">Take Quiz</SelectItem>
-                      <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
+                      <SelectItem value="take">{t('quizGenerator.takeQuiz')}</SelectItem>
+                      <SelectItem value="view">{t('quizGenerator.viewAnswers')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -329,7 +329,7 @@ useEffect(() => {
 
             <TabsContent value="file" className="space-y-4">
               <div className="space-y-3">
-                <Label>Upload Material Type</Label>
+                <Label>{t('quizGenerator.uploadMaterialType')}</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant={uploadType === 'study_material' ? "default" : "outline"}
@@ -341,7 +341,7 @@ useEffect(() => {
                     className="justify-start"
                   >
                     <BookOpen className="mr-2 h-4 w-4" />
-                    Study Material
+                    {t('quizGenerator.studyMaterial')}
                   </Button>
                   <Button
                     variant={uploadType === 'graded_quiz' ? "default" : "outline"}
@@ -353,14 +353,14 @@ useEffect(() => {
                     className="justify-start"
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Graded Quiz
+                    {t('quizGenerator.gradedQuiz')}
                   </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>
-                  {uploadType === 'study_material' ? 'Upload Study Material' : 'Upload Graded Quiz/Test'}
+                  {uploadType === 'study_material' ? t('quizGenerator.uploadStudyMaterial') : t('quizGenerator.uploadGradedQuiz')}
                 </Label>
                 <FileUploadZone
                   onFileUpload={handleFileUpload}
@@ -375,27 +375,27 @@ useEffect(() => {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="fileTopic">Topic (Optional)</Label>
+                      <Label htmlFor="fileTopic">{t('quizGenerator.topicOptional')}</Label>
                       <Input
                         id="fileTopic"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        placeholder="Override detected topic..."
+                        placeholder={t('quizGenerator.overrideDetectedTopic')}
                         disabled={isGenerating}
                       />
                     </div>
                     
                     {uploadType === 'study_material' && (
                       <div className="space-y-2">
-                        <Label htmlFor="fileDifficulty">Difficulty Level (Upload Type: {uploadType})</Label>
+                        <Label htmlFor="fileDifficulty">{t('quizGenerator.difficultyLevel')}</Label>
                         <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select difficulty" />
+                            <SelectValue placeholder={t('quizGenerator.difficultyLevel')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="easy">Easy</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="hard">Hard</SelectItem>
+                            <SelectItem value="easy">{t('quizGenerator.easy')}</SelectItem>
+                            <SelectItem value="medium">{t('quizGenerator.medium')}</SelectItem>
+                            <SelectItem value="hard">{t('quizGenerator.hard')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -404,38 +404,38 @@ useEffect(() => {
 
                   {uploadType === 'graded_quiz' && (
                     <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
-                      <div className="text-sm font-medium">Quiz Generation Options (Upload Type: {uploadType})</div>
+                      <div className="text-sm font-medium">{t('quizGenerator.advancedGeneration')}</div>
                       
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label>Quiz Difficulty Relative to Original</Label>
+                          <Label>{t('quizGenerator.quizDifficultyRelative')}</Label>
                           <Select value={quizDifficulty} onValueChange={(value: 'easier' | 'same' | 'harder') => setQuizDifficulty(value)}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select difficulty" />
+                              <SelectValue placeholder={t('quizGenerator.difficultyLevel')} />
                             </SelectTrigger>
                             <SelectContent className="bg-background z-50">
-                              <SelectItem value="easier">Easier</SelectItem>
-                              <SelectItem value="same">Same as Test</SelectItem>
-                              <SelectItem value="harder">Harder</SelectItem>
+                              <SelectItem value="easier">{t('quizGenerator.easier')}</SelectItem>
+                              <SelectItem value="same">{t('quizGenerator.same')}</SelectItem>
+                              <SelectItem value="harder">{t('quizGenerator.harder')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         <div className="space-y-2">
-                          <Label>Quiz Generation Options</Label>
+                          <Label>{t('quizGenerator.advancedGeneration')}</Label>
                           <Select 
                             value={generationOption}
                             onValueChange={(value) => setGenerationOption(value as 'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz')}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select quiz generation option" />
+                              <SelectValue placeholder={t('quizGenerator.advancedGeneration')} />
                             </SelectTrigger>
                             <SelectContent className="bg-background z-50">
-                              <SelectItem value="same_questions">Same Quiz Questions</SelectItem>
-                              <SelectItem value="mistakes_only">Test From Mistakes</SelectItem>
-                              <SelectItem value="questions_like_mistakes">Questions Like Mistakes</SelectItem>
-                              <SelectItem value="mistakes_similar">Mistakes + Similar</SelectItem>
-                              <SelectItem value="similar_quiz">Similar Quiz</SelectItem>
+                              <SelectItem value="same_questions">{t('quizGenerator.sameQuizQuestions')}</SelectItem>
+                              <SelectItem value="mistakes_only">{t('quizGenerator.testFromMistakes')}</SelectItem>
+                              <SelectItem value="questions_like_mistakes">{t('quizGenerator.questionsLikeMistakes')}</SelectItem>
+                              <SelectItem value="mistakes_similar">{t('quizGenerator.mistakesSimilar')}</SelectItem>
+                              <SelectItem value="similar_quiz">{t('quizGenerator.similarQuiz')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -448,38 +448,38 @@ useEffect(() => {
 
             <TabsContent value="ai" className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="instructions">Custom AI Instructions</Label>
+                <Label htmlFor="instructions">{t('quizGenerator.customInstructions')}</Label>
                 <Textarea
                   id="instructions"
                   value={customInstructions}
                   onChange={(e) => setCustomInstructions(e.target.value)}
-                  placeholder="Describe exactly what kind of quiz you want. For example: 'Create a quiz about the American Civil War focusing on battles and key figures, with scenario-based questions that test critical thinking rather than memorization.'"
+                  placeholder={t('quizGenerator.customInstructionsPlaceholder')}
                   rows={4}
                   disabled={isGenerating}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="aiTopic">Topic (Optional)</Label>
+                  <Label htmlFor="aiTopic">{t('quizGenerator.topicOptional')}</Label>
                   <Input
                     id="aiTopic"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Main subject area..."
+                    placeholder={t('quizGenerator.topicPlaceholder')}
                     disabled={isGenerating}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="aiDifficulty">Difficulty Level</Label>
+                  <Label htmlFor="aiDifficulty">{t('quizGenerator.difficultyLevel')}</Label>
                   <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
+                      <SelectValue placeholder={t('quizGenerator.difficultyLevel')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
+                      <SelectItem value="easy">{t('quizGenerator.easy')}</SelectItem>
+                      <SelectItem value="medium">{t('quizGenerator.medium')}</SelectItem>
+                      <SelectItem value="hard">{t('quizGenerator.hard')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

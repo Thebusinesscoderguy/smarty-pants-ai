@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   FileText,
   Calendar,
@@ -16,6 +17,7 @@ import {
 
 export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?: any[] }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [tests, setTests] = useState<any[]>([]);
   const [studyPlans, setStudyPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +111,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-border"></div>
-        <span className="ml-2">Loading progress data...</span>
+        <span className="ml-2">{t('analytics.loadingProgress')}</span>
       </div>
     );
   }
@@ -122,7 +124,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Recent Tests & Quizzes
+              {t('analytics.recentTests')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -155,9 +157,9 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
               ) : (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No tests completed yet</p>
+                  <p className="text-muted-foreground">{t('analytics.noTestsYet')}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Take some quizzes or tests to see your progress
+                    {t('analytics.takeQuizzesToSeeProgress')}
                   </p>
                 </div>
               )}
@@ -170,7 +172,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Study Plan Progress
+              {t('analytics.studyPlanProgress')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -188,7 +190,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
+                        <span className="text-muted-foreground">{t('analytics.progress')}</span>
                         <span className="font-medium">
                           {Math.round((plan.estimated_duration / 100) * 60)}%
                         </span>
@@ -196,8 +198,8 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                       <Progress value={Math.round((plan.estimated_duration / 100) * 60)} className="h-2" />
                       
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Grade Level: {plan.grade_level || 'General'}</span>
-                        <span>{plan.estimated_duration} mins estimated</span>
+                        <span>{t('analytics.gradeLevel')}: {plan.grade_level || t('analytics.general')}</span>
+                        <span>{plan.estimated_duration} {t('analytics.minsEstimated')}</span>
                       </div>
                     </div>
                   </div>
@@ -205,9 +207,9 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
               ) : (
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No active study plans</p>
+                  <p className="text-muted-foreground">{t('analytics.noActivePlans')}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Create a study plan from the Quiz Generator
+                    {t('analytics.createPlanFromGenerator')}
                   </p>
                 </div>
               )}
@@ -222,7 +224,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Performance Overview
+              {t('analytics.performanceOverview')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -231,21 +233,21 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                 <div className="text-3xl font-bold mb-2">
                   {Math.round(tests.reduce((sum, test) => sum + test.score, 0) / tests.length)}%
                 </div>
-                <div className="text-muted-foreground">Average Score</div>
+                <div className="text-muted-foreground">{t('analytics.averageScore')}</div>
               </div>
               
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
                   {tests.length}
                 </div>
-                <div className="text-muted-foreground">Tests Completed</div>
+                <div className="text-muted-foreground">{t('analytics.testsCompleted')}</div>
               </div>
               
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
                   {tests.filter(test => test.score >= 80).length}
                 </div>
-                <div className="text-muted-foreground">High Scores (80%+)</div>
+                <div className="text-muted-foreground">{t('analytics.highScores')}</div>
               </div>
             </div>
           </CardContent>
@@ -258,7 +260,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              All Test Results ({tests.length})
+              {t('analytics.allTestResults')} ({tests.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
