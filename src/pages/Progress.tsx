@@ -71,7 +71,7 @@ const Progress = () => {
         className={`${currentPage === 'chat' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200`}
       >
         <MessageSquare className="h-4 w-4 mr-2" />
-        Chat
+        {t('progress.nav.chat')}
       </Button>
       <Button
         variant={currentPage === 'monitoring' ? 'default' : 'ghost'}
@@ -80,7 +80,7 @@ const Progress = () => {
         className={`${currentPage === 'monitoring' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200`}
       >
         <BarChart3 className="h-4 w-4 mr-2" />
-        Dashboard
+        {t('progress.nav.dashboard')}
       </Button>
       <Button
         variant={currentPage === 'settings' ? 'default' : 'ghost'}
@@ -92,7 +92,7 @@ const Progress = () => {
         className={`${currentPage === 'settings' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'} transition-all duration-200`}
       >
         <Settings className="h-4 w-4 mr-2" />
-        Settings
+        {t('progress.nav.settings')}
       </Button>
     </div>
   );
@@ -110,7 +110,7 @@ const Progress = () => {
       return (
         <div className="text-center py-12">
           <User className="h-16 w-16 text-white/40 mx-auto mb-4" />
-          <p className="text-white/60 text-lg">Monitoring features are not available for your role.</p>
+          <p className="text-white/60 text-lg">{t('progress.monitoringNotAvailable')}</p>
         </div>
       );
     }
@@ -127,16 +127,16 @@ const Progress = () => {
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-3xl font-bold text-foreground mb-2">
-              Learning Curriculums
+              {t('progress.curriculum.title')}
             </h3>
-            <p className="text-muted-foreground text-lg">Discover and manage personalized learning paths</p>
+            <p className="text-muted-foreground text-lg">{t('progress.curriculum.subtitle')}</p>
           </div>
           <Button 
             onClick={() => setIsCurriculumSelectorOpen(true)}
             className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl font-semibold shadow-lg"
           >
             <BookOpen className="h-5 w-5 mr-2" />
-            Browse Curriculums
+            {t('progress.curriculum.browse')}
           </Button>
         </div>
         
@@ -149,8 +149,8 @@ const Progress = () => {
                     <Sparkles className="h-10 w-10 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-foreground mb-2">Create AI Curriculum</h3>
-                    <p className="text-muted-foreground text-lg">Let our AI create a personalized curriculum tailored to your learning goals</p>
+                    <h3 className="text-2xl font-bold text-foreground mb-2">{t('progress.curriculum.createAI')}</h3>
+                    <p className="text-muted-foreground text-lg">{t('progress.curriculum.createAIDesc')}</p>
                   </div>
                 </div>
                 <Button 
@@ -158,7 +158,7 @@ const Progress = () => {
                   className="bg-primary hover:bg-primary/90 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
                 >
                   <Plus className="h-5 w-5 mr-2" />
-                  Create Now
+                  {t('progress.curriculum.createNow')}
                 </Button>
               </div>
             </CardContent>
@@ -168,17 +168,17 @@ const Progress = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-foreground text-2xl flex items-center">
                 <Calendar className="mr-3 h-6 w-6 text-primary" />
-                Active Curriculums
+                {t('progress.curriculum.activeCurriculums')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
                 <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <div className="text-muted-foreground text-lg mb-4">
-                  No active curriculums found
+                  {t('progress.curriculum.noCurriculums')}
                 </div>
                 <p className="text-muted-foreground">
-                  Click "Browse Curriculums" or "Create Now" to get started with your learning journey
+                  {t('progress.curriculum.getStarted')}
                 </p>
               </div>
             </CardContent>
@@ -294,16 +294,16 @@ const Progress = () => {
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-3xl font-bold text-foreground mb-2">
-              Tests & Assessments
+              {t('progress.tests.title')}
             </h3>
-            <p className="text-muted-foreground text-lg">Track your test performance and take new assessments</p>
+            <p className="text-muted-foreground text-lg">{t('progress.tests.subtitle')}</p>
           </div>
           <Button 
             onClick={() => navigate('/quiz-generator')}
             className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl font-semibold shadow-lg"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Create Test
+            {t('progress.tests.createTest')}
           </Button>
         </div>
 
@@ -313,7 +313,7 @@ const Progress = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-400 text-sm font-medium">Completed Tests</p>
+                  <p className="text-green-400 text-sm font-medium">{t('progress.tests.completedTests')}</p>
                   <p className="text-3xl font-bold text-white">2</p>
                 </div>
                 <CheckCircle className="h-10 w-10 text-green-400" />
@@ -325,7 +325,7 @@ const Progress = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-400 text-sm font-medium">Average Score</p>
+                  <p className="text-blue-400 text-sm font-medium">{t('progress.tests.averageScore')}</p>
                   <p className="text-3xl font-bold text-white">88.5%</p>
                 </div>
                 <TrendingUp className="h-10 w-10 text-blue-400" />
@@ -337,7 +337,7 @@ const Progress = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-400 text-sm font-medium">Available Tests</p>
+                  <p className="text-purple-400 text-sm font-medium">{t('progress.tests.availableTests')}</p>
                   <p className="text-3xl font-bold text-white">1</p>
                 </div>
                 <FileText className="h-10 w-10 text-purple-400" />
@@ -349,7 +349,7 @@ const Progress = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-400 text-sm font-medium">In Progress</p>
+                  <p className="text-orange-400 text-sm font-medium">{t('progress.tests.inProgress')}</p>
                   <p className="text-3xl font-bold text-white">1</p>
                 </div>
                 <Play className="h-10 w-10 text-orange-400" />
@@ -363,7 +363,7 @@ const Progress = () => {
           <CardHeader>
             <CardTitle className="text-white text-2xl flex items-center">
               <FileText className="mr-3 h-6 w-6 text-blue-400" />
-              Your Tests
+              {t('progress.tests.yourTests')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -391,20 +391,20 @@ const Progress = () => {
 
                   <div className="flex items-center space-x-6">
                     <div className="text-right">
-                      <div className="text-white/60 text-sm">Questions</div>
+                      <div className="text-white/60 text-sm">{t('progress.tests.questions')}</div>
                       <div className="text-white font-semibold">{test.totalQuestions}</div>
                     </div>
 
                     {test.status === 'completed' && (
                       <>
                         <div className="text-right">
-                          <div className="text-white/60 text-sm">Score</div>
+                          <div className="text-white/60 text-sm">{t('progress.tests.score')}</div>
                           <div className={`font-semibold ${test.score >= 80 ? 'text-green-400' : test.score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
                             {test.score}%
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-white/60 text-sm">Time</div>
+                          <div className="text-white/60 text-sm">{t('progress.tests.time')}</div>
                           <div className="text-white font-semibold">{test.timeSpent}m</div>
                         </div>
                       </>
@@ -412,7 +412,7 @@ const Progress = () => {
 
                     {test.status === 'in_progress' && (
                       <div className="text-right">
-                        <div className="text-white/60 text-sm">Time Spent</div>
+                        <div className="text-white/60 text-sm">{t('progress.tests.timeSpent')}</div>
                         <div className="text-white font-semibold">{test.timeSpent}m</div>
                       </div>
                     )}
@@ -428,7 +428,7 @@ const Progress = () => {
                           : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
                       }
                     >
-                      {test.status === 'completed' ? 'Review' : test.status === 'in_progress' ? 'Continue' : 'Start Test'}
+                      {test.status === 'completed' ? t('progress.tests.review') : test.status === 'in_progress' ? t('progress.tests.continue') : t('progress.tests.startTest')}
                     </Button>
                   </div>
                 </div>
@@ -445,7 +445,7 @@ const Progress = () => {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+          <p className="text-muted-foreground">{t('progress.loading')}</p>
         </div>
       </div>
     );
@@ -463,7 +463,7 @@ const Progress = () => {
               {renderNavigation()}
             </div>
             <div className="text-muted-foreground text-sm">
-              {user ? `Welcome back, ${user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}` : 'Demo Mode'}
+              {user ? `${t('progress.welcomeBack')}, ${user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}` : t('progress.demoMode')}
             </div>
           </div>
         </div>
@@ -472,16 +472,16 @@ const Progress = () => {
       <main className="px-6 py-8 max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            {user ? 'Learning Dashboard' : 'Demo Dashboard'}
+            {user ? t('progress.learningDashboard') : t('progress.demoDashboard')}
           </h1>
           <p className="text-white/70 text-xl max-w-2xl">
-            {user ? 'Track your progress, explore curriculums, and achieve your learning goals' : 'Experience our comprehensive learning platform'}
+            {user ? t('progress.trackProgress') : t('progress.experiencePlatform')}
           </p>
           {!user && (
             <div className="mt-6 p-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl backdrop-blur-sm">
               <p className="text-blue-200 flex items-center">
                 <Sparkles className="h-5 w-5 mr-2" />
-                This is a demo of our learning platform. Sign up to access your personal dashboard!
+                {t('progress.demoSignup')}
               </p>
             </div>
           )}
@@ -494,28 +494,28 @@ const Progress = () => {
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
-              {!user ? 'Overview' : (userRole === 'parent' ? 'Child Progress' : 'Monitoring')}
+              {!user ? t('progress.overview') : (userRole === 'parent' ? t('progress.childProgress') : t('progress.monitoring'))}
             </TabsTrigger>
             <TabsTrigger 
               value="curriculums" 
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <BookOpen className="h-4 w-4 mr-2" />
-              Curriculums
+              {t('progress.curriculums')}
             </TabsTrigger>
             <TabsTrigger 
               value="quests" 
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <Target className="h-4 w-4 mr-2" />
-              Quests
+              {t('progress.quests')}
             </TabsTrigger>
             <TabsTrigger 
               value="tests" 
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200 flex items-center font-semibold"
             >
               <FileText className="h-4 w-4 mr-2" />
-              Tests
+              {t('progress.tests')}
             </TabsTrigger>
           </TabsList>
 
