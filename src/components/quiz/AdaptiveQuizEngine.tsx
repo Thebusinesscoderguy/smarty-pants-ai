@@ -131,30 +131,30 @@ export const AdaptiveQuizEngine = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
-            Adaptive Quiz Engine
+            {t('adaptiveQuiz.title')}
           </CardTitle>
           <CardDescription>
-            Questions adapt to your performance in real-time. Answer correctly and quickly to unlock harder challenges!
+            {t('adaptiveQuiz.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="adaptive-topic">Topic *</Label>
+            <Label htmlFor="adaptive-topic">{t('adaptiveQuiz.topic')} *</Label>
             <Input
               id="adaptive-topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., Photosynthesis, World War II, Calculus..."
+              placeholder={t('adaptiveQuiz.topicPlaceholder')}
               disabled={isLoading}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Grade/Level *</Label>
+              <Label>{t('adaptiveQuiz.gradeLevel')} *</Label>
               <Select value={gradeLevel} onValueChange={setGradeLevel} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select your level" />
+                  <SelectValue placeholder={t('adaptiveQuiz.selectLevel')} />
                 </SelectTrigger>
                 <SelectContent>
                   {GRADE_LEVELS.map(level => (
@@ -165,7 +165,7 @@ export const AdaptiveQuizEngine = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Starting Difficulty</Label>
+              <Label>{t('adaptiveQuiz.startingDifficulty')}</Label>
               <Select 
                 value={startingDifficulty} 
                 onValueChange={(v) => setStartingDifficulty(v as DifficultyLevel)}
@@ -176,7 +176,7 @@ export const AdaptiveQuizEngine = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {DIFFICULTY_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    <SelectItem key={opt.value} value={opt.value}>{t(`adaptiveQuiz.difficulty.${opt.value}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -184,7 +184,7 @@ export const AdaptiveQuizEngine = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="adaptive-count">Number of Questions</Label>
+            <Label htmlFor="adaptive-count">{t('adaptiveQuiz.numberOfQuestions')}</Label>
             <Input
               id="adaptive-count"
               type="text"
@@ -200,19 +200,19 @@ export const AdaptiveQuizEngine = () => {
               className="w-32"
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">Max 50 questions</p>
+            <p className="text-xs text-muted-foreground">{t('adaptiveQuiz.maxQuestions')}</p>
           </div>
 
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <h4 className="font-medium flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary" />
-              How Adaptive Mode Works
+              {t('adaptiveQuiz.howItWorks')}
             </h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Answer correctly & quickly → Difficulty increases</li>
-              <li>• Struggle with questions → Difficulty decreases</li>
-              <li>• Harder questions = More points!</li>
-              <li>• The quiz learns your skill level in real-time</li>
+              <li>• {t('adaptiveQuiz.rule1')}</li>
+              <li>• {t('adaptiveQuiz.rule2')}</li>
+              <li>• {t('adaptiveQuiz.rule3')}</li>
+              <li>• {t('adaptiveQuiz.rule4')}</li>
             </ul>
           </div>
 
@@ -225,12 +225,12 @@ export const AdaptiveQuizEngine = () => {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Preparing Quiz...
+                {t('adaptiveQuiz.preparing')}
               </>
             ) : (
               <>
                 <Brain className="mr-2 h-4 w-4" />
-                Start Adaptive Quiz
+                {t('adaptiveQuiz.startQuiz')}
               </>
             )}
           </Button>
@@ -255,31 +255,31 @@ export const AdaptiveQuizEngine = () => {
           <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Trophy className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle>Quiz Complete!</CardTitle>
-          <CardDescription>Here's how you performed</CardDescription>
+          <CardTitle>{t('adaptiveQuiz.quizComplete')}</CardTitle>
+          <CardDescription>{t('adaptiveQuiz.hereIsPerformance')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-2xl font-bold text-primary">{score}</div>
-              <div className="text-xs text-muted-foreground">Points Earned</div>
+              <div className="text-xs text-muted-foreground">{t('adaptiveQuiz.pointsEarned')}</div>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-2xl font-bold">{maxScore}</div>
-              <div className="text-xs text-muted-foreground">Max Possible</div>
+              <div className="text-xs text-muted-foreground">{t('adaptiveQuiz.maxPossible')}</div>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-              <div className="text-xs text-muted-foreground">Accuracy</div>
+              <div className="text-xs text-muted-foreground">{t('adaptiveQuiz.accuracy')}</div>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
-              <div className="text-2xl font-bold">{DIFFICULTY_OPTIONS[avgDifficulty]?.label || 'Medium'}</div>
-              <div className="text-xs text-muted-foreground">Final Level</div>
+              <div className="text-2xl font-bold">{t(`adaptiveQuiz.difficulty.${DIFFICULTY_OPTIONS[avgDifficulty]?.value || 'medium'}`)}</div>
+              <div className="text-xs text-muted-foreground">{t('adaptiveQuiz.finalLevel')}</div>
             </div>
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-medium">Question Breakdown</h4>
+            <h4 className="font-medium">{t('adaptiveQuiz.questionBreakdown')}</h4>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {answeredQuestions.map((aq, i) => (
                 <div 
@@ -298,7 +298,7 @@ export const AdaptiveQuizEngine = () => {
                     <p className="text-sm font-medium truncate">{aq.question.question}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className={getDifficultyInfo(aq.question.difficulty).color}>
-                        {getDifficultyInfo(aq.question.difficulty).label}
+                        {t(`adaptiveQuiz.difficulty.${aq.question.difficulty}`)}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
                         {aq.correct ? `+${aq.question.points} pts` : '0 pts'}
@@ -320,23 +320,23 @@ export const AdaptiveQuizEngine = () => {
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t('adaptiveQuiz.saving')}
                 </>
               ) : hasSaved ? (
                 <>
                   <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Saved to Library
+                  {t('adaptiveQuiz.savedToLibrary')}
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Save to Library
+                  {t('adaptiveQuiz.saveToLibrary')}
                 </>
               )}
             </Button>
             <Button onClick={handleReset} className="flex-1" size="lg">
               <RotateCcw className="mr-2 h-4 w-4" />
-              Start New Quiz
+              {t('adaptiveQuiz.startNewQuiz')}
             </Button>
           </div>
         </CardContent>
@@ -354,7 +354,7 @@ export const AdaptiveQuizEngine = () => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={difficultyInfo.color}>
-              {difficultyInfo.label}
+              {t(`adaptiveQuiz.difficulty.${currentDifficulty}`)}
             </Badge>
             {trend === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
             {trend === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
@@ -366,7 +366,7 @@ export const AdaptiveQuizEngine = () => {
         </div>
         <Progress value={progress} className="h-2" />
         <div className="text-xs text-muted-foreground mt-1">
-          Question {currentQuestionIndex + 1} of {totalQuestions}
+          {currentQuestionIndex + 1} / {totalQuestions}
         </div>
       </CardHeader>
 
@@ -374,7 +374,7 @@ export const AdaptiveQuizEngine = () => {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Generating next question...</p>
+            <p className="text-muted-foreground">{t('adaptiveQuiz.generatingQuestion')}</p>
           </div>
         ) : currentQuestion ? (
           <>
@@ -385,12 +385,12 @@ export const AdaptiveQuizEngine = () => {
 
               {currentQuestion.type === 'short_answer' ? (
                 <div className="space-y-2">
-                  <Label htmlFor="short-answer-input">Your Answer</Label>
+                  <Label htmlFor="short-answer-input">{t('quizTaker.typeAnswer')}</Label>
                   <Input
                     id="short-answer-input"
                     value={selectedAnswer}
                     onChange={(e) => setSelectedAnswer(e.target.value)}
-                    placeholder="Type your answer..."
+                    placeholder={t('quizTaker.typeAnswer')}
                     disabled={showFeedback}
                   />
                 </div>
@@ -435,12 +435,12 @@ export const AdaptiveQuizEngine = () => {
                   {lastResult.isCorrect ? (
                     <>
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
-                      <span className="font-medium text-green-600">Correct! +{lastResult.earnedPoints} points</span>
+                      <span className="font-medium text-green-600">{t('adaptiveQuiz.correct')} +{lastResult.earnedPoints} pts</span>
                     </>
                   ) : (
                     <>
                       <XCircle className="h-5 w-5 text-red-600" />
-                      <span className="font-medium text-red-600">Incorrect</span>
+                      <span className="font-medium text-red-600">{t('adaptiveQuiz.incorrect')}</span>
                     </>
                   )}
                 </div>
@@ -449,7 +449,7 @@ export const AdaptiveQuizEngine = () => {
                 )}
                 {!lastResult.isCorrect && (
                   <p className="text-sm mt-2">
-                    <span className="text-muted-foreground">Correct answer: </span>
+                    <span className="text-muted-foreground">{t('adaptiveQuiz.correctAnswer')} </span>
                     <span className="font-medium">{currentQuestion.correct_answer}</span>
                   </p>
                 )}
@@ -463,11 +463,11 @@ export const AdaptiveQuizEngine = () => {
                   disabled={!selectedAnswer}
                   size="lg"
                 >
-                  Submit Answer
+                  {t('adaptiveQuiz.submitAnswer')}
                 </Button>
               ) : (
                 <Button onClick={handleNextQuestion} size="lg">
-                  {currentQuestionIndex + 1 >= totalQuestions ? 'View Results' : 'Next Question'}
+                  {currentQuestionIndex + 1 >= totalQuestions ? t('adaptiveQuiz.viewResults') : t('adaptiveQuiz.nextQuestion')}
                 </Button>
               )}
             </div>

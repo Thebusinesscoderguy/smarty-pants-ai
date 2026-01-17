@@ -80,7 +80,7 @@ const QuizGeneratorPage = () => {
           <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
             <TabsList className="grid w-full grid-cols-5 bg-muted border border-border">
               <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
-              <TabsTrigger value="adaptive">Adaptive Quiz</TabsTrigger>
+              <TabsTrigger value="adaptive">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
               <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
               <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
               <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
