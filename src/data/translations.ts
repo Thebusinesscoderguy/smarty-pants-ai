@@ -1195,6 +1195,24 @@ export const translations: TranslationData = {
     'auth.error.passwordMismatch': 'Passwords do not match. Please try again.',
     'auth.error.passwordLength': 'Password must be at least 6 characters long.',
     'auth.error.alreadyRegistered': 'This email is already registered. Please sign in instead.',
+
+    // Analytics Section
+    'analytics.recentTests': 'Recent Tests & Quizzes',
+    'analytics.noTestsYet': 'No tests completed yet',
+    'analytics.takeQuizzesToSeeProgress': 'Take some quizzes or tests to see your progress',
+    'analytics.studyPlanProgress': 'Study Plan Progress',
+    'analytics.noActivePlans': 'No active study plans',
+    'analytics.createPlanFromGenerator': 'Create a study plan from the Quiz Generator',
+    'analytics.progress': 'Progress',
+    'analytics.gradeLevel': 'Grade Level',
+    'analytics.general': 'General',
+    'analytics.minsEstimated': 'mins estimated',
+    'analytics.performanceOverview': 'Performance Overview',
+    'analytics.averageScore': 'Average Score',
+    'analytics.testsCompleted': 'Tests Completed',
+    'analytics.highScores': 'High Scores (80%+)',
+    'analytics.allTestResults': 'All Test Results',
+    'analytics.loadingProgress': 'Loading progress data...',
     
     // Enhanced Quiz Generator
     'quizGenerator.title': 'Enhanced Quiz Generator',
