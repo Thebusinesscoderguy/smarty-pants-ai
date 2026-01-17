@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Play, BookOpen, Calendar, Target, List } from 'lucide-react';
+import { Trash2, Play, BookOpen, Calendar, Target, List, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import StudyPlanDaySelector from './StudyPlanDaySelector';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
 
 interface StudyPlan {
   id: string;
@@ -226,9 +227,12 @@ export const StudyPlanLibrary = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-semibold">{t('studyPlanLibrary.title')}</h2>
-        <Badge variant="outline">{t('studyPlanLibrary.plans').replace('{count}', studyPlans.length.toString())}</Badge>
+        <div className="flex items-center gap-2">
+          <PDFStudyPlanButton variant="outline" size="sm" />
+          <Badge variant="outline">{t('studyPlanLibrary.plans').replace('{count}', studyPlans.length.toString())}</Badge>
+        </div>
       </div>
 
       <div className="grid gap-4">
