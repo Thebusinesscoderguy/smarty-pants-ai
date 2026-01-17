@@ -112,16 +112,39 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-border"></div>
-        <span className="ml-2">{t('analytics.loadingProgress')}</span>
+        <span className="ml-2">Loading progress data...</span>
       </div>
     );
   }
+
+  // Hardcoded translations for reliability
+  const getTranslation = (key: string): string => {
+    const translations: Record<string, string> = {
+      'analytics.recentTests': 'Recent Tests & Quizzes',
+      'analytics.noTestsYet': 'No tests completed yet',
+      'analytics.takeQuizzesToSeeProgress': 'Take some quizzes or tests to see your progress',
+      'analytics.studyPlanProgress': 'Study Plan Progress',
+      'analytics.noActivePlans': 'No active study plans',
+      'analytics.createPlanFromGenerator': 'Create a study plan from the Quiz Generator',
+      'analytics.progress': 'Progress',
+      'analytics.gradeLevel': 'Grade Level',
+      'analytics.general': 'General',
+      'analytics.minsEstimated': 'mins estimated',
+      'analytics.performanceOverview': 'Performance Overview',
+      'analytics.averageScore': 'Average Score',
+      'analytics.testsCompleted': 'Tests Completed',
+      'analytics.highScores': 'High Scores (80%+)',
+      'analytics.allTestResults': 'All Test Results',
+      'analytics.loadingProgress': 'Loading progress data...',
+    };
+    return translations[key] || t(key);
+  };
 
   return (
     <div className="space-y-6">
       {/* PDF Download Button at top */}
       <div className="flex justify-end">
-        <PDFStudyPlanButton variant="default" />
+        <PDFStudyPlanButton variant="default" className="bg-primary hover:bg-primary/90" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -130,7 +153,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              {t('analytics.recentTests')}
+              {getTranslation('analytics.recentTests')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -163,9 +186,9 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
               ) : (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">{t('analytics.noTestsYet')}</p>
+                  <p className="text-muted-foreground">{getTranslation('analytics.noTestsYet')}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {t('analytics.takeQuizzesToSeeProgress')}
+                    {getTranslation('analytics.takeQuizzesToSeeProgress')}
                   </p>
                 </div>
               )}
@@ -178,7 +201,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              {t('analytics.studyPlanProgress')}
+              {getTranslation('analytics.studyPlanProgress')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -196,7 +219,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{t('analytics.progress')}</span>
+                        <span className="text-muted-foreground">{getTranslation('analytics.progress')}</span>
                         <span className="font-medium">
                           {Math.round((plan.estimated_duration / 100) * 60)}%
                         </span>
@@ -204,8 +227,8 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                       <Progress value={Math.round((plan.estimated_duration / 100) * 60)} className="h-2" />
                       
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{t('analytics.gradeLevel')}: {plan.grade_level || t('analytics.general')}</span>
-                        <span>{plan.estimated_duration} {t('analytics.minsEstimated')}</span>
+                        <span>{getTranslation('analytics.gradeLevel')}: {plan.grade_level || getTranslation('analytics.general')}</span>
+                        <span>{plan.estimated_duration} {getTranslation('analytics.minsEstimated')}</span>
                       </div>
                     </div>
                   </div>
@@ -213,9 +236,9 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
               ) : (
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">{t('analytics.noActivePlans')}</p>
+                  <p className="text-muted-foreground">{getTranslation('analytics.noActivePlans')}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {t('analytics.createPlanFromGenerator')}
+                    {getTranslation('analytics.createPlanFromGenerator')}
                   </p>
                 </div>
               )}
@@ -230,7 +253,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              {t('analytics.performanceOverview')}
+              {getTranslation('analytics.performanceOverview')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -239,21 +262,21 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
                 <div className="text-3xl font-bold mb-2">
                   {Math.round(tests.reduce((sum, test) => sum + test.score, 0) / tests.length)}%
                 </div>
-                <div className="text-muted-foreground">{t('analytics.averageScore')}</div>
+                <div className="text-muted-foreground">{getTranslation('analytics.averageScore')}</div>
               </div>
               
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
                   {tests.length}
                 </div>
-                <div className="text-muted-foreground">{t('analytics.testsCompleted')}</div>
+                <div className="text-muted-foreground">{getTranslation('analytics.testsCompleted')}</div>
               </div>
               
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
                   {tests.filter(test => test.score >= 80).length}
                 </div>
-                <div className="text-muted-foreground">{t('analytics.highScores')}</div>
+                <div className="text-muted-foreground">{getTranslation('analytics.highScores')}</div>
               </div>
             </div>
           </CardContent>
@@ -266,7 +289,7 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              {t('analytics.allTestResults')} ({tests.length})
+              {getTranslation('analytics.allTestResults')} ({tests.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
