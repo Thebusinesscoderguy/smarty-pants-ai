@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
 import { 
   FileText,
   Calendar,
@@ -118,6 +119,11 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
 
   return (
     <div className="space-y-6">
+      {/* PDF Download Button at top */}
+      <div className="flex justify-end">
+        <PDFStudyPlanButton variant="default" />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Test Progress */}
         <Card className="bg-card border-border backdrop-blur-sm">

@@ -12,8 +12,7 @@ import { DemoParentDashboard } from '@/components/demo/DemoParentDashboard';
 import { DemoQuestDisplay } from '@/components/demo/DemoQuestDisplay';
 import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
 import { CurriculumSelector } from '@/components/CurriculumSelector';
-import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play, FileDown } from 'lucide-react';
-import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
+import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -472,19 +471,12 @@ const Progress = () => {
       
       <main className="px-6 py-8 max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {user ? t('progress.learningDashboard') : t('progress.demoDashboard')}
-              </h1>
-              <p className="text-white/70 text-xl max-w-2xl">
-                {user ? t('progress.trackProgress') : t('progress.experiencePlatform')}
-              </p>
-            </div>
-            {user && (
-              <PDFStudyPlanButton variant="default" size="default" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" />
-            )}
-          </div>
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            {user ? t('progress.learningDashboard') : t('progress.demoDashboard')}
+          </h1>
+          <p className="text-white/70 text-xl max-w-2xl">
+            {user ? t('progress.trackProgress') : t('progress.experiencePlatform')}
+          </p>
           {!user && (
             <div className="mt-6 p-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl backdrop-blur-sm">
               <p className="text-blue-200 flex items-center">
