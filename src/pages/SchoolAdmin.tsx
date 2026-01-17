@@ -11,8 +11,11 @@ import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const SchoolAdmin = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
@@ -20,9 +23,9 @@ const SchoolAdmin = () => {
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">School Administration</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('schoolAdmin.title')}</h1>
             <p className="text-muted-foreground">
-              Complete school management platform with curriculum, payments, and analytics
+              {t('schoolAdmin.subtitle')}
             </p>
           </div>
 
@@ -30,31 +33,31 @@ const SchoolAdmin = () => {
             <TabsList className="grid w-full grid-cols-7 bg-muted">
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                Overview
+                {t('schoolAdmin.tabs.overview')}
               </TabsTrigger>
               <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users className="h-4 w-4 mr-2" />
-                Students
+                {t('schoolAdmin.tabs.students')}
               </TabsTrigger>
               <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BookOpen className="h-4 w-4 mr-2" />
-                Curriculum
+                {t('schoolAdmin.tabs.curriculum')}
               </TabsTrigger>
               <TabsTrigger value="quests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Target className="h-4 w-4 mr-2" />
-                Quests
+                {t('schoolAdmin.tabs.quests')}
               </TabsTrigger>
               <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Analytics
+                {t('schoolAdmin.tabs.analytics')}
               </TabsTrigger>
               <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Brain className="h-4 w-4 mr-2" />
-                Student Analysis
+                {t('schoolAdmin.tabs.studentAnalysis')}
               </TabsTrigger>
               <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <CreditCard className="h-4 w-4 mr-2" />
-                Billing
+                {t('schoolAdmin.tabs.billing')}
               </TabsTrigger>
             </TabsList>
 

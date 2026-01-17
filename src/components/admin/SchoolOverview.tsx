@@ -136,22 +136,22 @@ export const SchoolOverview = () => {
           <CardHeader>
             <CardTitle className="text-white flex items-center">
               <TrendingUp className="h-5 w-5 mr-2" />
-              Recent Activity
+              {t('adminOverview.recentActivity')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between py-2 border-b border-white/10">
-                <span className="text-gray-300">System initialized</span>
-                <Badge variant="secondary">Today</Badge>
+                <span className="text-gray-300">{t('adminOverview.systemInitialized')}</span>
+                <Badge variant="secondary">{t('adminOverview.today')}</Badge>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-white/10">
-                <span className="text-gray-300">Default quests created</span>
-                <Badge variant="secondary">Today</Badge>
+                <span className="text-gray-300">{t('adminOverview.defaultQuestsCreated')}</span>
+                <Badge variant="secondary">{t('adminOverview.today')}</Badge>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-gray-300">Achievement system ready</span>
-                <Badge variant="secondary">Today</Badge>
+                <span className="text-gray-300">{t('adminOverview.achievementSystemReady')}</span>
+                <Badge variant="secondary">{t('adminOverview.today')}</Badge>
               </div>
             </div>
           </CardContent>
@@ -161,26 +161,26 @@ export const SchoolOverview = () => {
           <CardHeader>
             <CardTitle className="text-white flex items-center">
               <Clock className="h-5 w-5 mr-2" />
-              Getting Started
+              {t('adminOverview.gettingStarted')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-gray-300">Set up school profile</span>
+                <span className="text-gray-300">{t('adminOverview.setupSchoolProfile')}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-gray-300">Invite first students</span>
+                <span className="text-gray-300">{t('adminOverview.inviteFirstStudents')}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-gray-300">Create custom quests</span>
+                <span className="text-gray-300">{t('adminOverview.createCustomQuests')}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                <span className="text-gray-300">Monitor student progress</span>
+                <span className="text-gray-300">{t('adminOverview.monitorStudentProgress')}</span>
               </div>
             </div>
           </CardContent>
