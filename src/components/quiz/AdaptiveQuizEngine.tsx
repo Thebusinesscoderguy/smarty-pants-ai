@@ -127,7 +127,7 @@ export const AdaptiveQuizEngine = () => {
   // Setup Screen
   if (!isActive && !isComplete) {
     return (
-      <Card className="max-w-2xl mx-auto">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
@@ -250,7 +250,7 @@ export const AdaptiveQuizEngine = () => {
       : 2;
 
     return (
-      <Card className="max-w-2xl mx-auto">
+      <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Trophy className="h-8 w-8 text-primary" />
@@ -349,7 +349,7 @@ export const AdaptiveQuizEngine = () => {
   const trend = getDifficultyTrend();
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
