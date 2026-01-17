@@ -284,6 +284,97 @@ export const useAdaptiveQuiz = () => {
     return { isCorrect, earnedPoints, isComplete };
   }, [state.currentQuestion, state.currentQuestionIndex, state.currentDifficulty, state.performanceHistory, state.totalQuestions, language]);
 
+  const saveQuizToLibrary = useCallback(async () => {
+    if (!configRef.current || state.answeredQuestions.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'No quiz data to save',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user?.id) {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to save quizzes',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Create quiz entry
+      const { data: quizData, error: quizError } = await supabase
+        .from('quizzes')
+        .insert({
+          title: `Adaptive: ${configRef.current.topic}`,
+          description: `Adaptive quiz on ${configRef.current.topic} (${configRef.current.gradeLevel})`,
+          difficulty: state.performanceHistory.length > 0 
+            ? state.performanceHistory[state.performanceHistory.length - 1].difficulty 
+            : configRef.current.startingDifficulty,
+          total_questions: state.answeredQuestions.length,
+          user_id: userData.user.id,
+        })
+        .select()
+        .single();
+
+      if (quizError) throw quizError;
+
+      // Create quiz questions
+      const questions = state.answeredQuestions.map((aq, index) => ({
+        quiz_id: quizData.id,
+        question: aq.question.question,
+        question_type: aq.question.type === 'multiple_choice' ? 'multiple_choice' : 
+                       aq.question.type === 'true_false' ? 'true_false' : 'short_answer',
+        options: aq.question.options || null,
+        correct_answer: aq.question.correct_answer,
+        explanation: aq.question.explanation || null,
+        points: aq.question.points,
+        order_index: index,
+      }));
+
+      const { error: questionsError } = await supabase
+        .from('quiz_questions')
+        .insert(questions);
+
+      if (questionsError) throw questionsError;
+
+      // Save the attempt record
+      const answers = state.answeredQuestions.map(aq => ({
+        question: aq.question.question,
+        userAnswer: aq.userAnswer,
+        correct: aq.correct,
+        timeMs: aq.timeMs,
+      }));
+
+      await supabase.from('quiz_attempts').insert({
+        quiz_id: quizData.id,
+        user_id: userData.user.id,
+        score: state.score,
+        total_possible: state.maxScore,
+        answers,
+        time_taken: Math.round(state.answeredQuestions.reduce((acc, aq) => acc + aq.timeMs, 0) / 1000),
+      });
+
+      toast({
+        title: 'Quiz Saved!',
+        description: 'Your adaptive quiz has been saved to the library',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error saving quiz to library:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save quiz',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [state.answeredQuestions, state.score, state.maxScore, state.performanceHistory]);
+
   const resetQuiz = useCallback(() => {
     configRef.current = null;
     previousQuestionsRef.current = [];
@@ -307,5 +398,6 @@ export const useAdaptiveQuiz = () => {
     submitAnswer,
     resetQuiz,
     fetchNextQuestion,
+    saveQuizToLibrary,
   };
 };

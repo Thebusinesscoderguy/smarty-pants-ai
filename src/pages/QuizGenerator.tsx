@@ -77,21 +77,21 @@ const QuizGeneratorPage = () => {
           <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('studyTools.title')}</h1>
           <p className="text-muted-foreground mb-6">{t('studyTools.subtitle')}</p>
 
-          <Tabs defaultValue={type === 'quiz' ? 'generate' : 'adaptive'} className="w-full">
+          <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
             <TabsList className="grid w-full grid-cols-5 bg-muted border border-border">
-              <TabsTrigger value="adaptive">Adaptive Quiz</TabsTrigger>
               <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+              <TabsTrigger value="adaptive">Adaptive Quiz</TabsTrigger>
               <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
               <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
               <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="adaptive" className="mt-6">
-              <AdaptiveQuizEngine />
-            </TabsContent>
-
             <TabsContent value="study-plan" className="mt-6">
               <StudyPlanGenerator autoGenerate={auto && type !== 'quiz' && input ? { inputMethod: method, input } : undefined} />
+            </TabsContent>
+
+            <TabsContent value="adaptive" className="mt-6">
+              <AdaptiveQuizEngine />
             </TabsContent>
 
             <TabsContent value="generate" className="mt-6">
