@@ -12,18 +12,18 @@ import { useAdaptiveQuiz, type DifficultyLevel, type AdaptiveQuizConfig } from '
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-const GRADE_LEVELS = [
-  'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
-  'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12',
-  'College Freshman', 'College Sophomore', 'College Junior', 'College Senior', 'Graduate'
+const GRADE_LEVEL_KEYS = [
+  'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6',
+  'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12',
+  'collegeFreshman', 'collegeSophomore', 'collegeJunior', 'collegeSenior', 'graduate'
 ];
 
-const DIFFICULTY_OPTIONS: { value: DifficultyLevel; label: string; color: string }[] = [
-  { value: 'very_easy', label: 'Very Easy', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  { value: 'easy', label: 'Easy', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
-  { value: 'hard', label: 'Hard', color: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
-  { value: 'very_hard', label: 'Very Hard', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
+const DIFFICULTY_KEYS: { value: DifficultyLevel; color: string }[] = [
+  { value: 'very_easy', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  { value: 'easy', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
+  { value: 'medium', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
+  { value: 'hard', color: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
+  { value: 'very_hard', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
 ];
 
 export const AdaptiveQuizEngine = () => {
@@ -106,7 +106,7 @@ export const AdaptiveQuizEngine = () => {
   };
 
   const getDifficultyInfo = (diff: DifficultyLevel) => {
-    return DIFFICULTY_OPTIONS.find(d => d.value === diff) || DIFFICULTY_OPTIONS[2];
+    return DIFFICULTY_KEYS.find(d => d.value === diff) || DIFFICULTY_KEYS[2];
   };
 
   const getDifficultyTrend = () => {
@@ -115,8 +115,8 @@ export const AdaptiveQuizEngine = () => {
     const prevDiff = performanceHistory[performanceHistory.length - 2]?.difficulty;
     if (prevDiff === currentDifficulty) return 'same';
     
-    const prevIndex = DIFFICULTY_OPTIONS.findIndex(d => d.value === prevDiff);
-    const currIndex = DIFFICULTY_OPTIONS.findIndex(d => d.value === currentDifficulty);
+    const prevIndex = DIFFICULTY_KEYS.findIndex(d => d.value === prevDiff);
+    const currIndex = DIFFICULTY_KEYS.findIndex(d => d.value === currentDifficulty);
     
     return currIndex > prevIndex ? 'up' : 'down';
   };
@@ -157,8 +157,8 @@ export const AdaptiveQuizEngine = () => {
                   <SelectValue placeholder={t('adaptiveQuiz.selectLevel')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {GRADE_LEVELS.map(level => (
-                    <SelectItem key={level} value={level}>{level}</SelectItem>
+                  {GRADE_LEVEL_KEYS.map(key => (
+                    <SelectItem key={key} value={key}>{t(`adaptiveQuiz.grades.${key}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -175,7 +175,7 @@ export const AdaptiveQuizEngine = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIFFICULTY_OPTIONS.map(opt => (
+                  {DIFFICULTY_KEYS.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>{t(`adaptiveQuiz.difficulty.${opt.value}`)}</SelectItem>
                   ))}
                 </SelectContent>
@@ -246,7 +246,7 @@ export const AdaptiveQuizEngine = () => {
       : 0;
 
     const avgDifficulty = performanceHistory.length > 0
-      ? DIFFICULTY_OPTIONS.findIndex(d => d.value === performanceHistory[performanceHistory.length - 1].difficulty)
+      ? DIFFICULTY_KEYS.findIndex(d => d.value === performanceHistory[performanceHistory.length - 1].difficulty)
       : 2;
 
     return (
@@ -273,7 +273,7 @@ export const AdaptiveQuizEngine = () => {
               <div className="text-xs text-muted-foreground">{t('adaptiveQuiz.accuracy')}</div>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
-              <div className="text-2xl font-bold">{t(`adaptiveQuiz.difficulty.${DIFFICULTY_OPTIONS[avgDifficulty]?.value || 'medium'}`)}</div>
+              <div className="text-2xl font-bold">{t(`adaptiveQuiz.difficulty.${DIFFICULTY_KEYS[avgDifficulty]?.value || 'medium'}`)}</div>
               <div className="text-xs text-muted-foreground">{t('adaptiveQuiz.finalLevel')}</div>
             </div>
           </div>
