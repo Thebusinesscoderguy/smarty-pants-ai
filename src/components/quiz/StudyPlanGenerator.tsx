@@ -349,9 +349,25 @@ Please generate 5 questions that test understanding of this topic.`;
   };
 
   const popularTopics = [
-    'Algebra 1', 'Algebra 2', 'Geometry', 'Precalculus', 'Calculus AB', 'Calculus BC',
-    'Physics', 'Chemistry', 'Biology', 'US History', 'World History', 'Civics/Government',
-    'English Grammar', 'Literature', 'Spanish I', 'Spanish II', 'Computer Science', 'SAT Math', 'SAT Reading'
+    { key: 'subject.algebra1', label: 'Algebra 1' },
+    { key: 'subject.algebra2', label: 'Algebra 2' },
+    { key: 'subject.geometry', label: 'Geometry' },
+    { key: 'subject.precalculus', label: 'Precalculus' },
+    { key: 'subject.calculusAB', label: 'Calculus AB' },
+    { key: 'subject.calculusBC', label: 'Calculus BC' },
+    { key: 'subject.physics', label: 'Physics' },
+    { key: 'subject.chemistry', label: 'Chemistry' },
+    { key: 'subject.biology', label: 'Biology' },
+    { key: 'subject.usHistory', label: 'US History' },
+    { key: 'subject.worldHistory', label: 'World History' },
+    { key: 'subject.civics', label: 'Civics/Government' },
+    { key: 'subject.englishGrammar', label: 'English Grammar' },
+    { key: 'subject.literature', label: 'Literature' },
+    { key: 'subject.spanishI', label: 'Spanish I' },
+    { key: 'subject.spanishII', label: 'Spanish II' },
+    { key: 'subject.computerScience', label: 'Computer Science' },
+    { key: 'subject.satMath', label: 'SAT Math' },
+    { key: 'subject.satReading', label: 'SAT Reading' },
   ];
 
   const isProcessing = isGenerating || isUploading;
@@ -361,17 +377,17 @@ Please generate 5 questions that test understanding of this topic.`;
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Unlock more days</DialogTitle>
+            <DialogTitle>{t('studyPlan.unlockMoreDays')}</DialogTitle>
             <DialogDescription>
-              Sign in to start Day {attemptedDay}. Guests can start Day 1 for free.
+              {t('studyPlan.signInToStart')} {attemptedDay}. {t('studyPlan.guestDay1')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={() => navigate('/auth')}>
-              Sign In
+              {t('studyPlan.signIn')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -381,24 +397,24 @@ Please generate 5 questions that test understanding of this topic.`;
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Study Plan Generator
+            {t('studyPlan.generator')}
           </CardTitle>
           <CardDescription>
-            Upload study material or graded quiz/test, or describe your weak areas to get a personalized study plan
+            {t('studyPlan.generatorDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as 'file' | 'chat' | 'topic')}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="file">Upload Material</TabsTrigger>
-              <TabsTrigger value="chat">Describe Issues</TabsTrigger>
-              <TabsTrigger value="topic">Select Topic</TabsTrigger>
+              <TabsTrigger value="file">{t('studyPlan.uploadMaterial')}</TabsTrigger>
+              <TabsTrigger value="chat">{t('studyPlan.describeIssues')}</TabsTrigger>
+              <TabsTrigger value="topic">{t('studyPlan.selectTopic')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="file" className="space-y-4">
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <Label>Upload Material Type</Label>
+                  <Label>{t('studyPlan.uploadMaterialType')}</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       variant={uploadType === 'study_material' ? "default" : "outline"}
@@ -407,7 +423,7 @@ Please generate 5 questions that test understanding of this topic.`;
                       className="justify-start"
                     >
                       <BookOpen className="mr-2 h-4 w-4" />
-                      Study Material
+                      {t('studyPlan.studyMaterial')}
                     </Button>
                     <Button
                       variant={uploadType === 'graded_quiz' ? "default" : "outline"}
@@ -416,14 +432,14 @@ Please generate 5 questions that test understanding of this topic.`;
                       className="justify-start"
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Graded Quiz
+                      {t('studyPlan.gradedQuiz')}
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>
-                    {uploadType === 'study_material' ? 'Upload Study Material' : 'Upload Graded Quiz/Test'}
+                    {uploadType === 'study_material' ? t('studyPlan.uploadStudyMaterial') : t('studyPlan.uploadGradedQuiz')}
                   </Label>
                   <FileUploadZone
                     onFileUpload={handleFileUpload}
@@ -439,7 +455,7 @@ Please generate 5 questions that test understanding of this topic.`;
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Upload className="h-4 w-4 animate-pulse" />
-                        <span>Uploading file...</span>
+                        <span>{t('studyPlan.uploadingFile')}</span>
                       </div>
                       <Progress value={uploadProgress} className="h-2" />
                     </div>
@@ -450,12 +466,12 @@ Please generate 5 questions that test understanding of this topic.`;
 
             <TabsContent value="chat" className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="chatInput">Describe what you struggled with</Label>
+                <Label htmlFor="chatInput">{t('studyPlan.describeStruggle')}</Label>
                 <Textarea
                   id="chatInput"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Describe the topics you found difficult, specific questions you got wrong, or areas where you need more practice..."
+                  placeholder={t('studyPlan.describePlaceholder')}
                   rows={4}
                   disabled={isProcessing}
                 />
@@ -464,17 +480,17 @@ Please generate 5 questions that test understanding of this topic.`;
 
             <TabsContent value="topic" className="space-y-4">
               <div className="space-y-2">
-                <Label>Select Subject Area</Label>
+                <Label>{t('studyPlan.selectSubjectArea')}</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {popularTopics.map((topic) => (
                     <Button
-                      key={topic}
-                      variant={selectedTopic === topic ? "default" : "outline"}
+                      key={topic.label}
+                      variant={selectedTopic === topic.label ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setSelectedTopic(selectedTopic === topic ? '' : topic)}
+                      onClick={() => setSelectedTopic(selectedTopic === topic.label ? '' : topic.label)}
                       disabled={isProcessing}
                     >
-                      {topic}
+                      {t(topic.key)}
                     </Button>
                   ))}
                 </div>
