@@ -921,6 +921,31 @@ export const translations: TranslationData = {
     'onboardingRoleSelector.noChildren': 'No children found in your account. Please add children first to access student features.',
     'onboardingRoleSelector.errorSettingRole': 'Failed to set role. Please try again.',
 
+    // Role Selector
+    'roleSelector.welcome': 'Who is using TeachlyAI today?',
+    'roleSelector.selectRole': 'Select your role to personalize your experience',
+    'roleSelector.imParent': "I'm the Parent",
+    'roleSelector.parentDescription': "Monitor and support my children's learning progress",
+    'roleSelector.viewRealProgress': 'View real progress data',
+    'roleSelector.monitorAnalytics': 'Monitor learning analytics',
+    'roleSelector.trackAchievements': 'Track achievements',
+    'roleSelector.manageStudyPlans': 'Manage study plans',
+    'roleSelector.continueAsParent': 'Continue as Parent',
+    'roleSelector.orSelectChild': 'Or select one of your children:',
+    'roleSelector.continueAs': 'Continue as',
+    'roleSelector.noChildren': 'No children found in your account. Please add children first to access student features.',
+    'roleSelector.imStudent': "I'm a Student",
+    'roleSelector.studentDescription': 'Ready to learn and have fun with AI',
+    'roleSelector.interactiveChat': 'Interactive AI chat',
+    'roleSelector.funLearning': 'Fun learning games',
+    'roleSelector.earnAchievements': 'Earn achievements',
+    'roleSelector.completeQuests': 'Complete quests',
+    'roleSelector.continueAsStudent': 'Continue as Student',
+    'roleSelector.roleSelected': 'Role Selected',
+    'roleSelector.welcomeRole': 'Welcome! You are now set up as a',
+    'roleSelector.error': 'Error',
+    'roleSelector.errorDescription': 'Failed to set role. Please try again.',
+
 
     // Public Pricing page (legacy - kept for backward compatibility)
     'publicPricing.personalAI': 'Personal AI tutor available 24/7',
