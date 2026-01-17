@@ -18,18 +18,21 @@ const Index = () => {
   const [typewriterText, setTypewriterText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const { language } = useLanguage();
+  const isRTL = language === 'ar';
+
   const studyPlanPlaceholders = [
-    "Create a personalized study plan for Algebra 1",
-    "Build a study plan for Fundamentals of Physics",
-    "Design a learning path for Adjective Rules",
-    "Plan my week of Trigonometry practice"
+    t('home.hero.studyPlanPlaceholder1'),
+    t('home.hero.studyPlanPlaceholder2'),
+    t('home.hero.studyPlanPlaceholder3'),
+    t('home.hero.studyPlanPlaceholder4')
   ];
 
   const quizPlaceholders = [
-    "Generate a quiz for World Geography",
-    "Make a quick quiz on Photosynthesis",
-    "Test me on English grammar basics",
-    "Create a 10-question quiz for History"
+    t('home.hero.quizPlaceholder1'),
+    t('home.hero.quizPlaceholder2'),
+    t('home.hero.quizPlaceholder3'),
+    t('home.hero.quizPlaceholder4')
   ];
 
   const currentPlaceholders = selectedType === 'study-plan' ? studyPlanPlaceholders : quizPlaceholders;
@@ -111,37 +114,37 @@ const Index = () => {
                 {t('home.hero.subtitle')}
               </p>
               
-              <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto">
+              <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                  <div className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 z-10`}>
                     <Select value={selectedType} onValueChange={(value: 'study-plan' | 'quiz') => setSelectedType(value)}>
                       <SelectTrigger className="w-[130px] h-9 border border-border/60 bg-background/80 backdrop-blur-sm hover:bg-muted hover:border-primary/40 rounded-full text-sm font-medium transition-all">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border border-border">
-                        <SelectItem value="study-plan">Study Plan</SelectItem>
-                        <SelectItem value="quiz">Quiz</SelectItem>
+                        <SelectItem value="study-plan">{t('home.hero.studyPlan')}</SelectItem>
+                        <SelectItem value="quiz">{t('home.hero.quiz')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   {!inputValue && (
-                    <div className="absolute left-[160px] top-1/2 -translate-y-1/2 pointer-events-none text-base text-muted-foreground flex items-center">
+                    <div className={`absolute ${isRTL ? 'right-[160px]' : 'left-[160px]'} top-1/2 -translate-y-1/2 pointer-events-none text-base text-muted-foreground flex items-center`}>
                       <span>{typewriterText}</span>
-                      <span className="inline-block w-0.5 h-4 bg-muted-foreground ml-0.5 animate-pulse"></span>
+                      <span className={`inline-block w-0.5 h-4 bg-muted-foreground ${isRTL ? 'mr-0.5' : 'ml-0.5'} animate-pulse`}></span>
                     </div>
                   )}
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full pl-[160px] pr-28 py-4 text-base rounded-full border border-border/60 bg-background text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    className={`w-full ${isRTL ? 'pr-[160px] pl-28' : 'pl-[160px] pr-28'} py-4 text-base rounded-full border border-border/60 bg-background text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all`}
                   />
                   <Button
                     type="submit"
                     size="sm"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 h-9 text-sm font-medium"
+                    className={`absolute ${isRTL ? 'left-1.5' : 'right-1.5'} top-1/2 -translate-y-1/2 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 h-9 text-sm font-medium`}
                   >
-                    {t('home.hero.start')} <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
+                    {t('home.hero.start')} <ArrowRight className={`${isRTL ? 'mr-1.5 rotate-180' : 'ml-1.5'} w-3.5 h-3.5`} />
                   </Button>
                 </div>
               </form>
