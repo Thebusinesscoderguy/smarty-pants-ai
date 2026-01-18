@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle, Upload, Brain } from 'lucide-react';
+import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle, Upload, Brain, FileDown, Presentation } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 import { useQuizGenerator } from '@/hooks/useQuizGenerator';
@@ -18,6 +18,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
+import { PresentationButton } from '@/components/study-plan/PresentationButton';
 
 interface StudyPlan {
   id: string;
@@ -624,12 +626,12 @@ Please generate 5 questions that test understanding of this topic.`;
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Start and Save buttons at the top */}
-            <div className="flex gap-3">
+            {/* Start, Save, and Export buttons */}
+            <div className="flex flex-wrap gap-3">
               <Button 
                 onClick={handleStartPlan} 
                 disabled={starting}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                className="flex-1 min-w-[140px] bg-orange-500 hover:bg-orange-600 text-white"
               >
                 {starting ? (
                   <>
@@ -643,7 +645,7 @@ Please generate 5 questions that test understanding of this topic.`;
               <Button 
                 onClick={handleSavePlan}
                 disabled={saving}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                className="flex-1 min-w-[140px] bg-orange-500 hover:bg-orange-600 text-white"
               >
                 {saving ? (
                   <>
@@ -654,6 +656,12 @@ Please generate 5 questions that test understanding of this topic.`;
                   'Save Plan'
                 )}
               </Button>
+            </div>
+            
+            {/* Export Options */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t">
+              <PDFStudyPlanButton variant="outline" size="sm" />
+              <PresentationButton variant="outline" size="sm" />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

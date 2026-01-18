@@ -429,10 +429,140 @@ export const usePresentationGenerator = () => {
         });
       });
 
-      // ========== SLIDE 3: Weekly Plan ==========
-      const slide3 = pptx.addSlide();
-      slide3.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.secondary } });
-      slide3.addText(isArabic ? 'الخطة الأسبوعية' : 'Weekly Study Plan', {
+      // ========== SLIDE 3: Visual Analytics (Charts) ==========
+      const slideCharts = pptx.addSlide();
+      slideCharts.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.gradient1 } });
+      slideCharts.addText(isArabic ? 'تحليل الأداء المرئي' : 'Visual Performance Analytics', {
+        x: 0.5, y: 0.35, w: 9, h: 0.6, fontSize: 28, bold: true, color: COLORS.white, align: isArabic ? 'right' : 'left'
+      });
+
+      // Prepare subject distribution data for pie chart
+      const subjectCounts: Record<string, number> = {};
+      data.performance.quizScores.forEach(q => {
+        subjectCounts[q.subject] = (subjectCounts[q.subject] || 0) + 1;
+      });
+      const subjectLabels = Object.keys(subjectCounts).slice(0, 6);
+      const subjectValues = subjectLabels.map(s => subjectCounts[s]);
+      
+      // If we have subject data, create pie chart
+      if (subjectLabels.length > 0) {
+        const pieColors = [COLORS.primary, COLORS.secondary, COLORS.accent, COLORS.success, COLORS.warning, COLORS.danger];
+        
+        // Pie chart title
+        slideCharts.addText(isArabic ? 'توزيع المواد 📊' : 'Subject Distribution 📊', {
+          x: 0.5, y: 1.4, w: 4.5, h: 0.4, fontSize: 16, bold: true, color: COLORS.dark
+        });
+        
+        // Draw pie chart manually using shapes (sectors approximated as wedges)
+        const total = subjectValues.reduce((a, b) => a + b, 0);
+        let currentAngle = 0;
+        const centerX = 2.5;
+        const centerY = 3.2;
+        const radius = 1.2;
+        
+        // Draw pie segments as colored rectangles with labels (simplified visual)
+        subjectLabels.forEach((label, i) => {
+          const percentage = Math.round((subjectValues[i] / total) * 100);
+          const yPos = 1.9 + i * 0.45;
+          
+          // Color box
+          slideCharts.addShape('rect', {
+            x: 0.5, y: yPos, w: 0.3, h: 0.3,
+            fill: { type: 'solid', color: pieColors[i % pieColors.length] }
+          });
+          
+          // Label with percentage
+          slideCharts.addText(`${label}: ${percentage}%`, {
+            x: 0.9, y: yPos, w: 3.5, h: 0.35,
+            fontSize: 11, color: COLORS.dark
+          });
+        });
+        
+        // Visual pie representation using concentric arcs (simplified donut)
+        slideCharts.addShape('ellipse', {
+          x: 3.2, y: 2.4, w: 1.8, h: 1.8,
+          fill: { type: 'solid', color: COLORS.primary }
+        });
+        slideCharts.addShape('ellipse', {
+          x: 3.35, y: 2.55, w: 1.5, h: 1.5,
+          fill: { type: 'solid', color: COLORS.secondary }
+        });
+        slideCharts.addShape('ellipse', {
+          x: 3.55, y: 2.75, w: 1.1, h: 1.1,
+          fill: { type: 'solid', color: COLORS.accent }
+        });
+        slideCharts.addShape('ellipse', {
+          x: 3.75, y: 2.95, w: 0.7, h: 0.7,
+          fill: { type: 'solid', color: COLORS.white }
+        });
+        slideCharts.addText(`${subjectLabels.length}`, {
+          x: 3.75, y: 3.05, w: 0.7, h: 0.5,
+          fontSize: 18, bold: true, color: COLORS.primary, align: 'center'
+        });
+      }
+
+      // Bar chart for score trends (right side)
+      slideCharts.addText(isArabic ? 'اتجاه الدرجات 📈' : 'Score Trends 📈', {
+        x: 5.2, y: 1.4, w: 4.5, h: 0.4, fontSize: 16, bold: true, color: COLORS.dark
+      });
+      
+      // Get last 5 quiz scores for bar chart
+      const recentScores = data.performance.quizScores.slice(0, 5).reverse();
+      const barWidth = 0.6;
+      const barGap = 0.3;
+      const maxBarHeight = 2.2;
+      const barBaseY = 4.6;
+      
+      recentScores.forEach((quiz, i) => {
+        const barHeight = (quiz.score / 100) * maxBarHeight;
+        const xPos = 5.4 + i * (barWidth + barGap);
+        
+        // Bar
+        const barColor = quiz.score >= 80 ? COLORS.success : quiz.score >= 60 ? COLORS.warning : COLORS.danger;
+        slideCharts.addShape('rect', {
+          x: xPos, y: barBaseY - barHeight, w: barWidth, h: barHeight,
+          fill: { type: 'solid', color: barColor }
+        });
+        
+        // Score label on top
+        slideCharts.addText(`${quiz.score}%`, {
+          x: xPos - 0.1, y: barBaseY - barHeight - 0.35, w: 0.8, h: 0.3,
+          fontSize: 10, bold: true, color: COLORS.dark, align: 'center'
+        });
+        
+        // Quiz number below
+        slideCharts.addText(`${i + 1}`, {
+          x: xPos, y: barBaseY + 0.05, w: barWidth, h: 0.25,
+          fontSize: 9, color: COLORS.dark, align: 'center'
+        });
+      });
+      
+      // X-axis label
+      slideCharts.addText(isArabic ? 'آخر الاختبارات' : 'Recent Quizzes', {
+        x: 5.2, y: 4.95, w: 4.5, h: 0.3,
+        fontSize: 10, color: COLORS.dark, align: 'center'
+      });
+      
+      // Performance gauge / meter
+      slideCharts.addShape('rect', {
+        x: 0.5, y: 5.0, w: 9.2, h: 0.15,
+        fill: { type: 'solid', color: 'E5E7EB' }
+      });
+      const gaugeWidth = (data.performance.averageScore / 100) * 9.2;
+      const gaugeColor = data.performance.averageScore >= 80 ? COLORS.success : data.performance.averageScore >= 60 ? COLORS.warning : COLORS.danger;
+      slideCharts.addShape('rect', {
+        x: 0.5, y: 5.0, w: gaugeWidth, h: 0.15,
+        fill: { type: 'solid', color: gaugeColor }
+      });
+      slideCharts.addText(isArabic ? `الأداء العام: ${data.performance.averageScore}%` : `Overall Performance: ${data.performance.averageScore}%`, {
+        x: 0.5, y: 5.2, w: 9.2, h: 0.3,
+        fontSize: 12, bold: true, color: COLORS.dark, align: 'center'
+      });
+
+      // ========== SLIDE 4: Weekly Plan ==========
+      const slide4 = pptx.addSlide();
+      slide4.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.secondary } });
+      slide4.addText(isArabic ? 'الخطة الأسبوعية' : 'Weekly Study Plan', {
         x: 0.5, y: 0.35, w: 9, h: 0.6, fontSize: 28, bold: true, color: COLORS.white, align: isArabic ? 'right' : 'left'
       });
 
@@ -444,29 +574,29 @@ export const usePresentationGenerator = () => {
         const xPos = 0.5 + col * 2.4;
         const yPos = 1.5 + row * 2.2;
 
-        slide3.addShape('roundRect', {
+        slide4.addShape('roundRect', {
           x: xPos, y: yPos, w: 2.2, h: 2,
           fill: { type: 'solid', color: dayColors[i] },
           rectRadius: 0.1
         });
-        slide3.addText(day.day, {
+        slide4.addText(day.day, {
           x: xPos, y: yPos + 0.1, w: 2.2, h: 0.4,
           fontSize: 14, bold: true, color: COLORS.white, align: 'center'
         });
-        slide3.addText(day.focus, {
+        slide4.addText(day.focus, {
           x: xPos + 0.1, y: yPos + 0.5, w: 2, h: 0.4,
           fontSize: 11, color: COLORS.white, align: 'center'
         });
-        slide3.addText(`${day.duration} ${isArabic ? 'دقيقة' : 'min'}`, {
+        slide4.addText(`${day.duration} ${isArabic ? 'دقيقة' : 'min'}`, {
           x: xPos, y: yPos + 1.6, w: 2.2, h: 0.3,
-          fontSize: 10, color: COLORS.white, align: 'center', transparency: 30
+          fontSize: 10, color: COLORS.white, align: 'center'
         });
       });
 
-      // ========== SLIDE 4: 4-Week Future Plan ==========
-      const slide4 = pptx.addSlide();
-      slide4.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.accent } });
-      slide4.addText(isArabic ? 'خطة الأربعة أسابيع' : '4-Week Roadmap', {
+      // ========== SLIDE 5: 4-Week Future Plan ==========
+      const slide5 = pptx.addSlide();
+      slide5.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.accent } });
+      slide5.addText(isArabic ? 'خطة الأربعة أسابيع' : '4-Week Roadmap', {
         x: 0.5, y: 0.35, w: 9, h: 0.6, fontSize: 28, bold: true, color: COLORS.white, align: isArabic ? 'right' : 'left'
       });
 
@@ -521,66 +651,66 @@ export const usePresentationGenerator = () => {
         });
       });
 
-      // ========== SLIDE 5: Next Steps & Recommendations ==========
-      const slide5 = pptx.addSlide();
-      slide5.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.success } });
-      slide5.addText(isArabic ? 'الخطوات التالية والتوصيات' : 'Next Steps & Recommendations', {
+      // ========== SLIDE 6: Next Steps & Recommendations ==========
+      const slide6 = pptx.addSlide();
+      slide6.addShape('rect', { x: 0, y: 0, w: '100%', h: 1.2, fill: { type: 'solid', color: COLORS.success } });
+      slide6.addText(isArabic ? 'الخطوات التالية والتوصيات' : 'Next Steps & Recommendations', {
         x: 0.5, y: 0.35, w: 9, h: 0.6, fontSize: 28, bold: true, color: COLORS.white, align: isArabic ? 'right' : 'left'
       });
 
       // Next Steps section
-      slide5.addText(isArabic ? '🎯 الخطوات التالية' : '🎯 Next Steps', {
+      slide6.addText(isArabic ? '🎯 الخطوات التالية' : '🎯 Next Steps', {
         x: 0.5, y: 1.5, w: 4.5, h: 0.5, fontSize: 18, bold: true, color: COLORS.primary
       });
       data.nextSteps.slice(0, 4).forEach((step, i) => {
-        slide5.addShape('roundRect', {
+        slide6.addShape('roundRect', {
           x: 0.5, y: 2.1 + i * 0.7, w: 4.5, h: 0.6,
           fill: { type: 'solid', color: i % 2 === 0 ? 'E0E7FF' : 'F0F9FF' },
           rectRadius: 0.05
         });
-        slide5.addText(`${i + 1}. ${step}`, {
+        slide6.addText(`${i + 1}. ${step}`, {
           x: 0.6, y: 2.15 + i * 0.7, w: 4.3, h: 0.5,
           fontSize: 11, color: COLORS.dark
         });
       });
 
       // Recommendations section
-      slide5.addText(isArabic ? '💡 التوصيات' : '💡 Recommendations', {
+      slide6.addText(isArabic ? '💡 التوصيات' : '💡 Recommendations', {
         x: 5.2, y: 1.5, w: 4.5, h: 0.5, fontSize: 18, bold: true, color: COLORS.secondary
       });
       data.recommendations.slice(0, 4).forEach((rec, i) => {
-        slide5.addShape('roundRect', {
+        slide6.addShape('roundRect', {
           x: 5.2, y: 2.1 + i * 0.7, w: 4.5, h: 0.6,
           fill: { type: 'solid', color: i % 2 === 0 ? 'F3E8FF' : 'FDF4FF' },
           rectRadius: 0.05
         });
-        slide5.addText(`✓ ${rec}`, {
+        slide6.addText(`✓ ${rec}`, {
           x: 5.3, y: 2.15 + i * 0.7, w: 4.3, h: 0.5,
           fontSize: 11, color: COLORS.dark
         });
       });
 
       // Motivational footer
-      slide5.addShape('roundRect', {
+      slide6.addShape('roundRect', {
         x: 0.5, y: 4.8, w: 9.2, h: 0.7,
         fill: { type: 'solid', color: COLORS.primary },
         rectRadius: 0.1
       });
-      slide5.addText(isArabic ? '🌟 كل خطوة صغيرة تقربك من النجاح! استمر في التعلم! 🌟' : '🌟 Every small step brings you closer to success! Keep learning! 🌟', {
+      slide6.addText(isArabic ? '🌟 كل خطوة صغيرة تقربك من النجاح! استمر في التعلم! 🌟' : '🌟 Every small step brings you closer to success! Keep learning! 🌟', {
         x: 0.5, y: 4.9, w: 9.2, h: 0.5,
         fontSize: 14, bold: true, color: COLORS.white, align: 'center'
       });
 
-      // ========== SLIDE 6: Summary & Contact ==========
-      const slide6 = pptx.addSlide();
-      slide6.addShape('rect', { x: 0, y: 0, w: '100%', h: '100%', fill: { type: 'solid', color: COLORS.primary } });
+      // ========== SLIDE 7: Summary & Contact ==========
+      const slide7 = pptx.addSlide();
+      slide7.addShape('rect', { x: 0, y: 0, w: '100%', h: '100%', fill: { type: 'solid', color: COLORS.primary } });
       
-      slide6.addShape('ellipse', {
+      slide7.addShape('ellipse', {
         x: 7, y: -2, w: 6, h: 6,
         fill: { type: 'solid', color: 'A78BFA' } // Lighter purple for visual effect
       });
 
-      slide6.addText(isArabic ? 'ملخص خطتك' : 'Your Plan Summary', {
+      slide7.addText(isArabic ? 'ملخص خطتك' : 'Your Plan Summary', {
         x: 0.5, y: 1.5, w: 9, h: 0.8,
         fontSize: 32, bold: true, color: COLORS.white, align: isArabic ? 'right' : 'left'
       });
@@ -593,19 +723,19 @@ export const usePresentationGenerator = () => {
       ];
 
       summaryItems.forEach((item, i) => {
-        slide6.addText(`${item.icon} ${item.text}`, {
+        slide7.addText(`${item.icon} ${item.text}`, {
           x: 0.5, y: 2.5 + i * 0.6, w: 9, h: 0.5,
           fontSize: 18, color: COLORS.white, align: isArabic ? 'right' : 'left'
         });
       });
 
-      slide6.addText('Smarty Pants AI', {
+      slide7.addText('Smarty Pants AI', {
         x: 0.5, y: 4.8, w: 9, h: 0.4,
-        fontSize: 14, color: COLORS.light, align: 'center', transparency: 30
+        fontSize: 14, color: COLORS.light, align: 'center'
       });
-      slide6.addText(isArabic ? 'تم إنشاء هذا العرض آلياً' : 'Auto-generated presentation', {
+      slide7.addText(isArabic ? 'تم إنشاء هذا العرض آلياً' : 'Auto-generated presentation', {
         x: 0.5, y: 5.2, w: 9, h: 0.3,
-        fontSize: 12, color: COLORS.light, align: 'center', transparency: 50
+        fontSize: 12, color: COLORS.light, align: 'center'
       });
 
       // Generate and download
