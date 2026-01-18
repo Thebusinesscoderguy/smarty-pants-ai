@@ -213,8 +213,6 @@ Return JSON in this exact format:
       presentationData.slides = [];
     }
 
-    const isArabic = language === 'ar';
-
     // Ensure we have the requested number of slides
     while (presentationData.slides.length < slideCount) {
       presentationData.slides.push({
