@@ -370,6 +370,48 @@ export const translations: TranslationData = {
     'settings.savedDesc': 'Your settings have been saved successfully.',
     'settings.loading': 'Loading settings...',
     
+    // Parent Settings - Subscription
+    'settings.subscription.title': 'Subscription Management',
+    'settings.subscription.subtitle': 'Manage your billing, subscription, and payment methods',
+    'settings.subscription.billingPortal': 'Billing Portal',
+    'settings.subscription.billingPortalDesc': 'View invoices, update payment methods',
+    'settings.subscription.manageBilling': 'Manage Billing',
+    'settings.subscription.opening': 'Opening...',
+    'settings.subscription.cancelSubscription': 'Cancel Subscription',
+    'settings.subscription.cancelSubscriptionDesc': 'End your subscription plan',
+    'settings.subscription.cancelPlan': 'Cancel Plan',
+    'settings.subscription.processing': 'Processing...',
+    
+    // Parent Settings - Family
+    'settings.family.title': 'Family Management',
+    'settings.family.subtitle': "Manage your children's accounts and learning progress",
+    'settings.family.childrenAccounts': "Children's Accounts",
+    'settings.family.childrenAccountsDesc': "Add, remove, and manage children's profiles",
+    'settings.family.manageChildren': 'Manage Children',
+    
+    // Parent Settings - Security
+    'settings.security.title': 'Account Security',
+    'settings.security.subtitle': 'Manage your account security and data',
+    'settings.security.deleteAccount': 'Delete Account',
+    'settings.security.deleteAccountDesc': 'Permanently delete your account and all data',
+    'settings.security.deleting': 'Deleting...',
+    'settings.security.warning': 'Account deletion is permanent and cannot be undone. All data will be lost.',
+    
+    // Child Settings - Voice
+    'settings.voice.title': 'Choose Your AI Voice',
+    'settings.voice.subtitle': 'Pick the perfect voice for your AI learning companion',
+    'settings.voice.selectFavorite': 'Select Your Favorite Voice',
+    'settings.voice.willBeUsed': 'Your new voice will be used in all future conversations',
+    
+    // Child Settings - Voice Testing
+    'settings.voiceTest.title': 'Voice Testing Lab',
+    'settings.voiceTest.subtitle': 'Try out different voices to find your perfect AI companion',
+    'settings.voiceTest.currentVoice': 'Current Voice',
+    'settings.voiceTest.testVoice': 'Test Voice',
+    'settings.voiceTest.testing': 'Testing...',
+    'settings.voiceTest.tryOther': 'Try Other Voices',
+    'settings.voiceTest.saveReminder': "Don't forget to save your changes when you find the perfect voice!",
+    
     'features.section.title': 'Powerful Features for Modern Learning',
     'features.section.subtitle': 'Discover how our AI-powered platform revolutionizes education',
     'features.section.adaptive.title': 'Adaptive Learning',
