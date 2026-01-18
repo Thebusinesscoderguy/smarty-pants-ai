@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import StudyPlanDaySelector from './StudyPlanDaySelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
+import { PresentationButton } from '@/components/study-plan/PresentationButton';
 
 interface StudyPlan {
   id: string;
@@ -229,7 +230,8 @@ export const StudyPlanLibrary = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-semibold">{t('studyPlanLibrary.title')}</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <PresentationButton variant="outline" size="sm" />
           <PDFStudyPlanButton variant="outline" size="sm" />
           <Badge variant="outline">{t('studyPlanLibrary.plans').replace('{count}', studyPlans.length.toString())}</Badge>
         </div>
