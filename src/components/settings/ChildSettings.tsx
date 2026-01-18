@@ -92,33 +92,33 @@ export const ChildSettings = () => {
       {/* Voice Settings */}
       <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
-          <CardTitle className="text-white flex items-center text-2xl">
+          <CardTitle className="text-foreground flex items-center text-2xl">
             <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mr-4">
               <Volume2 className="h-6 w-6 text-white" />
             </div>
-            Choose Your AI Voice
+            {t('settings.voice.title')}
           </CardTitle>
-          <p className="text-white/70 text-lg ml-16">
-            Pick the perfect voice for your AI learning companion
+          <p className="text-muted-foreground text-lg ml-16">
+            {t('settings.voice.subtitle')}
           </p>
         </CardHeader>
         <CardContent className="space-y-6 ml-16">
           <div className="space-y-4">
-            <label htmlFor="voice" className="text-white font-semibold text-lg">Select Your Favorite Voice</label>
+            <label htmlFor="voice" className="text-foreground font-semibold text-lg">{t('settings.voice.selectFavorite')}</label>
             <Select value={selectedVoice} onValueChange={handleVoiceChange}>
-              <SelectTrigger className="bg-white/10 border-white/30 text-white rounded-xl h-14 text-lg">
+              <SelectTrigger className="bg-muted/50 border-border text-foreground rounded-xl h-14 text-lg">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
+              <SelectContent className="bg-popover border-border max-h-60">
                 {ELEVENLABS_VOICES.map((voice) => (
                   <SelectItem 
                     key={voice.id} 
                     value={voice.id} 
-                    className="text-white hover:bg-white/10 py-3 cursor-pointer"
+                    className="text-foreground hover:bg-muted py-3 cursor-pointer"
                   >
                     <div className="flex flex-col items-start">
                       <span className="font-semibold">{voice.name}</span>
-                      <span className="text-sm text-white/70">{voice.description}</span>
+                      <span className="text-sm text-muted-foreground">{voice.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -126,9 +126,9 @@ export const ChildSettings = () => {
             </Select>
             
             <div className="p-4 bg-purple-500/20 border border-purple-500/30 rounded-xl">
-              <p className="text-purple-200 flex items-center">
+              <p className="text-purple-300 flex items-center">
                 <Sparkles className="h-4 w-4 mr-2" />
-                Your new voice will be used in all future conversations
+                {t('settings.voice.willBeUsed')}
               </p>
             </div>
           </div>
@@ -138,14 +138,14 @@ export const ChildSettings = () => {
       {/* Voice Testing */}
       <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
-          <CardTitle className="text-white flex items-center text-2xl">
+          <CardTitle className="text-foreground flex items-center text-2xl">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl mr-4">
               <TestTube className="h-6 w-6 text-white" />
             </div>
-            Voice Testing Lab
+            {t('settings.voiceTest.title')}
           </CardTitle>
-          <p className="text-white/70 text-lg ml-16">
-            Try out different voices to find your perfect AI companion
+          <p className="text-muted-foreground text-lg ml-16">
+            {t('settings.voiceTest.subtitle')}
           </p>
         </CardHeader>
         <CardContent className="space-y-6 ml-16">
@@ -157,8 +157,8 @@ export const ChildSettings = () => {
                   <Volume2 className="h-6 w-6 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-lg">Current Voice: {currentVoice.name}</h3>
-                  <p className="text-white/70">{currentVoice.description}</p>
+                  <h3 className="text-foreground font-semibold text-lg">{t('settings.voiceTest.currentVoice')}: {currentVoice.name}</h3>
+                  <p className="text-muted-foreground">{currentVoice.description}</p>
                 </div>
               </div>
               <Button
@@ -169,12 +169,12 @@ export const ChildSettings = () => {
                 {isTestingVoice ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                    Testing...
+                    {t('settings.voiceTest.testing')}
                   </>
                 ) : (
                   <>
                     <Play className="h-4 w-4 mr-2" />
-                    Test Voice
+                    {t('settings.voiceTest.testVoice')}
                   </>
                 )}
               </Button>
@@ -183,24 +183,24 @@ export const ChildSettings = () => {
 
           {/* Quick Voice Tests */}
           <div className="space-y-4">
-            <h4 className="text-white font-semibold text-lg">Try Other Voices</h4>
+            <h4 className="text-foreground font-semibold text-lg">{t('settings.voiceTest.tryOther')}</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {ELEVENLABS_VOICES.filter(voice => voice.id !== selectedVoice).slice(0, 6).map((voice) => (
                 <div 
                   key={voice.id}
-                  className="p-4 bg-white/5 border border-white/20 rounded-lg hover:bg-white/10 transition-all duration-200 group"
+                  className="p-4 bg-muted/50 border border-border rounded-lg hover:bg-muted transition-all duration-200 group"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h5 className="text-white font-medium">{voice.name}</h5>
-                      <p className="text-white/60 text-sm">{voice.description}</p>
+                      <h5 className="text-foreground font-medium">{voice.name}</h5>
+                      <p className="text-muted-foreground text-sm">{voice.description}</p>
                     </div>
                     <Button
                       onClick={() => testVoice(voice.id)}
                       disabled={isTestingVoice}
                       size="sm"
                       variant="outline"
-                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 group-hover:scale-105 transition-transform"
+                      className="bg-muted/50 border-border text-foreground hover:bg-muted group-hover:scale-105 transition-transform"
                     >
                       <Play className="h-3 w-3" />
                     </Button>
@@ -211,9 +211,9 @@ export const ChildSettings = () => {
           </div>
 
           <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-            <p className="text-green-200 text-sm flex items-center">
+            <p className="text-green-300 text-sm flex items-center">
               <Sparkles className="h-4 w-4 mr-2" />
-              Don't forget to save your changes when you find the perfect voice!
+              {t('settings.voiceTest.saveReminder')}
             </p>
           </div>
         </CardContent>

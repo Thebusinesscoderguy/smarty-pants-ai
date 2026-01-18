@@ -124,58 +124,58 @@ export const ParentSettings = () => {
       {/* Subscription Management */}
       <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
-          <CardTitle className="text-white flex items-center text-2xl">
+          <CardTitle className="text-foreground flex items-center text-2xl">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mr-4">
               <CreditCard className="h-6 w-6 text-white" />
             </div>
-            Subscription Management
+            {t('settings.subscription.title')}
           </CardTitle>
-          <p className="text-white/70 text-lg ml-16">
-            Manage your billing, subscription, and payment methods
+          <p className="text-muted-foreground text-lg ml-16">
+            {t('settings.subscription.subtitle')}
           </p>
         </CardHeader>
         <CardContent className="space-y-6 ml-16">
           <div className="grid gap-4">
-            <div className="p-6 bg-white/5 border border-white/20 rounded-xl hover:bg-white/10 transition-all duration-200 group">
+            <div className="p-6 bg-muted/50 border border-border rounded-xl hover:bg-muted transition-all duration-200 group">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="p-2 bg-blue-500/20 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <ExternalLink className="h-5 w-5 text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold">Billing Portal</h3>
-                    <p className="text-white/60">View invoices, update payment methods</p>
+                    <h3 className="text-foreground font-semibold">{t('settings.subscription.billingPortal')}</h3>
+                    <p className="text-muted-foreground">{t('settings.subscription.billingPortalDesc')}</p>
                   </div>
                 </div>
                 <Button 
                   onClick={handleManageSubscription}
                   disabled={isLoading}
                   variant="outline" 
-                  className="bg-white/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20"
+                  className="bg-muted/50 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
                 >
-                  {isLoading ? 'Opening...' : 'Manage Billing'}
+                  {isLoading ? t('settings.subscription.opening') : t('settings.subscription.manageBilling')}
                 </Button>
               </div>
             </div>
 
-            <div className="p-6 bg-white/5 border border-white/20 rounded-xl hover:bg-white/10 transition-all duration-200 group">
+            <div className="p-6 bg-muted/50 border border-border rounded-xl hover:bg-muted transition-all duration-200 group">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="p-2 bg-orange-500/20 rounded-lg group-hover:scale-110 transition-transform duration-200">
                     <AlertTriangle className="h-5 w-5 text-orange-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold">Cancel Subscription</h3>
-                    <p className="text-white/60">End your subscription plan</p>
+                    <h3 className="text-foreground font-semibold">{t('settings.subscription.cancelSubscription')}</h3>
+                    <p className="text-muted-foreground">{t('settings.subscription.cancelSubscriptionDesc')}</p>
                   </div>
                 </div>
                 <Button 
                   onClick={handleCancelSubscription}
                   disabled={isLoading}
                   variant="outline" 
-                  className="bg-white/10 border-orange-500/30 text-orange-300 hover:bg-orange-500/20"
+                  className="bg-muted/50 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
                 >
-                  {isLoading ? 'Processing...' : 'Cancel Plan'}
+                  {isLoading ? t('settings.subscription.processing') : t('settings.subscription.cancelPlan')}
                 </Button>
               </div>
             </div>
@@ -186,34 +186,34 @@ export const ParentSettings = () => {
       {/* Family Management */}
       <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
-          <CardTitle className="text-white flex items-center text-2xl">
+          <CardTitle className="text-foreground flex items-center text-2xl">
             <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mr-4">
               <Users className="h-6 w-6 text-white" />
             </div>
-            Family Management
+            {t('settings.family.title')}
           </CardTitle>
-          <p className="text-white/70 text-lg ml-16">
-            Manage your children's accounts and learning progress
+          <p className="text-muted-foreground text-lg ml-16">
+            {t('settings.family.subtitle')}
           </p>
         </CardHeader>
         <CardContent className="space-y-6 ml-16">
-          <div className="p-6 bg-white/5 border border-white/20 rounded-xl hover:bg-white/10 transition-all duration-200 group">
+          <div className="p-6 bg-muted/50 border border-border rounded-xl hover:bg-muted transition-all duration-200 group">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="p-2 bg-green-500/20 rounded-lg group-hover:scale-110 transition-transform duration-200">
                   <SettingsIcon className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold">Children's Accounts</h3>
-                  <p className="text-white/60">Add, remove, and manage children's profiles</p>
+                  <h3 className="text-foreground font-semibold">{t('settings.family.childrenAccounts')}</h3>
+                  <p className="text-muted-foreground">{t('settings.family.childrenAccountsDesc')}</p>
                 </div>
               </div>
               <Button 
                 onClick={handleManageChildren}
                 variant="outline" 
-                className="bg-white/10 border-green-500/30 text-green-300 hover:bg-green-500/20"
+                className="bg-muted/50 border-green-500/30 text-green-400 hover:bg-green-500/20"
               >
-                Manage Children
+                {t('settings.family.manageChildren')}
               </Button>
             </div>
           </div>
@@ -223,14 +223,14 @@ export const ParentSettings = () => {
       {/* Account Security */}
       <Card className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border-red-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
-          <CardTitle className="text-white flex items-center text-2xl">
+          <CardTitle className="text-foreground flex items-center text-2xl">
             <div className="p-3 bg-gradient-to-r from-red-500 to-orange-600 rounded-xl mr-4">
               <Shield className="h-6 w-6 text-white" />
             </div>
-            Account Security
+            {t('settings.security.title')}
           </CardTitle>
-          <p className="text-white/70 text-lg ml-16">
-            Manage your account security and data
+          <p className="text-muted-foreground text-lg ml-16">
+            {t('settings.security.subtitle')}
           </p>
         </CardHeader>
         <CardContent className="space-y-6 ml-16">
@@ -241,11 +241,11 @@ export const ParentSettings = () => {
                   <Trash2 className="h-5 w-5 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-red-300 font-semibold flex items-center">
-                    Delete Account
+                  <h3 className="text-red-400 font-semibold flex items-center">
+                    {t('settings.security.deleteAccount')}
                     <AlertTriangle className="h-4 w-4 ml-2" />
                   </h3>
-                  <p className="text-red-400/80">Permanently delete your account and all data</p>
+                  <p className="text-red-400/80">{t('settings.security.deleteAccountDesc')}</p>
                 </div>
               </div>
               <Button 
@@ -254,15 +254,15 @@ export const ParentSettings = () => {
                 variant="destructive" 
                 className="bg-red-600 hover:bg-red-700 border-none shadow-lg"
               >
-                {isLoading ? 'Deleting...' : 'Delete Account'}
+                {isLoading ? t('settings.security.deleting') : t('settings.security.deleteAccount')}
               </Button>
             </div>
           </div>
           
           <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-            <p className="text-yellow-200 text-sm flex items-center">
+            <p className="text-yellow-300 text-sm flex items-center">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Account deletion is permanent and cannot be undone. All data will be lost.
+              {t('settings.security.warning')}
             </p>
           </div>
         </CardContent>
