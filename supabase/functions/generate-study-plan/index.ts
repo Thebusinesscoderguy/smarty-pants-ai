@@ -175,10 +175,34 @@ serve(async (req) => {
       return languages[code] || 'English';
     }
 
+    const isArabic = language === 'ar';
     const targetLanguage = language && language !== 'en' ? getLanguageName(language) : null;
-    const languageInstruction = targetLanguage 
-      ? `\n\n🔴 CRITICAL LANGUAGE REQUIREMENT: Generate ALL content (title, description, topics, activities, questions, solutions) in ${targetLanguage}. Every single word must be in ${targetLanguage}.`
-      : '';
+    
+    // Special handling for Arabic - more explicit instructions
+    let languageInstruction = '';
+    if (isArabic) {
+      languageInstruction = `
+
+🔴🔴🔴 CRITICAL - ARABIC LANGUAGE REQUIREMENT 🔴🔴🔴
+You MUST generate ALL content in Arabic (العربية). This is absolutely mandatory:
+- Title (العنوان): Must be in Arabic
+- Description (الوصف): Must be in Arabic  
+- All topics (المواضيع): Must be in Arabic
+- All activities (الأنشطة): Must be in Arabic
+- All questions (الأسئلة): Must be in Arabic
+- All solutions (الحلول): Must be in Arabic
+- Weak areas (نقاط الضعف): Must be in Arabic
+
+Example Arabic format:
+- "Day 1" should be "اليوم الأول"
+- "Introduction" should be "مقدمة"
+- "Practice exercises" should be "تمارين تطبيقية"
+
+DO NOT include any English words. Every single character must be Arabic.
+اكتب كل شيء بالعربية فقط.`;
+    } else if (targetLanguage) {
+      languageInstruction = `\n\n🔴 CRITICAL LANGUAGE REQUIREMENT: Generate ALL content (title, description, topics, activities, questions, solutions) in ${targetLanguage}. Every single word must be in ${targetLanguage}.`;
+    }
 
     // Create different prompts based on input type
     let prompt = '';
@@ -282,9 +306,11 @@ MANDATORY REQUIREMENTS:
       console.log('[generate-study-plan] Using text-only API');
     }
 
-    const systemMessage = inputType === 'file' 
-      ? `You are an expert educator analyzing a specific document. Your job is to discuss the ACTUAL content of the document provided - the specific themes, passages, arguments, and concepts. Create lessons about what the content ACTUALLY teaches. Every lesson must reference specific content from the provided document. Always respond using the return_study_plan function.`
-      : `You are an expert educational consultant who creates comprehensive, grade-appropriate study plans. Build knowledge progressively. For math content, format solutions with clear numbered steps and LaTeX notation. Always respond using the return_study_plan function.`;
+    const systemMessage = isArabic 
+      ? `أنت خبير تعليمي تقوم بإنشاء خطط دراسية شاملة. يجب أن تكتب كل المحتوى بالعربية فقط - العناوين والأوصاف والمواضيع والأنشطة والأسئلة والحلول. لا تستخدم الإنجليزية مطلقاً. استخدم دائماً وظيفة return_study_plan لإرجاع النتيجة.`
+      : inputType === 'file' 
+        ? `You are an expert educator analyzing a specific document. Your job is to discuss the ACTUAL content of the document provided - the specific themes, passages, arguments, and concepts. Create lessons about what the content ACTUALLY teaches. Every lesson must reference specific content from the provided document. Always respond using the return_study_plan function.`
+        : `You are an expert educational consultant who creates comprehensive, grade-appropriate study plans. Build knowledge progressively. For math content, format solutions with clear numbered steps and LaTeX notation. Always respond using the return_study_plan function.`;
 
     async function callAIWithRetry(retries = 2, delayMs = 2000): Promise<Response> {
       for (let attempt = 0; attempt <= retries; attempt++) {
