@@ -141,39 +141,104 @@ Return JSON in this exact format:
       throw new Error("No content returned from AI");
     }
 
-    // Parse JSON from response
+    console.log("AI response received, attempting to parse...");
+
+    // Parse JSON from response with robust error handling
     let presentationData;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        presentationData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
+      // Clean up common JSON issues
+      let cleanedContent = content;
+      
+      // Remove markdown code blocks if present
+      cleanedContent = cleanedContent.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
+      
+      // Try to extract JSON object
+      const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("No JSON object found in response");
       }
+      
+      let jsonStr = jsonMatch[0];
+      
+      // Fix common JSON issues
+      // Fix double opening braces: {{ -> {
+      jsonStr = jsonStr.replace(/\{\s*\{/g, '{');
+      // Fix double closing braces: }} -> }
+      jsonStr = jsonStr.replace(/\}\s*\}/g, '}');
+      // Remove trailing commas before closing brackets
+      jsonStr = jsonStr.replace(/,\s*(\]|\})/g, '$1');
+      // Fix unescaped newlines in strings
+      jsonStr = jsonStr.replace(/:\s*"([^"]*)\n([^"]*)"/g, (match, p1, p2) => {
+        return `: "${p1}\\n${p2}"`;
+      });
+      
+      presentationData = JSON.parse(jsonStr);
     } catch (parseError) {
-      console.error("JSON parse error:", parseError, "Content:", content);
-      throw new Error("Failed to parse presentation data");
+      console.error("JSON parse error, attempting fallback...", parseError);
+      
+      // Fallback: Create a simple presentation structure
+      const isArabic = language === 'ar';
+      presentationData = {
+        title: topic,
+        slides: Array.from({ length: slideCount }, (_, i) => ({
+          slideNumber: i + 1,
+          title: isArabic ? `شريحة ${i + 1}` : `Slide ${i + 1}`,
+          content: [isArabic ? 'جاري إنشاء المحتوى...' : 'Content being generated...'],
+          notes: '',
+          visualSuggestion: ''
+        })),
+        quizQuestions: []
+      };
+      
+      // Try to extract any valid slide data from the malformed response
+      try {
+        const slidesMatch = content.match(/"slides"\s*:\s*\[([\s\S]*?)\]/);
+        if (slidesMatch) {
+          // Try to parse individual slides
+          const slideRegex = /\{\s*"slideNumber"\s*:\s*(\d+)\s*,\s*"title"\s*:\s*"([^"]+)"/g;
+          let match;
+          let slideIndex = 0;
+          while ((match = slideRegex.exec(content)) !== null && slideIndex < slideCount) {
+            presentationData.slides[slideIndex].title = match[2];
+            slideIndex++;
+          }
+        }
+      } catch (e) {
+        console.log("Could not extract partial slide data");
+      }
     }
 
     // Validate and normalize the data
     if (!presentationData.slides || !Array.isArray(presentationData.slides)) {
-      throw new Error("Invalid presentation structure");
+      presentationData.slides = [];
     }
+
+    const isArabic = language === 'ar';
 
     // Ensure we have the requested number of slides
     while (presentationData.slides.length < slideCount) {
       presentationData.slides.push({
         slideNumber: presentationData.slides.length + 1,
-        title: isArabic ? "شريحة إضافية" : "Additional Slide",
-        content: [isArabic ? "محتوى إضافي" : "Additional content"],
-        notes: "",
-        visualSuggestion: ""
+        title: isArabic ? `شريحة ${presentationData.slides.length + 1}` : `Slide ${presentationData.slides.length + 1}`,
+        content: [isArabic ? 'محتوى إضافي' : 'Additional content'],
+        notes: '',
+        visualSuggestion: ''
       });
     }
 
     // Trim if we have too many slides
     presentationData.slides = presentationData.slides.slice(0, slideCount);
+
+    // Ensure each slide has required fields
+    presentationData.slides = presentationData.slides.map((slide: any, idx: number) => ({
+      slideNumber: idx + 1,
+      title: slide.title || (isArabic ? `شريحة ${idx + 1}` : `Slide ${idx + 1}`),
+      content: Array.isArray(slide.content) ? slide.content : [slide.content || ''],
+      notes: slide.notes || '',
+      visualSuggestion: slide.visualSuggestion || ''
+    }));
+
+    console.log("Presentation generated successfully with", presentationData.slides.length, "slides");
 
     return new Response(JSON.stringify(presentationData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
