@@ -1339,6 +1339,7 @@ export const translations: TranslationData = {
     'quizGenerator.questionsGenerated': 'questions generated',
     'quizGenerator.saveToLibrary': 'Save to Library',
     'quizGenerator.discardQuiz': 'Discard Quiz',
+    'quizGenerator.saveToTake': 'Save the quiz to your library, then open it from the Quiz Library to take it.',
 
     // Adaptive Quiz Engine
     'adaptiveQuiz.title': 'Adaptive Quiz Engine',
