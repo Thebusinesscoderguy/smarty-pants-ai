@@ -1340,6 +1340,9 @@ export const translations: TranslationData = {
     'quizGenerator.saveToLibrary': 'Save to Library',
     'quizGenerator.discardQuiz': 'Discard Quiz',
     'quizGenerator.saveToTake': 'Save the quiz to your library, then open it from the Quiz Library to take it.',
+    'quizGenerator.curriculum': 'Curriculum',
+    'quizGenerator.selectCurriculum': 'Select curriculum',
+    'quizGenerator.conversationContext': 'This quiz will incorporate context from your recent conversation',
 
     // Adaptive Quiz Engine
     'adaptiveQuiz.title': 'Adaptive Quiz Engine',
