@@ -25,6 +25,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [questionCountInput, setQuestionCountInput] = useState('5');
   const getQuestionCount = () => Math.max(1, Math.min(50, parseInt(questionCountInput || '5', 10)));
   const [gradeLevel, setGradeLevel] = useState<string>('');
+  const [curriculum, setCurriculum] = useState<string>('');
   const [customInstructions, setCustomInstructions] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
@@ -272,59 +273,6 @@ useEffect(() => {
                   </Select>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="enhanced-grade">{t('quizGenerator.gradeLevel')}</Label>
-                  <Select value={gradeLevel} onValueChange={setGradeLevel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('quizGenerator.selectGrade')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
-                        <SelectItem key={gl} value={gl}>{gl}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="enhanced-questionCount">{t('quizGenerator.numberOfQuestions')}</Label>
-                  <Input
-                    id="enhanced-questionCount"
-                    type="text"
-                    inputMode="numeric"
-                    value={questionCountInput}
-                    onChange={(e) => {
-                      const v = e.target.value.replace(/[^0-9]/g, '');
-                      setQuestionCountInput(v);
-                    }}
-                    onBlur={() => {
-                      const num = parseInt(questionCountInput || '0', 10);
-                      if (num > 50) {
-                        setQuestionCountInput('50');
-                      } else if (num < 1 && questionCountInput !== '') {
-                        setQuestionCountInput('1');
-                      }
-                    }}
-                    placeholder="5"
-                    className="w-32"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="enhanced-quizMode">{t('quizGenerator.quizMode')}</Label>
-                  <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('quizGenerator.selectMode')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="take">{t('quizGenerator.takeQuiz')}</SelectItem>
-                      <SelectItem value="view">{t('quizGenerator.viewAnswers')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </TabsContent>
 
             <TabsContent value="file" className="space-y-4">
@@ -487,73 +435,80 @@ useEffect(() => {
             </TabsContent>
           </Tabs>
 
-          <div className="space-y-2">
-            <Label htmlFor="gradeLevel">{t('quizGenerator.gradeLevel')}</Label>
-            <Select value={gradeLevel} onValueChange={setGradeLevel}>
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder={t('quizGenerator.selectGrade')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Grade 1">Grade 1</SelectItem>
-                <SelectItem value="Grade 2">Grade 2</SelectItem>
-                <SelectItem value="Grade 3">Grade 3</SelectItem>
-                <SelectItem value="Grade 4">Grade 4</SelectItem>
-                <SelectItem value="Grade 5">Grade 5</SelectItem>
-                <SelectItem value="Grade 6">Grade 6</SelectItem>
-                <SelectItem value="Grade 7">Grade 7</SelectItem>
-                <SelectItem value="Grade 8">Grade 8</SelectItem>
-                <SelectItem value="Grade 9">Grade 9</SelectItem>
-                <SelectItem value="Grade 10">Grade 10</SelectItem>
-                <SelectItem value="Grade 11">Grade 11</SelectItem>
-                <SelectItem value="Grade 12">Grade 12</SelectItem>
-                <SelectItem value="College">College</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Shared settings for all input methods */}
+          <div className="border-t pt-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('quizGenerator.curriculum')}</Label>
+                <Select value={curriculum} onValueChange={setCurriculum}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('quizGenerator.selectCurriculum')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="us-common-core">US Common Core</SelectItem>
+                    <SelectItem value="uk-national">UK National Curriculum</SelectItem>
+                    <SelectItem value="ib">International Baccalaureate</SelectItem>
+                    <SelectItem value="cambridge">Cambridge International</SelectItem>
+                    <SelectItem value="australian">Australian Curriculum</SelectItem>
+                    <SelectItem value="french">French (Éducation Nationale)</SelectItem>
+                    <SelectItem value="other">Other / General</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="questionCount">{t('quizGenerator.numberOfQuestions')} (max 50)</Label>
-              <Input
-                id="questionCount"
-                type="text"
-                inputMode="numeric"
-                value={questionCountInput}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/[^0-9]/g, '');
-                  setQuestionCountInput(v);
-                }}
-                onBlur={() => {
-                  const num = parseInt(questionCountInput || '0', 10);
-                  if (num > 50) {
-                    setQuestionCountInput('50');
-                  } else if (num < 1 && questionCountInput !== '') {
-                    setQuestionCountInput('1');
-                  }
-                }}
-                placeholder="5"
-                className="w-32"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="quizMode">Quiz Mode</Label>
-              <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="take">Take Quiz</SelectItem>
-                  <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label>{t('quizGenerator.gradeLevel')}</Label>
+                <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('quizGenerator.selectGrade')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'College'].map(gl => (
+                      <SelectItem key={gl} value={gl}>{gl}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('quizGenerator.numberOfQuestions')} (max 50)</Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={questionCountInput}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9]/g, '');
+                    setQuestionCountInput(v);
+                  }}
+                  onBlur={() => {
+                    const num = parseInt(questionCountInput || '0', 10);
+                    if (num > 50) setQuestionCountInput('50');
+                    else if (num < 1 && questionCountInput !== '') setQuestionCountInput('1');
+                  }}
+                  placeholder="5"
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('quizGenerator.quizMode')}</Label>
+                <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('quizGenerator.selectMode')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="take">{t('quizGenerator.takeQuiz')}</SelectItem>
+                    <SelectItem value="view">{t('quizGenerator.viewAnswers')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
           {conversationHistory && conversationHistory.length > 0 && (
             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
               <p className="text-sm text-blue-600">
-                 This quiz will incorporate context from your recent conversation
+                {t('quizGenerator.conversationContext')}
               </p>
             </div>
           )}
