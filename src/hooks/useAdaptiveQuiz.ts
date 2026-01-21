@@ -204,7 +204,32 @@ export const useAdaptiveQuiz = () => {
     if (!state.currentQuestion) return;
 
     const timeMs = Date.now() - questionStartTimeRef.current;
-    const isCorrect = userAnswer.trim().toLowerCase() === state.currentQuestion.correct_answer.trim().toLowerCase();
+    
+    // Check answer - use semantic comparison for short answers
+    let isCorrect = false;
+    if (state.currentQuestion.type === 'short_answer') {
+      try {
+        const { data, error } = await supabase.functions.invoke('check-open-answer', {
+          body: {
+            userAnswer,
+            correctAnswer: state.currentQuestion.correct_answer,
+            question: state.currentQuestion.question
+          }
+        });
+        if (!error && data?.success) {
+          isCorrect = data.is_correct;
+        } else {
+          // Fallback to basic check
+          isCorrect = userAnswer.trim().toLowerCase() === state.currentQuestion.correct_answer.trim().toLowerCase();
+        }
+      } catch (e) {
+        console.error('Semantic check failed:', e);
+        isCorrect = userAnswer.trim().toLowerCase() === state.currentQuestion.correct_answer.trim().toLowerCase();
+      }
+    } else {
+      isCorrect = userAnswer.trim().toLowerCase() === state.currentQuestion.correct_answer.trim().toLowerCase();
+    }
+    
     const earnedPoints = isCorrect ? state.currentQuestion.points : 0;
 
     const performanceEntry: PerformanceEntry = {

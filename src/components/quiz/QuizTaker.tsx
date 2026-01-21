@@ -19,13 +19,47 @@ interface QuizTakerProps {
   onComplete: (result: { score: number; total: number; saved: boolean }) => void;
 }
 
-// Basic evaluator for supported question types
-function isCorrectAnswer(selected: string | null, correct: string | undefined | null, type?: string) {
+// Basic evaluator for supported question types (for multiple choice)
+function isCorrectAnswerSync(selected: string | null, correct: string | undefined | null, type?: string) {
   if (!correct || selected == null) return false;
   if (type === 'short_answer') {
+    // For short answers, do a basic check - semantic check happens async
     return selected.trim().toLowerCase() === String(correct).trim().toLowerCase();
   }
   return String(selected).trim() === String(correct).trim();
+}
+
+// Semantic check for open-ended questions using AI
+async function checkOpenAnswer(userAnswer: string, correctAnswer: string, question: string): Promise<{ is_correct: boolean; score: number; feedback: string }> {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.functions.invoke('check-open-answer', {
+      body: { userAnswer, correctAnswer, question }
+    });
+    
+    if (error || !data?.success) {
+      console.error('Semantic check failed:', error);
+      // Fallback to basic check
+      return {
+        is_correct: userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase(),
+        score: userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase() ? 1 : 0,
+        feedback: ''
+      };
+    }
+    
+    return {
+      is_correct: data.is_correct,
+      score: data.score,
+      feedback: data.feedback || ''
+    };
+  } catch (e) {
+    console.error('Error in semantic check:', e);
+    return {
+      is_correct: userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase(),
+      score: 0,
+      feedback: ''
+    };
+  }
 }
 
 export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
@@ -82,13 +116,26 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
       // Commit time for current question
       commitTimeForCurrent();
 
-      // Score
+      // Score - need to handle async for short answer questions
       let score = 0;
-      const answerPayload = questions.map((q: any, i: number) => {
+      const answerPayload = await Promise.all(questions.map(async (q: any, i: number) => {
         const qid = q.id ?? String(i);
         const selected = answers[qid] ?? '';
         const correct = q.correctAnswer ?? q.correct_answer;
-        const correctBool = isCorrectAnswer(selected, correct, q.type);
+        
+        let correctBool = false;
+        let feedback = '';
+        
+        if (q.type === 'short_answer' && selected.trim() && correct) {
+          // Use semantic AI comparison for short answers
+          const result = await checkOpenAnswer(selected, correct, q.question);
+          correctBool = result.is_correct;
+          feedback = result.feedback;
+        } else {
+          // Use sync comparison for multiple choice
+          correctBool = isCorrectAnswerSync(selected, correct, q.type);
+        }
+        
         if (correctBool) score += q.points ?? 1;
         return {
           id: q.id ?? null,
@@ -100,8 +147,9 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
           points: q.points ?? 1,
           explanation: q.explanation ?? null,
           time_taken_ms: perQuestionMsRef.current[qid] || 0,
+          ai_feedback: feedback,
         };
-      });
+      }));
 
       const total = totalPoints;
       const durationSec = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
