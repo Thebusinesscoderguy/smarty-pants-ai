@@ -52,3 +52,6 @@ verify_jwt = false
 
 [functions.generate-adaptive-question]
 verify_jwt = false
+
+[functions.check-open-answer]
+verify_jwt = false
