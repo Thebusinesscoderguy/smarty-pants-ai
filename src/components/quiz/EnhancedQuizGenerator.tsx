@@ -265,7 +265,7 @@ useEffect(() => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background z-50">
                       <SelectItem value="easy">{t('quizGenerator.easy')}</SelectItem>
                       <SelectItem value="medium">{t('quizGenerator.medium')}</SelectItem>
                       <SelectItem value="hard">{t('quizGenerator.hard')}</SelectItem>
@@ -444,7 +444,7 @@ useEffect(() => {
                   <SelectTrigger>
                     <SelectValue placeholder={t('quizGenerator.selectCurriculum')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background z-50">
                     <SelectItem value="us-common-core">US Common Core</SelectItem>
                     <SelectItem value="uk-national">UK National Curriculum</SelectItem>
                     <SelectItem value="ib">International Baccalaureate</SelectItem>
@@ -462,7 +462,7 @@ useEffect(() => {
                   <SelectTrigger>
                     <SelectValue placeholder={t('quizGenerator.selectGrade')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background z-50">
                     {['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'College'].map(gl => (
                       <SelectItem key={gl} value={gl}>{gl}</SelectItem>
                     ))}
@@ -496,7 +496,7 @@ useEffect(() => {
                   <SelectTrigger>
                     <SelectValue placeholder={t('quizGenerator.selectMode')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background z-50">
                     <SelectItem value="take">{t('quizGenerator.takeQuiz')}</SelectItem>
                     <SelectItem value="view">{t('quizGenerator.viewAnswers')}</SelectItem>
                   </SelectContent>
