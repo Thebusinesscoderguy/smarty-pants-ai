@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Brain, Zap, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle, RotateCcw, Trophy, Save } from 'lucide-react';
-import { useAdaptiveQuiz, type DifficultyLevel, type AdaptiveQuizConfig } from '@/hooks/useAdaptiveQuiz';
+import { useAdaptiveQuiz, type DifficultyLevel, type AdaptiveQuizConfig, type AdaptiveQuestion } from '@/hooks/useAdaptiveQuiz';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +39,7 @@ export const AdaptiveQuizEngine = () => {
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
   const [lastResult, setLastResult] = useState<{ isCorrect: boolean; earnedPoints: number } | null>(null);
+  const [feedbackQuestion, setFeedbackQuestion] = useState<AdaptiveQuestion | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
@@ -69,6 +70,7 @@ export const AdaptiveQuizEngine = () => {
       setSelectedAnswer('');
       setShowFeedback(false);
       setLastResult(null);
+      setFeedbackQuestion(null);
       prevQuestionIndexRef.current = currentQuestionIndex;
     }
   }, [currentQuestionIndex]);
@@ -91,6 +93,9 @@ export const AdaptiveQuizEngine = () => {
   const handleSubmitAnswer = async () => {
     if (!selectedAnswer || !currentQuestion) return;
 
+    // Snapshot the question being answered so feedback can't accidentally bind to the next question
+    // (the hook may prefetch/advance internally).
+    setFeedbackQuestion(currentQuestion);
     const result = await submitAnswer(selectedAnswer);
     if (result) {
       setLastResult(result);
@@ -102,6 +107,7 @@ export const AdaptiveQuizEngine = () => {
     setSelectedAnswer('');
     setShowFeedback(false);
     setLastResult(null);
+    setFeedbackQuestion(null);
   };
 
   const handleSaveQuiz = async () => {
@@ -361,6 +367,8 @@ export const AdaptiveQuizEngine = () => {
   const difficultyInfo = getDifficultyInfo(currentDifficulty);
   const trend = getDifficultyTrend();
 
+  const questionForRender = (showFeedback ? feedbackQuestion : currentQuestion) ?? currentQuestion;
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -389,14 +397,14 @@ export const AdaptiveQuizEngine = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground">{t('adaptiveQuiz.generatingQuestion')}</p>
           </div>
-        ) : currentQuestion ? (
+        ) : questionForRender ? (
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-medium leading-relaxed">
-                {currentQuestion.question}
+                {questionForRender.question}
               </h3>
 
-              {currentQuestion.type === 'short_answer' ? (
+              {questionForRender.type === 'short_answer' ? (
                 <div className="space-y-2">
                   <Label htmlFor="short-answer-input">{t('quizTaker.typeAnswer')}</Label>
                   <Input
@@ -414,23 +422,23 @@ export const AdaptiveQuizEngine = () => {
                   disabled={showFeedback}
                   className="space-y-2"
                 >
-                  {currentQuestion.options?.map((opt, i) => (
+                  {questionForRender.options?.map((opt, i) => (
                     <div 
                       key={i}
                       className={cn(
                         "flex items-center gap-3 p-3 rounded-lg border transition-colors",
-                        showFeedback && opt === currentQuestion.correct_answer && "bg-green-500/10 border-green-500/30",
-                        showFeedback && selectedAnswer === opt && opt !== currentQuestion.correct_answer && "bg-red-500/10 border-red-500/30",
+                        showFeedback && opt === questionForRender.correct_answer && "bg-green-500/10 border-green-500/30",
+                        showFeedback && selectedAnswer === opt && opt !== questionForRender.correct_answer && "bg-red-500/10 border-red-500/30",
                         !showFeedback && selectedAnswer === opt && "bg-primary/5 border-primary/30",
                         !showFeedback && "hover:bg-muted/50 cursor-pointer"
                       )}
                     >
                       <RadioGroupItem id={`opt-${i}`} value={opt} />
                       <Label htmlFor={`opt-${i}`} className="flex-1 cursor-pointer">{opt}</Label>
-                      {showFeedback && opt === currentQuestion.correct_answer && (
+                      {showFeedback && opt === questionForRender.correct_answer && (
                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                       )}
-                      {showFeedback && selectedAnswer === opt && opt !== currentQuestion.correct_answer && (
+                      {showFeedback && selectedAnswer === opt && opt !== questionForRender.correct_answer && (
                         <XCircle className="h-5 w-5 text-red-600" />
                       )}
                     </div>
@@ -457,13 +465,13 @@ export const AdaptiveQuizEngine = () => {
                     </>
                   )}
                 </div>
-                {currentQuestion.explanation && (
-                  <p className="text-sm text-muted-foreground">{currentQuestion.explanation}</p>
+                {questionForRender.explanation && (
+                  <p className="text-sm text-muted-foreground">{questionForRender.explanation}</p>
                 )}
                 {!lastResult.isCorrect && (
                   <p className="text-sm mt-2">
                     <span className="text-muted-foreground">{t('adaptiveQuiz.correctAnswer')} </span>
-                    <span className="font-medium">{currentQuestion.correct_answer}</span>
+                    <span className="font-medium">{questionForRender.correct_answer}</span>
                   </p>
                 )}
               </div>
