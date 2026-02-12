@@ -219,7 +219,6 @@ export const useAdaptiveQuiz = () => {
         if (!error && data?.success) {
           isCorrect = data.is_correct;
         } else {
-          // Fallback to basic check
           isCorrect = userAnswer.trim().toLowerCase() === state.currentQuestion.correct_answer.trim().toLowerCase();
         }
       } catch (e) {
@@ -246,68 +245,80 @@ export const useAdaptiveQuiz = () => {
       timeMs,
     };
 
-    const newPerformanceHistory = [...state.performanceHistory, performanceEntry];
+    const isComplete = (state.currentQuestionIndex + 1) >= state.totalQuestions;
+
+    // Only record the answer — do NOT advance index or fetch next question
+    setState(prev => ({
+      ...prev,
+      performanceHistory: [...prev.performanceHistory, performanceEntry],
+      answeredQuestions: [...prev.answeredQuestions, answeredQuestion],
+      score: prev.score + earnedPoints,
+    }));
+
+    return { isCorrect, earnedPoints, isComplete };
+  }, [state.currentQuestion, state.currentQuestionIndex, state.currentDifficulty, state.performanceHistory, state.totalQuestions]);
+
+  const advanceToNext = useCallback(async () => {
     const nextQuestionIndex = state.currentQuestionIndex + 1;
     const isComplete = nextQuestionIndex >= state.totalQuestions;
 
-    // Calculate next difficulty based on performance
-    const nextDifficulty = isComplete 
-      ? state.currentDifficulty 
-      : calculateNextDifficulty(state.currentDifficulty, newPerformanceHistory);
+    const nextDifficulty = isComplete
+      ? state.currentDifficulty
+      : calculateNextDifficulty(state.currentDifficulty, state.performanceHistory);
+
+    if (isComplete) {
+      setState(prev => ({
+        ...prev,
+        currentQuestionIndex: nextQuestionIndex,
+        currentDifficulty: nextDifficulty,
+        currentQuestion: null,
+        isActive: false,
+      }));
+      return;
+    }
 
     setState(prev => ({
       ...prev,
-      performanceHistory: newPerformanceHistory,
-      answeredQuestions: [...prev.answeredQuestions, answeredQuestion],
-      score: prev.score + earnedPoints,
       currentQuestionIndex: nextQuestionIndex,
       currentDifficulty: nextDifficulty,
-      currentQuestion: isComplete ? null : prev.currentQuestion,
-      isActive: !isComplete,
+      isLoading: true,
     }));
 
-    // If not complete, fetch next question with updated difficulty
-    if (!isComplete) {
-      setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-adaptive-question', {
+        body: {
+          topic: configRef.current!.topic,
+          difficulty: nextDifficulty,
+          gradeLevel: configRef.current!.gradeLevel,
+          language,
+          questionNumber: nextQuestionIndex + 1,
+          previousQuestions: previousQuestionsRef.current,
+          performanceHistory: state.performanceHistory,
+        },
+      });
 
-      try {
-        const { data, error } = await supabase.functions.invoke('generate-adaptive-question', {
-          body: {
-            topic: configRef.current!.topic,
-            difficulty: nextDifficulty,
-            gradeLevel: configRef.current!.gradeLevel,
-            language,
-            questionNumber: nextQuestionIndex + 1,
-            previousQuestions: previousQuestionsRef.current,
-            performanceHistory: newPerformanceHistory,
-          },
-        });
+      if (error) throw error;
 
-        if (error) throw error;
+      const question = data as AdaptiveQuestion;
+      previousQuestionsRef.current.push(question.question);
+      questionStartTimeRef.current = Date.now();
 
-        const question = data as AdaptiveQuestion;
-        previousQuestionsRef.current.push(question.question);
-        questionStartTimeRef.current = Date.now();
-
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          currentQuestion: question,
-          maxScore: prev.maxScore + question.points,
-        }));
-      } catch (error: any) {
-        console.error('Error fetching next question:', error);
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to generate next question',
-          variant: 'destructive',
-        });
-        setState(prev => ({ ...prev, isLoading: false, isActive: false }));
-      }
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        currentQuestion: question,
+        maxScore: prev.maxScore + question.points,
+      }));
+    } catch (error: any) {
+      console.error('Error fetching next question:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to generate next question',
+        variant: 'destructive',
+      });
+      setState(prev => ({ ...prev, isLoading: false, isActive: false }));
     }
-
-    return { isCorrect, earnedPoints, isComplete };
-  }, [state.currentQuestion, state.currentQuestionIndex, state.currentDifficulty, state.performanceHistory, state.totalQuestions, language]);
+  }, [state.currentQuestionIndex, state.currentDifficulty, state.performanceHistory, state.totalQuestions, language]);
 
   const saveQuizToLibrary = useCallback(async () => {
     if (!configRef.current || state.answeredQuestions.length === 0) {
@@ -421,6 +432,7 @@ export const useAdaptiveQuiz = () => {
     ...state,
     startQuiz,
     submitAnswer,
+    advanceToNext,
     resetQuiz,
     fetchNextQuestion,
     saveQuizToLibrary,
