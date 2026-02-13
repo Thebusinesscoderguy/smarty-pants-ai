@@ -178,6 +178,7 @@ export const EducationalPresentationGenerator = () => {
         <SlideViewer
           slides={generatedPresentation.slides}
           title={generatedPresentation.title}
+          topic={generatedPresentation.topic}
           onClose={() => setGeneratedPresentation(null)}
         />
       )}
