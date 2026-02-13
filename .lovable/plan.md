@@ -1,51 +1,35 @@
 
 
-## Fix: Adaptive Quiz Showing Wrong Answer for Wrong Question
+# Fix: Chat Completion "Unsupported Value" Error
 
-### Problem
-When submitting an answer, the following race condition occurs:
-1. User submits answer, `feedbackQuestion` is snapshotted
-2. `submitAnswer` in the hook immediately advances `currentQuestionIndex`
-3. A `useEffect` watching `currentQuestionIndex` fires and **clears** `feedbackQuestion`, `showFeedback`, and `lastResult`
-4. `submitAnswer` returns, and `handleSubmitAnswer` tries to set feedback -- but `feedbackQuestion` is already gone
-5. The UI falls back to showing `currentQuestion` (which is now the NEXT question), displaying its correct answer prematurely
+## Problem
+The OpenAI API is rejecting requests because `temperature: 0.7` is being sent, which `gpt-5-mini` does not support. Even though the code was edited to remove `temperature`, the **deployed Edge Function is still running the old version** with that parameter.
 
-### Solution
-Split "record answer" from "advance to next question" so feedback is never cleared prematurely.
+## Root Cause
+The Edge Function deployment did not successfully replace the running version. This can happen due to deployment caching or a stale `deno.lock` file.
 
-### Changes
+## Fix Steps
 
-**1. `src/hooks/useAdaptiveQuiz.ts`** -- Don't advance `currentQuestionIndex` or fetch the next question inside `submitAnswer`. Instead, add a separate `advanceToNext` function.
+### 1. Delete and recreate `deno.lock` (if it exists)
+Remove any `deno.lock` file that could cause deployment issues with stale cached dependencies.
 
-- `submitAnswer`: Only records the answer, updates score, performance history, and checks completion. Does NOT change `currentQuestionIndex` or `currentQuestion`.
-- New `advanceToNext` function: Increments `currentQuestionIndex`, calculates next difficulty, and fetches the next question. Called from the UI when user clicks "Next Question".
+### 2. Force redeploy `chat-completion`
+Redeploy the Edge Function to ensure the updated code (without `temperature`) is live.
 
-**2. `src/components/quiz/AdaptiveQuizEngine.tsx`** -- Remove the `useEffect` that watches `currentQuestionIndex` (the source of the race condition). Instead:
+### 3. Verify deployment with a test call
+Call the function directly using the curl tool to confirm the new version is running and returning streaming responses without errors.
 
-- `handleSubmitAnswer`: Snapshots `feedbackQuestion`, calls `submitAnswer`, shows feedback. No question advancement happens.
-- `handleNextQuestion`: Clears feedback state, then calls `advanceToNext()` to move to the next question.
+### 4. Add better error forwarding to the frontend
+Currently, when OpenAI returns a 400 error, the Edge Function returns the error as JSON -- but the frontend code expects a stream and throws a generic "Failed to get response from AI" error. Update `useMessageHandler.ts` to read the error body and display the actual error message from OpenAI, making future debugging easier.
 
-This cleanly separates the "show feedback" phase from the "load next question" phase, eliminating the race condition entirely.
+## Technical Details
 
-### Technical Details
+**Edge Function (`supabase/functions/chat-completion/index.ts`):**
+- Confirmed: code already has `temperature` removed (line 66-70)
+- No code changes needed -- just a forced redeploy
 
-```text
-BEFORE (broken):
-  Submit --> hook advances index --> useEffect clears feedback --> feedback lost
+**Frontend (`src/hooks/useMessageHandler.ts`):**
+- Improve error handling around lines 100-108 to parse JSON error responses from the Edge Function and show the actual error message in the toast notification
 
-AFTER (fixed):
-  Submit --> hook records answer only --> feedback shown safely
-  Next   --> UI clears feedback --> hook advances index + fetches next question
-```
-
-**File 1: `src/hooks/useAdaptiveQuiz.ts`**
-- In `submitAnswer`: Remove lines that update `currentQuestionIndex`, `currentDifficulty`, `currentQuestion`, `isActive`, and the entire "fetch next question" block. Only update `performanceHistory`, `answeredQuestions`, and `score`. Return `{ isCorrect, earnedPoints, isComplete }`.
-- Add new `advanceToNext` callback: Takes no arguments. Reads current state, increments `currentQuestionIndex`, calculates next difficulty via `calculateNextDifficulty`, sets `isActive = false` if complete, or fetches the next question if not. Updates `currentQuestion` when the fetch resolves.
-- Export `advanceToNext` alongside existing functions.
-
-**File 2: `src/components/quiz/AdaptiveQuizEngine.tsx`**
-- Remove the `useEffect` that watches `currentQuestionIndex` (lines 62-68) and the `prevQuestionIndexRef`.
-- Destructure `advanceToNext` from `useAdaptiveQuiz()`.
-- `handleNextQuestion`: Clear `selectedAnswer`, `showFeedback`, `lastResult`, `feedbackQuestion`, then call `advanceToNext()`.
-- No other logic changes needed -- the snapshot mechanism (`feedbackQuestion` / `questionForRender`) stays as-is and will now work correctly since nothing clears it prematurely.
-
+**Timeout concern:**
+- The 8-second timeout (line 57) may be too short for `gpt-5-mini` streaming. Will increase to 30 seconds to prevent premature aborts.
