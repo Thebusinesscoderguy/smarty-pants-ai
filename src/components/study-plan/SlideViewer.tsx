@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight, Maximize2, Minimize2, X, GraduationCap } fro
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { SpeakButton } from '@/components/voice/SpeakButton';
+import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
 
 export interface Slide {
   title: string;
@@ -32,6 +34,7 @@ export const SlideViewer = ({ slides, title, topic, onClose }: SlideViewerProps)
   const isArabic = language === 'ar';
   const [current, setCurrent] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [ttsVoice, setTtsVoice] = useState('alloy');
 
   const isLastSlide = current === slides.length - 1;
 
@@ -67,7 +70,8 @@ export const SlideViewer = ({ slides, title, topic, onClose }: SlideViewerProps)
         <span className="text-sm font-medium text-muted-foreground truncate max-w-[60%]">
           {title}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <TTSSettingsBar voice={ttsVoice} onVoiceChange={setTtsVoice} />
           <span className="text-xs text-muted-foreground px-2">
             {current + 1} / {slides.length}
           </span>
@@ -92,16 +96,25 @@ export const SlideViewer = ({ slides, title, topic, onClose }: SlideViewerProps)
           <div className="text-5xl sm:text-6xl mb-6 text-center">{slide.icon}</div>
 
           {/* Title */}
-          <h2
-            className={cn(
-              'font-bold text-center mb-8',
-              slide.type === 'title'
-                ? 'text-3xl sm:text-4xl lg:text-5xl text-foreground'
-                : 'text-2xl sm:text-3xl text-foreground'
-            )}
-          >
-            {slide.title}
-          </h2>
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <h2
+              className={cn(
+                'font-bold text-center',
+                slide.type === 'title'
+                  ? 'text-3xl sm:text-4xl lg:text-5xl text-foreground'
+                  : 'text-2xl sm:text-3xl text-foreground'
+              )}
+            >
+              {slide.title}
+            </h2>
+            <SpeakButton
+              text={`${slide.title}. ${slide.bullets.join('. ')}`}
+              voice={ttsVoice}
+              size="sm"
+              variant="outline"
+              className="rounded-full h-8 w-8 p-0"
+            />
+          </div>
 
           {/* Bullets */}
           <ul className="space-y-4 max-w-2xl mx-auto">
