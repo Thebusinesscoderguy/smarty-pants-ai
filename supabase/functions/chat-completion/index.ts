@@ -64,7 +64,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'o3',
+          model: 'gpt-4o-mini',
           messages: messagesWithSystem,
           temperature: 0.7,
           stream: true,
