@@ -143,8 +143,18 @@ const Demo = () => {
 
   const generateAIResponse = async (userMessage: string) => {
     try {
-      const completionResponse = await supabase.functions.invoke('chat-completion', {
-        body: {
+      const { data: { session } } = await supabase.auth.getSession();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/chat-completion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || supabaseKey}`,
+          'apikey': supabaseKey,
+        },
+        body: JSON.stringify({
           messages: [
             {
               role: "system",
@@ -152,18 +162,38 @@ const Demo = () => {
             },
             { role: "user", content: userMessage }
           ]
-        }
+        })
       });
 
-      if (completionResponse.error) {
-        throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to generate AI response');
       }
 
-      if (completionResponse.data?.content) {
-        return { text: completionResponse.data.content };
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices?.[0]?.delta?.content || parsed.content;
+            if (content) fullText += content;
+          } catch { /* skip */ }
+        }
       }
 
-      return { text: "Hello! I'm your AI tutor. How can I help you learn today?" };
+      return { text: fullText || "Hello! I'm your AI tutor. How can I help you learn today?" };
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
