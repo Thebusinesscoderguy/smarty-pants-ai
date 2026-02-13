@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2, X, GraduationCap } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 export interface Slide {
@@ -14,6 +15,7 @@ export interface Slide {
 interface SlideViewerProps {
   slides: Slide[];
   title: string;
+  topic?: string;
   onClose?: () => void;
 }
 
@@ -24,11 +26,14 @@ const TYPE_GRADIENTS: Record<string, string> = {
   summary: 'from-primary/10 via-muted/20 to-background',
 };
 
-export const SlideViewer = ({ slides, title, onClose }: SlideViewerProps) => {
+export const SlideViewer = ({ slides, title, topic, onClose }: SlideViewerProps) => {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const isArabic = language === 'ar';
   const [current, setCurrent] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const isLastSlide = current === slides.length - 1;
 
   const slide = slides[current];
 
@@ -116,6 +121,19 @@ export const SlideViewer = ({ slides, title, onClose }: SlideViewerProps) => {
               </li>
             ))}
           </ul>
+
+          {isLastSlide && topic && (
+            <div className="flex justify-center mt-8">
+              <Button
+                size="lg"
+                className="gap-2"
+                onClick={() => navigate(`/quiz-generator?auto=quiz&type=topic&input=${encodeURIComponent(topic)}&method=topic`)}
+              >
+                <GraduationCap className="h-5 w-5" />
+                {isArabic ? 'ابدأ اختباراً حول هذا الموضوع' : 'Take a Quiz on This Topic'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
