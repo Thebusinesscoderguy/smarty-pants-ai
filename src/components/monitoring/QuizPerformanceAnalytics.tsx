@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
-import { PresentationButton } from '@/components/study-plan/PresentationButton';
+
 import {
   FileText,
   Calendar,
@@ -122,9 +122,8 @@ export const QuizPerformanceAnalytics = ({ studentProgress }: { studentProgress?
 
   return (
     <div className="space-y-6">
-      {/* PDF & Presentation Download Buttons */}
+      {/* PDF Download Button */}
       <div className="flex justify-end gap-2 flex-wrap">
-        <PresentationButton variant="outline" className="border-secondary text-secondary hover:bg-secondary/10" />
         <PDFStudyPlanButton variant="default" className="bg-primary hover:bg-primary/90" />
       </div>
 
