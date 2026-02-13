@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Loader2, Presentation, Download, Sparkles, BookOpen, Palette, Zap, Eye } from 'lucide-react';
+import { Loader2, Presentation, Download, Sparkles, BookOpen, Palette, Zap, Eye, ExternalLink, FileText } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEducationalPresentationGenerator, PresentationSettings } from '@/hooks/useEducationalPresentationGenerator';
 
@@ -39,7 +39,7 @@ export const EducationalPresentationGenerator = () => {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
   
-  const { isGenerating, generatedPresentation, generatePresentation, downloadPresentation } = useEducationalPresentationGenerator();
+  const { isGenerating, generatedPresentation, generatePresentation } = useEducationalPresentationGenerator();
 
   const [settings, setSettings] = useState<PresentationSettings>({
     topic: '',
@@ -53,12 +53,6 @@ export const EducationalPresentationGenerator = () => {
   const handleGenerate = async () => {
     if (!settings.topic.trim()) return;
     await generatePresentation(settings);
-  };
-
-  const handleDownload = () => {
-    if (generatedPresentation) {
-      downloadPresentation(generatedPresentation, settings);
-    }
   };
 
   return (
@@ -208,7 +202,7 @@ export const EducationalPresentationGenerator = () => {
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {isArabic ? 'جاري الإنشاء...' : 'Generating...'}
+                {isArabic ? 'جاري الإنشاء... (قد يستغرق 1-3 دقائق)' : 'Generating... (may take 1-3 minutes)'}
               </>
             ) : (
               <>
@@ -220,102 +214,81 @@ export const EducationalPresentationGenerator = () => {
         </CardContent>
       </Card>
 
-      {/* Preview Card */}
-      {generatedPresentation && (
+      {/* Result Card with Download Links */}
+      {generatedPresentation && generatedPresentation.success && (
         <Card className="border-primary/20">
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Presentation className="h-5 w-5 text-primary" />
-                  {generatedPresentation.title}
-                </CardTitle>
-                <CardDescription>
-                  {generatedPresentation.slides.length} {isArabic ? 'شريحة' : 'slides'}
-                  {generatedPresentation.quizQuestions && generatedPresentation.quizQuestions.length > 0 && (
-                    <> • {generatedPresentation.quizQuestions.length} {isArabic ? 'أسئلة اختبار' : 'quiz questions'}</>
-                  )}
-                </CardDescription>
-              </div>
-              <Button onClick={handleDownload} className="gap-2">
-                <Download className="h-4 w-4" />
-                {isArabic ? 'تحميل PPTX' : 'Download PPTX'}
-              </Button>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Presentation className="h-5 w-5 text-primary" />
+              {generatedPresentation.title}
+            </CardTitle>
+            <CardDescription>
+              {generatedPresentation.slideCount} {isArabic ? 'شريحة' : 'slides'} • {isArabic ? 'جاهز للتحميل' : 'Ready to download'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Slide Preview */}
-            <div className="space-y-4">
-              <h4 className="font-medium">{isArabic ? 'معاينة الشرائح' : 'Slide Preview'}</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {generatedPresentation.slides.map((slide, index) => (
-                  <div
-                    key={index}
-                    className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg p-3 border"
-                  >
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <p className="text-xs font-medium line-clamp-2">{slide.title}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
-                      {slide.content[0]}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Detailed Slides */}
-              <div className="space-y-3 mt-6">
-                <h4 className="font-medium">{isArabic ? 'تفاصيل الشرائح' : 'Slide Details'}</h4>
-                {generatedPresentation.slides.map((slide, index) => (
-                  <div key={index} className="p-4 rounded-lg border bg-muted/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline">{isArabic ? 'شريحة' : 'Slide'} {slide.slideNumber}</Badge>
-                      <span className="font-semibold">{slide.title}</span>
-                    </div>
-                    <ul className={`list-disc ${isArabic ? 'mr-5' : 'ml-5'} space-y-1 text-sm text-muted-foreground`}>
-                      {slide.content.map((bullet, bIndex) => (
-                        <li key={bIndex}>{bullet}</li>
-                      ))}
-                    </ul>
-                    {slide.visualSuggestion && (
-                      <p className="mt-2 text-xs text-primary italic">
-                        💡 {slide.visualSuggestion}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Quiz Preview */}
-              {generatedPresentation.quizQuestions && generatedPresentation.quizQuestions.length > 0 && (
-                <div className="space-y-3 mt-6">
-                  <h4 className="font-medium">{isArabic ? 'أسئلة الاختبار' : 'Quiz Questions'}</h4>
-                  {generatedPresentation.quizQuestions.map((quiz, index) => (
-                    <div key={index} className="p-4 rounded-lg border bg-warning/5">
-                      <p className="font-medium mb-2">Q{index + 1}: {quiz.question}</p>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {quiz.options.map((opt, optIndex) => (
-                          <div
-                            key={optIndex}
-                            className={`p-2 rounded ${
-                              opt.startsWith(quiz.correctAnswer) 
-                                ? 'bg-success/20 border-success' 
-                                : 'bg-muted'
-                            } border`}
-                          >
-                            {opt}
-                          </div>
-                        ))}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* View Online */}
+              {generatedPresentation.presentationUrl && (
+                <a
+                  href={generatedPresentation.presentationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Card className="hover:bg-primary/5 transition-colors cursor-pointer border-primary/20 h-full">
+                    <CardContent className="flex flex-col items-center justify-center gap-3 p-6">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <ExternalLink className="h-6 w-6 text-primary" />
                       </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        💡 {quiz.explanation}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                      <span className="font-medium text-sm">
+                        {isArabic ? 'عرض أونلاين' : 'View Online'}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </a>
+              )}
+
+              {/* Download PPTX */}
+              {generatedPresentation.pptUrl && (
+                <a
+                  href={generatedPresentation.pptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Card className="hover:bg-primary/5 transition-colors cursor-pointer border-primary/20 h-full">
+                    <CardContent className="flex flex-col items-center justify-center gap-3 p-6">
+                      <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+                        <Download className="h-6 w-6 text-secondary" />
+                      </div>
+                      <span className="font-medium text-sm">
+                        {isArabic ? 'تحميل PPTX' : 'Download PPTX'}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </a>
+              )}
+
+              {/* Download PDF */}
+              {generatedPresentation.pdfUrl && (
+                <a
+                  href={generatedPresentation.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Card className="hover:bg-primary/5 transition-colors cursor-pointer border-primary/20 h-full">
+                    <CardContent className="flex flex-col items-center justify-center gap-3 p-6">
+                      <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                        <FileText className="h-6 w-6 text-destructive" />
+                      </div>
+                      <span className="font-medium text-sm">
+                        {isArabic ? 'تحميل PDF' : 'Download PDF'}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </a>
               )}
             </div>
           </CardContent>
