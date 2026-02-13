@@ -34,25 +34,31 @@ serve(async (req) => {
       concise: 'Brief and to-the-point with key bullet points, clear takeaways, and minimal filler',
     };
 
-    const enhancePrompt = `You are an expert educator creating detailed presentation content about "${topic}" for ${gradeLevel} students.
+    const enhancePrompt = `You are an expert educator. Create a detailed educational presentation about "${topic}" for ${gradeLevel} students.
 
-Create a comprehensive, well-structured presentation outline with exactly ${slideCount} slides.
 Style: ${styleDescriptions[style] || styleDescriptions.educational}
 ${isArabic ? 'Write ALL content in Arabic.' : ''}
 ${includeQuiz ? 'Include 3-5 quiz questions at the end with answers.' : ''}
 ${includeExamples ? 'Include practical real-world examples and exercises throughout.' : ''}
 
-Structure:
-- Slide 1: Title slide with an engaging hook
-- Slide 2: Introduction / Overview
-- Slides 3-${slideCount - 2}: Main content slides with detailed explanations, examples, and key points
-- Slide ${slideCount - 1}: Summary / Key takeaways
-- Slide ${slideCount}: ${includeQuiz ? 'Quiz / Review questions' : 'Conclusion / Next steps'}
+Write exactly ${slideCount} slides. For each slide use this EXACT format:
 
-For each slide, write detailed content (3-5 bullet points with rich explanations, not just keywords).
+## Title of the Slide
+
+- Bullet point one with detailed explanation
+- Bullet point two with detailed explanation
+- Bullet point three with detailed explanation
+
+Do NOT number the slides. Do NOT write "Slide 1", "Slide 2", etc. Just use ## followed by the slide title.
+Do NOT use numbered lists (1. 2. 3.) anywhere. Only use bullet points with dashes (-).
+
+The first slide should be a title slide with the topic name and a subtitle.
+The second slide should be an introduction/overview.
+${includeQuiz ? `The last slide should contain quiz/review questions.` : `The last slide should be a conclusion.`}
+The second-to-last slide should be a summary of key takeaways.
+
 Make the content educational, accurate, and appropriate for ${gradeLevel} level.
-
-Write the full presentation as a continuous document. Use "Slide X: Title" as headings (where X is the slide number), followed by bullet points with the detailed content. Do NOT use any numbered lists for slide identifiers — always use the word "Slide" followed by the number.`;
+Each slide should have 3-5 detailed bullet points with rich explanations.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
