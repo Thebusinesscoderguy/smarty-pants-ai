@@ -8,6 +8,8 @@ import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { SpeakButton } from '@/components/voice/SpeakButton';
+import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
 
 interface DailyLesson {
   day: number;
@@ -43,6 +45,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   const [creatingQuiz, setCreatingQuiz] = useState<number | null>(null);
   const [showSignInDialog, setShowSignInDialog] = useState(false);
   const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
+  const [ttsVoice, setTtsVoice] = useState('alloy');
   const { generateQuiz, isGenerating } = useQuizGenerator();
   const navigate = useNavigate();
 
@@ -200,7 +203,10 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
         
           {/* Daily Lessons section */}
           <div className="space-y-3 mt-4">
-            <h3 className="font-semibold text-lg">Daily Lessons</h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="font-semibold text-lg">Daily Lessons</h3>
+              <TTSSettingsBar voice={ttsVoice} onVoiceChange={setTtsVoice} />
+            </div>
             
             {dailyLessons.map((lesson) => (
               <div 
@@ -218,7 +224,16 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                       </span>
                     </div>
                     
-                    <h4 className="font-medium">{lesson.topic}</h4>
+                    <h4 className="font-medium flex items-center gap-2">
+                      {lesson.topic}
+                      <SpeakButton
+                        text={`Day ${lesson.day}. ${lesson.topic}. ${lesson.description}. Activities: ${lesson.activities?.join('. ') || ''}`}
+                        voice={ttsVoice}
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6"
+                      />
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       {lesson.description}
                     </p>

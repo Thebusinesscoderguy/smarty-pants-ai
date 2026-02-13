@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { SpeakButton } from '@/components/voice/SpeakButton';
+import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
 
 
 interface QuizTakerProps {
@@ -70,6 +72,7 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [ttsVoice, setTtsVoice] = useState('alloy');
   
   const startTimeRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());
@@ -209,13 +212,24 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
     <>
 
       <div className="space-y-4">
-        <div>
-          <div className="mb-2 text-sm">{t('quizTaker.progress').replace('{current}', (index + 1).toString()).replace('{total}', questions.length.toString())}</div>
-          <Progress value={progress} />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="mb-2 text-sm">{t('quizTaker.progress').replace('{current}', (index + 1).toString()).replace('{total}', questions.length.toString())}</div>
+            <Progress value={progress} />
+          </div>
+          <TTSSettingsBar voice={ttsVoice} onVoiceChange={setTtsVoice} />
         </div>
 
-      <div className="text-base font-medium">
-        {current.question}
+      <div className="flex items-start gap-2">
+        <div className="text-base font-medium flex-1">
+          {current.question}
+        </div>
+        <SpeakButton
+          text={`${current.question}. ${options.join('. ')}`}
+          voice={ttsVoice}
+          size="sm"
+          variant="outline"
+        />
       </div>
 
       {qType === 'short_answer' ? (
