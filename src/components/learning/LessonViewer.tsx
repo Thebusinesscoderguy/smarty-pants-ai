@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, ArrowLeft, BookOpen, CheckCircle, Info, FileText, HelpCircle } from 'lucide-react';
+import { SpeakButton } from '@/components/voice/SpeakButton';
+import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -26,6 +28,7 @@ interface LessonViewerProps {
 }
 
 const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete }) => {
+  const [ttsVoice, setTtsVoice] = useState('alloy');
   const [showingDetail, setShowingDetail] = useState(false);
   const [showingSummary, setShowingSummary] = useState(false);
   const [expandedContent, setExpandedContent] = useState<string>('');
@@ -150,6 +153,7 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
           </Button>
           
           <div className="flex items-center gap-4">
+            <TTSSettingsBar voice={ttsVoice} onVoiceChange={setTtsVoice} />
             <Badge variant="outline">
               <Clock className="mr-1 h-3 w-3" />
               {lesson.duration} min
@@ -170,9 +174,16 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
         <div className="max-w-4xl mx-auto">
           <Card className="bg-card/80 border-border backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center">
-                <BookOpen className="mr-3 h-6 w-6 text-primary" />
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <BookOpen className="mr-1 h-6 w-6 text-primary" />
                 {lesson.title}
+                <SpeakButton
+                  text={lesson.content.slice(0, 300)}
+                  voice={ttsVoice}
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full h-8 w-8 p-0 ml-2"
+                />
               </CardTitle>
             </CardHeader>
             <CardContent>
