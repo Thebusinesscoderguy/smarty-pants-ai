@@ -84,7 +84,9 @@ Remember: Your goal is to guide discovery, not lecture. Let the student construc
     return new Response(response.body, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/plain',
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'X-Accel-Buffering': 'no',
       },
     });
 
