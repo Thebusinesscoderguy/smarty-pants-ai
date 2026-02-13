@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import type { Slide } from '@/components/study-plan/SlideViewer';
 
 export interface PresentationSettings {
   topic: string;
@@ -12,23 +13,20 @@ export interface PresentationSettings {
   includeExamples: boolean;
 }
 
-export interface AlaiPresentationResult {
+export interface PresentationResult {
   success: boolean;
-  generationId: string;
   title: string;
-  presentationUrl: string | null;
-  pptUrl: string | null;
-  pdfUrl: string | null;
+  slides: Slide[];
   slideCount: number;
   topic: string;
 }
 
 export const useEducationalPresentationGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPresentation, setGeneratedPresentation] = useState<AlaiPresentationResult | null>(null);
+  const [generatedPresentation, setGeneratedPresentation] = useState<PresentationResult | null>(null);
   const { language } = useLanguage();
 
-  const generatePresentation = async (settings: PresentationSettings): Promise<AlaiPresentationResult | null> => {
+  const generatePresentation = async (settings: PresentationSettings): Promise<PresentationResult | null> => {
     setIsGenerating(true);
     setGeneratedPresentation(null);
 
@@ -49,7 +47,7 @@ export const useEducationalPresentationGenerator = () => {
       setGeneratedPresentation(data);
       toast({
         title: language === 'ar' ? 'تم الإنشاء!' : 'Generated!',
-        description: language === 'ar' ? 'العرض التقديمي جاهز للتحميل' : 'Presentation ready to download',
+        description: language === 'ar' ? 'العرض التقديمي جاهز' : 'Presentation is ready',
       });
       return data;
     } catch (error: any) {

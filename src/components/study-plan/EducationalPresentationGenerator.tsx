@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Loader2, Presentation, Download, Sparkles, BookOpen, Palette, Zap, Eye, ExternalLink, FileText } from 'lucide-react';
+import { Loader2, Presentation, Sparkles, BookOpen, Zap, Eye } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEducationalPresentationGenerator, PresentationSettings } from '@/hooks/useEducationalPresentationGenerator';
+import { SlideViewer } from '@/components/study-plan/SlideViewer';
 
 const GRADE_LEVELS = [
   'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
@@ -39,7 +40,7 @@ export const EducationalPresentationGenerator = () => {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
   
-  const { isGenerating, generatedPresentation, generatePresentation } = useEducationalPresentationGenerator();
+  const { isGenerating, generatedPresentation, generatePresentation, setGeneratedPresentation } = useEducationalPresentationGenerator();
 
   const [settings, setSettings] = useState<PresentationSettings>({
     topic: '',
@@ -214,85 +215,13 @@ export const EducationalPresentationGenerator = () => {
         </CardContent>
       </Card>
 
-      {/* Result Card with Download Links */}
-      {generatedPresentation && generatedPresentation.success && (
-        <Card className="border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Presentation className="h-5 w-5 text-primary" />
-              {generatedPresentation.title}
-            </CardTitle>
-            <CardDescription>
-              {generatedPresentation.slideCount} {isArabic ? 'شريحة' : 'slides'} • {isArabic ? 'جاهز للتحميل' : 'Ready to download'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* View Online */}
-              {generatedPresentation.presentationUrl && (
-                <a
-                  href={generatedPresentation.presentationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Card className="hover:bg-primary/5 transition-colors cursor-pointer border-primary/20 h-full">
-                    <CardContent className="flex flex-col items-center justify-center gap-3 p-6">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <ExternalLink className="h-6 w-6 text-primary" />
-                      </div>
-                      <span className="font-medium text-sm">
-                        {isArabic ? 'عرض أونلاين' : 'View Online'}
-                      </span>
-                    </CardContent>
-                  </Card>
-                </a>
-              )}
-
-              {/* Download PPTX */}
-              {generatedPresentation.pptUrl && (
-                <a
-                  href={generatedPresentation.pptUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Card className="hover:bg-primary/5 transition-colors cursor-pointer border-primary/20 h-full">
-                    <CardContent className="flex flex-col items-center justify-center gap-3 p-6">
-                      <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
-                        <Download className="h-6 w-6 text-secondary" />
-                      </div>
-                      <span className="font-medium text-sm">
-                        {isArabic ? 'تحميل PPTX' : 'Download PPTX'}
-                      </span>
-                    </CardContent>
-                  </Card>
-                </a>
-              )}
-
-              {/* Download PDF */}
-              {generatedPresentation.pdfUrl && (
-                <a
-                  href={generatedPresentation.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Card className="hover:bg-primary/5 transition-colors cursor-pointer border-primary/20 h-full">
-                    <CardContent className="flex flex-col items-center justify-center gap-3 p-6">
-                      <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                        <FileText className="h-6 w-6 text-destructive" />
-                      </div>
-                      <span className="font-medium text-sm">
-                        {isArabic ? 'تحميل PDF' : 'Download PDF'}
-                      </span>
-                    </CardContent>
-                  </Card>
-                </a>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Slide Viewer */}
+      {generatedPresentation && generatedPresentation.success && generatedPresentation.slides && (
+        <SlideViewer
+          slides={generatedPresentation.slides}
+          title={generatedPresentation.title}
+          onClose={() => setGeneratedPresentation(null)}
+        />
       )}
     </div>
   );
