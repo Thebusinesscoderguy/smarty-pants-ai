@@ -66,7 +66,6 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'gpt-5-mini',
           messages: messagesWithSystem,
-          temperature: 0.7,
           stream: true,
         }),
         signal: controller.signal
