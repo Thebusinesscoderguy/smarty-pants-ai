@@ -43,16 +43,16 @@ ${includeQuiz ? 'Include 3-5 quiz questions at the end with answers.' : ''}
 ${includeExamples ? 'Include practical real-world examples and exercises throughout.' : ''}
 
 Structure:
-1. Title slide with an engaging hook
-2. Introduction / Overview
-3-${slideCount - 2}. Main content slides with detailed explanations, examples, and key points
-${slideCount - 1}. Summary / Key takeaways
-${slideCount}. ${includeQuiz ? 'Quiz / Review questions' : 'Conclusion / Next steps'}
+- Slide 1: Title slide with an engaging hook
+- Slide 2: Introduction / Overview
+- Slides 3-${slideCount - 2}: Main content slides with detailed explanations, examples, and key points
+- Slide ${slideCount - 1}: Summary / Key takeaways
+- Slide ${slideCount}: ${includeQuiz ? 'Quiz / Review questions' : 'Conclusion / Next steps'}
 
 For each slide, write detailed content (3-5 bullet points with rich explanations, not just keywords).
 Make the content educational, accurate, and appropriate for ${gradeLevel} level.
 
-Write the full presentation as structured text that can be turned into slides. Use clear headings for each slide, followed by the detailed content.`;
+Write the full presentation as a continuous document. Use "Slide X: Title" as headings (where X is the slide number), followed by bullet points with the detailed content. Do NOT use any numbered lists for slide identifiers — always use the word "Slide" followed by the number.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
