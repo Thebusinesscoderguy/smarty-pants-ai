@@ -127,10 +127,10 @@ Write the full presentation as structured text that can be turned into slides. U
         theme_id: "Simple Light",
       },
       text_options: {
-        language: isArabic ? "Arabic" : "English",
+        language: isArabic ? "Hindi" : "English (US)",
         tone: toneMap[style] || "EDUCATIONAL",
-        content_mode: "ENHANCE",
-        amount_mode: "BALANCED",
+        content_mode: "enhance",
+        amount_mode: "balanced",
       },
       image_options: {
         include_ai_images: true,
