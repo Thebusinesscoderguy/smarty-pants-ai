@@ -267,6 +267,9 @@ const MessageList: React.FC<MessageListProps> = ({
 
               <div className="text-lg leading-relaxed whitespace-pre-wrap">
                 {message.text}
+                {!message.isFromUser && message.text && !message.tokenCount && (
+                  <span className="inline-block w-2 h-5 bg-current opacity-70 animate-pulse ml-0.5 align-text-bottom" />
+                )}
               </div>
 
               {renderFileContent(message)}
