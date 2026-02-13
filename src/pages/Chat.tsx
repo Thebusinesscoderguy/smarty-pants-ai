@@ -200,9 +200,18 @@ const Chat = () => {
     try {
       console.log('Sending message to chat-completion:', userMessage);
       
-      // Generate text response using chat completion
-      const completionResponse = await supabase.functions.invoke('chat-completion', {
-        body: {
+      const { data: { session } } = await supabase.auth.getSession();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/chat-completion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || supabaseKey}`,
+          'apikey': supabaseKey,
+        },
+        body: JSON.stringify({
           messages: [
             {
               role: "system",
@@ -241,43 +250,59 @@ Mathematics, Science, Literature, History, Languages, Arts, Technology, and more
 Remember: Every student learns differently. Adjust your explanations, pace, and examples based on their responses and questions. Your goal is not just to provide answers, but to inspire a love of learning.`
             },
             { role: "user", content: userMessage }
-          ]
-        }
+          ],
+          language: localStorage.getItem('selectedLanguage') || 'en'
+        })
       });
 
-      console.log('Raw completion response:', completionResponse);
-
-      if (completionResponse.error) {
-        console.error('Edge function error:', completionResponse.error);
-        throw new Error(completionResponse.error.message || 'Failed to generate AI response');
+      if (!response.ok) {
+        let errorMsg = 'Failed to generate AI response';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData?.error || errorData?.message || errorMsg;
+        } catch { /* ignore */ }
+        throw new Error(errorMsg);
       }
 
-      // The response is coming as streaming text format
-      if (completionResponse.data && typeof completionResponse.data === 'string') {
-        console.log('Processing streaming response:', completionResponse.data);
-        
-        let aiResponseText = '';
-        const lines = completionResponse.data.split('\n');
-        
+      if (!response.body) {
+        throw new Error('No response body');
+      }
+
+      // Parse streaming SSE response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let aiResponseText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith(':')) continue;
+          if (trimmed.startsWith('data: ')) {
+            const data = trimmed.slice(6);
+            if (data === '[DONE]') continue;
             try {
-              const dataStr = line.slice(6); // Remove 'data: ' prefix
-              const data = JSON.parse(dataStr);
-              if (data.content) {
-                aiResponseText += data.content;
-              }
-            } catch (e) {
-              console.log('Skipping invalid JSON line:', line);
-            }
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content || parsed.content;
+              if (content) aiResponseText += content;
+            } catch { /* skip */ }
           }
         }
-        
-        console.log('Parsed AI response:', aiResponseText);
-        return { text: aiResponseText };
       }
       
-      throw new Error("Unexpected response format from edge function");
+      if (!aiResponseText) {
+        throw new Error('No response generated');
+      }
+
+      console.log('Parsed AI response:', aiResponseText);
+      return { text: aiResponseText };
     } catch (error) {
       console.error('Error generating AI response:', error);
       throw error;
