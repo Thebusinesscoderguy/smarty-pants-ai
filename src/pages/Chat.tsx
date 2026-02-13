@@ -196,26 +196,23 @@ const Chat = () => {
     </div>
   );
 
-  const generateAIResponse = async (userMessage: string) => {
-    try {
-      console.log('Sending message to chat-completion:', userMessage);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      const supabaseUrl = 'https://twfzlbockonxopuindaw.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1OTIxMzMsImV4cCI6MjA1OTE2ODEzM30.8i4PeOsf-vWuKOeukSIAJHCMYMUaraO579wvuaFzpn0';
-      
-      const response = await fetch(`${supabaseUrl}/functions/v1/chat-completion`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || supabaseKey}`,
-          'apikey': supabaseKey,
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: "system",
-              content: `You are Teachly AI, an expert educational tutor designed to help students learn effectively. Your core mission is to foster understanding, critical thinking, and academic growth.
+  const generateAIResponseStreaming = async (userMessage: string, onDelta: (text: string) => void): Promise<string> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const supabaseUrl = 'https://twfzlbockonxopuindaw.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3ZnpsYm9ja29ueG9wdWluZGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1OTIxMzMsImV4cCI6MjA1OTE2ODEzM30.8i4PeOsf-vWuKOeukSIAJHCMYMUaraO579wvuaFzpn0';
+    
+    const response = await fetch(`${supabaseUrl}/functions/v1/chat-completion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token || supabaseKey}`,
+        'apikey': supabaseKey,
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "system",
+            content: `You are Teachly AI, an expert educational tutor designed to help students learn effectively. Your core mission is to foster understanding, critical thinking, and academic growth.
 
 **Your Teaching Philosophy:**
 - Always encourage and build student confidence
@@ -248,65 +245,57 @@ Mathematics, Science, Literature, History, Languages, Arts, Technology, and more
 - Adaptive to different learning styles
 
 Remember: Every student learns differently. Adjust your explanations, pace, and examples based on their responses and questions. Your goal is not just to provide answers, but to inspire a love of learning.`
-            },
-            { role: "user", content: userMessage }
-          ],
-          language: localStorage.getItem('selectedLanguage') || 'en'
-        })
-      });
+          },
+          { role: "user", content: userMessage }
+        ],
+        language: localStorage.getItem('selectedLanguage') || 'en'
+      })
+    });
 
-      if (!response.ok) {
-        let errorMsg = 'Failed to generate AI response';
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData?.error || errorData?.message || errorMsg;
-        } catch { /* ignore */ }
-        throw new Error(errorMsg);
-      }
+    if (!response.ok) {
+      let errorMsg = 'Failed to generate AI response';
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData?.error || errorData?.message || errorMsg;
+      } catch { /* ignore */ }
+      throw new Error(errorMsg);
+    }
 
-      if (!response.body) {
-        throw new Error('No response body');
-      }
+    if (!response.body) throw new Error('No response body');
 
-      // Parse streaming SSE response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let aiResponseText = '';
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed.startsWith(':')) continue;
-          if (trimmed.startsWith('data: ')) {
-            const data = trimmed.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content || parsed.content;
-              if (content) aiResponseText += content;
-            } catch { /* skip */ }
-          }
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith(':')) continue;
+        if (trimmed.startsWith('data: ')) {
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices?.[0]?.delta?.content || parsed.content;
+            if (content) {
+              fullText += content;
+              onDelta(fullText);
+            }
+          } catch { /* skip */ }
         }
       }
-      
-      if (!aiResponseText) {
-        throw new Error('No response generated');
-      }
-
-      console.log('Parsed AI response:', aiResponseText);
-      return { text: aiResponseText };
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-      throw error;
     }
+
+    if (!fullText) throw new Error('No response generated');
+    return fullText;
   };
 
   const handleSendMessage = async () => {
@@ -318,6 +307,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       isUser: true,
       timestamp: new Date()
     };
+
+    const aiMessageId = (Date.now() + 1).toString();
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
@@ -338,7 +329,6 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
           type: 'text'
         });
         
-        // Set active session if it's a new conversation
         if (!activeSessionId) {
           setActiveSessionId(conversationId);
         }
@@ -347,17 +337,20 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       console.error('Error saving user message:', error);
     }
 
-    try {
-      const response = await generateAIResponse(userMessage.content);
-      
-      const aiResponse = {
-        id: (Date.now() + 1).toString(),
-        content: response.text,
-        isUser: false,
-        timestamp: new Date()
-      };
+    // Add empty AI message for streaming
+    setMessages(prev => [...prev, {
+      id: aiMessageId,
+      content: '',
+      isUser: false,
+      timestamp: new Date()
+    }]);
 
-      setMessages(prev => [...prev, aiResponse]);
+    try {
+      const finalText = await generateAIResponseStreaming(userMessage.content, (streamedText) => {
+        setMessages(prev => prev.map(m => 
+          m.id === aiMessageId ? { ...m, content: streamedText } : m
+        ));
+      });
       
       // Save AI response to database
       try {
@@ -366,7 +359,7 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
           
           await supabase.from('messages').insert({
             user_id: user.id,
-            content: aiResponse.content,
+            content: finalText,
             is_from_user: false,
             conversation_id: conversationId,
             type: 'text'
@@ -377,6 +370,8 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
       }
     } catch (error: any) {
       console.error('Chat error:', error);
+      // Remove the empty AI message on error
+      setMessages(prev => prev.filter(m => m.id !== aiMessageId));
       toast({
         title: t('common.error'),
         description: error?.message || t('chat.errorAiResponse'),
