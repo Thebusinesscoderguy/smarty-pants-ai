@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Set a timeout for the fetch operation
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
     
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {

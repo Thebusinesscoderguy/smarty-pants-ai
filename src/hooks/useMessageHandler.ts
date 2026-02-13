@@ -125,8 +125,17 @@ export const useMessageHandler = () => {
           })
         });
 
-        if (!response.ok || !response.body) {
-          throw new Error('Failed to get response from AI');
+        if (!response.ok) {
+          // Try to parse error body for detailed message
+          let errorMsg = 'Failed to get response from AI';
+          try {
+            const errorData = await response.json();
+            errorMsg = errorData?.error || errorData?.message || errorData?.details || errorMsg;
+          } catch { /* ignore parse errors */ }
+          throw new Error(errorMsg);
+        }
+        if (!response.body) {
+          throw new Error('No response body from AI');
         }
 
         // Process streaming response
