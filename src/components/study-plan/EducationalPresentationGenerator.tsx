@@ -4,10 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
-import { Loader2, Presentation, Sparkles, BookOpen, Zap, Eye } from 'lucide-react';
+import { Loader2, Presentation, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEducationalPresentationGenerator, PresentationSettings } from '@/hooks/useEducationalPresentationGenerator';
 import { SlideViewer } from '@/components/study-plan/SlideViewer';
@@ -25,15 +23,15 @@ const POPULAR_TOPICS = [
   { en: 'World War II', ar: 'الحرب العالمية الثانية' },
   { en: 'Human Body Systems', ar: 'أجهزة الجسم البشري' },
   { en: 'Climate Change', ar: 'تغير المناخ' },
-  { en: 'Algebra Basics', ar: 'أساسيات الجبر' },
-  { en: 'Ancient Egypt', ar: 'مصر القديمة' },
 ];
 
+const SLIDE_COUNTS = ['5', '8', '10', '12', '15', '20'];
+
 const STYLES = [
-  { value: 'educational', labelEn: 'Educational', labelAr: 'تعليمي', icon: BookOpen, color: 'bg-blue-500' },
-  { value: 'fun', labelEn: 'Fun & Engaging', labelAr: 'ممتع وتفاعلي', icon: Sparkles, color: 'bg-pink-500' },
-  { value: 'visual', labelEn: 'Visual Focus', labelAr: 'بصري', icon: Eye, color: 'bg-green-500' },
-  { value: 'concise', labelEn: 'Concise', labelAr: 'موجز', icon: Zap, color: 'bg-gray-500' },
+  { value: 'educational', labelEn: 'Educational', labelAr: 'تعليمي' },
+  { value: 'fun', labelEn: 'Fun & Engaging', labelAr: 'ممتع وتفاعلي' },
+  { value: 'visual', labelEn: 'Visual Focus', labelAr: 'بصري' },
+  { value: 'concise', labelEn: 'Concise', labelAr: 'موجز' },
 ];
 
 export const EducationalPresentationGenerator = () => {
@@ -58,39 +56,35 @@ export const EducationalPresentationGenerator = () => {
 
   return (
     <div className="space-y-6">
-      {/* Settings Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Presentation className="h-5 w-5 text-primary" />
-            {isArabic ? 'مولد العروض التقديمية التعليمية' : 'Educational Presentation Generator'}
+            <Presentation className="h-5 w-5" />
+            {isArabic ? 'مولد العروض التقديمية' : 'Presentation Generator'}
           </CardTitle>
           <CardDescription>
             {isArabic 
-              ? 'أنشئ عروض تقديمية تعليمية احترافية بالذكاء الاصطناعي'
-              : 'Create professional educational presentations with AI'}
+              ? 'أنشئ عروض تقديمية تعليمية بالذكاء الاصطناعي'
+              : 'Generate educational presentations with AI'}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Topic Input */}
+        <CardContent className="space-y-4">
+          {/* Topic */}
           <div className="space-y-2">
-            <Label htmlFor="topic">{isArabic ? 'الموضوع' : 'Topic'} *</Label>
+            <Label htmlFor="pres-topic">{isArabic ? 'الموضوع' : 'Topic'}</Label>
             <Input
-              id="topic"
+              id="pres-topic"
               placeholder={isArabic ? 'أدخل موضوع العرض التقديمي...' : 'Enter presentation topic...'}
               value={settings.topic}
               onChange={(e) => setSettings({ ...settings, topic: e.target.value })}
               disabled={isGenerating}
-              className="text-lg"
             />
-            
-            {/* Popular Topics */}
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-1.5">
               {POPULAR_TOPICS.map((topic) => (
                 <Badge
                   key={topic.en}
                   variant={settings.topic === (isArabic ? topic.ar : topic.en) ? 'default' : 'outline'}
-                  className="cursor-pointer hover:bg-primary/10"
+                  className="cursor-pointer text-xs"
                   onClick={() => setSettings({ ...settings, topic: isArabic ? topic.ar : topic.en })}
                 >
                   {isArabic ? topic.ar : topic.en}
@@ -99,8 +93,8 @@ export const EducationalPresentationGenerator = () => {
             </div>
           </div>
 
-          {/* Grade Level & Slide Count */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Settings row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>{isArabic ? 'المستوى الدراسي' : 'Grade Level'}</Label>
               <Select
@@ -111,7 +105,7 @@ export const EducationalPresentationGenerator = () => {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background z-50">
                   {GRADE_LEVELS.map((grade) => (
                     <SelectItem key={grade} value={grade}>{grade}</SelectItem>
                   ))}
@@ -120,94 +114,58 @@ export const EducationalPresentationGenerator = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>{isArabic ? 'عدد الشرائح' : 'Number of Slides'}: {settings.slideCount}</Label>
-              <Slider
-                value={[settings.slideCount]}
-                onValueChange={(value) => setSettings({ ...settings, slideCount: value[0] })}
-                min={5}
-                max={20}
-                step={1}
+              <Label>{isArabic ? 'عدد الشرائح' : 'Slides'}</Label>
+              <Select
+                value={String(settings.slideCount)}
+                onValueChange={(value) => setSettings({ ...settings, slideCount: Number(value) })}
                 disabled={isGenerating}
-                className="mt-2"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>5</span>
-                <span>20</span>
-              </div>
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {SLIDE_COUNTS.map((c) => (
+                    <SelectItem key={c} value={c}>{c} {isArabic ? 'شريحة' : 'slides'}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{isArabic ? 'النمط' : 'Style'}</Label>
+              <Select
+                value={settings.style}
+                onValueChange={(value) => setSettings({ ...settings, style: value as any })}
+                disabled={isGenerating}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {STYLES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {isArabic ? s.labelAr : s.labelEn}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Style Selection */}
-          <div className="space-y-2">
-            <Label>{isArabic ? 'نمط العرض' : 'Presentation Style'}</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {STYLES.map((style) => {
-                const Icon = style.icon;
-                const isSelected = settings.style === style.value;
-                return (
-                  <button
-                    key={style.value}
-                    onClick={() => setSettings({ ...settings, style: style.value as any })}
-                    disabled={isGenerating}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      isSelected 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full ${style.color} mx-auto mb-2 flex items-center justify-center`}>
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <p className="text-sm font-medium text-center">
-                      {isArabic ? style.labelAr : style.labelEn}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Options */}
-          <div className="flex flex-wrap gap-6">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="includeQuiz"
-                checked={settings.includeQuiz}
-                onCheckedChange={(checked) => setSettings({ ...settings, includeQuiz: checked })}
-                disabled={isGenerating}
-              />
-              <Label htmlFor="includeQuiz">
-                {isArabic ? 'تضمين أسئلة اختبار' : 'Include Quiz Questions'}
-              </Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="includeExamples"
-                checked={settings.includeExamples}
-                onCheckedChange={(checked) => setSettings({ ...settings, includeExamples: checked })}
-                disabled={isGenerating}
-              />
-              <Label htmlFor="includeExamples">
-                {isArabic ? 'تضمين أمثلة عملية' : 'Include Practical Examples'}
-              </Label>
-            </div>
-          </div>
-
-          {/* Generate Button */}
+          {/* Generate */}
           <Button
             onClick={handleGenerate}
             disabled={isGenerating || !settings.topic.trim()}
             className="w-full"
-            size="lg"
           >
             {isGenerating ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {isArabic ? 'جاري الإنشاء... (قد يستغرق 1-3 دقائق)' : 'Generating... (may take 1-3 minutes)'}
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isArabic ? 'جاري الإنشاء...' : 'Generating...'}
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-5 w-5" />
+                <Sparkles className="mr-2 h-4 w-4" />
                 {isArabic ? 'إنشاء العرض التقديمي' : 'Generate Presentation'}
               </>
             )}
