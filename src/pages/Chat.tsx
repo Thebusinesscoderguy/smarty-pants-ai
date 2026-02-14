@@ -83,7 +83,7 @@ const Chat = () => {
       try {
         const { data: messagesData, error } = await supabase
           .from('messages')
-          .select('conversation_id, content, created_at')
+          .select('conversation_id, content, created_at, is_from_user')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 

@@ -63,12 +63,12 @@ serve(async (req) => {
     const data = await response.json();
     const title = data.choices[0].message.content.trim();
 
-    // Clean up the title - remove quotes and ensure it's not too long
+    // Clean up the title - remove quotes and limit length
     const cleanTitle = title
       .replace(/^["']|["']$/g, '') // Remove surrounding quotes
-      .replace(/[^\w\s-]/g, '') // Remove special characters except hyphens
-      .substring(0, 50) // Limit length
-      .trim();
+      .replace(/[^\w\s\-àáâãäåèéêëìíîïòóôõöùúûüçñ]/gi, '') // Remove special chars but keep letters/accents
+      .substring(0, 50)
+      .trim() || 'Learning Session'; // Fallback if empty after cleaning
 
     console.log('Generated conversation title:', cleanTitle);
 
