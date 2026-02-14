@@ -54,7 +54,7 @@ export const ChatSidebar = ({
     try {
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select('conversation_id, created_at, content')
+        .select('conversation_id, created_at, content, is_from_user')
         .eq('user_id', user.id)
         .not('conversation_id', 'is', null)
         .order('created_at', { ascending: false });
@@ -68,14 +68,40 @@ export const ChatSidebar = ({
             id: msg.conversation_id,
             title: generateTitleFromContent(msg.content),
             created_at: msg.created_at,
-            message_count: 1
+            message_count: 1,
+            messages: [msg]
           });
         } else {
           sessionMap.get(msg.conversation_id).message_count++;
+          sessionMap.get(msg.conversation_id).messages.push(msg);
         }
       });
 
-      setChatSessions(Array.from(sessionMap.values()));
+      const sessions = Array.from(sessionMap.values()).map(({ messages: _msgs, ...rest }) => rest);
+      setChatSessions(sessions);
+
+      // Generate AI titles for sessions with enough messages
+      for (const conv of Array.from(sessionMap.values()).filter(c => c.messages.length >= 2)) {
+        const cacheKey = `chat_title_${conv.id}`;
+        const cachedTitle = localStorage.getItem(cacheKey);
+        if (cachedTitle) {
+          setChatSessions(prev => prev.map(s => s.id === conv.id ? { ...s, title: cachedTitle } : s));
+          continue;
+        }
+        const convMessages = conv.messages
+          .reverse()
+          .slice(0, 6)
+          .map((m: any) => ({ role: m.is_from_user ? 'user' : 'assistant', content: m.content }));
+
+        supabase.functions.invoke('generate-conversation-title', {
+          body: { messages: convMessages }
+        }).then(({ data }) => {
+          if (data?.title) {
+            localStorage.setItem(cacheKey, data.title);
+            setChatSessions(prev => prev.map(s => s.id === conv.id ? { ...s, title: data.title } : s));
+          }
+        }).catch(() => { /* keep fallback */ });
+      }
     } catch (error) {
       console.error('Error fetching chat sessions:', error);
     }

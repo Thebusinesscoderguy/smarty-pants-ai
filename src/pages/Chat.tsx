@@ -112,20 +112,41 @@ const Chat = () => {
           conversationMap.get(convId).messages.push(message);
         });
 
-        // Convert to sessions with AI-generated titles, only include conversations with messages
+        // Convert to sessions, only include conversations with messages
         const sessions = Array.from(conversationMap.values())
-          .filter(conv => conv.messages.length > 0) // Filter out conversations with no messages
-          .map(conv => {
-            const title = generateTitleFromContent(conv.firstMessage.content);
-            return {
-              id: conv.id,
-              title,
-              created_at: conv.created_at,
-              message_count: conv.messages.length
-            };
-          });
+          .filter(conv => conv.messages.length > 0)
+          .map(conv => ({
+            id: conv.id,
+            title: generateTitleFromContent(conv.firstMessage.content), // temporary title
+            created_at: conv.created_at,
+            message_count: conv.messages.length
+          }));
 
         setChatSessions(sessions);
+
+        // Generate AI titles for sessions that have enough messages
+        for (const conv of Array.from(conversationMap.values()).filter(c => c.messages.length >= 2)) {
+          const cacheKey = `chat_title_${conv.id}`;
+          const cachedTitle = localStorage.getItem(cacheKey);
+          if (cachedTitle) {
+            setChatSessions(prev => prev.map(s => s.id === conv.id ? { ...s, title: cachedTitle } : s));
+            continue;
+          }
+          // Generate title asynchronously
+          const convMessages = conv.messages
+            .reverse()
+            .slice(0, 6)
+            .map((m: any) => ({ role: m.is_from_user ? 'user' : 'assistant', content: m.content }));
+          
+          supabase.functions.invoke('generate-conversation-title', {
+            body: { messages: convMessages }
+          }).then(({ data }) => {
+            if (data?.title) {
+              localStorage.setItem(cacheKey, data.title);
+              setChatSessions(prev => prev.map(s => s.id === conv.id ? { ...s, title: data.title } : s));
+            }
+          }).catch(() => { /* keep fallback title */ });
+        }
       } catch (error) {
         console.error('Error in fetchChatSessions:', error);
       }
@@ -364,6 +385,26 @@ Remember: Every student learns differently. Adjust your explanations, pace, and 
             conversation_id: conversationId,
             type: 'text'
           });
+
+          // Generate AI title after first exchange (2 messages: user + AI)
+          const cacheKey = `chat_title_${conversationId}`;
+          if (!localStorage.getItem(cacheKey)) {
+            supabase.functions.invoke('generate-conversation-title', {
+              body: {
+                messages: [
+                  { role: 'user', content: userMessage.content },
+                  { role: 'assistant', content: finalText }
+                ]
+              }
+            }).then(({ data }) => {
+              if (data?.title) {
+                localStorage.setItem(cacheKey, data.title);
+                setChatSessions(prev => prev.map(s =>
+                  s.id === conversationId ? { ...s, title: data.title } : s
+                ));
+              }
+            }).catch(() => { /* keep fallback */ });
+          }
         }
       } catch (error) {
         console.error('Error saving AI message:', error);
