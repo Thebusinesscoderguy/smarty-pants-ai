@@ -128,7 +128,7 @@ const Chat = () => {
         for (const conv of Array.from(conversationMap.values()).filter(c => c.messages.length >= 1)) {
           const cacheKey = `chat_title_${conv.id}`;
           const cachedTitle = localStorage.getItem(cacheKey);
-          if (cachedTitle) {
+          if (cachedTitle && cachedTitle !== 'Learning Session') {
             setChatSessions(prev => prev.map(s => s.id === conv.id ? { ...s, title: cachedTitle } : s));
             continue;
           }
@@ -141,7 +141,7 @@ const Chat = () => {
           supabase.functions.invoke('generate-conversation-title', {
             body: { messages: convMessages }
           }).then(({ data }) => {
-            if (data?.title) {
+            if (data?.title && data.title !== 'Learning Session') {
               localStorage.setItem(cacheKey, data.title);
               setChatSessions(prev => prev.map(s => s.id === conv.id ? { ...s, title: data.title } : s));
             }
