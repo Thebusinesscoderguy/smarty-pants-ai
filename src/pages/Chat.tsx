@@ -726,7 +726,7 @@ const Chat = () => {
                   </div>
                 </div>
               ) : (
-                messages.map((message) => (
+                messages.filter(m => m.isUser || m.content).map((message) => (
                   <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex items-start space-x-3 max-w-4xl ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
                       <div className={`p-3 rounded-2xl ${message.isUser ? 'bg-primary' : 'bg-muted'} border border-border`}>
