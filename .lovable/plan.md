@@ -1,28 +1,22 @@
 
 
-## AI-Generated Chat Titles Based on Conversation Topic
+## Remove Custom Instructions from Chat
 
-### Problem
-Chat sessions in the sidebar are currently titled using the first ~50 characters of the first message (e.g., "interesting"), which is not descriptive. They should instead reflect the overall topic of the conversation.
-
-### Solution
-Use the existing `generate-conversation-title` edge function to generate meaningful topic-based titles after the first AI response completes. This function already uses GPT to analyze the conversation and produce a 2-6 word descriptive title like "Photosynthesis Process" or "Calculus Integration Methods".
+### Goal
+Strip all custom persona/teaching instructions from the chat system, keeping only the factual accuracy guardrail.
 
 ### Changes
 
 **1. `src/pages/Chat.tsx`**
-- After the AI response is saved to the database (around line 366), call the `generate-conversation-title` edge function with the conversation messages
-- Update the session title in `chatSessions` state with the AI-generated title
-- Only generate a title for new sessions (when it's the first exchange)
+- Remove the entire `systemMessage` object that defines the "Teachly AI" persona (Socratic method, teaching style, response structure, etc.)
+- Remove the code that prepends `systemMessage` to the conversation history when calling the edge function
+- Messages sent to the backend will contain only the raw conversation history
 
-**2. `src/components/chat/ChatSidebar.tsx`**
-- Same change: replace `generateTitleFromContent` with a call to the `generate-conversation-title` edge function when loading sessions, or store/cache the AI-generated title
+**2. `supabase/functions/chat-completion/index.ts`**
+- Keep the existing accuracy instruction: *"CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy, do NOT present that information to the student. Only provide information you are confident is accurate and consistent. If uncertain, acknowledge your uncertainty rather than presenting potentially incorrect information."*
+- Keep the language instruction that appends "Always respond in [language]" when language is not English
+- No other system instructions
 
-### Technical Details
-
-- The `generate-conversation-title` edge function already exists and works -- it takes a `messages` array and returns a `{ title }` response
-- The title generation will happen asynchronously after the first AI reply, so it won't slow down the chat
-- The function uses `gpt-5-mini` to analyze the first few messages and produce a concise topic title
-- For the sidebar's historical sessions, we'll generate titles on load using the stored messages (with caching to avoid re-generating)
-- Fallback title remains "Learning Session" if the API call fails
+### Result
+The AI will behave as a standard GPT assistant with no forced teaching persona, while still maintaining factual accuracy safeguards and language support.
 
