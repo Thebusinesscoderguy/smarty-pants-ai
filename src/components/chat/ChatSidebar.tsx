@@ -81,7 +81,7 @@ export const ChatSidebar = ({
       setChatSessions(sessions);
 
       // Generate AI titles for sessions with enough messages
-      for (const conv of Array.from(sessionMap.values()).filter(c => c.messages.length >= 2)) {
+      for (const conv of Array.from(sessionMap.values()).filter(c => c.messages.length >= 1)) {
         const cacheKey = `chat_title_${conv.id}`;
         const cachedTitle = localStorage.getItem(cacheKey);
         if (cachedTitle) {
