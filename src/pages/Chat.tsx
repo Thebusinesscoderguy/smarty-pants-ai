@@ -125,7 +125,7 @@ const Chat = () => {
         setChatSessions(sessions);
 
         // Generate AI titles for sessions that have enough messages
-        for (const conv of Array.from(conversationMap.values()).filter(c => c.messages.length >= 2)) {
+        for (const conv of Array.from(conversationMap.values()).filter(c => c.messages.length >= 1)) {
           const cacheKey = `chat_title_${conv.id}`;
           const cachedTitle = localStorage.getItem(cacheKey);
           if (cachedTitle) {
