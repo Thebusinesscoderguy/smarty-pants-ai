@@ -67,6 +67,13 @@ Return ONLY a valid JSON array of exactly ${slideCount} slide objects. Each obje
 - "bullets": string[] (3-5 bullet points, each being 2-3 substantive sentences)
 - "type": one of "title", "content", "quiz", "summary"
 - "icon": an emoji that represents the slide content
+- "visual": (optional) an object to display a diagram or visual element on the slide. Include this on roughly half of the "content" slides to make the presentation visually rich. Choose ONE of these visual types per slide:
+  - { "type": "comparison", "headers": ["Column A", "Column B"], "rows": [["item1a", "item1b"], ["item2a", "item2b"]] } — for comparing two things
+  - { "type": "timeline", "events": [{ "year": "1900", "label": "Event description" }, ...] } — for chronological events (3-6 events)
+  - { "type": "diagram", "center": "Main Concept", "branches": ["Branch 1", "Branch 2", "Branch 3"] } — for mind maps or concept webs
+  - { "type": "stats", "items": [{ "value": "85%", "label": "Description" }, ...] } — for key statistics (2-4 items)
+  - { "type": "steps", "items": ["Step 1", "Step 2", ...] } — for processes or sequences (3-6 steps)
+  Do NOT include a visual on "title", "quiz", or "summary" slides.
 
 The first slide should be type "title" with a compelling subtitle as the first bullet.
 The second-to-last slide should be type "summary" with key takeaways.
