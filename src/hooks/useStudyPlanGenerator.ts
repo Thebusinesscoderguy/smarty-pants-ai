@@ -71,8 +71,14 @@ export const useStudyPlanGenerator = () => {
       console.log('[useStudyPlanGenerator] Response:', { hasData: !!data, hasError: !!error, errorMsg: error?.message, dataType: typeof data });
 
       if (error) {
+        const errorMsg = (error as any)?.message || '';
+        // Detect HTML responses from gateway timeouts (502/504)
+        if (errorMsg.includes('<!') || errorMsg.includes('<html') || errorMsg.includes('FunctionsFetchError')) {
+          console.error('[useStudyPlanGenerator] Gateway timeout detected (HTML response)');
+          throw new Error('The server took too long to respond. Try a shorter plan (fewer days) or try again.');
+        }
         const status = (error as any)?.context?.response?.status ?? (error as any)?.status;
-        const message = (error as any)?.message || 'Failed to generate study plan';
+        const message = errorMsg || 'Failed to generate study plan';
         console.error('[useStudyPlanGenerator] Function invoke error:', { status, message, error });
         throw { ...error, status, message };
       }
