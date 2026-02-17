@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PDFStudyPlanButton } from '@/components/study-plan/PDFStudyPlanButton';
 import { PresentationButton } from '@/components/study-plan/PresentationButton';
+import { useGuestUsage } from '@/hooks/useGuestUsage';
 
 interface StudyPlan {
   id: string;
@@ -54,7 +55,7 @@ function getFileType(fileName: string): FileType {
 }
 
 export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMethod: 'file' | 'chat' | 'topic'; input: string; gradeLevel?: string; region?: string; days?: number; maxDailyMinutes?: number } }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [inputMethod, setInputMethod] = useState<'file' | 'chat' | 'topic'>('file');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
@@ -76,6 +77,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   const navigate = useNavigate();
   const { isGenerating, generateStudyPlan } = useStudyPlanGenerator();
   const { generateQuiz, isGenerating: isGeneratingQuiz } = useQuizGenerator();
+  const { canGenerate: canGuestGenerate, recordUsage } = useGuestUsage();
   const [showSignInDialog, setShowSignInDialog] = useState(false);
   const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
   const autoRanRef = useRef(false);
@@ -172,6 +174,11 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
   };
 
   const handleGeneratePlan = async () => {
+    if (!canGuestGenerate('study_plan')) {
+      setAttemptedDay(null);
+      setShowSignInDialog(true);
+      return;
+    }
     let inputData = '';
     let inputType = inputMethod;
     let fileUrl: string | undefined;
@@ -211,6 +218,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
     });
     
     if (plan) {
+      recordUsage('study_plan');
       setGeneratedPlan(plan);
       setUploadProgress(0);
     } else {
@@ -379,9 +387,13 @@ Please generate 5 questions that test understanding of this topic.`;
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('studyPlan.unlockMoreDays')}</DialogTitle>
+            <DialogTitle>{attemptedDay ? t('studyPlan.unlockMoreDays') : (language === 'ar' ? 'سجل دخولك للمتابعة' : 'Sign in to continue')}</DialogTitle>
             <DialogDescription>
-              {t('studyPlan.signInToStart')} {attemptedDay}. {t('studyPlan.guestDay1')}
+              {attemptedDay 
+                ? `${t('studyPlan.signInToStart')} ${attemptedDay}. ${t('studyPlan.guestDay1')}`
+                : (language === 'ar' 
+                  ? 'لقد استخدمت خطة الدراسة المجانية. سجل دخولك لإنشاء المزيد.'
+                  : 'You\'ve used your free study plan. Sign in to generate more.')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

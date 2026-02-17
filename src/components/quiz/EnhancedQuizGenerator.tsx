@@ -7,11 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileUploadZone } from './FileUploadZone';
 import { Loader2, Plus, Save, Trash2, FileQuestion, Brain, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useGuestUsage } from '@/hooks/useGuestUsage';
+import { useNavigate } from 'react-router-dom';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
@@ -33,10 +36,13 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 const autoRanRef = useRef(false);
   
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes, extractQuizFromFile } = useQuizGenerator();
+  const { canGenerate: canGuestGenerate, recordUsage, isGuest } = useGuestUsage();
 
 useEffect(() => {
   if (auto && !autoRanRef.current) {
@@ -70,6 +76,10 @@ useEffect(() => {
   };
 
   const handleGenerateQuiz = async () => {
+    if (!canGuestGenerate('quiz')) {
+      setShowSignInDialog(true);
+      return;
+    }
     let quiz: Quiz | null = null;
 
       switch (inputMethod) {
@@ -145,6 +155,7 @@ useEffect(() => {
       }
 
     if (quiz) {
+      recordUsage('quiz');
       setGeneratedQuiz(quiz);
     }
   };
@@ -228,6 +239,26 @@ useEffect(() => {
 
   return (
     <div className="space-y-6">
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('quizGenerator.signInRequired') || 'Sign in to continue'}</DialogTitle>
+            <DialogDescription>
+              {language === 'ar' 
+                ? 'لقد استخدمت الاختبار المجاني. سجل دخولك لإنشاء المزيد من الاختبارات.'
+                : 'You\'ve used your free quiz. Sign in to generate more quizzes.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              {t('studyPlan.signIn') || 'Sign In'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
