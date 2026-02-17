@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Presentation, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEducationalPresentationGenerator, PresentationSettings } from '@/hooks/useEducationalPresentationGenerator';
 import { SlideViewer } from '@/components/study-plan/SlideViewer';
+import { useGuestUsage } from '@/hooks/useGuestUsage';
+import { useNavigate } from 'react-router-dom';
 
 const GRADE_LEVELS = [
   'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
@@ -37,8 +40,11 @@ const STYLES = [
 export const EducationalPresentationGenerator = () => {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
+  const navigate = useNavigate();
   
   const { isGenerating, generatedPresentation, generatePresentation, setGeneratedPresentation } = useEducationalPresentationGenerator();
+  const { canGenerate: canGuestGenerate, recordUsage } = useGuestUsage();
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   const [settings, setSettings] = useState<PresentationSettings>({
     topic: '',
@@ -51,11 +57,36 @@ export const EducationalPresentationGenerator = () => {
 
   const handleGenerate = async () => {
     if (!settings.topic.trim()) return;
-    await generatePresentation(settings);
+    if (!canGuestGenerate('presentation')) {
+      setShowSignInDialog(true);
+      return;
+    }
+    const result = await generatePresentation(settings);
+    if (result) recordUsage('presentation');
   };
 
   return (
     <div className="space-y-6">
+      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isArabic ? 'سجل دخولك للمتابعة' : 'Sign in to continue'}</DialogTitle>
+            <DialogDescription>
+              {isArabic 
+                ? 'لقد استخدمت العرض التقديمي المجاني. سجل دخولك لإنشاء المزيد.'
+                : 'You\'ve used your free presentation. Sign in to generate more.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
+              {isArabic ? 'إلغاء' : 'Cancel'}
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              {isArabic ? 'تسجيل الدخول' : 'Sign In'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
