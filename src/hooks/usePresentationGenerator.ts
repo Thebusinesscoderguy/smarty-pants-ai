@@ -70,8 +70,50 @@ export const usePresentationGenerator = () => {
   const { user } = useAuth();
   const { language } = useLanguage();
 
+  const buildGuestData = (): PresentationData | null => {
+    try {
+      const stored = localStorage.getItem('guest_study_plan');
+      if (!stored) return null;
+      const plan = JSON.parse(stored);
+      const isArabic = language === 'ar';
+      
+      const weakAreas = plan.weakAreas || [];
+      const dailyLessons = plan.dailyLessons || [];
+      const topics = dailyLessons.map((l: any) => l.topic).filter(Boolean);
+      
+      return {
+        studentData: {
+          studentName: isArabic ? 'طالب' : 'Student',
+          gradeLevel: isArabic ? 'غير محدد' : 'Not specified',
+          goals: weakAreas.slice(0, 3),
+          currentLevel: isArabic ? 'غير محدد' : 'Not specified',
+        },
+        performance: {
+          strengths: topics.slice(0, 3),
+          weakAreas: weakAreas.slice(0, 5),
+          quizScores: [],
+          averageScore: 0,
+          completionRate: 0,
+          totalQuizzesTaken: 0,
+          bestSubject: 'N/A',
+          worstSubject: weakAreas[0] || 'N/A',
+          recentTrend: 'stable' as const,
+        },
+        weeklyPlan: generateWeeklyPlan(weakAreas, language),
+        futurePlans: generateFuturePlans(weakAreas, language),
+        nextSteps: generateNextSteps(weakAreas, 0, language),
+        recommendations: generateRecommendations(topics.slice(0, 3), weakAreas, 0, language),
+        generatedAt: new Date(),
+      };
+    } catch {
+      return null;
+    }
+  };
+
   const fetchData = async (): Promise<PresentationData | null> => {
-    if (!user) return null;
+    if (!user) {
+      return buildGuestData();
+    }
 
     try {
       const { data: profile } = await supabase
@@ -285,10 +327,6 @@ export const usePresentationGenerator = () => {
   };
 
   const generatePresentation = async () => {
-    if (!user) {
-      toast({ title: language === 'ar' ? 'خطأ' : 'Error', description: language === 'ar' ? 'يرجى تسجيل الدخول' : 'Please log in', variant: 'destructive' });
-      return;
-    }
 
     setIsGenerating(true);
     try {
