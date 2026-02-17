@@ -222,7 +222,7 @@ export const StudyPlanGenerator = ({ autoGenerate }: { autoGenerate?: { inputMet
       setGeneratedPlan(plan);
       setUploadProgress(0);
     } else {
-      toast({ title: t('studyPlan.couldNotGenerate'), description: t('studyPlan.tryAgain'), variant: 'destructive' });
+      console.warn('Study plan generation returned null (error toast already shown by hook)');
     }
   };
 

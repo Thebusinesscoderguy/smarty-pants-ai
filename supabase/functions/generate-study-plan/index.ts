@@ -258,7 +258,7 @@ MANDATORY REQUIREMENTS:
 
     const contextLine = `${gradeLevel ? `Grade level: ${gradeLevel}. ` : ''}${region ? `Curriculum/Country: ${region}. ` : ''}`;
 
-    const actualDays = planDays ?? 14;
+    const actualDays = planDays ?? 7;
     const baseConstraints = [
       `YOU MUST CREATE EXACTLY ${actualDays} DAILY LESSONS - NO MORE, NO LESS.`,
       `The dailyLessons array MUST contain exactly ${actualDays} lesson objects.`,
@@ -381,7 +381,7 @@ MANDATORY REQUIREMENTS:
                 }
               ],
               tool_choice: { type: 'function', function: { name: 'return_study_plan' } },
-              max_tokens: 8192,
+              max_tokens: 6000,
             }),
             signal: controller.signal,
           });
