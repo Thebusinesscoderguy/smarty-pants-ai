@@ -67,13 +67,18 @@ Return ONLY a valid JSON array of exactly ${slideCount} slide objects. Each obje
 - "bullets": string[] (3-5 bullet points, each being 2-3 substantive sentences)
 - "type": one of "title", "content", "quiz", "summary"
 - "icon": an emoji that represents the slide content
-- "visual": (optional) an object to display a diagram or visual element on the slide. Include this on roughly half of the "content" slides to make the presentation visually rich. Choose ONE of these visual types per slide:
-  - { "type": "comparison", "headers": ["Column A", "Column B"], "rows": [["item1a", "item1b"], ["item2a", "item2b"]] } — for comparing two things
-  - { "type": "timeline", "events": [{ "year": "1900", "label": "Event description" }, ...] } — for chronological events (3-6 events)
-  - { "type": "diagram", "center": "Main Concept", "branches": ["Branch 1", "Branch 2", "Branch 3"] } — for mind maps or concept webs
-  - { "type": "stats", "items": [{ "value": "85%", "label": "Description" }, ...] } — for key statistics (2-4 items)
-  - { "type": "steps", "items": ["Step 1", "Step 2", ...] } — for processes or sequences (3-6 steps)
-  Do NOT include a visual on "title", "quiz", or "summary" slides.
+- "visual": (REQUIRED for every "content" slide) an object to display a diagram or visual element. The visual MUST directly illustrate the specific topic of that slide — never use a generic or placeholder visual. Choose the MOST APPROPRIATE visual type for the content:
+  - { "type": "comparison", "headers": ["Column A", "Column B"], "rows": [["item1a", "item1b"], ["item2a", "item2b"]] } — for contrasting two concepts, organisms, events, or ideas
+  - { "type": "timeline", "events": [{ "year": "1900", "label": "Event description" }, ...] } — for chronological events or historical sequences (3-6 events)
+  - { "type": "diagram", "center": "Main Concept", "branches": ["Branch 1", "Branch 2", "Branch 3"] } — for concept webs, relationships between ideas, or categorization
+  - { "type": "stats", "items": [{ "value": "85%", "label": "Description" }, ...] } — for numerical data, percentages, measurements (2-4 items)
+  - { "type": "steps", "items": ["Step 1", "Step 2", ...] } — for processes, procedures, or sequences of actions (3-6 steps)
+  - { "type": "cause-effect", "items": [{ "cause": "Cause description", "effect": "Effect description" }, ...] } — for showing causes and their results, consequences, or chain reactions (2-4 items)
+  - { "type": "labeled-diagram", "title": "Structure Name", "parts": [{ "name": "Part Name", "description": "What it does" }, ...] } — for anatomy, structure, components, or parts of a system (3-6 parts)
+  VISUAL RULES:
+  - Every "content" slide MUST have exactly one visual.
+  - Do NOT reuse the same visual type on consecutive slides — vary the types.
+  - Do NOT include a visual on "title", "quiz", or "summary" slides.
 
 The first slide should be type "title" with a compelling subtitle as the first bullet.
 The second-to-last slide should be type "summary" with key takeaways.
