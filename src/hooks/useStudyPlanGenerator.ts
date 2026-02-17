@@ -45,6 +45,7 @@ export const useStudyPlanGenerator = () => {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     
     try {
+      console.log('[useStudyPlanGenerator] Starting generation with:', { inputType, inputDataLength: inputData?.length, language });
       const invokePromise = supabase.functions.invoke('generate-study-plan', {
         body: {
           inputData,
@@ -60,29 +61,33 @@ export const useStudyPlanGenerator = () => {
       });
       
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 120000); // 2 min timeout for large files
+        timeoutId = setTimeout(() => reject(new Error('Request timed out')), 120000);
       });
       
       const result = await Promise.race([invokePromise, timeoutPromise]) as { data: any; error: any };
       clearTimeout(timeoutId);
 
       const { data, error } = result;
+      console.log('[useStudyPlanGenerator] Response:', { hasData: !!data, hasError: !!error, errorMsg: error?.message, dataType: typeof data });
 
       if (error) {
         const status = (error as any)?.context?.response?.status ?? (error as any)?.status;
         const message = (error as any)?.message || 'Failed to generate study plan';
+        console.error('[useStudyPlanGenerator] Function invoke error:', { status, message, error });
         throw { ...error, status, message };
       }
 
       if (!data) {
+        console.error('[useStudyPlanGenerator] No data returned');
         throw new Error('No study plan returned');
       }
 
-      // Check for error responses from the edge function
       if (data.error) {
+        console.error('[useStudyPlanGenerator] Data contains error:', data.error);
         throw new Error(data.error);
       }
 
+      console.log('[useStudyPlanGenerator] Success, plan title:', data?.title);
       return data as StudyPlan;
     } catch (error: any) {
       console.error('Error generating study plan:', error);
