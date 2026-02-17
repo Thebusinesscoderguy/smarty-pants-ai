@@ -73,15 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log(`AuthContext: Processing ${event} event`);
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
+            // Defer async calls to avoid deadlocking onAuthStateChange
             if (currentSession?.user) {
-              checkSchoolAdminStatus(currentSession.user.id);
+              setTimeout(() => checkSchoolAdminStatus(currentSession.user.id), 0);
             }
             break;
           default:
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
             if (currentSession?.user) {
-              checkSchoolAdminStatus(currentSession.user.id);
+              setTimeout(() => checkSchoolAdminStatus(currentSession.user.id), 0);
             } else {
               setIsSchoolAdmin(false);
             }
