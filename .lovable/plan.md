@@ -1,44 +1,62 @@
 
 
-## Upgrade Presentation Quality to Match Grade Level
+## Enhance Presentation Visuals and Diagrams
 
 ### Problem
-The current prompt is too generic -- it just says "create a presentation for Grade X students" without specifying what academic depth, vocabulary, or curriculum standards to target. A Grade 12 presentation ends up reading like a Grade 6 one.
+The current presentations only include structured visuals on "roughly half" of content slides, and the visuals generated often lack relevance to the actual slide content. This makes presentations feel text-heavy and indistinguishable from study plans.
 
 ### Changes
 
-**File: `supabase/functions/generate-presentation/index.ts`**
+#### 1. Backend -- Strengthen Visual Prompting (`supabase/functions/generate-presentation/index.ts`)
 
-1. **Upgrade the model** from `google/gemini-2.5-flash` to `google/gemini-2.5-pro` for higher quality reasoning and content generation.
+- Change the visual instruction from "roughly half of content slides" to **"every content slide MUST include a visual"**
+- Add a strict relevance rule: "The visual MUST directly illustrate the slide's topic -- never use a generic or placeholder visual"
+- Add **two new visual types** to give the AI more options:
+  - `"cause-effect"` -- for showing cause-and-effect chains (e.g., pollution causes, effects of gravity)
+  - `"labeled-diagram"` -- for labeled part diagrams (e.g., parts of a cell, layers of the atmosphere) with a title and labeled items with descriptions
+- Add explicit guidance per visual type on when to use each (e.g., "Use timeline for historical events, use comparison for contrasting two concepts, use labeled-diagram for anatomy or structure topics")
 
-2. **Rewrite the prompt** to include grade-specific depth instructions:
-   - Define explicit academic expectations per grade band (e.g., Grades 1-3: simple vocabulary, analogies; Grades 7-9: introduce technical terminology, cause-effect; Grades 10-12: advanced analysis, critical thinking, academic language; College/Professional: research-level depth, citations, domain jargon).
-   - Instruct the AI to match vocabulary complexity, sentence structure, and conceptual depth to the specific grade level.
-   - Require each bullet point to be a full, substantive explanation (2-3 sentences minimum) rather than a shallow one-liner.
-   - Ask for real data, dates, figures, and named examples where applicable instead of vague generalities.
+#### 2. Frontend -- Add New Visual Renderers (`src/components/study-plan/SlideViewer.tsx`)
 
-3. **Enhance the system prompt** from a simple "return JSON" instruction to one that emphasizes academic rigor and grade-appropriate depth.
-
-4. **Raise temperature slightly** to `0.8` for richer, more varied content.
+- Add a `CauseEffectRenderer` -- displays a chain of cause-to-effect items with arrows connecting them vertically
+- Add a `LabeledDiagramRenderer` -- displays a central title with labeled items arranged around it, each with a short description
+- Both renderers will use the existing styling patterns (rounded cards, primary colors, backdrop blur) for visual consistency
 
 ### Technical Details
 
-The updated prompt structure will look like:
+**New visual type interfaces:**
 
 ```text
-System: You are a curriculum specialist who creates grade-appropriate 
-educational content. Match vocabulary, depth, and complexity precisely 
-to the student's grade level. Return only valid JSON.
+SlideVisualCauseEffect {
+  type: "cause-effect"
+  items: { cause: string, effect: string }[]
+}
 
-User prompt additions:
-- Grade-band depth mapping (elementary/middle/high/college)
-- "Each bullet must be 2-3 detailed sentences with specific facts, 
-   figures, or named examples. Avoid vague or surface-level statements."
-- "Use vocabulary and sentence complexity appropriate for {gradeLevel}."
-- "Content should align with standard curriculum expectations for 
-   this grade level."
+SlideVisualLabeledDiagram {
+  type: "labeled-diagram"
+  title: string
+  parts: { name: string, description: string }[]
+}
+```
+
+**Updated prompt snippet:**
+
+```text
+VISUAL RULES:
+- Every "content" slide MUST include exactly one visual object.
+- The visual MUST directly illustrate the specific topic of that slide.
+- Choose the most appropriate visual type:
+  - comparison: for contrasting two concepts, organisms, events, etc.
+  - timeline: for chronological events or historical sequences
+  - diagram: for concept webs, relationships between ideas
+  - stats: for numerical data, percentages, measurements
+  - steps: for processes, procedures, sequences of actions
+  - cause-effect: for showing causes and their results
+  - labeled-diagram: for anatomy, structure, or parts of a system
+- Do NOT reuse the same visual type on consecutive slides.
 ```
 
 ### Expected Result
-- A Grade 3 presentation on "The Solar System" will use simple words and fun facts
-- A Grade 11 presentation on "The Solar System" will cover Kepler's laws, orbital mechanics, and comparative planetology with proper terminology
+- Every content slide will have a relevant, topic-specific visual element
+- More visual variety (7 types instead of 5) prevents repetitive layouts
+- Presentations will feel significantly more visual and distinct from text-based study plans
