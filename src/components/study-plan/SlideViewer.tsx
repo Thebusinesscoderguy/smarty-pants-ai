@@ -34,7 +34,18 @@ interface SlideVisualSteps {
   items: string[];
 }
 
-type SlideVisual = SlideVisualComparison | SlideVisualTimeline | SlideVisualDiagram | SlideVisualStats | SlideVisualSteps;
+interface SlideVisualCauseEffect {
+  type: 'cause-effect';
+  items: { cause: string; effect: string }[];
+}
+
+interface SlideVisualLabeledDiagram {
+  type: 'labeled-diagram';
+  title: string;
+  parts: { name: string; description: string }[];
+}
+
+type SlideVisual = SlideVisualComparison | SlideVisualTimeline | SlideVisualDiagram | SlideVisualStats | SlideVisualSteps | SlideVisualCauseEffect | SlideVisualLabeledDiagram;
 
 export interface Slide {
   title: string;
@@ -143,6 +154,52 @@ const VisualRenderer = ({ visual }: { visual: SlideVisual }) => {
               )}
             </div>
           ))}
+        </div>
+      );
+
+    case 'cause-effect':
+      return (
+        <div className="w-full max-w-xl mx-auto flex flex-col gap-3">
+          {visual.items.map((item, i) => (
+            <div key={i} className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <div className="shrink-0 px-4 py-2.5 rounded-lg bg-destructive/10 border border-destructive/30 text-sm font-medium text-foreground/90 flex-1">
+                  ⚡ {item.cause}
+                </div>
+                <ArrowRight className="shrink-0 h-4 w-4 text-primary" />
+                <div className="shrink-0 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/30 text-sm font-medium text-foreground/90 flex-1">
+                  🎯 {item.effect}
+                </div>
+              </div>
+              {i < visual.items.length - 1 && (
+                <div className="flex justify-center">
+                  <div className="w-0.5 h-4 bg-muted-foreground/20" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+
+    case 'labeled-diagram':
+      return (
+        <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-4">
+          <div className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-md">
+            {visual.title}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            {visual.parts.map((part, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-card/60 border border-border backdrop-blur-sm">
+                <div className="shrink-0 w-7 h-7 rounded-full bg-accent/40 border border-accent/60 flex items-center justify-center text-xs font-bold text-foreground/80">
+                  {i + 1}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground/90">{part.name}</span>
+                  <span className="text-xs text-muted-foreground leading-snug">{part.description}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       );
 
