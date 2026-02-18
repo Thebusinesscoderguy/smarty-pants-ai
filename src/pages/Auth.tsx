@@ -197,15 +197,21 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth`
+          redirectTo: `${window.location.origin}/auth`,
+          skipBrowserRedirect: true,
         }
       });
       
       if (error) {
         setError(error.message);
+        return;
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
       }
     } catch (error: any) {
       setError('An unexpected error occurred. Please try again.');
