@@ -7,7 +7,7 @@ import { AdaptiveQuizEngine } from '@/components/quiz/AdaptiveQuizEngine';
 import { StudyPlanGenerator } from '@/components/quiz/StudyPlanGenerator';
 import { StudyPlanLibrary } from '@/components/quiz/StudyPlanLibrary';
 import { QuizLibrary } from '@/components/quiz/QuizLibrary';
-
+import { EducationalPresentationGenerator } from '@/components/study-plan/EducationalPresentationGenerator';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, BookOpen, Trophy } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -80,8 +80,9 @@ const QuizGeneratorPage = () => {
           <p className="text-muted-foreground mb-6">{t('studyTools.subtitle')}</p>
 
           <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
-            <TabsList className="grid w-full grid-cols-5 bg-muted border border-border">
+            <TabsList className="grid w-full grid-cols-6 bg-muted border border-border">
               <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+              <TabsTrigger value="presentation">{isArabic ? 'العروض' : 'Presentations'}</TabsTrigger>
               <TabsTrigger value="adaptive">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
               <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
               <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
@@ -92,6 +93,9 @@ const QuizGeneratorPage = () => {
               <StudyPlanGenerator autoGenerate={auto && type !== 'quiz' && input ? { inputMethod: method, input } : undefined} />
             </TabsContent>
 
+            <TabsContent value="presentation" className="mt-6">
+              <EducationalPresentationGenerator />
+            </TabsContent>
 
             <TabsContent value="adaptive" className="mt-6">
               <AdaptiveQuizEngine />
