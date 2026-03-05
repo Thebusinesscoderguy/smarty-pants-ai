@@ -673,7 +673,6 @@ Please generate 5 questions that test understanding of this topic.`;
             {/* Export Options */}
             <div className="flex flex-wrap gap-2 pt-2 border-t">
               <PDFStudyPlanButton variant="outline" size="sm" />
-              <PresentationButton variant="outline" size="sm" />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
