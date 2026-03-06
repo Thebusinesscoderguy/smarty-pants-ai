@@ -11,6 +11,7 @@ import { Loader2, Brain, Zap, TrendingUp, TrendingDown, Minus, CheckCircle2, XCi
 import { useAdaptiveQuiz, type DifficultyLevel, type AdaptiveQuizConfig, type AdaptiveQuestion } from '@/hooks/useAdaptiveQuiz';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { GenerationProgress } from '@/components/ui/generation-progress';
 
 const GRADE_LEVEL_KEYS = [
   'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6',
