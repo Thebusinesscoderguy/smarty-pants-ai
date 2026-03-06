@@ -381,9 +381,12 @@ export const AdaptiveQuizEngine = () => {
 
       <CardContent className="space-y-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">{t('adaptiveQuiz.generatingQuestion')}</p>
+          <div className="py-4">
+            <GenerationProgress
+              isGenerating={isLoading}
+              estimatedSeconds={15}
+              label={t('adaptiveQuiz.generatingQuestion')}
+            />
           </div>
         ) : questionForRender ? (
           <>

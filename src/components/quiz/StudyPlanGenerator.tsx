@@ -616,6 +616,12 @@ Please generate 5 questions that test understanding of this topic.`;
               t('studyPlan.generate')
             )}
           </Button>
+
+          <GenerationProgress
+            isGenerating={isGenerating}
+            estimatedSeconds={45}
+            label={isArabic ? 'جاري إنشاء خطة الدراسة...' : 'Creating your personalized study plan...'}
+          />
         </CardContent>
       </Card>
 

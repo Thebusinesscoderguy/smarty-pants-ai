@@ -561,6 +561,12 @@ useEffect(() => {
               </>
             )}
           </Button>
+
+          <GenerationProgress
+            isGenerating={isGenerating}
+            estimatedSeconds={25}
+            label={language === 'ar' ? 'جاري إنشاء الاختبار...' : 'Generating your quiz...'}
+          />
         </CardContent>
       </Card>
 

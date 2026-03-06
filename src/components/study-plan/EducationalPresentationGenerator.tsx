@@ -201,6 +201,12 @@ export const EducationalPresentationGenerator = () => {
               </>
             )}
           </Button>
+
+          <GenerationProgress
+            isGenerating={isGenerating}
+            estimatedSeconds={35}
+            label={isArabic ? 'جاري إنشاء العرض التقديمي...' : 'Creating your presentation...'}
+          />
         </CardContent>
       </Card>
 
