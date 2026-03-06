@@ -621,7 +621,7 @@ Please generate 5 questions that test understanding of this topic.`;
           <GenerationProgress
             isGenerating={isGenerating}
             estimatedSeconds={45}
-            label={isArabic ? 'جاري إنشاء خطة الدراسة...' : 'Creating your personalized study plan...'}
+            label={language === 'ar' ? 'جاري إنشاء خطة الدراسة...' : 'Creating your personalized study plan...'}
           />
         </CardContent>
       </Card>
