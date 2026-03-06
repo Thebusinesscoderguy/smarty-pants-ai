@@ -11,6 +11,7 @@ import { Loader2, Brain, Zap, TrendingUp, TrendingDown, Minus, CheckCircle2, XCi
 import { useAdaptiveQuiz, type DifficultyLevel, type AdaptiveQuizConfig, type AdaptiveQuestion } from '@/hooks/useAdaptiveQuiz';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { GenerationProgress } from '@/components/ui/generation-progress';
 
 const GRADE_LEVEL_KEYS = [
   'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6',
@@ -381,9 +382,12 @@ export const AdaptiveQuizEngine = () => {
 
       <CardContent className="space-y-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">{t('adaptiveQuiz.generatingQuestion')}</p>
+          <div className="py-4">
+            <GenerationProgress
+              isGenerating={isLoading}
+              estimatedSeconds={15}
+              label={t('adaptiveQuiz.generatingQuestion')}
+            />
           </div>
         ) : questionForRender ? (
           <>

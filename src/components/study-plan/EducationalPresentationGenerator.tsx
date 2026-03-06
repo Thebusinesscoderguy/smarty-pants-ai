@@ -10,6 +10,7 @@ import { Loader2, Presentation, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEducationalPresentationGenerator, PresentationSettings } from '@/hooks/useEducationalPresentationGenerator';
 import { SlideViewer } from '@/components/study-plan/SlideViewer';
+import { GenerationProgress } from '@/components/ui/generation-progress';
 import { useGuestUsage } from '@/hooks/useGuestUsage';
 import { useNavigate } from 'react-router-dom';
 
@@ -201,6 +202,12 @@ export const EducationalPresentationGenerator = () => {
               </>
             )}
           </Button>
+
+          <GenerationProgress
+            isGenerating={isGenerating}
+            estimatedSeconds={35}
+            label={isArabic ? 'جاري إنشاء العرض التقديمي...' : 'Creating your presentation...'}
+          />
         </CardContent>
       </Card>
 

@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, BookOpen, Target, Calendar, TrendingUp, CheckCircle2, AlertCircle, Upload, Brain, FileDown, Presentation } from 'lucide-react';
 import { FileUploadZone } from './FileUploadZone';
+import { GenerationProgress } from '@/components/ui/generation-progress';
 import { useStudyPlanGenerator } from '@/hooks/useStudyPlanGenerator';
 import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -616,6 +617,12 @@ Please generate 5 questions that test understanding of this topic.`;
               t('studyPlan.generate')
             )}
           </Button>
+
+          <GenerationProgress
+            isGenerating={isGenerating}
+            estimatedSeconds={45}
+            label={language === 'ar' ? 'جاري إنشاء خطة الدراسة...' : 'Creating your personalized study plan...'}
+          />
         </CardContent>
       </Card>
 
