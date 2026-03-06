@@ -11,6 +11,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { supabase } from '@/integrations/supabase/client';
+import { GenerationProgress } from '@/components/ui/generation-progress';
 
 interface Lesson {
   id: string;
@@ -218,6 +219,17 @@ const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack, onComplete 
                 </div>
               </ScrollArea>
               
+              {/* Loading indicators */}
+              {isLoadingDetail && (
+                <GenerationProgress isGenerating={true} estimatedSeconds={15} label="Expanding lesson detail..." className="mt-4" />
+              )}
+              {isLoadingSummary && (
+                <GenerationProgress isGenerating={true} estimatedSeconds={10} label="Generating summary..." className="mt-4" />
+              )}
+              {isLoadingQuestion && (
+                <GenerationProgress isGenerating={true} estimatedSeconds={10} label="Finding your answer..." className="mt-4" />
+              )}
+
               {/* Action Buttons */}
               <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-border">
                 <Button

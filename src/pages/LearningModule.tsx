@@ -5,6 +5,7 @@ import { QuestProgressNotification } from '@/components/quests/QuestProgressNoti
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useGamification } from '@/hooks/useGamification';
+import { GenerationProgress } from '@/components/ui/generation-progress';
 
 interface DailyLesson {
   day: number;
@@ -196,8 +197,14 @@ const LearningModule = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-foreground">Loading your lesson...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="w-full max-w-md">
+          <GenerationProgress
+            isGenerating={true}
+            estimatedSeconds={20}
+            label="Generating your lesson content..."
+          />
+        </div>
       </div>
     );
   }
