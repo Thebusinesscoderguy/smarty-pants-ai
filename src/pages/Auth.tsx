@@ -32,6 +32,11 @@ const Auth = () => {
   const [checkingChildren, setCheckingChildren] = useState(false);
   const [settingUpSchool, setSettingUpSchool] = useState(false);
 
+  const safeT = (key: string, fallback: string) => {
+    const value = t(key);
+    return value && value !== key ? value : fallback;
+  };
+
   useEffect(() => {
     if (user && onboardingStep === 'auth') {
       checkExistingAccountType();
