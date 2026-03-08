@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface StudentGrade {
   student_id: string;
   student_name: string;
+  avatar_url: string | null;
   quiz_scores: { title: string; score: number; total: number; date: string }[];
   test_scores: { title: string; score: number; total: number; percentage: number; date: string }[];
   average_score: number;
@@ -61,7 +62,7 @@ export const GradeBook = () => {
       const studentIds = relationships.map(r => r.student_id);
 
       const [profRes, quizRes, testRes] = await Promise.all([
-        supabase.from('profiles').select('id, display_name').in('id', studentIds),
+        supabase.from('profiles').select('id, display_name, avatar_url').in('id', studentIds),
         supabase.from('quiz_attempts').select('user_id, score, total_possible, completed_at, quiz_id, quizzes(title)').in('user_id', studentIds).order('completed_at', { ascending: false }),
         supabase.from('test_attempts').select('student_id, score, total_points, percentage, completed_at, test_id, tests(title)').in('student_id', studentIds).order('completed_at', { ascending: false }),
       ]);
@@ -72,6 +73,7 @@ export const GradeBook = () => {
         gradeMap[profile.id] = {
           student_id: profile.id,
           student_name: profile.display_name || 'Unknown Student',
+          avatar_url: (profile as any).avatar_url || null,
           quiz_scores: [],
           test_scores: [],
           average_score: 0,
@@ -215,7 +217,18 @@ export const GradeBook = () => {
         ) : (
           students.map(grade => (
             <TableRow key={grade.student_id}>
-              <TableCell className="font-medium text-foreground">{grade.student_name}</TableCell>
+              <TableCell className="font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  {grade.avatar_url ? (
+                    <img src={grade.avatar_url} alt={grade.student_name} className="h-7 w-7 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
+                      {grade.student_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  {grade.student_name}
+                </div>
+              </TableCell>
               <TableCell className="text-center text-muted-foreground">{grade.quiz_scores.length} taken</TableCell>
               <TableCell className="text-center text-muted-foreground">{grade.test_scores.length} taken</TableCell>
               <TableCell className="text-center font-semibold text-foreground">

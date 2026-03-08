@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Mail, Clock, CheckCircle, Trash2, Loader2, ChevronRight, GraduationCap, Users } from 'lucide-react';
+import { UserPlus, Mail, Clock, CheckCircle, Trash2, Loader2, ChevronRight, GraduationCap, Users, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +25,7 @@ interface SectionWithStudents {
   id: string;
   grade_level: string;
   section_name: string;
-  students: { id: string; student_id: string; display_name: string }[];
+  students: { id: string; student_id: string; display_name: string; avatar_url: string | null }[];
 }
 
 export const StudentManagement = () => {
@@ -110,14 +110,14 @@ export const StudentManagement = () => {
           .in('section_id', sectionData.map(s => s.id));
 
         const studentIds = [...new Set((assignments || []).map(a => a.student_id))];
-        let profileMap: Record<string, string> = {};
+        let profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
         if (studentIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
-            .select('id, display_name')
+            .select('id, display_name, avatar_url')
             .in('id', studentIds);
           (profiles || []).forEach(p => {
-            profileMap[p.id] = p.display_name || 'Unknown';
+            profileMap[p.id] = { name: p.display_name || 'Unknown', avatar_url: (p as any).avatar_url || null };
           });
         }
 
@@ -130,7 +130,8 @@ export const StudentManagement = () => {
             .map(a => ({
               id: a.id,
               student_id: a.student_id,
-              display_name: profileMap[a.student_id] || 'Unknown'
+              display_name: profileMap[a.student_id]?.name || 'Unknown',
+              avatar_url: profileMap[a.student_id]?.avatar_url || null,
             }))
         }));
         setSections(enriched);
@@ -223,6 +224,37 @@ export const StudentManagement = () => {
     }
   };
 
+  const handleAvatarUpload = async (studentId: string, file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${studentId}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('student-avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('student-avatars')
+        .getPublicUrl(filePath);
+
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl } as any)
+        .eq('id', studentId);
+
+      if (updateError) throw updateError;
+
+      toast({ title: 'Photo Updated', description: 'Student photo has been uploaded successfully.' });
+      fetchInvitations();
+    } catch (error: any) {
+      toast({ title: 'Upload Failed', description: error.message, variant: 'destructive' });
+    }
+  };
+
   if (isLoading) {
     return <div className="animate-pulse text-muted-foreground">{t('adminStudentManagement.loadingStudents')}</div>;
   }
@@ -269,10 +301,28 @@ export const StudentManagement = () => {
                         <p className="text-sm text-muted-foreground text-center py-2">No students assigned to this section yet.</p>
                       ) : (
                         <div className="space-y-2">
-                          {section.students.map((student, idx) => (
+                          {section.students.map((student) => (
                             <div key={student.id} className="flex items-center gap-3 p-2 rounded-md bg-card border border-border">
-                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
-                                {student.display_name.charAt(0).toUpperCase()}
+                              <div className="relative group">
+                                {student.avatar_url ? (
+                                  <img src={student.avatar_url} alt={student.display_name} className="h-8 w-8 rounded-full object-cover" />
+                                ) : (
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
+                                    {student.display_name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                                  <Camera className="h-3 w-3 text-white" />
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleAvatarUpload(student.student_id, file);
+                                    }}
+                                  />
+                                </label>
                               </div>
                               <span className="text-sm font-medium text-foreground">{student.display_name}</span>
                             </div>
