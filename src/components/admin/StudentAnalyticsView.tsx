@@ -58,6 +58,16 @@ export const StudentAnalyticsView = () => {
         setSelectedStudent(realAnalytics[0].studentId);
       }
 
+      // Get pending invitations
+      const { data: invitations } = await supabase
+        .from('student_invitations')
+        .select('id, email, first_name, last_name, created_at')
+        .eq('school_id', schoolData.id)
+        .eq('used', false)
+        .order('created_at', { ascending: false });
+
+      setPendingInvitations(invitations || []);
+
     } catch (error: any) {
       console.error('Error fetching student analytics:', error);
       toast({
