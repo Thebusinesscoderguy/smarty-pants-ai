@@ -179,7 +179,7 @@ export const AssessmentManagement = () => {
           ai_generated: true,
           ai_graded: true,
           total_points: questions.length,
-          time_limit_minutes: Math.ceil(questions.length * 2),
+          time_limit_minutes: aiForm.timeLimitMinutes,
         })
         .select()
         .single();
