@@ -62,9 +62,9 @@ export const StudentClassificationManager = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Tags className="h-5 w-5" />
             Student Classification Manager
           </CardTitle>
@@ -73,10 +73,10 @@ export const StudentClassificationManager = () => {
           {/* Assignment Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Assign Classification</h3>
+              <h3 className="text-lg font-semibold text-foreground">Assign Classification</h3>
               
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Select student" />
                 </SelectTrigger>
                 <SelectContent>
@@ -89,7 +89,7 @@ export const StudentClassificationManager = () => {
               </Select>
 
               <Select value={selectedTag} onValueChange={setSelectedTag}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Select classification" />
                 </SelectTrigger>
                 <SelectContent>
@@ -112,13 +112,12 @@ export const StudentClassificationManager = () => {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Create Custom Tag</h3>
+              <h3 className="text-lg font-semibold text-foreground">Create Custom Tag</h3>
               
               <Input
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 placeholder="Enter custom classification tag"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               />
 
               <Button 
@@ -134,14 +133,14 @@ export const StudentClassificationManager = () => {
           </div>
 
           {/* Auto-Classification Section */}
-          <div className="border-t border-white/20 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Auto-Classification</h3>
+          <div className="border-t border-border pt-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Auto-Classification</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {studentProgress.map((student) => (
-                <Card key={student.student_id} className="bg-white/5 border-white/10">
+                <Card key={student.student_id} className="bg-muted/50 border-border">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-medium text-sm">
+                      <span className="text-foreground font-medium text-sm">
                         {student.student_name}
                       </span>
                       <Button
@@ -165,7 +164,7 @@ export const StudentClassificationManager = () => {
                             {classification.classification_tag}
                             <button
                               onClick={() => removeClassification(classification.id)}
-                              className="ml-1 hover:text-red-400"
+                              className="ml-1 hover:text-destructive"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -181,9 +180,9 @@ export const StudentClassificationManager = () => {
       </Card>
 
       {/* Classification Statistics */}
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Users className="h-5 w-5" />
             Classification Statistics
           </CardTitle>
@@ -191,18 +190,18 @@ export const StudentClassificationManager = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {getClassificationStats().map((stat) => (
-              <Card key={stat.tag} className="bg-white/5 border-white/10">
+              <Card key={stat.tag} className="bg-muted/50 border-border">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-medium">
+                    <span className="text-foreground font-medium">
                       {stat.tag}
                     </span>
-                    <Badge variant="outline" className="text-white border-white/30">
+                    <Badge variant="outline">
                       {stat.count}
                     </Badge>
                   </div>
                   {stat.count > 0 && (
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-muted-foreground">
                       Students: {stat.students.map(s => s.student_name).join(', ')}
                     </div>
                   )}
