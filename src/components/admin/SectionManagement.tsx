@@ -113,8 +113,8 @@ export const SectionManagement = () => {
   };
 
   const createSection = async () => {
-    if (!schoolId || !newGrade || !newSectionName.trim()) return;
-    const label = `${newSectionName.trim().toUpperCase()}`;
+    if (!schoolId || !newGrade) return;
+    const label = newSectionName.trim() ? newSectionName.trim().toUpperCase() : '';
     const { error } = await supabase.from('school_sections').insert({
       school_id: schoolId,
       grade_level: newGrade,
@@ -123,7 +123,7 @@ export const SectionManagement = () => {
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Section Created', description: `${newGrade} - ${label}` });
+      toast({ title: 'Section Created', description: label ? `${newGrade} - ${label}` : newGrade });
       setNewSectionName('');
       fetchData();
     }
