@@ -563,6 +563,30 @@ export const AssessmentManagement = () => {
                     onChange={e => setManualForm(p => ({ ...p, timeLimitMinutes: Number(e.target.value) }))}
                   />
                 </div>
+                <div>
+                  <Label>Section(s)</Label>
+                  <div className="flex flex-wrap gap-2 mt-1 p-2 border border-input rounded-md min-h-[40px]">
+                    {schoolSections.length === 0 ? (
+                      <span className="text-sm text-muted-foreground">No sections created yet</span>
+                    ) : (
+                      schoolSections.map(section => (
+                        <Badge
+                          key={section.id}
+                          variant={manualForm.selectedSections.includes(section.id) ? 'default' : 'outline'}
+                          className="cursor-pointer select-none"
+                          onClick={() => setManualForm(p => ({
+                            ...p,
+                            selectedSections: p.selectedSections.includes(section.id)
+                              ? p.selectedSections.filter(s => s !== section.id)
+                              : [...p.selectedSections, section.id]
+                          }))}
+                        >
+                          {getSectionLabel(section)}
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+                </div>
 
                 {/* Question Builder */}
                 <Card className="bg-muted/50 border-border">
