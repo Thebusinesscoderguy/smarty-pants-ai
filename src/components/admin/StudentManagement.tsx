@@ -110,14 +110,14 @@ export const StudentManagement = () => {
           .in('section_id', sectionData.map(s => s.id));
 
         const studentIds = [...new Set((assignments || []).map(a => a.student_id))];
-        let profileMap: Record<string, string> = {};
+        let profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
         if (studentIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
-            .select('id, display_name')
+            .select('id, display_name, avatar_url')
             .in('id', studentIds);
           (profiles || []).forEach(p => {
-            profileMap[p.id] = p.display_name || 'Unknown';
+            profileMap[p.id] = { name: p.display_name || 'Unknown', avatar_url: (p as any).avatar_url || null };
           });
         }
 
@@ -130,7 +130,8 @@ export const StudentManagement = () => {
             .map(a => ({
               id: a.id,
               student_id: a.student_id,
-              display_name: profileMap[a.student_id] || 'Unknown'
+              display_name: profileMap[a.student_id]?.name || 'Unknown',
+              avatar_url: profileMap[a.student_id]?.avatar_url || null,
             }))
         }));
         setSections(enriched);
