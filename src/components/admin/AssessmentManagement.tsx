@@ -429,17 +429,13 @@ export const AssessmentManagement = () => {
                   </div>
                   <div>
                     <Label>Time Limit (minutes)</Label>
-                    <Select
-                      value={String(aiForm.timeLimitMinutes)}
-                      onValueChange={v => setAiForm(p => ({ ...p, timeLimitMinutes: Number(v) }))}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {[10, 15, 20, 30, 45, 60, 90, 120].map(n => (
-                          <SelectItem key={n} value={String(n)}>{n} min</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={aiForm.timeLimitMinutes}
+                      onChange={e => setAiForm(p => ({ ...p, timeLimitMinutes: Number(e.target.value) }))}
+                      placeholder="e.g., 45"
+                    />
                   </div>
                 </div>
                 <Button
