@@ -1024,6 +1024,38 @@ export type Database = {
         }
         Relationships: []
       }
+      school_sections: {
+        Row: {
+          created_at: string
+          grade_level: string
+          id: string
+          school_id: string
+          section_name: string
+        }
+        Insert: {
+          created_at?: string
+          grade_level: string
+          id?: string
+          school_id: string
+          section_name: string
+        }
+        Update: {
+          created_at?: string
+          grade_level?: string
+          id?: string
+          school_id?: string
+          section_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_sections_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_student_relationships: {
         Row: {
           enrolled_at: string
@@ -1052,6 +1084,35 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      section_students: {
+        Row: {
+          assigned_at: string
+          id: string
+          section_id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          section_id: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          section_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_students_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "school_sections"
             referencedColumns: ["id"]
           },
         ]

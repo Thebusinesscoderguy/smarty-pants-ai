@@ -12,8 +12,9 @@ import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
-import { Users, Target, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck } from 'lucide-react';
+import { Users, Target, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SectionManagement } from '@/components/admin/SectionManagement';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
@@ -40,6 +41,10 @@ const SchoolAdmin = () => {
               <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Users className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.students')}
+              </TabsTrigger>
+              <TabsTrigger value="sections" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <FolderTree className="h-4 w-4 mr-2" />
+                Sections
               </TabsTrigger>
               <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <FileCheck className="h-4 w-4 mr-2" />
@@ -78,6 +83,10 @@ const SchoolAdmin = () => {
 
               <TabsContent value="students" className="space-y-6">
                 <StudentManagement />
+              </TabsContent>
+
+              <TabsContent value="sections" className="space-y-6">
+                <SectionManagement />
               </TabsContent>
 
               <TabsContent value="gradebook" className="space-y-6">
