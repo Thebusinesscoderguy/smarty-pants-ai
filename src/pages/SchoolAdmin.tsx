@@ -62,6 +62,44 @@ const SchoolAdmin = () => {
                 <BookOpen className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.curriculum')}
               </TabsTrigger>
+              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <Brain className="h-4 w-4 mr-2" />
+                {t('schoolAdmin.tabs.studentAnalysis')}
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <CreditCard className="h-4 w-4 mr-2" />
+                {t('schoolAdmin.tabs.billing')}
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="mt-6">
+              <TabsContent value="overview" className="space-y-6">
+                <SchoolOverview />
+              </TabsContent>
+
+              <TabsContent value="students" className="space-y-6">
+                <StudentManagement />
+              </TabsContent>
+
+              <TabsContent value="sections" className="space-y-6">
+                <SectionManagement />
+              </TabsContent>
+
+              <TabsContent value="gradebook" className="space-y-6">
+                <GradeBook />
+              </TabsContent>
+
+              <TabsContent value="at-risk" className="space-y-6">
+                <AtRiskAlerts />
+              </TabsContent>
+
+              <TabsContent value="assessments" className="space-y-6">
+                <AssessmentManagement />
+              </TabsContent>
+
+              <TabsContent value="curriculum" className="space-y-6">
+                <CurriculumManagement />
+              </TabsContent>
 
               <TabsContent value="student-analytics" className="space-y-6">
                 <StudentAnalyticsView />
