@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, BookOpen, Trophy, TrendingUp, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Download, BookOpen, Trophy, TrendingUp, ChevronDown, ChevronRight, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,11 +17,18 @@ interface StudentGrade {
   total_assessments: number;
 }
 
+interface SectionWithGrades {
+  id: string;
+  grade_level: string;
+  section_name: string;
+  students: StudentGrade[];
+}
+
 export const GradeBook = () => {
-  const [grades, setGrades] = useState<StudentGrade[]>([]);
+  const [sections, setSections] = useState<SectionWithGrades[]>([]);
+  const [ungroupedGrades, setUngroupedGrades] = useState<StudentGrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'average' | 'assessments'>('name');
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
   useEffect(() => {
@@ -35,56 +40,35 @@ export const GradeBook = () => {
     try {
       setIsLoading(true);
 
-      // Get school
       const { data: school } = await supabase
         .from('school_accounts')
         .select('id')
         .eq('admin_user_id', user.id)
         .single();
 
-      if (!school) {
-        setGrades([]);
-        return;
-      }
+      if (!school) { setSections([]); setUngroupedGrades([]); return; }
 
-      // Get enrolled students
-      const { data: relationships } = await supabase
-        .from('school_student_relationships')
-        .select('student_id')
-        .eq('school_id', school.id)
-        .eq('is_active', true);
+      // Fetch all data in parallel
+      const [relRes, secRes, secStudRes] = await Promise.all([
+        supabase.from('school_student_relationships').select('student_id').eq('school_id', school.id).eq('is_active', true),
+        supabase.from('school_sections').select('id, grade_level, section_name').eq('school_id', school.id),
+        supabase.from('section_students').select('section_id, student_id'),
+      ]);
 
-      if (!relationships?.length) {
-        setGrades([]);
-        return;
-      }
+      const relationships = relRes.data;
+      if (!relationships?.length) { setSections([]); setUngroupedGrades([]); return; }
 
       const studentIds = relationships.map(r => r.student_id);
 
-      // Get profiles
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name')
-        .in('id', studentIds);
+      const [profRes, quizRes, testRes] = await Promise.all([
+        supabase.from('profiles').select('id, display_name').in('id', studentIds),
+        supabase.from('quiz_attempts').select('user_id, score, total_possible, completed_at, quiz_id, quizzes(title)').in('user_id', studentIds).order('completed_at', { ascending: false }),
+        supabase.from('test_attempts').select('student_id, score, total_points, percentage, completed_at, test_id, tests(title)').in('student_id', studentIds).order('completed_at', { ascending: false }),
+      ]);
 
-      // Get quiz attempts
-      const { data: quizAttempts } = await supabase
-        .from('quiz_attempts')
-        .select('user_id, score, total_possible, completed_at, quiz_id, quizzes(title)')
-        .in('user_id', studentIds)
-        .order('completed_at', { ascending: false });
-
-      // Get test attempts
-      const { data: testAttempts } = await supabase
-        .from('test_attempts')
-        .select('student_id, score, total_points, percentage, completed_at, test_id, tests(title)')
-        .in('student_id', studentIds)
-        .order('completed_at', { ascending: false });
-
+      // Build grade map
       const gradeMap: Record<string, StudentGrade> = {};
-
-      // Initialize with all students
-      for (const profile of profiles || []) {
+      for (const profile of profRes.data || []) {
         gradeMap[profile.id] = {
           student_id: profile.id,
           student_name: profile.display_name || 'Unknown Student',
@@ -95,13 +79,11 @@ export const GradeBook = () => {
         };
       }
 
-      // Add quiz scores
-      for (const attempt of quizAttempts || []) {
+      for (const attempt of quizRes.data || []) {
         const grade = gradeMap[attempt.user_id];
         if (grade) {
-          const quizTitle = (attempt as any).quizzes?.title || 'Untitled Quiz';
           grade.quiz_scores.push({
-            title: quizTitle,
+            title: (attempt as any).quizzes?.title || 'Untitled Quiz',
             score: attempt.score,
             total: attempt.total_possible,
             date: attempt.completed_at,
@@ -109,13 +91,11 @@ export const GradeBook = () => {
         }
       }
 
-      // Add test scores
-      for (const attempt of testAttempts || []) {
+      for (const attempt of testRes.data || []) {
         const grade = gradeMap[attempt.student_id];
         if (grade) {
-          const testTitle = (attempt as any).tests?.title || 'Untitled Test';
           grade.test_scores.push({
-            title: testTitle,
+            title: (attempt as any).tests?.title || 'Untitled Test',
             score: attempt.score || 0,
             total: attempt.total_points || 0,
             percentage: attempt.percentage || 0,
@@ -124,28 +104,52 @@ export const GradeBook = () => {
         }
       }
 
-      // Calculate averages
       for (const grade of Object.values(gradeMap)) {
         const allScores: number[] = [];
-        for (const q of grade.quiz_scores) {
-          if (q.total > 0) allScores.push((q.score / q.total) * 100);
-        }
-        for (const t of grade.test_scores) {
-          if (t.percentage) allScores.push(t.percentage);
-        }
+        for (const q of grade.quiz_scores) { if (q.total > 0) allScores.push((q.score / q.total) * 100); }
+        for (const t of grade.test_scores) { if (t.percentage) allScores.push(t.percentage); }
         grade.total_assessments = allScores.length;
         grade.average_score = allScores.length > 0
           ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length)
           : 0;
       }
 
-      setGrades(Object.values(gradeMap));
+      // Group by sections
+      const sectionStudentMap: Record<string, string[]> = {};
+      const assignedStudentIds = new Set<string>();
+      for (const ss of secStudRes.data || []) {
+        if (!sectionStudentMap[ss.section_id]) sectionStudentMap[ss.section_id] = [];
+        sectionStudentMap[ss.section_id].push(ss.student_id);
+        assignedStudentIds.add(ss.student_id);
+      }
+
+      const sectionData: SectionWithGrades[] = (secRes.data || []).map(sec => ({
+        id: sec.id,
+        grade_level: sec.grade_level,
+        section_name: sec.section_name,
+        students: (sectionStudentMap[sec.id] || [])
+          .filter(sid => gradeMap[sid])
+          .map(sid => gradeMap[sid]),
+      })).sort((a, b) => a.grade_level.localeCompare(b.grade_level, undefined, { numeric: true }));
+
+      const ungrouped = Object.values(gradeMap).filter(g => !assignedStudentIds.has(g.student_id));
+
+      setSections(sectionData);
+      setUngroupedGrades(ungrouped);
     } catch (error) {
       console.error('Error fetching grades:', error);
       toast({ title: 'Error', description: 'Failed to load grade book', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
   const getGradeBadge = (score: number) => {
@@ -156,17 +160,23 @@ export const GradeBook = () => {
     return <Badge variant="destructive">F</Badge>;
   };
 
-  const exportToCSV = () => {
-    const headers = ['Student Name', 'Average Score', 'Grade', 'Total Assessments', 'Quiz Count', 'Test Count'];
-    const rows = filteredGrades.map(g => [
-      g.student_name,
-      g.average_score,
-      g.average_score >= 90 ? 'A' : g.average_score >= 80 ? 'B' : g.average_score >= 70 ? 'C' : g.average_score >= 60 ? 'D' : 'F',
-      g.total_assessments,
-      g.quiz_scores.length,
-      g.test_scores.length,
-    ]);
+  const allGrades = [...sections.flatMap(s => s.students), ...ungroupedGrades];
 
+  const exportToCSV = () => {
+    const headers = ['Section', 'Student Name', 'Average Score', 'Grade', 'Quizzes', 'Tests'];
+    const rows: string[][] = [];
+    for (const sec of sections) {
+      for (const g of sec.students) {
+        rows.push([`Grade ${sec.grade_level} ${sec.section_name}`, g.student_name, String(g.average_score),
+          g.average_score >= 90 ? 'A' : g.average_score >= 80 ? 'B' : g.average_score >= 70 ? 'C' : g.average_score >= 60 ? 'D' : 'F',
+          String(g.quiz_scores.length), String(g.test_scores.length)]);
+      }
+    }
+    for (const g of ungroupedGrades) {
+      rows.push(['Unassigned', g.student_name, String(g.average_score),
+        g.average_score >= 90 ? 'A' : g.average_score >= 80 ? 'B' : g.average_score >= 70 ? 'C' : g.average_score >= 60 ? 'D' : 'F',
+        String(g.quiz_scores.length), String(g.test_scores.length)]);
+    }
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -178,30 +188,57 @@ export const GradeBook = () => {
     toast({ title: 'Exported', description: 'Grade book exported to CSV' });
   };
 
-  const filteredGrades = grades
-    .filter(g => g.student_name.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => {
-      if (sortBy === 'name') return a.student_name.localeCompare(b.student_name);
-      if (sortBy === 'average') return b.average_score - a.average_score;
-      return b.total_assessments - a.total_assessments;
-    });
-
-  const classAverage = grades.length > 0
-    ? Math.round(grades.reduce((sum, g) => sum + g.average_score, 0) / grades.length)
+  const classAverage = allGrades.length > 0
+    ? Math.round(allGrades.reduce((sum, g) => sum + g.average_score, 0) / allGrades.length)
     : 0;
 
   if (isLoading) {
     return <div className="animate-pulse text-muted-foreground">Loading grade book...</div>;
   }
 
+  const renderStudentTable = (students: StudentGrade[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Student</TableHead>
+          <TableHead className="text-center">Quizzes</TableHead>
+          <TableHead className="text-center">Tests</TableHead>
+          <TableHead className="text-center">Average</TableHead>
+          <TableHead className="text-center">Grade</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {students.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={5} className="text-center text-muted-foreground py-6">No students in this section.</TableCell>
+          </TableRow>
+        ) : (
+          students.map(grade => (
+            <TableRow key={grade.student_id}>
+              <TableCell className="font-medium text-foreground">{grade.student_name}</TableCell>
+              <TableCell className="text-center text-muted-foreground">{grade.quiz_scores.length} taken</TableCell>
+              <TableCell className="text-center text-muted-foreground">{grade.test_scores.length} taken</TableCell>
+              <TableCell className="text-center font-semibold text-foreground">
+                {grade.total_assessments > 0 ? `${grade.average_score}%` : '—'}
+              </TableCell>
+              <TableCell className="text-center">
+                {grade.total_assessments > 0 ? getGradeBadge(grade.average_score) : <Badge variant="secondary">N/A</Badge>}
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Grade Book</h2>
-          <p className="text-muted-foreground">View and export student scores across all assessments</p>
+          <p className="text-muted-foreground">View and export student scores by section</p>
         </div>
-        <Button onClick={exportToCSV} disabled={grades.length === 0}>
+        <Button onClick={exportToCSV} disabled={allGrades.length === 0}>
           <Download className="h-4 w-4 mr-2" />
           Export CSV
         </Button>
@@ -211,20 +248,16 @@ export const GradeBook = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <BookOpen className="h-5 w-5 text-primary" />
-            </div>
+            <div className="p-2 rounded-lg bg-primary/10"><BookOpen className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Students</p>
-              <p className="text-2xl font-bold text-foreground">{grades.length}</p>
+              <p className="text-2xl font-bold text-foreground">{allGrades.length}</p>
             </div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
+            <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Class Average</p>
               <p className="text-2xl font-bold text-foreground">{classAverage}%</p>
@@ -233,100 +266,90 @@ export const GradeBook = () => {
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100">
-              <Trophy className="h-5 w-5 text-green-600" />
-            </div>
+            <div className="p-2 rounded-lg bg-green-100"><Trophy className="h-5 w-5 text-green-600" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Honor Roll (≥90%)</p>
-              <p className="text-2xl font-bold text-foreground">
-                {grades.filter(g => g.average_score >= 90).length}
-              </p>
+              <p className="text-2xl font-bold text-foreground">{allGrades.filter(g => g.average_score >= 90).length}</p>
             </div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-destructive/10">
-              <TrendingUp className="h-5 w-5 text-destructive" />
-            </div>
+            <div className="p-2 rounded-lg bg-destructive/10"><TrendingUp className="h-5 w-5 text-destructive" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Needs Support (&lt;60%)</p>
-              <p className="text-2xl font-bold text-foreground">
-                {grades.filter(g => g.average_score < 60 && g.total_assessments > 0).length}
-              </p>
+              <p className="text-2xl font-bold text-foreground">{allGrades.filter(g => g.average_score < 60 && g.total_assessments > 0).length}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search students..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="average">Average Score</SelectItem>
-            <SelectItem value="assessments">Assessments</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Sections */}
+      <div className="space-y-3">
+        {sections.map(section => {
+          const isExpanded = expandedSections.has(section.id);
+          const sectionAvg = section.students.length > 0
+            ? Math.round(section.students.reduce((s, g) => s + g.average_score, 0) / section.students.length)
+            : 0;
 
-      {/* Grade Table */}
-      <Card className="bg-card border-border">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead className="text-center">Quizzes</TableHead>
-                <TableHead className="text-center">Tests</TableHead>
-                <TableHead className="text-center">Average</TableHead>
-                <TableHead className="text-center">Grade</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredGrades.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    {grades.length === 0 ? 'No students enrolled yet.' : 'No students match your search.'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredGrades.map(grade => (
-                  <TableRow key={grade.student_id}>
-                    <TableCell className="font-medium text-foreground">{grade.student_name}</TableCell>
-                    <TableCell className="text-center">
-                      <span className="text-muted-foreground">{grade.quiz_scores.length} taken</span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className="text-muted-foreground">{grade.test_scores.length} taken</span>
-                    </TableCell>
-                    <TableCell className="text-center font-semibold text-foreground">
-                      {grade.total_assessments > 0 ? `${grade.average_score}%` : '—'}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {grade.total_assessments > 0 ? getGradeBadge(grade.average_score) : (
-                        <Badge variant="secondary">N/A</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+          return (
+            <Card key={section.id} className="bg-card border-border overflow-hidden">
+              <button
+                onClick={() => toggleSection(section.id)}
+                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  {isExpanded ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                  <Users className="h-5 w-5 text-primary" />
+                  <span className="font-semibold text-foreground">
+                    Grade {section.grade_level} {section.section_name}
+                  </span>
+                  <Badge variant="secondary">{section.students.length} students</Badge>
+                </div>
+                <div className="flex items-center gap-3">
+                  {section.students.length > 0 && (
+                    <span className="text-sm text-muted-foreground">Avg: {sectionAvg}%</span>
+                  )}
+                </div>
+              </button>
+              {isExpanded && (
+                <CardContent className="p-0 border-t border-border">
+                  {renderStudentTable(section.students)}
+                </CardContent>
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </Card>
+          );
+        })}
+
+        {ungroupedGrades.length > 0 && (
+          <Card className="bg-card border-border overflow-hidden">
+            <button
+              onClick={() => toggleSection('ungrouped')}
+              className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                {expandedSections.has('ungrouped') ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <span className="font-semibold text-foreground">Unassigned Students</span>
+                <Badge variant="outline">{ungroupedGrades.length} students</Badge>
+              </div>
+            </button>
+            {expandedSections.has('ungrouped') && (
+              <CardContent className="p-0 border-t border-border">
+                {renderStudentTable(ungroupedGrades)}
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {sections.length === 0 && ungroupedGrades.length === 0 && (
+          <Card className="bg-card border-border">
+            <CardContent className="p-8 text-center text-muted-foreground">
+              No students enrolled yet. Add sections and students to see grades.
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
