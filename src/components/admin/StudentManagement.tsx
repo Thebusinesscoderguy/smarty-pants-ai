@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Mail, Clock, CheckCircle, Trash2, Loader2 } from 'lucide-react';
+import { UserPlus, Mail, Clock, CheckCircle, Trash2, Loader2, ChevronRight, GraduationCap, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,8 +21,17 @@ interface StudentInvitation {
   created_at: string;
 }
 
+interface SectionWithStudents {
+  id: string;
+  grade_level: string;
+  section_name: string;
+  students: { id: string; student_id: string; display_name: string }[];
+}
+
 export const StudentManagement = () => {
   const [invitations, setInvitations] = useState<StudentInvitation[]>([]);
+  const [sections, setSections] = useState<SectionWithStudents[]>([]);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInviting, setIsInviting] = useState(false);
   const [newStudentEmail, setNewStudentEmail] = useState('');
@@ -73,6 +82,7 @@ export const StudentManagement = () => {
       setIsLoading(true);
       const schoolData = await getSchoolAccount();
 
+      // Fetch invitations
       const { data: invitationsData, error: invitationsError } = await supabase
         .from('student_invitations')
         .select('*')
@@ -83,8 +93,50 @@ export const StudentManagement = () => {
         toast({ title: t('common.error'), description: t('adminStudentManagement.errorLoadingInvitations'), variant: "destructive" });
         return;
       }
-
       setInvitations(invitationsData || []);
+
+      // Fetch sections with students
+      const { data: sectionData } = await supabase
+        .from('school_sections')
+        .select('*')
+        .eq('school_id', schoolData.id)
+        .order('grade_level', { ascending: true })
+        .order('section_name', { ascending: true });
+
+      if (sectionData && sectionData.length > 0) {
+        const { data: assignments } = await supabase
+          .from('section_students')
+          .select('id, section_id, student_id')
+          .in('section_id', sectionData.map(s => s.id));
+
+        const studentIds = [...new Set((assignments || []).map(a => a.student_id))];
+        let profileMap: Record<string, string> = {};
+        if (studentIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, display_name')
+            .in('id', studentIds);
+          (profiles || []).forEach(p => {
+            profileMap[p.id] = p.display_name || 'Unknown';
+          });
+        }
+
+        const enriched: SectionWithStudents[] = sectionData.map(sec => ({
+          id: sec.id,
+          grade_level: sec.grade_level,
+          section_name: sec.section_name,
+          students: (assignments || [])
+            .filter(a => a.section_id === sec.id)
+            .map(a => ({
+              id: a.id,
+              student_id: a.student_id,
+              display_name: profileMap[a.student_id] || 'Unknown'
+            }))
+        }));
+        setSections(enriched);
+      } else {
+        setSections([]);
+      }
     } catch (error: any) {
       toast({ title: t('common.error'), description: error.message || t('adminStudentManagement.errorLoadingInvitations'), variant: "destructive" });
     } finally {
@@ -106,7 +158,6 @@ export const StudentManagement = () => {
       setIsInviting(true);
       const schoolData = await getSchoolAccount();
 
-      // Create invitation record
       const { data: invitationData, error: invitationError } = await supabase
         .from('student_invitations')
         .insert({
@@ -121,7 +172,6 @@ export const StudentManagement = () => {
 
       if (invitationError) throw new Error(`Failed to create invitation: ${invitationError.message}`);
 
-      // Send invitation email
       const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
         body: {
           studentEmail: newStudentEmail.trim(),
@@ -183,6 +233,60 @@ export const StudentManagement = () => {
         <h2 className="text-2xl font-bold text-foreground">{t('adminStudentManagement.title')}</h2>
         <p className="text-muted-foreground">Invite students by email — they'll receive a registration link automatically</p>
       </div>
+
+      {/* Students by Section */}
+      {sections.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <GraduationCap className="h-5 w-5 text-primary" />
+              Students by Section
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {sections.map(section => {
+              const label = `${section.grade_level}${section.section_name ? ` ${section.section_name}` : ''}`;
+              const isExpanded = expandedSection === section.id;
+              return (
+                <div key={section.id} className="border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedSection(isExpanded ? null : section.id)}
+                    className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <GraduationCap className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-foreground">{label}</span>
+                      <Badge variant="secondary">
+                        <Users className="h-3 w-3 mr-1" />
+                        {section.students.length} students
+                      </Badge>
+                    </div>
+                    <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                  </button>
+                  {isExpanded && (
+                    <div className="border-t border-border bg-muted/30 p-4">
+                      {section.students.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-2">No students assigned to this section yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {section.students.map((student, idx) => (
+                            <div key={student.id} className="flex items-center gap-3 p-2 rounded-md bg-card border border-border">
+                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
+                                {student.display_name.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="text-sm font-medium text-foreground">{student.display_name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Invite Student Form */}
       <Card className="bg-card border-border">
