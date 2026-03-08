@@ -21,6 +21,7 @@ export const StudentAnalyticsView = () => {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [insight, setInsight] = useState<string>('');
+  const [pendingInvitations, setPendingInvitations] = useState<Array<{id: string; email: string; first_name: string | null; last_name: string | null; created_at: string | null}>>([]);
   const { user } = useAuth();
   const { summaries, generateAISummary, getSummaryForStudent } = useAISummaries();
 
