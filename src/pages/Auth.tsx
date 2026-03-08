@@ -281,11 +281,124 @@ const Auth = () => {
     }
   };
 
-  // Show loading while checking children
+  // Show loading while checking account type
   if (user && checkingChildren) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show account type selector (School vs Parent)
+  if (user && onboardingStep === 'account-type') {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl">
+            <div className="text-center mb-10">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+                {t('auth.accountType.title') || 'How will you use Teachly?'}
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                {t('auth.accountType.subtitle') || 'Choose your account type to get started'}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* School / Institution */}
+              <Card
+                className="bg-card border-border hover:shadow-xl hover:border-primary/40 transition-all duration-300 cursor-pointer group"
+                onClick={() => handleAccountTypeSelected('school')}
+              >
+                <CardHeader className="text-center pb-2">
+                  <div className="mx-auto mb-4 p-5 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                    <School className="h-10 w-10 text-primary" />
+                  </div>
+                  <CardTitle className="text-foreground text-xl">
+                    {t('auth.accountType.school') || 'School / Institution'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Manage multiple students & classes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Create custom curricula
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      School-wide analytics & reporting
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Student invitations & enrollment
+                    </li>
+                  </ul>
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11"
+                    disabled={settingUpSchool}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccountTypeSelected('school');
+                    }}
+                  >
+                    {settingUpSchool ? 'Setting up...' : (t('auth.accountType.continueSchool') || 'Continue as School')}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Parent / Student */}
+              <Card
+                className="bg-card border-border hover:shadow-xl hover:border-primary/40 transition-all duration-300 cursor-pointer group"
+                onClick={() => handleAccountTypeSelected('parent')}
+              >
+                <CardHeader className="text-center pb-2">
+                  <div className="mx-auto mb-4 p-5 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                    <Users className="h-10 w-10 text-primary" />
+                  </div>
+                  <CardTitle className="text-foreground text-xl">
+                    {t('auth.accountType.parent') || 'Parent / Student'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Personal learning journey
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      AI-powered study plans & quizzes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Parent monitoring dashboard
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Gamified quests & achievements
+                    </li>
+                  </ul>
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccountTypeSelected('parent');
+                    }}
+                  >
+                    {t('auth.accountType.continueParent') || 'Continue as Parent'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -301,7 +414,7 @@ const Auth = () => {
     );
   }
 
-  // Show role selector
+  // Show role selector (parent vs child)
   if (user && onboardingStep === 'role-selector') {
     return (
       <div className="min-h-screen bg-background text-foreground">
