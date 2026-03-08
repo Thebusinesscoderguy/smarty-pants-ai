@@ -39,11 +39,8 @@ export const PaymentManagement = () => {
 
   const fetchSubscriptionData = async () => {
     if (!user) return;
-
     try {
       setIsLoading(true);
-      
-      // Fetch subscription data
       const { data: subData, error: subError } = await supabase
         .from('subscribers')
         .select('*')
@@ -53,19 +50,16 @@ export const PaymentManagement = () => {
       if (subError && subError.code !== 'PGRST116') {
         console.error('Error fetching subscription:', subError);
       } else if (subData) {
-        // Map the database structure to our interface
-        const mappedSubscription: Subscription = {
+        setSubscription({
           id: subData.id,
           subscription_tier: subData.subscription_tier || 'business',
           subscribed: subData.subscribed,
           subscription_end: subData.subscription_end || '',
           stripe_customer_id: subData.stripe_customer_id,
           paypal_subscription_id: subData.paypal_subscription_id
-        };
-        setSubscription(mappedSubscription);
+        });
       }
 
-      // Fetch school account data
       const { data: schoolData, error: schoolError } = await supabase
         .from('school_accounts')
         .select('*')
@@ -76,26 +70,15 @@ export const PaymentManagement = () => {
         console.error('Error fetching school account:', schoolError);
       } else if (schoolData) {
         setSchoolAccount(schoolData);
-        
-        // Fetch student count for this school
-        const { count, error: countError } = await supabase
+        const { count } = await supabase
           .from('school_student_relationships')
           .select('*', { count: 'exact', head: true })
           .eq('school_id', schoolData.id)
           .eq('is_active', true);
-        
-        if (!countError && count !== null) {
-          setStudentCount(count);
-        }
+        if (count !== null) setStudentCount(count);
       }
-
     } catch (error: any) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription data",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to load subscription data", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -104,22 +87,11 @@ export const PaymentManagement = () => {
   const createPayPalSubscription = async () => {
     try {
       setIsCreatingSubscription(true);
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType: 'business' }
-      });
-
+      const { data, error } = await supabase.functions.invoke('create-checkout', { body: { planType: 'business' } });
       if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      if (data?.url) window.open(data.url, '_blank');
     } catch (error: any) {
-      console.error('Error creating subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create PayPal subscription",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to create subscription", variant: "destructive" });
     } finally {
       setIsCreatingSubscription(false);
     }
@@ -128,58 +100,39 @@ export const PaymentManagement = () => {
   const cancelSubscription = async () => {
     try {
       setIsCancelling(true);
-      
-      // This would call PayPal cancellation API
       const { error } = await supabase
         .from('subscribers')
-        .update({ 
-          subscribed: false,
-          subscription_end: new Date().toISOString()
-        })
+        .update({ subscribed: false, subscription_end: new Date().toISOString() })
         .eq('user_id', user?.id);
-
       if (error) throw error;
-
       setSubscription(null);
-      toast({
-        title: "Subscription Cancelled",
-        description: "Your PayPal subscription has been cancelled successfully",
-      });
-      
+      toast({ title: "Subscription Cancelled", description: "Your subscription has been cancelled successfully" });
     } catch (error: any) {
-      console.error('Error cancelling subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to cancel subscription",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to cancel subscription", variant: "destructive" });
     } finally {
       setIsCancelling(false);
     }
   };
 
   const calculateMonthlyPrice = () => {
-    const basePrice = 25;
-    const additionalStudents = Math.max(0, studentCount - 1);
-    return basePrice + (additionalStudents * 5);
+    return 25 + Math.max(0, studentCount - 1) * 5;
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading subscription data...</div>;
+    return <div className="animate-pulse text-muted-foreground">Loading subscription data...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white">Subscription Management</h2>
-        <p className="text-gray-400">Manage your school's subscription and billing via PayPal</p>
+        <h2 className="text-2xl font-bold text-foreground">Subscription Management</h2>
+        <p className="text-muted-foreground">Manage your school's subscription and billing</p>
       </div>
 
-      {/* Current Subscription Status */}
       {subscription && (
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <CheckCircle className="h-5 w-5 text-green-500" />
               Current Subscription
             </CardTitle>
@@ -187,17 +140,17 @@ export const PaymentManagement = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">
-                <CreditCard className="h-4 w-4 text-blue-400" />
+                <CreditCard className="h-4 w-4 text-primary" />
                 <div>
-                  <p className="text-sm text-gray-400">Plan</p>
-                  <p className="font-medium text-white">{subscription.subscription_tier}</p>
+                  <p className="text-sm text-muted-foreground">Plan</p>
+                  <p className="font-medium text-foreground">{subscription.subscription_tier}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-purple-400" />
+                <Calendar className="h-4 w-4 text-primary" />
                 <div>
-                  <p className="text-sm text-gray-400">Expires</p>
-                  <p className="font-medium text-white">
+                  <p className="text-sm text-muted-foreground">Expires</p>
+                  <p className="font-medium text-foreground">
                     {new Date(subscription.subscription_end).toLocaleDateString()}
                   </p>
                 </div>
@@ -207,14 +160,8 @@ export const PaymentManagement = () => {
               <Badge variant={subscription.subscribed ? 'default' : 'secondary'}>
                 {subscription.subscribed ? 'Active' : 'Inactive'}
               </Badge>
-              <Button 
-                variant="destructive"
-                size="sm"
-                onClick={cancelSubscription}
-                disabled={isCancelling}
-                className="flex items-center gap-2"
-              >
-                <X className="h-4 w-4" />
+              <Button variant="destructive" size="sm" onClick={cancelSubscription} disabled={isCancelling}>
+                <X className="h-4 w-4 mr-1" />
                 {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
               </Button>
             </div>
@@ -222,82 +169,62 @@ export const PaymentManagement = () => {
         </Card>
       )}
 
-      {/* PayPal Subscription Option */}
       {!subscription && (
-        <Card className="bg-white/10 border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white text-center">Business Plan</CardTitle>
-            <div className="text-2xl font-bold text-white text-center">${calculateMonthlyPrice()}/month</div>
-            <p className="text-gray-400 text-center">Secure payments via PayPal</p>
+        <Card className="bg-card border-border">
+          <CardHeader className="text-center">
+            <CardTitle className="text-foreground">Business Plan</CardTitle>
+            <div className="text-2xl font-bold text-primary">${calculateMonthlyPrice()}/month</div>
+            <p className="text-muted-foreground text-sm">Secure payments</p>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 mb-6">
-              <li className="flex items-center text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                Admin dashboard access
-              </li>
-              <li className="flex items-center text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                Student invitation system
-              </li>
-              <li className="flex items-center text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                Advanced analytics & reporting
-              </li>
-              <li className="flex items-center text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                Priority support
-              </li>
-              <li className="flex items-center text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                Bulk user management
-              </li>
+              {['Admin dashboard access', 'Student invitation system', 'Advanced analytics & reporting', 'Priority support', 'Bulk user management'].map((feature) => (
+                <li key={feature} className="flex items-center text-sm text-muted-foreground">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
             </ul>
-            <div className="bg-blue-900/20 p-4 rounded-lg mb-6">
-              <h4 className="font-semibold mb-2 text-white">Pricing Structure:</h4>
-              <ul className="text-left text-sm space-y-2 text-gray-300">
+            <div className="bg-primary/5 border border-primary/10 p-4 rounded-lg mb-6">
+              <h4 className="font-semibold mb-2 text-foreground">Pricing Structure:</h4>
+              <ul className="text-left text-sm space-y-1 text-muted-foreground">
                 <li>• Base price: $25/month for admin account</li>
                 <li>• Each additional student: $5/month</li>
                 <li>• Example: 10 students = $25 + (9 × $5) = $70/month</li>
                 <li>• No setup fees or long-term commitments</li>
               </ul>
             </div>
-            <Button 
-              onClick={createPayPalSubscription}
-              disabled={isCreatingSubscription}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              {isCreatingSubscription ? 'Processing...' : 'Subscribe with PayPal'}
+            <Button onClick={createPayPalSubscription} disabled={isCreatingSubscription} className="w-full">
+              {isCreatingSubscription ? 'Processing...' : 'Subscribe Now'}
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* School Account Info */}
       {schoolAccount && (
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">School Account</CardTitle>
+            <CardTitle className="text-foreground">School Account</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-400">School Name</p>
-                <p className="font-medium text-white">{schoolAccount.school_name}</p>
+                <p className="text-sm text-muted-foreground">School Name</p>
+                <p className="font-medium text-foreground">{schoolAccount.school_name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-400">Plan Type</p>
-                <p className="font-medium text-white">{schoolAccount.plan_type}</p>
+                <p className="text-sm text-muted-foreground">Plan Type</p>
+                <p className="font-medium text-foreground">{schoolAccount.plan_type}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-400">Active Students</p>
-                <p className="font-medium text-white">{studentCount} students</p>
+                <p className="text-sm text-muted-foreground">Active Students</p>
+                <p className="font-medium text-foreground">{studentCount} students</p>
               </div>
               <div>
-                <p className="text-sm text-gray-400">Monthly Cost</p>
-                <p className="font-medium text-white">
+                <p className="text-sm text-muted-foreground">Monthly Cost</p>
+                <p className="font-medium text-foreground">
                   ${calculateMonthlyPrice()}/month
-                  <span className="text-sm text-gray-400 block">
+                  <span className="text-sm text-muted-foreground block">
                     (Base: $25 + {Math.max(0, studentCount - 1)} × $5)
                   </span>
                 </p>
