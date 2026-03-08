@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { School, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,20 +28,35 @@ const Auth = () => {
   
   const isSignup = searchParams.get('signup') === 'true';
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
-  const [onboardingStep, setOnboardingStep] = useState<'auth' | 'add-children' | 'role-selector'>('auth');
+  const [onboardingStep, setOnboardingStep] = useState<'auth' | 'account-type' | 'add-children' | 'role-selector'>('auth');
   const [checkingChildren, setCheckingChildren] = useState(false);
+  const [settingUpSchool, setSettingUpSchool] = useState(false);
 
   useEffect(() => {
     if (user && onboardingStep === 'auth') {
-      checkUserChildren();
+      checkExistingAccountType();
     }
   }, [user, onboardingStep]);
 
-  const checkUserChildren = async () => {
+  const checkExistingAccountType = async () => {
     if (!user) return;
     
     setCheckingChildren(true);
     try {
+      // Check if user is already a school admin
+      const { data: schoolData } = await supabase
+        .from('school_accounts')
+        .select('id')
+        .eq('admin_user_id', user.id)
+        .maybeSingle();
+
+      if (schoolData) {
+        // Already a school admin, go straight to school admin
+        navigate('/school-admin');
+        return;
+      }
+
+      // Check if user already has children (existing parent)
       const { data: children, error } = await supabase
         .from('children')
         .select('id')
@@ -48,19 +64,64 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // If no children, show add children step first
-      if (!children || children.length === 0) {
-        setOnboardingStep('add-children');
-      } else {
-        // If children exist, go straight to role selector
+      if (children && children.length > 0) {
+        // Existing parent with children, go to role selector
         setOnboardingStep('role-selector');
+      } else {
+        // New user - show account type choice
+        setOnboardingStep('account-type');
       }
     } catch (error) {
-      console.error('Error checking children:', error);
-      // Default to add children step on error
-      setOnboardingStep('add-children');
+      console.error('Error checking account type:', error);
+      setOnboardingStep('account-type');
     } finally {
       setCheckingChildren(false);
+    }
+  };
+
+  const handleAccountTypeSelected = async (type: 'school' | 'parent') => {
+    if (type === 'school') {
+      await setupSchoolAdmin();
+    } else {
+      // Parent flow - go to add children
+      setOnboardingStep('add-children');
+    }
+  };
+
+  const setupSchoolAdmin = async () => {
+    if (!user) return;
+    setSettingUpSchool(true);
+    try {
+      // Update profile role to teacher
+      await supabase
+        .from('profiles')
+        .update({ role: 'teacher' as any, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      // Create school account
+      const { error } = await supabase
+        .from('school_accounts')
+        .insert({
+          admin_user_id: user.id,
+          school_name: user.email?.split('@')[0] || 'My School',
+          plan_type: 'school',
+          student_limit: 100,
+        });
+
+      if (error) {
+        // If RLS blocks insert, still navigate - they may need to set it up via admin
+        console.error('Error creating school account:', error);
+        toast.error('Could not create school account. Please contact support.');
+        return;
+      }
+
+      toast.success('School account created!');
+      navigate('/school-admin');
+    } catch (error) {
+      console.error('Error setting up school:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setSettingUpSchool(false);
     }
   };
 
@@ -220,11 +281,124 @@ const Auth = () => {
     }
   };
 
-  // Show loading while checking children
+  // Show loading while checking account type
   if (user && checkingChildren) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show account type selector (School vs Parent)
+  if (user && onboardingStep === 'account-type') {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl">
+            <div className="text-center mb-10">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+                {t('auth.accountType.title') || 'How will you use Teachly?'}
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                {t('auth.accountType.subtitle') || 'Choose your account type to get started'}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* School / Institution */}
+              <Card
+                className="bg-card border-border hover:shadow-xl hover:border-primary/40 transition-all duration-300 cursor-pointer group"
+                onClick={() => handleAccountTypeSelected('school')}
+              >
+                <CardHeader className="text-center pb-2">
+                  <div className="mx-auto mb-4 p-5 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                    <School className="h-10 w-10 text-primary" />
+                  </div>
+                  <CardTitle className="text-foreground text-xl">
+                    {t('auth.accountType.school') || 'School / Institution'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Manage multiple students & classes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Create custom curricula
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      School-wide analytics & reporting
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Student invitations & enrollment
+                    </li>
+                  </ul>
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11"
+                    disabled={settingUpSchool}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccountTypeSelected('school');
+                    }}
+                  >
+                    {settingUpSchool ? 'Setting up...' : (t('auth.accountType.continueSchool') || 'Continue as School')}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Parent / Student */}
+              <Card
+                className="bg-card border-border hover:shadow-xl hover:border-primary/40 transition-all duration-300 cursor-pointer group"
+                onClick={() => handleAccountTypeSelected('parent')}
+              >
+                <CardHeader className="text-center pb-2">
+                  <div className="mx-auto mb-4 p-5 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                    <Users className="h-10 w-10 text-primary" />
+                  </div>
+                  <CardTitle className="text-foreground text-xl">
+                    {t('auth.accountType.parent') || 'Parent / Student'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Personal learning journey
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      AI-powered study plans & quizzes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Parent monitoring dashboard
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      Gamified quests & achievements
+                    </li>
+                  </ul>
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccountTypeSelected('parent');
+                    }}
+                  >
+                    {t('auth.accountType.continueParent') || 'Continue as Parent'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -240,7 +414,7 @@ const Auth = () => {
     );
   }
 
-  // Show role selector
+  // Show role selector (parent vs child)
   if (user && onboardingStep === 'role-selector') {
     return (
       <div className="min-h-screen bg-background text-foreground">
