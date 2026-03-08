@@ -173,11 +173,15 @@ export const AssessmentManagement = () => {
     try {
       setIsGenerating(true);
 
+      const gradeLevel = aiForm.selectedSections.length > 0
+        ? getSectionLabel(schoolSections.find(s => s.id === aiForm.selectedSections[0])!)
+        : '';
+
       const { data, error } = await supabase.functions.invoke('generate-quiz', {
         body: {
           topic: aiForm.topic,
           subject: aiForm.subject,
-          gradeLevel: aiForm.gradeLevel,
+          gradeLevel,
           numQuestions: aiForm.numQuestions,
           difficulty: aiForm.difficulty,
         },
