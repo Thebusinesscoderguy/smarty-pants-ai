@@ -61,10 +61,6 @@ const SchoolAdmin = () => {
                 <Target className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.quests')}
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.analytics')}
-              </TabsTrigger>
               <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Brain className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.studentAnalysis')}
