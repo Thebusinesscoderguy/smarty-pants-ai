@@ -113,8 +113,8 @@ export const SectionManagement = () => {
   };
 
   const createSection = async () => {
-    if (!schoolId || !newGrade || !newSectionName.trim()) return;
-    const label = `${newSectionName.trim().toUpperCase()}`;
+    if (!schoolId || !newGrade) return;
+    const label = newSectionName.trim() ? newSectionName.trim().toUpperCase() : '';
     const { error } = await supabase.from('school_sections').insert({
       school_id: schoolId,
       grade_level: newGrade,
@@ -123,7 +123,7 @@ export const SectionManagement = () => {
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Section Created', description: `${newGrade} - ${label}` });
+      toast({ title: 'Section Created', description: label ? `${newGrade} - ${label}` : newGrade });
       setNewSectionName('');
       fetchData();
     }
@@ -204,12 +204,12 @@ export const SectionManagement = () => {
               </SelectContent>
             </Select>
             <Input
-              placeholder="Section name (e.g. A, B, C)"
+              placeholder="Section name (optional, e.g. A, B, C)"
               value={newSectionName}
               onChange={e => setNewSectionName(e.target.value)}
               className="w-full sm:w-48"
             />
-            <Button onClick={createSection} disabled={!newGrade || !newSectionName.trim()}>
+            <Button onClick={createSection} disabled={!newGrade}>
               <Plus className="h-4 w-4 mr-2" />
               Add Section
             </Button>
@@ -260,7 +260,7 @@ export const SectionManagement = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">{grade} {section.section_name}</span>
+                        <span className="font-semibold">{grade}{section.section_name ? ` ${section.section_name}` : ''}</span>
                         <Badge variant="outline">
                           <Users className="h-3 w-3 mr-1" />
                           {section.students.length}
@@ -279,7 +279,7 @@ export const SectionManagement = () => {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Add Student to {grade} {section.section_name}</DialogTitle>
+                              <DialogTitle>Add Student to {grade}{section.section_name ? ` ${section.section_name}` : ''}</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-2 max-h-64 overflow-y-auto">
                               {getUnassignedStudents(section.id).length === 0 ? (

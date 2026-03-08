@@ -1037,7 +1037,7 @@ export type Database = {
           grade_level: string
           id?: string
           school_id: string
-          section_name: string
+          section_name?: string
         }
         Update: {
           created_at?: string

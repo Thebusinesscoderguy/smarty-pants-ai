@@ -1,0 +1,1 @@
+ALTER TABLE public.school_sections ALTER COLUMN section_name SET DEFAULT '';
