@@ -25,7 +25,7 @@ interface SectionWithStudents {
   id: string;
   grade_level: string;
   section_name: string;
-  students: { id: string; student_id: string; display_name: string }[];
+  students: { id: string; student_id: string; display_name: string; avatar_url: string | null }[];
 }
 
 export const StudentManagement = () => {
