@@ -27,20 +27,35 @@ const Auth = () => {
   
   const isSignup = searchParams.get('signup') === 'true';
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
-  const [onboardingStep, setOnboardingStep] = useState<'auth' | 'add-children' | 'role-selector'>('auth');
+  const [onboardingStep, setOnboardingStep] = useState<'auth' | 'account-type' | 'add-children' | 'role-selector'>('auth');
   const [checkingChildren, setCheckingChildren] = useState(false);
+  const [settingUpSchool, setSettingUpSchool] = useState(false);
 
   useEffect(() => {
     if (user && onboardingStep === 'auth') {
-      checkUserChildren();
+      checkExistingAccountType();
     }
   }, [user, onboardingStep]);
 
-  const checkUserChildren = async () => {
+  const checkExistingAccountType = async () => {
     if (!user) return;
     
     setCheckingChildren(true);
     try {
+      // Check if user is already a school admin
+      const { data: schoolData } = await supabase
+        .from('school_accounts')
+        .select('id')
+        .eq('admin_user_id', user.id)
+        .maybeSingle();
+
+      if (schoolData) {
+        // Already a school admin, go straight to school admin
+        navigate('/school-admin');
+        return;
+      }
+
+      // Check if user already has children (existing parent)
       const { data: children, error } = await supabase
         .from('children')
         .select('id')
@@ -48,19 +63,64 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // If no children, show add children step first
-      if (!children || children.length === 0) {
-        setOnboardingStep('add-children');
-      } else {
-        // If children exist, go straight to role selector
+      if (children && children.length > 0) {
+        // Existing parent with children, go to role selector
         setOnboardingStep('role-selector');
+      } else {
+        // New user - show account type choice
+        setOnboardingStep('account-type');
       }
     } catch (error) {
-      console.error('Error checking children:', error);
-      // Default to add children step on error
-      setOnboardingStep('add-children');
+      console.error('Error checking account type:', error);
+      setOnboardingStep('account-type');
     } finally {
       setCheckingChildren(false);
+    }
+  };
+
+  const handleAccountTypeSelected = async (type: 'school' | 'parent') => {
+    if (type === 'school') {
+      await setupSchoolAdmin();
+    } else {
+      // Parent flow - go to add children
+      setOnboardingStep('add-children');
+    }
+  };
+
+  const setupSchoolAdmin = async () => {
+    if (!user) return;
+    setSettingUpSchool(true);
+    try {
+      // Update profile role to teacher
+      await supabase
+        .from('profiles')
+        .update({ role: 'teacher' as any, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      // Create school account
+      const { error } = await supabase
+        .from('school_accounts')
+        .insert({
+          admin_user_id: user.id,
+          school_name: user.email?.split('@')[0] || 'My School',
+          plan_type: 'school',
+          student_limit: 100,
+        });
+
+      if (error) {
+        // If RLS blocks insert, still navigate - they may need to set it up via admin
+        console.error('Error creating school account:', error);
+        toast.error('Could not create school account. Please contact support.');
+        return;
+      }
+
+      toast.success('School account created!');
+      navigate('/school-admin');
+    } catch (error) {
+      console.error('Error setting up school:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setSettingUpSchool(false);
     }
   };
 
