@@ -79,6 +79,7 @@ export const AssessmentManagement = () => {
     description: '',
     subject: '',
     timeLimitMinutes: 30,
+    selectedSections: [] as string[],
     questions: [] as QuizQuestion[],
   });
 
