@@ -413,12 +413,28 @@ export const AssessmentManagement = () => {
                     />
                   </div>
                   <div>
-                    <Label>Grade Level</Label>
-                    <Input
-                      value={aiForm.gradeLevel}
-                      onChange={e => setAiForm(p => ({ ...p, gradeLevel: e.target.value }))}
-                      placeholder="e.g., Grade 9"
-                    />
+                    <Label>Section(s)</Label>
+                    <div className="flex flex-wrap gap-2 mt-1 p-2 border border-input rounded-md min-h-[40px]">
+                      {schoolSections.length === 0 ? (
+                        <span className="text-sm text-muted-foreground">No sections created yet</span>
+                      ) : (
+                        schoolSections.map(section => (
+                          <Badge
+                            key={section.id}
+                            variant={aiForm.selectedSections.includes(section.id) ? 'default' : 'outline'}
+                            className="cursor-pointer select-none"
+                            onClick={() => setAiForm(p => ({
+                              ...p,
+                              selectedSections: p.selectedSections.includes(section.id)
+                                ? p.selectedSections.filter(s => s !== section.id)
+                                : [...p.selectedSections, section.id]
+                            }))}
+                          >
+                            {getSectionLabel(section)}
+                          </Badge>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div>
