@@ -224,6 +224,37 @@ export const StudentManagement = () => {
     }
   };
 
+  const handleAvatarUpload = async (studentId: string, file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${studentId}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('student-avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('student-avatars')
+        .getPublicUrl(filePath);
+
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl } as any)
+        .eq('id', studentId);
+
+      if (updateError) throw updateError;
+
+      toast({ title: 'Photo Updated', description: 'Student photo has been uploaded successfully.' });
+      fetchInvitations();
+    } catch (error: any) {
+      toast({ title: 'Upload Failed', description: error.message, variant: 'destructive' });
+    }
+  };
+
   if (isLoading) {
     return <div className="animate-pulse text-muted-foreground">{t('adminStudentManagement.loadingStudents')}</div>;
   }

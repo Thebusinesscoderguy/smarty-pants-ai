@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface StudentGrade {
   student_id: string;
   student_name: string;
+  avatar_url: string | null;
   quiz_scores: { title: string; score: number; total: number; date: string }[];
   test_scores: { title: string; score: number; total: number; percentage: number; date: string }[];
   average_score: number;
