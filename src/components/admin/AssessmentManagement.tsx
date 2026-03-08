@@ -781,20 +781,20 @@ export const AssessmentManagement = () => {
           <div className="space-y-4">
             <div>
               <Label>Select Sections</Label>
-              {availableTags.length === 0 ? (
+              {schoolSections.length === 0 ? (
                 <p className="text-sm text-muted-foreground mt-1">
-                  No sections found. Classify students into sections first (e.g., "Grade 9A", "Grade 10B") using the Student Classification manager.
+                  No sections found. Create grade sections first in the Sections tab.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {availableTags.map(tag => (
+                  {schoolSections.map(section => (
                     <Badge
-                      key={tag}
-                      variant={assignForm.sections.includes(tag) ? 'default' : 'outline'}
+                      key={section.id}
+                      variant={assignForm.sections.includes(section.id) ? 'default' : 'outline'}
                       className="cursor-pointer select-none"
-                      onClick={() => toggleSection(tag)}
+                      onClick={() => toggleSection(section.id)}
                     >
-                      {tag}
+                      {getSectionLabel(section)}
                     </Badge>
                   ))}
                 </div>
