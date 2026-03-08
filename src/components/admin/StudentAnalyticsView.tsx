@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, RefreshCw, Brain, Target, TrendingUp } from 'lucide-react';
+import { Users, RefreshCw, Brain, Target, TrendingUp, Mail, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,7 @@ export const StudentAnalyticsView = () => {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [insight, setInsight] = useState<string>('');
+  const [pendingInvitations, setPendingInvitations] = useState<Array<{id: string; email: string; first_name: string | null; last_name: string | null; created_at: string | null}>>([]);
   const { user } = useAuth();
   const { summaries, generateAISummary, getSummaryForStudent } = useAISummaries();
 
@@ -56,6 +58,16 @@ export const StudentAnalyticsView = () => {
       if (realAnalytics.length > 0) {
         setSelectedStudent(realAnalytics[0].studentId);
       }
+
+      // Get pending invitations
+      const { data: invitations } = await supabase
+        .from('student_invitations')
+        .select('id, email, first_name, last_name, created_at')
+        .eq('school_id', schoolData.id)
+        .eq('used', false)
+        .order('created_at', { ascending: false });
+
+      setPendingInvitations(invitations || []);
 
     } catch (error: any) {
       console.error('Error fetching student analytics:', error);
@@ -149,13 +161,39 @@ export const StudentAnalyticsView = () => {
 
         <TabsContent value="analytics">
           {students.length === 0 ? (
-            <Card className="bg-white/10 border-white/20">
+            <Card className="bg-card border-border">
               <CardContent className="p-6 text-center">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-300">No students found.</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  Invite students to start tracking their progress and analytics.
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-foreground font-medium">No registered students yet.</p>
+                <p className="text-muted-foreground text-sm mt-2">
+                  Students will appear here once they accept their invitation and create an account.
                 </p>
+                {pendingInvitations.length > 0 && (
+                  <div className="mt-6 text-left">
+                    <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      Pending Invitations ({pendingInvitations.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {pendingInvitations.map((inv) => (
+                        <div key={inv.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border">
+                          <div className="flex items-center gap-3">
+                            <Mail className="h-4 w-4 text-primary" />
+                            <div>
+                              <p className="text-sm font-medium text-foreground">
+                                {inv.first_name || inv.last_name
+                                  ? `${inv.first_name || ''} ${inv.last_name || ''}`.trim()
+                                  : inv.email}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{inv.email}</p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary">Pending</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : selectedStudentData ? (
