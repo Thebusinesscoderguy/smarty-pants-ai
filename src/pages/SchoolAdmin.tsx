@@ -12,7 +12,8 @@ import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
-import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain, ClipboardList, AlertTriangle } from 'lucide-react';
+import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
+import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain, ClipboardList, AlertTriangle, FileCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const SchoolAdmin = () => {
