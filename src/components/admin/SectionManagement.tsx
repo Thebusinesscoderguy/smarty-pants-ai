@@ -260,7 +260,7 @@ export const SectionManagement = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">{grade} {section.section_name}</span>
+                        <span className="font-semibold">{grade}{section.section_name ? ` ${section.section_name}` : ''}</span>
                         <Badge variant="outline">
                           <Users className="h-3 w-3 mr-1" />
                           {section.students.length}
