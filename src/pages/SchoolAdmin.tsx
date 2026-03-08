@@ -32,7 +32,7 @@ const SchoolAdmin = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 bg-muted">
+            <TabsList className="grid w-full grid-cols-9 bg-muted">
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.overview')}
@@ -40,6 +40,14 @@ const SchoolAdmin = () => {
               <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.students')}
+              </TabsTrigger>
+              <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Grade Book
+              </TabsTrigger>
+              <TabsTrigger value="at-risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                At-Risk
               </TabsTrigger>
               <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BookOpen className="h-4 w-4 mr-2" />
