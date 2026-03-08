@@ -42,6 +42,11 @@ const SchoolAdmin = () => {
                 <Users className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.students')}
               </TabsTrigger>
+              <TabsTrigger value="sections" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <FolderTree className="h-4 w-4 mr-2" />
+                Sections
+              </TabsTrigger>
+              </TabsTrigger>
               <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <FileCheck className="h-4 w-4 mr-2" />
                 Assessments
