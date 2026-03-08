@@ -80,6 +80,14 @@ const SchoolAdmin = () => {
                 <StudentManagement />
               </TabsContent>
 
+              <TabsContent value="gradebook" className="space-y-6">
+                <GradeBook />
+              </TabsContent>
+
+              <TabsContent value="at-risk" className="space-y-6">
+                <AtRiskAlerts />
+              </TabsContent>
+
               <TabsContent value="curriculum" className="space-y-6">
                 <CurriculumManagement />
               </TabsContent>
