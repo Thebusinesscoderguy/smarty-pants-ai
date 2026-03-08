@@ -398,7 +398,7 @@ export const AssessmentManagement = () => {
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Number of Questions</Label>
                     <Select
@@ -424,6 +424,20 @@ export const AssessmentManagement = () => {
                         <SelectItem value="easy">Easy</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
                         <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Time Limit (minutes)</Label>
+                    <Select
+                      value={String(aiForm.timeLimitMinutes)}
+                      onValueChange={v => setAiForm(p => ({ ...p, timeLimitMinutes: Number(v) }))}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[10, 15, 20, 30, 45, 60, 90, 120].map(n => (
+                          <SelectItem key={n} value={String(n)}>{n} min</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
