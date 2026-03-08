@@ -53,8 +53,8 @@ interface QuizQuestion {
 
 export const AssessmentManagement = () => {
   const { user } = useAuth();
-  const { availableTags } = useStudentClassifications();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [schoolSections, setSchoolSections] = useState<SchoolSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
