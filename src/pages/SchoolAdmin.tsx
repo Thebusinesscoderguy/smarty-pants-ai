@@ -10,7 +10,9 @@ import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
-import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain } from 'lucide-react';
+import { GradeBook } from '@/components/admin/GradeBook';
+import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
+import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const SchoolAdmin = () => {

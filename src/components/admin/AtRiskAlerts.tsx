@@ -273,5 +273,3 @@ export const AtRiskAlerts = () => {
   );
 };
 
-// Import Trophy for the empty state
-import { Trophy } from 'lucide-react';
