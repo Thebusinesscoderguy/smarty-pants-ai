@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isSchoolAdmin } = useAuth();
   const { t } = useLanguage();
 
   const handleSignOut = async () => {
