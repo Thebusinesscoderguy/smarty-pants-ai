@@ -3077,6 +3077,25 @@ export const translations: TranslationData = {
     'settings.voiceTest.testing': 'جاري الاختبار...',
     'settings.voiceTest.tryOther': 'جرب أصوات أخرى',
     'settings.voiceTest.saveReminder': 'لا تنسَ حفظ التغييرات عندما تجد الصوت المثالي!',
+
+    // Navigation - School Admin
+    'nav.schoolAdmin': 'إدارة المدرسة',
+
+    // Auth - Account Type Selection
+    'auth.accountType.title': 'كيف ستستخدم Teachly؟',
+    'auth.accountType.subtitle': 'اختر نوع الحساب للبدء',
+    'auth.accountType.school': 'مدرسة / مؤسسة',
+    'auth.accountType.parent': 'ولي أمر / طالب',
+    'auth.accountType.continueSchool': 'المتابعة كمدرسة',
+    'auth.accountType.continueParent': 'المتابعة كولي أمر',
+    'auth.accountType.schoolFeature1': 'إدارة عدة طلاب وفصول',
+    'auth.accountType.schoolFeature2': 'إنشاء مناهج مخصصة',
+    'auth.accountType.schoolFeature3': 'تحليلات وتقارير على مستوى المدرسة',
+    'auth.accountType.schoolFeature4': 'دعوات الطلاب والتسجيل',
+    'auth.accountType.parentFeature1': 'رحلة تعلم شخصية',
+    'auth.accountType.parentFeature2': 'خطط دراسة واختبارات مدعومة بالذكاء الاصطناعي',
+    'auth.accountType.parentFeature3': 'لوحة متابعة لولي الأمر',
+    'auth.accountType.parentFeature4': 'مهام وإنجازات بأسلوب التلعيب',
     
     // School Admin Page
     'schoolAdmin.title': 'إدارة المدرسة',
