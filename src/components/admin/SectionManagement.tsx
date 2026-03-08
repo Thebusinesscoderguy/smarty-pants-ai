@@ -279,7 +279,7 @@ export const SectionManagement = () => {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Add Student to {grade} {section.section_name}</DialogTitle>
+                              <DialogTitle>Add Student to {grade}{section.section_name ? ` ${section.section_name}` : ''}</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-2 max-h-64 overflow-y-auto">
                               {getUnassignedStudents(section.id).length === 0 ? (
