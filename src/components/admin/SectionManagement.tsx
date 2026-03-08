@@ -204,12 +204,12 @@ export const SectionManagement = () => {
               </SelectContent>
             </Select>
             <Input
-              placeholder="Section name (e.g. A, B, C)"
+              placeholder="Section name (optional, e.g. A, B, C)"
               value={newSectionName}
               onChange={e => setNewSectionName(e.target.value)}
               className="w-full sm:w-48"
             />
-            <Button onClick={createSection} disabled={!newGrade || !newSectionName.trim()}>
+            <Button onClick={createSection} disabled={!newGrade}>
               <Plus className="h-4 w-4 mr-2" />
               Add Section
             </Button>
