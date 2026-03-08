@@ -98,7 +98,25 @@ export const AssessmentManagement = () => {
 
   useEffect(() => {
     fetchAssessments();
+    fetchSections();
   }, [user]);
+
+  const fetchSections = async () => {
+    if (!user) return;
+    const { data: school } = await supabase
+      .from('school_accounts')
+      .select('id')
+      .eq('admin_user_id', user.id)
+      .single();
+    if (!school) return;
+    const { data } = await supabase
+      .from('school_sections')
+      .select('id, grade_level, section_name')
+      .eq('school_id', school.id)
+      .order('grade_level')
+      .order('section_name');
+    setSchoolSections(data || []);
+  };
 
   const fetchAssessments = async () => {
     if (!user) return;
