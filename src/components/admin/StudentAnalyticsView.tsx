@@ -114,8 +114,8 @@ export const StudentAnalyticsView = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Student Analytics & Management</h2>
-          <p className="text-gray-400">AI-powered insights, classifications, and targeted content distribution</p>
+          <h2 className="text-2xl font-bold text-foreground">Student Analytics & Management</h2>
+          <p className="text-muted-foreground">AI-powered insights, classifications, and targeted content distribution</p>
         </div>
         
         <div className="flex gap-4">
@@ -125,7 +125,7 @@ export const StudentAnalyticsView = () => {
           </Button>
           
           <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white w-48">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Select student" />
             </SelectTrigger>
             <SelectContent>
@@ -200,9 +200,9 @@ export const StudentAnalyticsView = () => {
             <div className="grid gap-6">
               {/* AI-Generated Comprehensive Summary */}
               {selectedStudentSummary ? (
-                <Card className="bg-white/10 border-white/20">
+                <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center justify-between">
+                    <CardTitle className="text-foreground flex items-center justify-between">
                       <span className="flex items-center gap-2">
                         <Brain className="h-5 w-5" />
                         AI-Generated Student Summary
@@ -217,14 +217,14 @@ export const StudentAnalyticsView = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
+                    <div className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
                       {selectedStudentSummary.summary_text}
                     </div>
                     
                     {/* Strengths Progress Bars */}
                     {selectedStudentSummary.strengths.length > 0 && (
                       <div className="space-y-3">
-                        <h4 className="text-white font-medium">Key Strengths</h4>
+                        <h4 className="text-foreground font-medium">Key Strengths</h4>
                         {selectedStudentSummary.strengths.slice(0, 4).map((strength, index) => {
                           const strengthData = selectedStudentData.topicPerformance.find(t => t.topic.toLowerCase().includes(strength.toLowerCase()));
                           return (
@@ -245,7 +245,7 @@ export const StudentAnalyticsView = () => {
                     {/* Weaknesses Progress Bars */}
                     {selectedStudentSummary.weaknesses.length > 0 && (
                       <div className="space-y-3">
-                        <h4 className="text-white font-medium">Areas for Improvement</h4>
+                        <h4 className="text-foreground font-medium">Areas for Improvement</h4>
                         {selectedStudentSummary.weaknesses.slice(0, 4).map((weakness, index) => {
                           const weaknessData = selectedStudentData.topicPerformance.find(t => t.topic.toLowerCase().includes(weakness.toLowerCase()));
                           return (
@@ -265,27 +265,27 @@ export const StudentAnalyticsView = () => {
 
                     {/* Improvement Metrics */}
                     {selectedStudentSummary.improvement_metrics && (
-                      <Card className="bg-white/5 border-white/10">
+                      <Card className="bg-muted/50 border-border">
                         <CardContent className="p-4 space-y-2">
-                          <h4 className="text-white font-medium">Improvement Plan</h4>
+                          <h4 className="text-foreground font-medium">Improvement Plan</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                              <span className="text-gray-400">Overall Trend:</span>
-                              <span className="text-white ml-2 capitalize">
+                              <span className="text-muted-foreground">Overall Trend:</span>
+                              <span className="text-foreground ml-2 capitalize">
                                 {selectedStudentSummary.improvement_metrics.overall_trend}
                               </span>
                             </div>
                             <div>
-                              <span className="text-gray-400">Timeline:</span>
-                              <span className="text-white ml-2">
+                              <span className="text-muted-foreground">Timeline:</span>
+                              <span className="text-foreground ml-2">
                                 {selectedStudentSummary.improvement_metrics.estimated_improvement_timeline}
                               </span>
                             </div>
                           </div>
                           {selectedStudentSummary.improvement_metrics.recommended_actions && (
                             <div>
-                              <span className="text-gray-400">Recommended Actions:</span>
-                              <ul className="text-white ml-4 mt-1">
+                              <span className="text-muted-foreground">Recommended Actions:</span>
+                              <ul className="text-foreground ml-4 mt-1">
                                 {selectedStudentSummary.improvement_metrics.recommended_actions.map((action: string, index: number) => (
                                   <li key={index} className="text-sm">• {action}</li>
                                 ))}
@@ -298,15 +298,15 @@ export const StudentAnalyticsView = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="bg-white/10 border-white/20">
+                <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
+                    <CardTitle className="text-foreground flex items-center gap-2">
                       <Brain className="h-5 w-5" />
                       Generate AI Summary
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-center py-8">
-                    <p className="text-gray-400 mb-4">No AI summary available for this student</p>
+                    <p className="text-muted-foreground mb-4">No AI summary available for this student</p>
                     <Button onClick={() => handleGenerateAISummary(selectedStudent)}>
                       Generate AI Summary
                     </Button>
@@ -316,12 +316,12 @@ export const StudentAnalyticsView = () => {
 
               {/* Quick AI Insight */}
               {insight && (
-                <Card className="bg-white/10 border-white/20">
+                <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-white">Quick AI Insight</CardTitle>
+                    <CardTitle className="text-foreground">Quick AI Insight</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-300 text-sm leading-relaxed">{insight}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{insight}</p>
                   </CardContent>
                 </Card>
               )}
@@ -344,10 +344,10 @@ export const StudentAnalyticsView = () => {
               />
             </div>
           ) : (
-            <Card className="bg-white/10 border-white/20">
+            <Card className="bg-card border-border">
               <CardContent className="p-6 text-center">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-300">Select a student to view detailed analytics</p>
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-foreground">Select a student to view detailed analytics</p>
               </CardContent>
             </Card>
           )}
@@ -363,36 +363,36 @@ export const StudentAnalyticsView = () => {
 
         <TabsContent value="management">
           <div className="grid gap-6">
-            <Card className="bg-white/10 border-white/20">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white">System Overview</CardTitle>
+                <CardTitle className="text-foreground">System Overview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="bg-white/5 border-white/10">
+                  <Card className="bg-muted/50 border-border">
                     <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-white">{students.length}</div>
-                      <div className="text-sm text-gray-400">Total Students</div>
+                      <div className="text-2xl font-bold text-foreground">{students.length}</div>
+                      <div className="text-sm text-muted-foreground">Total Students</div>
                     </CardContent>
                   </Card>
-                  <Card className="bg-white/5 border-white/10">
+                  <Card className="bg-muted/50 border-border">
                     <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-white">{summaries.length}</div>
-                      <div className="text-sm text-gray-400">AI Summaries</div>
+                      <div className="text-2xl font-bold text-foreground">{summaries.length}</div>
+                      <div className="text-sm text-muted-foreground">AI Summaries</div>
                     </CardContent>
                   </Card>
-                  <Card className="bg-white/5 border-white/10">
+                  <Card className="bg-muted/50 border-border">
                     <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-white">
+                      <div className="text-2xl font-bold text-foreground">
                         {students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.completionPercentage, 0) / students.length) : 0}%
                       </div>
-                      <div className="text-sm text-gray-400">Avg Completion</div>
+                      <div className="text-sm text-muted-foreground">Avg Completion</div>
                     </CardContent>
                   </Card>
                 </div>
                 
                 <div className="text-center py-4">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     AI-powered analytics help identify student strengths, weaknesses, and optimal learning paths.
                     Use classifications to organize students and target content effectively.
                   </p>
