@@ -301,18 +301,28 @@ export const AssessmentManagement = () => {
     }));
   };
 
+  const getSectionLabel = (section: SchoolSection) => {
+    return section.section_name
+      ? `${section.grade_level} ${section.section_name}`
+      : section.grade_level;
+  };
+
   const assignToSections = async () => {
     if (!user || !selectedAssessment || assignForm.sections.length === 0) return;
     try {
-      const inserts = assignForm.sections.map(tag => ({
-        content_id: selectedAssessment.id,
-        content_type: 'test',
-        assignment_type: 'classification',
-        classification_tag: tag,
-        assigned_by: user.id,
-        due_date: assignForm.dueDate || null,
-        is_active: true,
-      }));
+      const inserts = assignForm.sections.map(sectionId => {
+        const section = schoolSections.find(s => s.id === sectionId);
+        const tag = section ? getSectionLabel(section) : sectionId;
+        return {
+          content_id: selectedAssessment.id,
+          content_type: 'test',
+          assignment_type: 'classification',
+          classification_tag: tag,
+          assigned_by: user.id,
+          due_date: assignForm.dueDate || null,
+          is_active: true,
+        };
+      });
 
       const { error } = await supabase.from('content_assignments').insert(inserts);
       if (error) throw error;
