@@ -66,7 +66,7 @@ export const AssessmentManagement = () => {
   const [aiForm, setAiForm] = useState({
     topic: '',
     subject: '',
-    gradeLevel: '',
+    selectedSections: [] as string[],
     numQuestions: 10,
     difficulty: 'medium',
     title: '',
