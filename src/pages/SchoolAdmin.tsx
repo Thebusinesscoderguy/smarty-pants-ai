@@ -33,40 +33,44 @@ const SchoolAdmin = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-9 bg-muted">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsList className="flex w-full overflow-x-auto bg-muted">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.overview')}
               </TabsTrigger>
-              <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Users className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.students')}
               </TabsTrigger>
-              <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <FileCheck className="h-4 w-4 mr-2" />
+                Assessments
+              </TabsTrigger>
+              <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <ClipboardList className="h-4 w-4 mr-2" />
                 Grade Book
               </TabsTrigger>
-              <TabsTrigger value="at-risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="at-risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 At-Risk
               </TabsTrigger>
-              <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <BookOpen className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.curriculum')}
               </TabsTrigger>
-              <TabsTrigger value="quests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="quests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Target className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.quests')}
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.analytics')}
               </TabsTrigger>
-              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Brain className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.studentAnalysis')}
               </TabsTrigger>
-              <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <CreditCard className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.billing')}
               </TabsTrigger>
