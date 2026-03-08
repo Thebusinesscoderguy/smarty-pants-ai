@@ -21,9 +21,7 @@ interface Curriculum {
   subject_id: string;
   is_active: boolean;
   created_at: string;
-  subjects?: {
-    name: string;
-  };
+  subjects?: { name: string };
 }
 
 interface Subject {
@@ -47,7 +45,7 @@ export const CurriculumManagement = () => {
     grade_level: '',
     content: {
       curriculum_file_content: '',
-      ai_instructions: 'Follow the uploaded curriculum guidelines when helping students. Reference specific topics, learning objectives, and teaching methods outlined in the curriculum.',
+      ai_instructions: 'Follow the uploaded curriculum guidelines when helping students.',
       topics: [],
       learning_objectives: ''
     }
@@ -63,21 +61,12 @@ export const CurriculumManagement = () => {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('curricula')
-        .select(`
-          *,
-          subjects (name)
-        `)
+        .select('*, subjects (name)')
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       setCurricula(data || []);
     } catch (error: any) {
-      console.error('Error fetching curricula:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load curricula",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to load curricula", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -85,11 +74,7 @@ export const CurriculumManagement = () => {
 
   const fetchSubjects = async () => {
     try {
-      const { data, error } = await supabase
-        .from('subjects')
-        .select('id, name')
-        .order('name');
-
+      const { data, error } = await supabase.from('subjects').select('id, name').order('name');
       if (error) throw error;
       setSubjects(data || []);
     } catch (error: any) {
@@ -102,38 +87,24 @@ export const CurriculumManagement = () => {
       const text = await file.text();
       setNewCurriculum(prev => ({
         ...prev,
-        content: {
-          ...prev.content,
-          curriculum_file_content: text
-        }
+        content: { ...prev.content, curriculum_file_content: text }
       }));
       setUploadedFile(file);
-      toast({
-        title: "File Uploaded",
-        description: `${file.name} has been processed and will be used to guide the AI tutor.`,
-      });
+      toast({ title: "File Uploaded", description: `${file.name} has been processed.` });
     } catch (error) {
-      toast({
-        title: "Upload Error",
-        description: "Failed to process the uploaded file.",
-        variant: "destructive"
-      });
+      toast({ title: "Upload Error", description: "Failed to process the uploaded file.", variant: "destructive" });
     }
   };
 
   const createCurriculum = async () => {
     if (!newCurriculum.title.trim() || !newCurriculum.subject_id) return;
-
     try {
       setIsCreating(true);
-      
-      // Get school_id for the current user
       const { data: schoolData, error: schoolError } = await supabase
         .from('school_accounts')
         .select('id')
         .eq('admin_user_id', user?.id)
         .single();
-
       if (schoolError) throw schoolError;
 
       const { data, error } = await supabase
@@ -146,40 +117,19 @@ export const CurriculumManagement = () => {
           content: newCurriculum.content,
           school_id: schoolData.id
         })
-        .select(`
-          *,
-          subjects (name)
-        `)
+        .select('*, subjects (name)')
         .single();
-
       if (error) throw error;
 
       setCurricula([data, ...curricula]);
       setNewCurriculum({
-        title: '',
-        description: '',
-        subject_id: '',
-        grade_level: '',
-        content: {
-          curriculum_file_content: '',
-          ai_instructions: 'Follow the uploaded curriculum guidelines when helping students. Reference specific topics, learning objectives, and teaching methods outlined in the curriculum.',
-          topics: [],
-          learning_objectives: ''
-        }
+        title: '', description: '', subject_id: '', grade_level: '',
+        content: { curriculum_file_content: '', ai_instructions: 'Follow the uploaded curriculum guidelines when helping students.', topics: [], learning_objectives: '' }
       });
       setUploadedFile(null);
-      
-      toast({
-        title: "Curriculum Created",
-        description: `"${newCurriculum.title}" curriculum has been uploaded and will guide the AI tutor.`,
-      });
+      toast({ title: "Curriculum Created", description: `"${newCurriculum.title}" has been uploaded.` });
     } catch (error: any) {
-      console.error('Error creating curriculum:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create curriculum",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to create curriculum", variant: "destructive" });
     } finally {
       setIsCreating(false);
     }
@@ -187,7 +137,6 @@ export const CurriculumManagement = () => {
 
   const updateCurriculum = async () => {
     if (!editingCurriculum) return;
-
     try {
       const { error } = await supabase
         .from('curricula')
@@ -199,125 +148,93 @@ export const CurriculumManagement = () => {
           is_active: editingCurriculum.is_active
         })
         .eq('id', editingCurriculum.id);
-
       if (error) throw error;
-
-      setCurricula(curricula.map(c => 
-        c.id === editingCurriculum.id ? editingCurriculum : c
-      ));
+      setCurricula(curricula.map(c => c.id === editingCurriculum.id ? editingCurriculum : c));
       setEditingCurriculum(null);
-
-      toast({
-        title: "Curriculum Updated",
-        description: "Curriculum has been updated successfully",
-      });
+      toast({ title: "Curriculum Updated", description: "Curriculum has been updated successfully" });
     } catch (error: any) {
-      console.error('Error updating curriculum:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update curriculum",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to update curriculum", variant: "destructive" });
     }
   };
 
   const deleteCurriculum = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('curricula')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('curricula').delete().eq('id', id);
       if (error) throw error;
-
       setCurricula(curricula.filter(c => c.id !== id));
-      toast({
-        title: "Curriculum Deleted",
-        description: "Curriculum has been deleted successfully",
-      });
+      toast({ title: "Curriculum Deleted", description: "Curriculum has been deleted successfully" });
     } catch (error: any) {
-      console.error('Error deleting curriculum:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete curriculum",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to delete curriculum", variant: "destructive" });
     }
   };
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading curricula...</div>;
+    return <div className="animate-pulse text-muted-foreground">Loading curricula...</div>;
   }
 
   return (
     <div className="space-y-6">
-      {/* Header with create button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">School Curriculum Management</h2>
-          <p className="text-gray-400">Upload your school's curriculum files to guide the AI tutor</p>
+          <h2 className="text-2xl font-bold text-foreground">School Curriculum Management</h2>
+          <p className="text-muted-foreground">Upload your school's curriculum files to guide the AI tutor</p>
         </div>
         
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Upload Curriculum
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl">
+          <DialogContent className="bg-card border-border max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white">Upload School Curriculum</DialogTitle>
-              <p className="text-gray-400 text-sm">
+              <DialogTitle className="text-foreground">Upload School Curriculum</DialogTitle>
+              <p className="text-muted-foreground text-sm">
                 Upload your curriculum files (PDF, DOC, TXT) to help the AI tutor follow your school's specific guidelines
               </p>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title" className="text-white">Curriculum Title *</Label>
+                  <Label htmlFor="title">Curriculum Title *</Label>
                   <Input
                     id="title"
                     value={newCurriculum.title}
                     onChange={(e) => setNewCurriculum({ ...newCurriculum, title: e.target.value })}
                     placeholder="e.g., 9th Grade Algebra I"
-                    className="bg-white/10 border-white/20 text-white"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="grade" className="text-white">Grade Level</Label>
+                  <Label htmlFor="grade">Grade Level</Label>
                   <Input
                     id="grade"
                     value={newCurriculum.grade_level}
                     onChange={(e) => setNewCurriculum({ ...newCurriculum, grade_level: e.target.value })}
                     placeholder="9th Grade"
-                    className="bg-white/10 border-white/20 text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="subject" className="text-white">Subject *</Label>
+                <Label htmlFor="subject">Subject *</Label>
                 <Select value={newCurriculum.subject_id} onValueChange={(value) => setNewCurriculum({ ...newCurriculum, subject_id: value })}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
                   <SelectContent>
                     {subjects.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </SelectItem>
+                      <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* File Upload Section */}
-              <div className="border-2 border-dashed border-white/20 rounded-lg p-6">
+              <div className="border-2 border-dashed border-border rounded-lg p-6">
                 <div className="text-center">
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <Label htmlFor="file-upload" className="text-white cursor-pointer">
-                    <span className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">
+                  <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <Label htmlFor="file-upload" className="cursor-pointer">
+                    <span className="bg-primary hover:bg-primary/90 px-4 py-2 rounded text-primary-foreground text-sm">
                       Choose Curriculum File
                     </span>
                     <Input
@@ -331,11 +248,9 @@ export const CurriculumManagement = () => {
                       className="hidden"
                     />
                   </Label>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Upload PDF, DOC, or TXT files containing your curriculum
-                  </p>
+                  <p className="text-muted-foreground text-sm mt-2">Upload PDF, DOC, or TXT files</p>
                   {uploadedFile && (
-                    <div className="mt-3 flex items-center justify-center space-x-2 text-green-400">
+                    <div className="mt-3 flex items-center justify-center space-x-2 text-green-600">
                       <FileText className="h-4 w-4" />
                       <span className="text-sm">{uploadedFile.name}</span>
                     </div>
@@ -344,19 +259,18 @@ export const CurriculumManagement = () => {
               </div>
               
               <div>
-                <Label htmlFor="description" className="text-white">Description</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={newCurriculum.description}
                   onChange={(e) => setNewCurriculum({ ...newCurriculum, description: e.target.value })}
                   placeholder="Brief description of this curriculum..."
-                  className="bg-white/10 border-white/20 text-white"
                   rows={3}
                 />
               </div>
 
               <div>
-                <Label htmlFor="ai-instructions" className="text-white">AI Instructions (Optional)</Label>
+                <Label htmlFor="ai-instructions">AI Instructions (Optional)</Label>
                 <Textarea
                   id="ai-instructions"
                   value={newCurriculum.content.ai_instructions}
@@ -365,7 +279,6 @@ export const CurriculumManagement = () => {
                     content: { ...newCurriculum.content, ai_instructions: e.target.value }
                   })}
                   placeholder="Additional instructions for how the AI should use this curriculum..."
-                  className="bg-white/10 border-white/20 text-white"
                   rows={3}
                 />
               </div>
@@ -382,118 +295,88 @@ export const CurriculumManagement = () => {
         </Dialog>
       </div>
 
-      {/* Curricula list */}
       <div className="grid gap-4">
         {curricula.length === 0 ? (
-          <Card className="bg-white/10 border-white/20">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 text-center">
-              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300">No curriculum files uploaded yet.</p>
-              <p className="text-gray-400 text-sm mt-2">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No curriculum files uploaded yet.</p>
+              <p className="text-muted-foreground/70 text-sm mt-2">
                 Upload your school's curriculum files to help the AI tutor provide targeted assistance.
               </p>
             </CardContent>
           </Card>
         ) : (
           curricula.map((curriculum) => (
-            <Card key={curriculum.id} className="bg-white/10 border-white/20">
+            <Card key={curriculum.id} className="bg-card border-border">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <FileText className="h-5 w-5 text-blue-400" />
-                      <h3 className="font-medium text-white">{curriculum.title}</h3>
-                      {curriculum.subjects && (
-                        <Badge variant="outline">{curriculum.subjects.name}</Badge>
-                      )}
-                      {curriculum.grade_level && (
-                        <Badge variant="secondary">{curriculum.grade_level}</Badge>
-                      )}
+                      <FileText className="h-5 w-5 text-primary" />
+                      <h3 className="font-medium text-foreground">{curriculum.title}</h3>
+                      {curriculum.subjects && <Badge variant="outline">{curriculum.subjects.name}</Badge>}
+                      {curriculum.grade_level && <Badge variant="secondary">{curriculum.grade_level}</Badge>}
                       <Badge variant={curriculum.is_active ? 'default' : 'secondary'}>
                         {curriculum.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
                     {curriculum.description && (
-                      <p className="text-sm text-gray-300 mb-2">{curriculum.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{curriculum.description}</p>
                     )}
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-muted-foreground">
                       <p>Uploaded: {new Date(curriculum.created_at).toLocaleDateString()}</p>
                       {curriculum.content?.curriculum_file_content && (
-                        <p className="text-green-400 mt-1">✓ Curriculum file content loaded</p>
+                        <p className="text-green-600 mt-1">✓ Curriculum file content loaded</p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 ml-4">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingCurriculum(curriculum)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setEditingCurriculum(curriculum)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-gray-900 border-gray-700 max-w-2xl">
+                      <DialogContent className="bg-card border-border max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle className="text-white">Edit Curriculum</DialogTitle>
+                          <DialogTitle className="text-foreground">Edit Curriculum</DialogTitle>
                         </DialogHeader>
                         {editingCurriculum && (
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="edit-title" className="text-white">Title</Label>
+                              <Label htmlFor="edit-title">Title</Label>
                               <Input
                                 id="edit-title"
                                 value={editingCurriculum.title}
-                                onChange={(e) => setEditingCurriculum({ 
-                                  ...editingCurriculum, 
-                                  title: e.target.value 
-                                })}
-                                className="bg-white/10 border-white/20 text-white"
+                                onChange={(e) => setEditingCurriculum({ ...editingCurriculum, title: e.target.value })}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="edit-description" className="text-white">Description</Label>
+                              <Label htmlFor="edit-description">Description</Label>
                               <Textarea
                                 id="edit-description"
                                 value={editingCurriculum.description}
-                                onChange={(e) => setEditingCurriculum({ 
-                                  ...editingCurriculum, 
-                                  description: e.target.value 
-                                })}
-                                className="bg-white/10 border-white/20 text-white"
+                                onChange={(e) => setEditingCurriculum({ ...editingCurriculum, description: e.target.value })}
                                 rows={3}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="edit-ai-instructions" className="text-white">AI Instructions</Label>
-                              <Textarea
-                                id="edit-ai-instructions"
-                                value={editingCurriculum.content?.ai_instructions || ''}
-                                onChange={(e) => setEditingCurriculum({ 
-                                  ...editingCurriculum, 
-                                  content: { 
-                                    ...editingCurriculum.content, 
-                                    ai_instructions: e.target.value 
-                                  }
-                                })}
-                                className="bg-white/10 border-white/20 text-white"
-                                rows={4}
+                              <Label htmlFor="edit-grade">Grade Level</Label>
+                              <Input
+                                id="edit-grade"
+                                value={editingCurriculum.grade_level}
+                                onChange={(e) => setEditingCurriculum({ ...editingCurriculum, grade_level: e.target.value })}
                               />
                             </div>
                             <Button onClick={updateCurriculum} className="w-full">
-                              Update Curriculum
+                              Save Changes
                             </Button>
                           </div>
                         )}
                       </DialogContent>
                     </Dialog>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteCurriculum(curriculum.id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
+                    <Button variant="destructive" size="sm" onClick={() => deleteCurriculum(curriculum.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
