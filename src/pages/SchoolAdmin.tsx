@@ -10,7 +10,9 @@ import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
-import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain } from 'lucide-react';
+import { GradeBook } from '@/components/admin/GradeBook';
+import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
+import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const SchoolAdmin = () => {
@@ -30,7 +32,7 @@ const SchoolAdmin = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 bg-muted">
+            <TabsList className="grid w-full grid-cols-9 bg-muted">
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.overview')}
@@ -38,6 +40,14 @@ const SchoolAdmin = () => {
               <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.students')}
+              </TabsTrigger>
+              <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Grade Book
+              </TabsTrigger>
+              <TabsTrigger value="at-risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                At-Risk
               </TabsTrigger>
               <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BookOpen className="h-4 w-4 mr-2" />
@@ -68,6 +78,14 @@ const SchoolAdmin = () => {
 
               <TabsContent value="students" className="space-y-6">
                 <StudentManagement />
+              </TabsContent>
+
+              <TabsContent value="gradebook" className="space-y-6">
+                <GradeBook />
+              </TabsContent>
+
+              <TabsContent value="at-risk" className="space-y-6">
+                <AtRiskAlerts />
               </TabsContent>
 
               <TabsContent value="curriculum" className="space-y-6">
