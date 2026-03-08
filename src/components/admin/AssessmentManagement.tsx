@@ -66,6 +66,7 @@ export const AssessmentManagement = () => {
     numQuestions: 10,
     difficulty: 'medium',
     title: '',
+    timeLimitMinutes: 30,
   });
 
   // Manual creation form
