@@ -1651,6 +1651,36 @@ export const translations: TranslationData = {
     'testCreator.testTitleLabel': 'Test Title *',
     'testCreator.testTitlePlaceholder': 'Enter test title',
     'testCreator.questionPlaceholder': 'Enter your question',
+
+    // Navigation - School Admin
+    'nav.schoolAdmin': 'School Admin',
+
+    // Auth - Account Type Selection
+    'auth.accountType.title': 'How will you use Teachly?',
+    'auth.accountType.subtitle': 'Choose your account type to get started',
+    'auth.accountType.school': 'School / Institution',
+    'auth.accountType.parent': 'Parent / Student',
+    'auth.accountType.continueSchool': 'Continue as School',
+    'auth.accountType.continueParent': 'Continue as Parent',
+    'auth.accountType.schoolFeature1': 'Manage multiple students & classes',
+    'auth.accountType.schoolFeature2': 'Create custom curricula',
+    'auth.accountType.schoolFeature3': 'School-wide analytics & reporting',
+    'auth.accountType.schoolFeature4': 'Student invitations & enrollment',
+    'auth.accountType.parentFeature1': 'Personal learning journey',
+    'auth.accountType.parentFeature2': 'AI-powered study plans & quizzes',
+    'auth.accountType.parentFeature3': 'Parent monitoring dashboard',
+    'auth.accountType.parentFeature4': 'Gamified quests & achievements',
+
+    // School Admin Page
+    'schoolAdmin.title': 'School Administration',
+    'schoolAdmin.subtitle': 'Comprehensive school management with curricula, payments, and analytics',
+    'schoolAdmin.tabs.overview': 'Overview',
+    'schoolAdmin.tabs.students': 'Students',
+    'schoolAdmin.tabs.curriculum': 'Curriculum',
+    'schoolAdmin.tabs.quests': 'Quests',
+    'schoolAdmin.tabs.analytics': 'Analytics',
+    'schoolAdmin.tabs.studentAnalysis': 'Student Analysis',
+    'schoolAdmin.tabs.billing': 'Billing',
     
   },
   es: {
