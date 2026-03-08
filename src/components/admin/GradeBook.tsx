@@ -62,7 +62,7 @@ export const GradeBook = () => {
       const studentIds = relationships.map(r => r.student_id);
 
       const [profRes, quizRes, testRes] = await Promise.all([
-        supabase.from('profiles').select('id, display_name').in('id', studentIds),
+        supabase.from('profiles').select('id, display_name, avatar_url').in('id', studentIds),
         supabase.from('quiz_attempts').select('user_id, score, total_possible, completed_at, quiz_id, quizzes(title)').in('user_id', studentIds).order('completed_at', { ascending: false }),
         supabase.from('test_attempts').select('student_id, score, total_points, percentage, completed_at, test_id, tests(title)').in('student_id', studentIds).order('completed_at', { ascending: false }),
       ]);
