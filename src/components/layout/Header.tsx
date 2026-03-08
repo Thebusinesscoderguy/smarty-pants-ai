@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, School } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isSchoolAdmin } = useAuth();
   const { t } = useLanguage();
 
   const handleSignOut = async () => {
@@ -39,6 +39,12 @@ export const Header = () => {
           
           {user ? (
             <>
+              {isSchoolAdmin && (
+                <Link to="/school-admin" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors">
+                  <School className="w-4 h-4" />
+                  {t('nav.schoolAdmin') || 'School Admin'}
+                </Link>
+              )}
               <LanguageSelector />
               <Button
                 onClick={handleSignOut}
