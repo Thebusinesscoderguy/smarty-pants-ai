@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Mail, Clock, CheckCircle, Trash2 } from 'lucide-react';
+import { UserPlus, Mail, Clock, CheckCircle, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -107,6 +106,7 @@ export const StudentManagement = () => {
       setIsInviting(true);
       const schoolData = await getSchoolAccount();
 
+      // Create invitation record
       const { data: invitationData, error: invitationError } = await supabase
         .from('student_invitations')
         .insert({
@@ -121,10 +121,35 @@ export const StudentManagement = () => {
 
       if (invitationError) throw new Error(`Failed to create invitation: ${invitationError.message}`);
 
-      toast({
-        title: t('adminStudentManagement.invitationCreated'),
-        description: `Invitation created for ${newStudentEmail}. Code: ${invitationData.invitation_code}`,
+      // Send invitation email
+      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+        body: {
+          studentEmail: newStudentEmail.trim(),
+          studentName: `${newStudentFirstName.trim()} ${newStudentLastName.trim()}`.trim(),
+          schoolName: schoolData.school_name,
+          invitationCode: invitationData.invitation_code,
+        },
       });
+
+      if (emailError) {
+        console.error('Email sending error:', emailError);
+        toast({
+          title: 'Invitation Created',
+          description: `Invitation created but email could not be sent. The student can still use the link manually.`,
+          variant: 'default',
+        });
+      } else if (emailResult?.success) {
+        toast({
+          title: 'Invitation Sent!',
+          description: `Registration email sent to ${newStudentEmail}`,
+        });
+      } else {
+        toast({
+          title: 'Invitation Created',
+          description: `Invitation created but email delivery may have failed. Error: ${emailResult?.error || 'Unknown'}`,
+          variant: 'default',
+        });
+      }
 
       setNewStudentEmail('');
       setNewStudentFirstName('');
@@ -156,7 +181,7 @@ export const StudentManagement = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground">{t('adminStudentManagement.title')}</h2>
-        <p className="text-muted-foreground">{t('adminStudentManagement.subtitle')}</p>
+        <p className="text-muted-foreground">Invite students by email — they'll receive a registration link automatically</p>
       </div>
 
       {/* Invite Student Form */}
@@ -192,8 +217,17 @@ export const StudentManagement = () => {
             onClick={inviteStudent}
             disabled={isInviting || !newStudentEmail.trim() || !newStudentFirstName.trim()}
           >
-            <Mail className="h-4 w-4 mr-2" />
-            {isInviting ? t('adminStudentManagement.sendingEmail') : t('adminStudentManagement.inviteStudent')}
+            {isInviting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending Email...
+              </>
+            ) : (
+              <>
+                <Mail className="h-4 w-4 mr-2" />
+                Send Invitation Email
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -231,16 +265,11 @@ export const StudentManagement = () => {
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
                         <span className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
-                          {t('adminStudentManagement.sent')} {new Date(invitation.created_at).toLocaleDateString()}
+                          Sent {new Date(invitation.created_at).toLocaleDateString()}
                         </span>
                         {!invitation.used && (
                           <span>
-                            {t('adminStudentManagement.expires')} {new Date(invitation.expires_at).toLocaleDateString()}
-                          </span>
-                        )}
-                        {!invitation.used && (
-                          <span className="font-mono text-foreground/70">
-                            {t('adminStudentManagement.code')}: {invitation.invitation_code}
+                            Expires {new Date(invitation.expires_at).toLocaleDateString()}
                           </span>
                         )}
                       </div>
@@ -248,7 +277,7 @@ export const StudentManagement = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant={invitation.used ? 'default' : 'secondary'}>
-                      {invitation.used ? t('adminStudentManagement.accepted') : t('adminStudentManagement.pending')}
+                      {invitation.used ? 'Registered' : 'Pending'}
                     </Badge>
                     {!invitation.used && (
                       <Button variant="destructive" size="sm" onClick={() => deleteInvitation(invitation.id)}>
