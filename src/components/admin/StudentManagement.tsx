@@ -270,10 +270,28 @@ export const StudentManagement = () => {
                         <p className="text-sm text-muted-foreground text-center py-2">No students assigned to this section yet.</p>
                       ) : (
                         <div className="space-y-2">
-                          {section.students.map((student, idx) => (
+                          {section.students.map((student) => (
                             <div key={student.id} className="flex items-center gap-3 p-2 rounded-md bg-card border border-border">
-                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
-                                {student.display_name.charAt(0).toUpperCase()}
+                              <div className="relative group">
+                                {student.avatar_url ? (
+                                  <img src={student.avatar_url} alt={student.display_name} className="h-8 w-8 rounded-full object-cover" />
+                                ) : (
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
+                                    {student.display_name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                                  <Camera className="h-3 w-3 text-white" />
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleAvatarUpload(student.student_id, file);
+                                    }}
+                                  />
+                                </label>
                               </div>
                               <span className="text-sm font-medium text-foreground">{student.display_name}</span>
                             </div>
