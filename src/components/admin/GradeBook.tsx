@@ -217,7 +217,18 @@ export const GradeBook = () => {
         ) : (
           students.map(grade => (
             <TableRow key={grade.student_id}>
-              <TableCell className="font-medium text-foreground">{grade.student_name}</TableCell>
+              <TableCell className="font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  {grade.avatar_url ? (
+                    <img src={grade.avatar_url} alt={grade.student_name} className="h-7 w-7 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
+                      {grade.student_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  {grade.student_name}
+                </div>
+              </TableCell>
               <TableCell className="text-center text-muted-foreground">{grade.quiz_scores.length} taken</TableCell>
               <TableCell className="text-center text-muted-foreground">{grade.test_scores.length} taken</TableCell>
               <TableCell className="text-center font-semibold text-foreground">
