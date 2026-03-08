@@ -73,6 +73,7 @@ export const GradeBook = () => {
         gradeMap[profile.id] = {
           student_id: profile.id,
           student_name: profile.display_name || 'Unknown Student',
+          avatar_url: (profile as any).avatar_url || null,
           quiz_scores: [],
           test_scores: [],
           average_score: 0,
