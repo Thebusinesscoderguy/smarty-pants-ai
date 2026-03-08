@@ -304,10 +304,10 @@ const Auth = () => {
           <div className="w-full max-w-3xl">
             <div className="text-center mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-                {t('auth.accountType.title') || 'How will you use Teachly?'}
+                {safeT('auth.accountType.title', 'How will you use Teachly?')}
               </h1>
               <p className="text-muted-foreground text-lg">
-                {t('auth.accountType.subtitle') || 'Choose your account type to get started'}
+                {safeT('auth.accountType.subtitle', 'Choose your account type to get started')}
               </p>
             </div>
 
@@ -322,26 +322,26 @@ const Auth = () => {
                     <School className="h-10 w-10 text-primary" />
                   </div>
                   <CardTitle className="text-foreground text-xl">
-                    {t('auth.accountType.school') || 'School / Institution'}
+                    {safeT('auth.accountType.school', 'School / Institution')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm text-muted-foreground mb-6">
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      Manage multiple students & classes
+                      {safeT('auth.accountType.schoolFeature1', 'Manage multiple students & classes')}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      Create custom curricula
+                      {safeT('auth.accountType.schoolFeature2', 'Create custom curricula')}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      School-wide analytics & reporting
+                      {safeT('auth.accountType.schoolFeature3', 'School-wide analytics & reporting')}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      Student invitations & enrollment
+                      {safeT('auth.accountType.schoolFeature4', 'Student invitations & enrollment')}
                     </li>
                   </ul>
                   <Button
@@ -352,7 +352,7 @@ const Auth = () => {
                       handleAccountTypeSelected('school');
                     }}
                   >
-                    {settingUpSchool ? 'Setting up...' : (t('auth.accountType.continueSchool') || 'Continue as School')}
+                    {settingUpSchool ? 'Setting up...' : safeT('auth.accountType.continueSchool', 'Continue as School')}
                   </Button>
                 </CardContent>
               </Card>
@@ -367,26 +367,26 @@ const Auth = () => {
                     <Users className="h-10 w-10 text-primary" />
                   </div>
                   <CardTitle className="text-foreground text-xl">
-                    {t('auth.accountType.parent') || 'Parent / Student'}
+                    {safeT('auth.accountType.parent', 'Parent / Student')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm text-muted-foreground mb-6">
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      Personal learning journey
+                      {safeT('auth.accountType.parentFeature1', 'Personal learning journey')}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      AI-powered study plans & quizzes
+                      {safeT('auth.accountType.parentFeature2', 'AI-powered study plans & quizzes')}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      Parent monitoring dashboard
+                      {safeT('auth.accountType.parentFeature3', 'Parent monitoring dashboard')}
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      Gamified quests & achievements
+                      {safeT('auth.accountType.parentFeature4', 'Gamified quests & achievements')}
                     </li>
                   </ul>
                   <Button
@@ -396,7 +396,7 @@ const Auth = () => {
                       handleAccountTypeSelected('parent');
                     }}
                   >
-                    {t('auth.accountType.continueParent') || 'Continue as Parent'}
+                    {safeT('auth.accountType.continueParent', 'Continue as Parent')}
                   </Button>
                 </CardContent>
               </Card>
