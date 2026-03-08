@@ -1,10 +1,9 @@
 
-import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentManagement } from '@/components/admin/StudentManagement';
-import { QuestManagement } from '@/components/admin/QuestManagement';
+
 import { SchoolOverview } from '@/components/admin/SchoolOverview';
 import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
@@ -12,7 +11,7 @@ import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
-import { Users, Target, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree } from 'lucide-react';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 
@@ -62,10 +61,6 @@ const SchoolAdmin = () => {
                 <BookOpen className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.curriculum')}
               </TabsTrigger>
-              <TabsTrigger value="quests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Target className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.quests')}
-              </TabsTrigger>
               <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Brain className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.studentAnalysis')}
@@ -104,11 +99,6 @@ const SchoolAdmin = () => {
               <TabsContent value="curriculum" className="space-y-6">
                 <CurriculumManagement />
               </TabsContent>
-
-              <TabsContent value="quests" className="space-y-6">
-                <QuestManagement />
-              </TabsContent>
-
 
               <TabsContent value="student-analytics" className="space-y-6">
                 <StudentAnalyticsView />
