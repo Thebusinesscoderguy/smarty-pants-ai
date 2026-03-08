@@ -15,7 +15,11 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStudentClassifications } from '@/hooks/useStudentClassifications';
+interface SchoolSection {
+  id: string;
+  grade_level: string;
+  section_name: string;
+}
 
 interface Assessment {
   id: string;
@@ -49,8 +53,8 @@ interface QuizQuestion {
 
 export const AssessmentManagement = () => {
   const { user } = useAuth();
-  const { availableTags } = useStudentClassifications();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [schoolSections, setSchoolSections] = useState<SchoolSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -94,7 +98,25 @@ export const AssessmentManagement = () => {
 
   useEffect(() => {
     fetchAssessments();
+    fetchSections();
   }, [user]);
+
+  const fetchSections = async () => {
+    if (!user) return;
+    const { data: school } = await supabase
+      .from('school_accounts')
+      .select('id')
+      .eq('admin_user_id', user.id)
+      .single();
+    if (!school) return;
+    const { data } = await supabase
+      .from('school_sections')
+      .select('id, grade_level, section_name')
+      .eq('school_id', school.id)
+      .order('grade_level')
+      .order('section_name');
+    setSchoolSections(data || []);
+  };
 
   const fetchAssessments = async () => {
     if (!user) return;
@@ -279,18 +301,28 @@ export const AssessmentManagement = () => {
     }));
   };
 
+  const getSectionLabel = (section: SchoolSection) => {
+    return section.section_name
+      ? `${section.grade_level} ${section.section_name}`
+      : section.grade_level;
+  };
+
   const assignToSections = async () => {
     if (!user || !selectedAssessment || assignForm.sections.length === 0) return;
     try {
-      const inserts = assignForm.sections.map(tag => ({
-        content_id: selectedAssessment.id,
-        content_type: 'test',
-        assignment_type: 'classification',
-        classification_tag: tag,
-        assigned_by: user.id,
-        due_date: assignForm.dueDate || null,
-        is_active: true,
-      }));
+      const inserts = assignForm.sections.map(sectionId => {
+        const section = schoolSections.find(s => s.id === sectionId);
+        const tag = section ? getSectionLabel(section) : sectionId;
+        return {
+          content_id: selectedAssessment.id,
+          content_type: 'test',
+          assignment_type: 'classification',
+          classification_tag: tag,
+          assigned_by: user.id,
+          due_date: assignForm.dueDate || null,
+          is_active: true,
+        };
+      });
 
       const { error } = await supabase.from('content_assignments').insert(inserts);
       if (error) throw error;
@@ -749,20 +781,20 @@ export const AssessmentManagement = () => {
           <div className="space-y-4">
             <div>
               <Label>Select Sections</Label>
-              {availableTags.length === 0 ? (
+              {schoolSections.length === 0 ? (
                 <p className="text-sm text-muted-foreground mt-1">
-                  No sections found. Classify students into sections first (e.g., "Grade 9A", "Grade 10B") using the Student Classification manager.
+                  No sections found. Create grade sections first in the Sections tab.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {availableTags.map(tag => (
+                  {schoolSections.map(section => (
                     <Badge
-                      key={tag}
-                      variant={assignForm.sections.includes(tag) ? 'default' : 'outline'}
+                      key={section.id}
+                      variant={assignForm.sections.includes(section.id) ? 'default' : 'outline'}
                       className="cursor-pointer select-none"
-                      onClick={() => toggleSection(tag)}
+                      onClick={() => toggleSection(section.id)}
                     >
-                      {tag}
+                      {getSectionLabel(section)}
                     </Badge>
                   ))}
                 </div>
