@@ -8,12 +8,11 @@ import { QuestManagement } from '@/components/admin/QuestManagement';
 import { SchoolOverview } from '@/components/admin/SchoolOverview';
 import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
-import { EnhancedAnalytics } from '@/components/admin/EnhancedAnalytics';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
-import { Users, Target, Trophy, BarChart3, BookOpen, CreditCard, TrendingUp, Brain, ClipboardList, AlertTriangle, FileCheck } from 'lucide-react';
+import { Users, Target, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const SchoolAdmin = () => {
