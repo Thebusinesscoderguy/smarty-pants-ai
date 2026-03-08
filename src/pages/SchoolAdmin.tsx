@@ -101,10 +101,6 @@ const SchoolAdmin = () => {
               </TabsContent>
 
 
-              <TabsContent value="analytics" className="space-y-6">
-                <EnhancedAnalytics />
-              </TabsContent>
-
               <TabsContent value="student-analytics" className="space-y-6">
                 <StudentAnalyticsView />
               </TabsContent>
