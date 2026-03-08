@@ -46,7 +46,6 @@ const SchoolAdmin = () => {
                 <FolderTree className="h-4 w-4 mr-2" />
                 Sections
               </TabsTrigger>
-              </TabsTrigger>
               <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <FileCheck className="h-4 w-4 mr-2" />
                 Assessments
