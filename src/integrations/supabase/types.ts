@@ -1091,6 +1091,35 @@ export type Database = {
           },
         ]
       }
+      school_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          school_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          school_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_students: {
         Row: {
           assigned_at: string
@@ -1233,6 +1262,63 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      student_daily_grades: {
+        Row: {
+          classwork_mark: number | null
+          created_at: string
+          created_by: string
+          grade_date: string
+          homework_mark: number | null
+          id: string
+          notes: string | null
+          school_id: string
+          student_id: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          classwork_mark?: number | null
+          created_at?: string
+          created_by: string
+          grade_date?: string
+          homework_mark?: number | null
+          id?: string
+          notes?: string | null
+          school_id: string
+          student_id: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          classwork_mark?: number | null
+          created_at?: string
+          created_by?: string
+          grade_date?: string
+          homework_mark?: number | null
+          id?: string
+          notes?: string | null
+          school_id?: string
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_daily_grades_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_daily_grades_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_interactions: {
         Row: {
