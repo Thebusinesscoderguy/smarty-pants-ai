@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentManagement } from '@/components/admin/StudentManagement';
-
 import { SchoolOverview } from '@/components/admin/SchoolOverview';
 import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
@@ -11,7 +10,8 @@ import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree } from 'lucide-react';
+import { SubjectManagement } from '@/components/admin/SubjectManagement';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 

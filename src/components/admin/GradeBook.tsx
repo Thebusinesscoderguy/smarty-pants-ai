@@ -2,156 +2,218 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, BookOpen, Trophy, TrendingUp, ChevronDown, ChevronRight, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Download, BookOpen, Trophy, TrendingUp, ChevronDown, ChevronRight, Users, Save, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface StudentGrade {
+interface SchoolSubject {
+  id: string;
+  name: string;
+}
+
+interface DailyGrade {
+  id?: string;
+  grade_date: string;
+  classwork_mark: number | null;
+  homework_mark: number | null;
+}
+
+interface StudentSubjectGrade {
   student_id: string;
   student_name: string;
   avatar_url: string | null;
-  quiz_scores: { title: string; score: number; total: number; date: string }[];
-  test_scores: { title: string; score: number; total: number; percentage: number; date: string }[];
-  average_score: number;
-  total_assessments: number;
-}
-
-interface SectionWithGrades {
-  id: string;
-  grade_level: string;
-  section_name: string;
-  students: StudentGrade[];
+  section_label: string;
+  daily_grades: DailyGrade[];
+  assessment_avg: number;
+  assessment_count: number;
+  classwork_avg: number;
+  homework_avg: number;
 }
 
 export const GradeBook = () => {
-  const [sections, setSections] = useState<SectionWithGrades[]>([]);
-  const [ungroupedGrades, setUngroupedGrades] = useState<StudentGrade[]>([]);
+  const [subjects, setSubjects] = useState<SchoolSubject[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [students, setStudents] = useState<StudentSubjectGrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+  const [editingGrades, setEditingGrades] = useState<Record<string, { classwork: string; homework: string }>>({});
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchGrades();
+    fetchSubjects();
   }, [user]);
 
-  const fetchGrades = async () => {
-    if (!user) return;
+  useEffect(() => {
+    if (selectedSubject) fetchGrades();
+  }, [selectedSubject, selectedDate]);
+
+  const getSchoolId = async () => {
+    if (!user) throw new Error('No user');
+    const { data } = await supabase
+      .from('school_accounts')
+      .select('id')
+      .eq('admin_user_id', user.id)
+      .single();
+    if (!data) throw new Error('No school found');
+    return data.id;
+  };
+
+  const fetchSubjects = async () => {
     try {
-      setIsLoading(true);
-
-      const { data: school } = await supabase
-        .from('school_accounts')
-        .select('id')
-        .eq('admin_user_id', user.id)
-        .single();
-
-      if (!school) { setSections([]); setUngroupedGrades([]); return; }
-
-      // Fetch all data in parallel
-      const [relRes, secRes, secStudRes] = await Promise.all([
-        supabase.from('school_student_relationships').select('student_id').eq('school_id', school.id).eq('is_active', true),
-        supabase.from('school_sections').select('id, grade_level, section_name').eq('school_id', school.id),
-        supabase.from('section_students').select('section_id, student_id'),
-      ]);
-
-      const relationships = relRes.data;
-      if (!relationships?.length) { setSections([]); setUngroupedGrades([]); return; }
-
-      const studentIds = relationships.map(r => r.student_id);
-
-      const [profRes, quizRes, testRes] = await Promise.all([
-        supabase.from('profiles').select('id, display_name, avatar_url').in('id', studentIds),
-        supabase.from('quiz_attempts').select('user_id, score, total_possible, completed_at, quiz_id, quizzes(title)').in('user_id', studentIds).order('completed_at', { ascending: false }),
-        supabase.from('test_attempts').select('student_id, score, total_points, percentage, completed_at, test_id, tests(title)').in('student_id', studentIds).order('completed_at', { ascending: false }),
-      ]);
-
-      // Build grade map
-      const gradeMap: Record<string, StudentGrade> = {};
-      for (const profile of profRes.data || []) {
-        gradeMap[profile.id] = {
-          student_id: profile.id,
-          student_name: profile.display_name || 'Unknown Student',
-          avatar_url: (profile as any).avatar_url || null,
-          quiz_scores: [],
-          test_scores: [],
-          average_score: 0,
-          total_assessments: 0,
-        };
-      }
-
-      for (const attempt of quizRes.data || []) {
-        const grade = gradeMap[attempt.user_id];
-        if (grade) {
-          grade.quiz_scores.push({
-            title: (attempt as any).quizzes?.title || 'Untitled Quiz',
-            score: attempt.score,
-            total: attempt.total_possible,
-            date: attempt.completed_at,
-          });
-        }
-      }
-
-      for (const attempt of testRes.data || []) {
-        const grade = gradeMap[attempt.student_id];
-        if (grade) {
-          grade.test_scores.push({
-            title: (attempt as any).tests?.title || 'Untitled Test',
-            score: attempt.score || 0,
-            total: attempt.total_points || 0,
-            percentage: attempt.percentage || 0,
-            date: attempt.completed_at || '',
-          });
-        }
-      }
-
-      for (const grade of Object.values(gradeMap)) {
-        const allScores: number[] = [];
-        for (const q of grade.quiz_scores) { if (q.total > 0) allScores.push((q.score / q.total) * 100); }
-        for (const t of grade.test_scores) { if (t.percentage) allScores.push(t.percentage); }
-        grade.total_assessments = allScores.length;
-        grade.average_score = allScores.length > 0
-          ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length)
-          : 0;
-      }
-
-      // Group by sections
-      const sectionStudentMap: Record<string, string[]> = {};
-      const assignedStudentIds = new Set<string>();
-      for (const ss of secStudRes.data || []) {
-        if (!sectionStudentMap[ss.section_id]) sectionStudentMap[ss.section_id] = [];
-        sectionStudentMap[ss.section_id].push(ss.student_id);
-        assignedStudentIds.add(ss.student_id);
-      }
-
-      const sectionData: SectionWithGrades[] = (secRes.data || []).map(sec => ({
-        id: sec.id,
-        grade_level: sec.grade_level,
-        section_name: sec.section_name,
-        students: (sectionStudentMap[sec.id] || [])
-          .filter(sid => gradeMap[sid])
-          .map(sid => gradeMap[sid]),
-      })).sort((a, b) => a.grade_level.localeCompare(b.grade_level, undefined, { numeric: true }));
-
-      const ungrouped = Object.values(gradeMap).filter(g => !assignedStudentIds.has(g.student_id));
-
-      setSections(sectionData);
-      setUngroupedGrades(ungrouped);
-    } catch (error) {
-      console.error('Error fetching grades:', error);
-      toast({ title: 'Error', description: 'Failed to load grade book', variant: 'destructive' });
+      const schoolId = await getSchoolId();
+      const { data } = await supabase
+        .from('school_subjects')
+        .select('id, name')
+        .eq('school_id', schoolId)
+        .order('name');
+      setSubjects(data || []);
+      if (data?.length) setSelectedSubject(data[0].id);
+    } catch (error: any) {
+      if (error.message !== 'No school found') console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleSection = (id: string) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const fetchGrades = async () => {
+    if (!user || !selectedSubject) return;
+    try {
+      setIsLoading(true);
+      const schoolId = await getSchoolId();
+
+      const [relRes, secRes, secStudRes] = await Promise.all([
+        supabase.from('school_student_relationships').select('student_id').eq('school_id', schoolId).eq('is_active', true),
+        supabase.from('school_sections').select('id, grade_level, section_name').eq('school_id', schoolId),
+        supabase.from('section_students').select('section_id, student_id'),
+      ]);
+
+      const relationships = relRes.data;
+      if (!relationships?.length) { setStudents([]); return; }
+
+      const studentIds = relationships.map(r => r.student_id);
+
+      const [profRes, dailyRes, quizRes, testRes] = await Promise.all([
+        supabase.from('profiles').select('id, display_name, avatar_url').in('id', studentIds),
+        supabase.from('student_daily_grades').select('*').eq('subject_id', selectedSubject).eq('grade_date', selectedDate).in('student_id', studentIds),
+        supabase.from('quiz_attempts').select('user_id, score, total_possible').in('user_id', studentIds),
+        supabase.from('test_attempts').select('student_id, percentage').in('student_id', studentIds),
+      ]);
+
+      // Build section lookup
+      const studentSectionMap: Record<string, string> = {};
+      const sectionMap: Record<string, { grade_level: string; section_name: string }> = {};
+      for (const sec of secRes.data || []) sectionMap[sec.id] = { grade_level: sec.grade_level, section_name: sec.section_name };
+      for (const ss of secStudRes.data || []) {
+        const sec = sectionMap[ss.section_id];
+        if (sec) studentSectionMap[ss.student_id] = `Grade ${sec.grade_level} ${sec.section_name}`;
+      }
+
+      // Build daily grades map
+      const dailyMap: Record<string, DailyGrade> = {};
+      for (const dg of dailyRes.data || []) {
+        dailyMap[dg.student_id] = {
+          id: dg.id,
+          grade_date: dg.grade_date,
+          classwork_mark: dg.classwork_mark,
+          homework_mark: dg.homework_mark,
+        };
+      }
+
+      // Build assessment averages
+      const assessmentMap: Record<string, { total: number; count: number }> = {};
+      for (const q of quizRes.data || []) {
+        if (!assessmentMap[q.user_id]) assessmentMap[q.user_id] = { total: 0, count: 0 };
+        if (q.total_possible > 0) {
+          assessmentMap[q.user_id].total += (q.score / q.total_possible) * 100;
+          assessmentMap[q.user_id].count++;
+        }
+      }
+      for (const t of testRes.data || []) {
+        if (!assessmentMap[t.student_id]) assessmentMap[t.student_id] = { total: 0, count: 0 };
+        if (t.percentage) {
+          assessmentMap[t.student_id].total += t.percentage;
+          assessmentMap[t.student_id].count++;
+        }
+      }
+
+      const studentGrades: StudentSubjectGrade[] = (profRes.data || []).map(p => {
+        const daily = dailyMap[p.id];
+        const assess = assessmentMap[p.id] || { total: 0, count: 0 };
+        return {
+          student_id: p.id,
+          student_name: p.display_name || 'Unknown',
+          avatar_url: p.avatar_url,
+          section_label: studentSectionMap[p.id] || 'Unassigned',
+          daily_grades: daily ? [daily] : [],
+          assessment_avg: assess.count > 0 ? Math.round(assess.total / assess.count) : 0,
+          assessment_count: assess.count,
+          classwork_avg: daily?.classwork_mark ?? 0,
+          homework_avg: daily?.homework_mark ?? 0,
+        };
+      });
+
+      // Sort by section then name
+      studentGrades.sort((a, b) => a.section_label.localeCompare(b.section_label) || a.student_name.localeCompare(b.student_name));
+      setStudents(studentGrades);
+
+      // Pre-fill editing state
+      const editing: Record<string, { classwork: string; homework: string }> = {};
+      for (const sg of studentGrades) {
+        const daily = sg.daily_grades[0];
+        editing[sg.student_id] = {
+          classwork: daily?.classwork_mark?.toString() ?? '',
+          homework: daily?.homework_mark?.toString() ?? '',
+        };
+      }
+      setEditingGrades(editing);
+    } catch (error) {
+      console.error('Error fetching grades:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveGrades = async () => {
+    if (!user || !selectedSubject) return;
+    try {
+      setIsSaving(true);
+      const schoolId = await getSchoolId();
+
+      const upserts = Object.entries(editingGrades)
+        .filter(([_, v]) => v.classwork !== '' || v.homework !== '')
+        .map(([studentId, vals]) => ({
+          school_id: schoolId,
+          student_id: studentId,
+          subject_id: selectedSubject,
+          grade_date: selectedDate,
+          classwork_mark: vals.classwork !== '' ? parseFloat(vals.classwork) : null,
+          homework_mark: vals.homework !== '' ? parseFloat(vals.homework) : null,
+          created_by: user.id,
+        }));
+
+      if (upserts.length === 0) {
+        toast({ title: 'Nothing to save', description: 'Enter some marks first.' });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('student_daily_grades')
+        .upsert(upserts, { onConflict: 'student_id,subject_id,grade_date' });
+
+      if (error) throw error;
+      toast({ title: 'Saved', description: `Grades saved for ${selectedDate}` });
+      fetchGrades();
+    } catch (error) {
+      console.error('Error saving grades:', error);
+      toast({ title: 'Error', description: 'Failed to save grades', variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getGradeBadge = (score: number) => {
@@ -162,207 +224,262 @@ export const GradeBook = () => {
     return <Badge variant="destructive">F</Badge>;
   };
 
-  const allGrades = [...sections.flatMap(s => s.students), ...ungroupedGrades];
-
   const exportToCSV = () => {
-    const headers = ['Section', 'Student Name', 'Average Score', 'Grade', 'Quizzes', 'Tests'];
-    const rows: string[][] = [];
-    for (const sec of sections) {
-      for (const g of sec.students) {
-        rows.push([`Grade ${sec.grade_level} ${sec.section_name}`, g.student_name, String(g.average_score),
-          g.average_score >= 90 ? 'A' : g.average_score >= 80 ? 'B' : g.average_score >= 70 ? 'C' : g.average_score >= 60 ? 'D' : 'F',
-          String(g.quiz_scores.length), String(g.test_scores.length)]);
-      }
-    }
-    for (const g of ungroupedGrades) {
-      rows.push(['Unassigned', g.student_name, String(g.average_score),
-        g.average_score >= 90 ? 'A' : g.average_score >= 80 ? 'B' : g.average_score >= 70 ? 'C' : g.average_score >= 60 ? 'D' : 'F',
-        String(g.quiz_scores.length), String(g.test_scores.length)]);
-    }
+    const subjectName = subjects.find(s => s.id === selectedSubject)?.name || 'Subject';
+    const headers = ['Section', 'Student', 'Classwork', 'Homework', 'Assessment Avg', 'Grade'];
+    const rows = students.map(s => {
+      const overall = s.assessment_count > 0 ? s.assessment_avg : 0;
+      return [
+        s.section_label, s.student_name,
+        editingGrades[s.student_id]?.classwork || '—',
+        editingGrades[s.student_id]?.homework || '—',
+        s.assessment_count > 0 ? `${s.assessment_avg}%` : '—',
+        overall >= 90 ? 'A' : overall >= 80 ? 'B' : overall >= 70 ? 'C' : overall >= 60 ? 'D' : 'F',
+      ];
+    });
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `grade-book-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `gradebook-${subjectName}-${selectedDate}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: 'Exported', description: 'Grade book exported to CSV' });
   };
 
-  const classAverage = allGrades.length > 0
-    ? Math.round(allGrades.reduce((sum, g) => sum + g.average_score, 0) / allGrades.length)
-    : 0;
-
-  if (isLoading) {
+  if (isLoading && !subjects.length) {
     return <div className="animate-pulse text-muted-foreground">Loading grade book...</div>;
   }
 
-  const renderStudentTable = (students: StudentGrade[]) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Student</TableHead>
-          <TableHead className="text-center">Quizzes</TableHead>
-          <TableHead className="text-center">Tests</TableHead>
-          <TableHead className="text-center">Average</TableHead>
-          <TableHead className="text-center">Grade</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {students.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={5} className="text-center text-muted-foreground py-6">No students in this section.</TableCell>
-          </TableRow>
-        ) : (
-          students.map(grade => (
-            <TableRow key={grade.student_id}>
-              <TableCell className="font-medium text-foreground">
-                <div className="flex items-center gap-2">
-                  {grade.avatar_url ? (
-                    <img src={grade.avatar_url} alt={grade.student_name} className="h-7 w-7 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                      {grade.student_name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  {grade.student_name}
-                </div>
-              </TableCell>
-              <TableCell className="text-center text-muted-foreground">{grade.quiz_scores.length} taken</TableCell>
-              <TableCell className="text-center text-muted-foreground">{grade.test_scores.length} taken</TableCell>
-              <TableCell className="text-center font-semibold text-foreground">
-                {grade.total_assessments > 0 ? `${grade.average_score}%` : '—'}
-              </TableCell>
-              <TableCell className="text-center">
-                {grade.total_assessments > 0 ? getGradeBadge(grade.average_score) : <Badge variant="secondary">N/A</Badge>}
-              </TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
-  );
+  if (subjects.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-foreground">Grade Book</h2>
+        <Card className="bg-card border-border">
+          <CardContent className="p-8 text-center text-muted-foreground">
+            <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-40" />
+            <p className="font-medium">No subjects created yet</p>
+            <p className="text-sm mt-1">Go to the <strong>Subjects</strong> tab to create subjects first. They will appear here as tabs.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Group students by section for display
+  const sectionGroups: Record<string, StudentSubjectGrade[]> = {};
+  for (const s of students) {
+    if (!sectionGroups[s.section_label]) sectionGroups[s.section_label] = [];
+    sectionGroups[s.section_label].push(s);
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Grade Book</h2>
-          <p className="text-muted-foreground">View and export student scores by section</p>
+          <p className="text-muted-foreground">Daily classwork & homework marks by subject. Assessments are auto-populated.</p>
         </div>
-        <Button onClick={exportToCSV} disabled={allGrades.length === 0}>
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-auto"
+          />
+          <Button onClick={saveGrades} disabled={isSaving}>
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Save Marks
+          </Button>
+          <Button variant="outline" onClick={exportToCSV} disabled={students.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><BookOpen className="h-5 w-5 text-primary" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Students</p>
-              <p className="text-2xl font-bold text-foreground">{allGrades.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Class Average</p>
-              <p className="text-2xl font-bold text-foreground">{classAverage}%</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100"><Trophy className="h-5 w-5 text-green-600" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Honor Roll (≥90%)</p>
-              <p className="text-2xl font-bold text-foreground">{allGrades.filter(g => g.average_score >= 90).length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-destructive/10"><TrendingUp className="h-5 w-5 text-destructive" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Needs Support (&lt;60%)</p>
-              <p className="text-2xl font-bold text-foreground">{allGrades.filter(g => g.average_score < 60 && g.total_assessments > 0).length}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Subject Tabs */}
+      <Tabs value={selectedSubject} onValueChange={setSelectedSubject}>
+        <TabsList className="flex w-full overflow-x-auto bg-muted">
+          {subjects.map(sub => (
+            <TabsTrigger key={sub.id} value={sub.id} className="whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <BookOpen className="h-4 w-4 mr-2" />
+              {sub.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {/* Sections */}
-      <div className="space-y-3">
-        {sections.map(section => {
-          const isExpanded = expandedSections.has(section.id);
-          const sectionAvg = section.students.length > 0
-            ? Math.round(section.students.reduce((s, g) => s + g.average_score, 0) / section.students.length)
-            : 0;
-
-          return (
-            <Card key={section.id} className="bg-card border-border overflow-hidden">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
-              >
-                <div className="flex items-center gap-3">
-                  {isExpanded ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-                  <Users className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-foreground">
-                    Grade {section.grade_level} {section.section_name}
-                  </span>
-                  <Badge variant="secondary">{section.students.length} students</Badge>
-                </div>
-                <div className="flex items-center gap-3">
-                  {section.students.length > 0 && (
-                    <span className="text-sm text-muted-foreground">Avg: {sectionAvg}%</span>
-                  )}
-                </div>
-              </button>
-              {isExpanded && (
-                <CardContent className="p-0 border-t border-border">
-                  {renderStudentTable(section.students)}
+        {subjects.map(sub => (
+          <TabsContent key={sub.id} value={sub.id} className="mt-4 space-y-4">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Students</p>
+                    <p className="text-2xl font-bold text-foreground">{students.length}</p>
+                  </div>
                 </CardContent>
-              )}
-            </Card>
-          );
-        })}
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Assessment Avg</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {students.filter(s => s.assessment_count > 0).length > 0
+                        ? Math.round(students.filter(s => s.assessment_count > 0).reduce((a, s) => a + s.assessment_avg, 0) / students.filter(s => s.assessment_count > 0).length) + '%'
+                        : '—'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-100"><Trophy className="h-5 w-5 text-green-600" /></div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Honor Roll (≥90%)</p>
+                    <p className="text-2xl font-bold text-foreground">{students.filter(s => s.assessment_avg >= 90 && s.assessment_count > 0).length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-destructive/10"><TrendingUp className="h-5 w-5 text-destructive" /></div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Needs Support</p>
+                    <p className="text-2xl font-bold text-foreground">{students.filter(s => s.assessment_avg < 60 && s.assessment_count > 0).length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {ungroupedGrades.length > 0 && (
-          <Card className="bg-card border-border overflow-hidden">
-            <button
-              onClick={() => toggleSection('ungrouped')}
-              className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
-            >
-              <div className="flex items-center gap-3">
-                {expandedSections.has('ungrouped') ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-                <Users className="h-5 w-5 text-muted-foreground" />
-                <span className="font-semibold text-foreground">Unassigned Students</span>
-                <Badge variant="outline">{ungroupedGrades.length} students</Badge>
-              </div>
-            </button>
-            {expandedSections.has('ungrouped') && (
-              <CardContent className="p-0 border-t border-border">
-                {renderStudentTable(ungroupedGrades)}
-              </CardContent>
+            {/* Grades Table grouped by section */}
+            {isLoading ? (
+              <div className="animate-pulse text-muted-foreground py-8 text-center">Loading grades...</div>
+            ) : Object.keys(sectionGroups).length === 0 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  No students enrolled yet.
+                </CardContent>
+              </Card>
+            ) : (
+              Object.entries(sectionGroups).sort(([a], [b]) => a.localeCompare(b)).map(([sectionLabel, sectionStudents]) => (
+                <SectionGradeTable
+                  key={sectionLabel}
+                  sectionLabel={sectionLabel}
+                  students={sectionStudents}
+                  editingGrades={editingGrades}
+                  setEditingGrades={setEditingGrades}
+                  getGradeBadge={getGradeBadge}
+                />
+              ))
             )}
-          </Card>
-        )}
-
-        {sections.length === 0 && ungroupedGrades.length === 0 && (
-          <Card className="bg-card border-border">
-            <CardContent className="p-8 text-center text-muted-foreground">
-              No students enrolled yet. Add sections and students to see grades.
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
+  );
+};
+
+// Sub-component for section accordion
+const SectionGradeTable = ({
+  sectionLabel,
+  students,
+  editingGrades,
+  setEditingGrades,
+  getGradeBadge,
+}: {
+  sectionLabel: string;
+  students: StudentSubjectGrade[];
+  editingGrades: Record<string, { classwork: string; homework: string }>;
+  setEditingGrades: React.Dispatch<React.SetStateAction<Record<string, { classwork: string; homework: string }>>>;
+  getGradeBadge: (score: number) => React.ReactNode;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <Card className="bg-card border-border overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          {isExpanded ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          <Users className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-foreground">{sectionLabel}</span>
+          <Badge variant="secondary">{students.length} students</Badge>
+        </div>
+      </button>
+      {isExpanded && (
+        <CardContent className="p-0 border-t border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead className="text-center w-28">Classwork</TableHead>
+                <TableHead className="text-center w-28">Homework</TableHead>
+                <TableHead className="text-center">Assessment Avg</TableHead>
+                <TableHead className="text-center">Grade</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {students.map(student => (
+                <TableRow key={student.student_id}>
+                  <TableCell className="font-medium text-foreground">
+                    <div className="flex items-center gap-2">
+                      {student.avatar_url ? (
+                        <img src={student.avatar_url} alt={student.student_name} className="h-7 w-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
+                          {student.student_name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      {student.student_name}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="—"
+                      className="w-20 mx-auto text-center h-8"
+                      value={editingGrades[student.student_id]?.classwork ?? ''}
+                      onChange={(e) => setEditingGrades(prev => ({
+                        ...prev,
+                        [student.student_id]: { ...prev[student.student_id], classwork: e.target.value },
+                      }))}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="—"
+                      className="w-20 mx-auto text-center h-8"
+                      value={editingGrades[student.student_id]?.homework ?? ''}
+                      onChange={(e) => setEditingGrades(prev => ({
+                        ...prev,
+                        [student.student_id]: { ...prev[student.student_id], homework: e.target.value },
+                      }))}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center font-semibold text-foreground">
+                    {student.assessment_count > 0 ? `${student.assessment_avg}%` : '—'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {student.assessment_count > 0 ? getGradeBadge(student.assessment_avg) : <Badge variant="secondary">N/A</Badge>}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
+    </Card>
   );
 };
