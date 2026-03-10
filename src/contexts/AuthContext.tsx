@@ -105,6 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }, 0);
             } else {
               setIsSchoolAdmin(false);
+              setIsTeacher(false);
+              setTeacherInfo(null);
             }
         }
         
