@@ -45,6 +45,12 @@ export const Header = () => {
                   {t('nav.schoolAdmin') || 'School Admin'}
                 </Link>
               )}
+              {isTeacher && !isSchoolAdmin && (
+                <Link to="/school-admin" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors">
+                  <School className="w-4 h-4" />
+                  Teacher Dashboard
+                </Link>
+              )}
               <LanguageSelector />
               <Button
                 onClick={handleSignOut}
