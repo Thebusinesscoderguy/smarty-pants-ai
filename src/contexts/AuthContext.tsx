@@ -31,6 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [teacherInfo, setTeacherInfo] = useState<TeacherInfo | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Force clear auth state - used as fallback
