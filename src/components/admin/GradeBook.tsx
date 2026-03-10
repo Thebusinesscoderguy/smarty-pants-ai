@@ -107,7 +107,18 @@ export const GradeBook = () => {
 
       const relationships = relRes.data;
       if (!relationships?.length) { setStudents([]); setIsLoading(false); return; }
-      const studentIds = relationships.map(r => r.student_id);
+      let studentIds = relationships.map(r => r.student_id);
+
+      // If teacher, filter students to only those in assigned sections
+      if (isTeacher && !isSchoolAdmin && teacherSections.length > 0) {
+        const assignedStudentIds = new Set(
+          (secStudRes.data || [])
+            .filter(ss => teacherSections.includes(ss.section_id))
+            .map(ss => ss.student_id)
+        );
+        studentIds = studentIds.filter(id => assignedStudentIds.has(id));
+        if (!studentIds.length) { setStudents([]); setIsLoading(false); return; }
+      }
 
       const [profRes, dailyRes] = await Promise.all([
         supabase.from('profiles').select('id, display_name, avatar_url').in('id', studentIds),
