@@ -171,6 +171,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const checkTeacherStatus = async (email?: string) => {
+    if (!email) {
+      setIsTeacher(false);
+      setTeacherInfo(null);
+      return;
+    }
+    try {
+      const { data } = await supabase.rpc('is_school_teacher', { _email: email });
+      if (data && data.length > 0) {
+        setIsTeacher(true);
+        setTeacherInfo(data[0]);
+      } else {
+        setIsTeacher(false);
+        setTeacherInfo(null);
+      }
+    } catch (error) {
+      console.error('Error checking teacher status:', error);
+      setIsTeacher(false);
+      setTeacherInfo(null);
+    }
+  };
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
