@@ -67,7 +67,7 @@ function App() {
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/pricing-checkout" element={<PricingCheckout />} />
                   <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/school-admin" element={<SchoolAdmin />} />
+                  <Route path="/school-admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
                   <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
                   <Route path="/math-solver" element={<MathSolver />} />
