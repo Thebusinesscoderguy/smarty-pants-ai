@@ -1233,6 +1233,54 @@ export type Database = {
         }
         Relationships: []
       }
+      student_attendance: {
+        Row: {
+          attendance_date: string
+          created_at: string
+          created_by: string
+          id: string
+          is_present: boolean
+          school_id: string
+          student_id: string
+          subject_id: string
+        }
+        Insert: {
+          attendance_date?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_present?: boolean
+          school_id: string
+          student_id: string
+          subject_id: string
+        }
+        Update: {
+          attendance_date?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_present?: boolean
+          school_id?: string
+          student_id?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_attendance_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_attendance_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_classifications: {
         Row: {
           assigned_automatically: boolean | null
@@ -1461,6 +1509,63 @@ export type Database = {
           total_steps?: number | null
         }
         Relationships: []
+      }
+      student_semester_marks: {
+        Row: {
+          created_at: string
+          created_by: string
+          final_exam_mark: number | null
+          id: string
+          literacy_mark: number | null
+          project_mark: number | null
+          school_id: string
+          semester: string
+          student_id: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          final_exam_mark?: number | null
+          id?: string
+          literacy_mark?: number | null
+          project_mark?: number | null
+          school_id: string
+          semester?: string
+          student_id: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          final_exam_mark?: number | null
+          id?: string
+          literacy_mark?: number | null
+          project_mark?: number | null
+          school_id?: string
+          semester?: string
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_semester_marks_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_semester_marks_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_topic_mastery: {
         Row: {
