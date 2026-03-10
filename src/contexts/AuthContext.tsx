@@ -192,7 +192,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTeacherInfo(null);
     }
   };
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
