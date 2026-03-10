@@ -133,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             if (initialSession?.user) {
               await checkSchoolAdminStatus(initialSession.user.id);
+              await checkTeacherStatus(initialSession.user.email);
             }
           }
         }
