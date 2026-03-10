@@ -3,10 +3,18 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface TeacherInfo {
+  school_id: string;
+  teacher_id: string;
+  school_name: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isSchoolAdmin: boolean;
+  isTeacher: boolean;
+  teacherInfo: TeacherInfo | null;
   isSigningOut: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data: any; error: any }>;
