@@ -99,7 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
             if (currentSession?.user) {
-              setTimeout(() => checkSchoolAdminStatus(currentSession.user.id), 0);
+              setTimeout(() => {
+                checkSchoolAdminStatus(currentSession.user.id);
+                checkTeacherStatus(currentSession.user.email);
+              }, 0);
             } else {
               setIsSchoolAdmin(false);
             }
