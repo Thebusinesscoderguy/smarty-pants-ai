@@ -41,6 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setUser(null);
     setIsSchoolAdmin(false);
+    setIsTeacher(false);
+    setTeacherInfo(null);
     setIsSigningOut(false);
     
     // Clear localStorage as backup
