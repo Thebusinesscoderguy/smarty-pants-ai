@@ -89,7 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(currentSession?.user ?? null);
             // Defer async calls to avoid deadlocking onAuthStateChange
             if (currentSession?.user) {
-              setTimeout(() => checkSchoolAdminStatus(currentSession.user.id), 0);
+              setTimeout(() => {
+                checkSchoolAdminStatus(currentSession.user.id);
+                checkTeacherStatus(currentSession.user.email);
+              }, 0);
             }
             break;
           default:
