@@ -28,7 +28,10 @@ export const GradeBook = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [schoolId, setSchoolId] = useState('');
   const [activeTab, setActiveTab] = useState('daily');
-  const { user } = useAuth();
+  const { user, isSchoolAdmin, isTeacher, teacherInfo } = useAuth();
+
+  // Teacher filtering state
+  const [teacherSections, setTeacherSections] = useState<string[]>([]);
 
   // Daily marks state
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -40,6 +43,10 @@ export const GradeBook = () => {
 
   const getSchoolId = async () => {
     if (!user) throw new Error('No user');
+    // If teacher, use their school_id from teacherInfo
+    if (isTeacher && !isSchoolAdmin && teacherInfo) {
+      return teacherInfo.school_id;
+    }
     const { data } = await supabase.from('school_accounts').select('id').eq('admin_user_id', user.id).single();
     if (!data) throw new Error('No school found');
     return data.id;
@@ -49,9 +56,36 @@ export const GradeBook = () => {
     try {
       const sid = await getSchoolId();
       setSchoolId(sid);
-      const { data } = await supabase.from('school_subjects').select('id, name').eq('school_id', sid).order('name');
-      setSubjects(data || []);
-      if (data?.length) setSelectedSubject(data[0].id);
+
+      let subjectData: SchoolSubject[] = [];
+
+      if (isTeacher && !isSchoolAdmin && teacherInfo) {
+        // Teacher: only fetch assigned subjects and sections
+        const { data: assignments } = await supabase
+          .from('teacher_subject_sections')
+          .select('subject_id, section_id')
+          .eq('teacher_id', teacherInfo.teacher_id);
+
+        if (assignments?.length) {
+          const subjectIds = [...new Set(assignments.map(a => a.subject_id))];
+          const sectionIds = [...new Set(assignments.map(a => a.section_id))];
+          setTeacherSections(sectionIds);
+
+          const { data } = await supabase
+            .from('school_subjects')
+            .select('id, name')
+            .in('id', subjectIds)
+            .order('name');
+          subjectData = data || [];
+        }
+      } else {
+        // Admin: fetch all subjects
+        const { data } = await supabase.from('school_subjects').select('id, name').eq('school_id', sid).order('name');
+        subjectData = data || [];
+      }
+
+      setSubjects(subjectData);
+      if (subjectData.length) setSelectedSubject(subjectData[0].id);
     } catch (e: any) {
       if (e.message !== 'No school found') console.error(e);
     } finally {
