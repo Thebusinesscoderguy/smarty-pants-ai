@@ -3,10 +3,18 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface TeacherInfo {
+  school_id: string;
+  teacher_id: string;
+  school_name: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isSchoolAdmin: boolean;
+  isTeacher: boolean;
+  teacherInfo: TeacherInfo | null;
   isSigningOut: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data: any; error: any }>;
@@ -23,6 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [teacherInfo, setTeacherInfo] = useState<TeacherInfo | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Force clear auth state - used as fallback
@@ -31,6 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setUser(null);
     setIsSchoolAdmin(false);
+    setIsTeacher(false);
+    setTeacherInfo(null);
     setIsSigningOut(false);
     
     // Clear localStorage as backup
@@ -66,6 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(null);
             setUser(null);
             setIsSchoolAdmin(false);
+            setIsTeacher(false);
+            setTeacherInfo(null);
             setIsSigningOut(false);
             break;
           case 'SIGNED_IN':
@@ -75,16 +89,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(currentSession?.user ?? null);
             // Defer async calls to avoid deadlocking onAuthStateChange
             if (currentSession?.user) {
-              setTimeout(() => checkSchoolAdminStatus(currentSession.user.id), 0);
+              setTimeout(() => {
+                checkSchoolAdminStatus(currentSession.user.id);
+                checkTeacherStatus(currentSession.user.email);
+              }, 0);
             }
             break;
           default:
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
             if (currentSession?.user) {
-              setTimeout(() => checkSchoolAdminStatus(currentSession.user.id), 0);
+              setTimeout(() => {
+                checkSchoolAdminStatus(currentSession.user.id);
+                checkTeacherStatus(currentSession.user.email);
+              }, 0);
             } else {
               setIsSchoolAdmin(false);
+              setIsTeacher(false);
+              setTeacherInfo(null);
             }
         }
         
@@ -111,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             if (initialSession?.user) {
               await checkSchoolAdminStatus(initialSession.user.id);
+              await checkTeacherStatus(initialSession.user.email);
             }
           }
         }
@@ -145,6 +168,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error checking school admin status:', error);
       setIsSchoolAdmin(false);
+    }
+  };
+
+  const checkTeacherStatus = async (email?: string) => {
+    if (!email) {
+      setIsTeacher(false);
+      setTeacherInfo(null);
+      return;
+    }
+    try {
+      const { data } = await supabase.rpc('is_school_teacher', { _email: email });
+      if (data && data.length > 0) {
+        setIsTeacher(true);
+        setTeacherInfo(data[0]);
+      } else {
+        setIsTeacher(false);
+        setTeacherInfo(null);
+      }
+    } catch (error) {
+      console.error('Error checking teacher status:', error);
+      setIsTeacher(false);
+      setTeacherInfo(null);
     }
   };
 
@@ -229,6 +274,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     isSchoolAdmin,
+    isTeacher,
+    teacherInfo,
     isSigningOut,
     signIn,
     signUp,
@@ -240,6 +287,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     userId: user?.id,
     isSchoolAdmin,
+    isTeacher,
     isSigningOut
   });
 

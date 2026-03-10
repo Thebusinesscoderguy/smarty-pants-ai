@@ -11,12 +11,51 @@ import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
 import { SubjectManagement } from '@/components/admin/SubjectManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library } from 'lucide-react';
+import { TeacherManagement } from '@/components/admin/TeacherManagement';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
+  const { isSchoolAdmin, isTeacher } = useAuth();
+
+  // Teachers only see Grade Book and Assessments
+  if (isTeacher && !isSchoolAdmin) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <Header />
+        <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold mb-2">Teacher Dashboard</h1>
+              <p className="text-muted-foreground">Manage grades and assessments for your assigned subjects and sections.</p>
+            </div>
+            <Tabs defaultValue="gradebook" className="w-full">
+              <TabsList className="flex w-full overflow-x-auto bg-muted">
+                <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <ClipboardList className="h-4 w-4 mr-2" />Grade Book
+                </TabsTrigger>
+                <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <FileCheck className="h-4 w-4 mr-2" />Assessments
+                </TabsTrigger>
+              </TabsList>
+              <div className="mt-6">
+                <TabsContent value="gradebook" className="space-y-6">
+                  <GradeBook />
+                </TabsContent>
+                <TabsContent value="assessments" className="space-y-6">
+                  <AssessmentManagement />
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -40,6 +79,10 @@ const SchoolAdmin = () => {
               <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Users className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.students')}
+              </TabsTrigger>
+              <TabsTrigger value="teachers" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <GraduationCap className="h-4 w-4 mr-2" />
+                Teachers
               </TabsTrigger>
               <TabsTrigger value="subjects" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Library className="h-4 w-4 mr-2" />
@@ -82,6 +125,10 @@ const SchoolAdmin = () => {
 
               <TabsContent value="students" className="space-y-6">
                 <StudentManagement />
+              </TabsContent>
+
+              <TabsContent value="teachers" className="space-y-6">
+                <TeacherManagement />
               </TabsContent>
 
               <TabsContent value="subjects" className="space-y-6">

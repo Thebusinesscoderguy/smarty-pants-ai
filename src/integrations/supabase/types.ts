@@ -1120,6 +1120,44 @@ export type Database = {
           },
         ]
       }
+      school_teachers: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          last_name: string | null
+          school_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string | null
+          school_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_teachers_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_students: {
         Row: {
           assigned_at: string
@@ -1782,6 +1820,52 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_subject_sections: {
+        Row: {
+          created_at: string
+          id: string
+          section_id: string
+          subject_id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          section_id: string
+          subject_id: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          section_id?: string
+          subject_id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_subject_sections_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "school_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_subject_sections_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_subject_sections_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "school_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test_attempts: {
         Row: {
           answers: Json | null
@@ -2193,6 +2277,14 @@ export type Database = {
       initialize_user_quests: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      is_school_teacher: {
+        Args: { _email: string }
+        Returns: {
+          school_id: string
+          school_name: string
+          teacher_id: string
+        }[]
       }
       mark_expired_daily_quests_as_failed: { Args: never; Returns: undefined }
       test_quest_system: {
