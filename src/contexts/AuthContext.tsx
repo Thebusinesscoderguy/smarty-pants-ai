@@ -275,6 +275,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     isSchoolAdmin,
+    isTeacher,
+    teacherInfo,
     isSigningOut,
     signIn,
     signUp,
@@ -286,6 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     userId: user?.id,
     isSchoolAdmin,
+    isTeacher,
     isSigningOut
   });
 
