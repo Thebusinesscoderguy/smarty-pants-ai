@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 const Index = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isSchoolAdmin, isTeacher } = useAuth();
   const [inputValue, setInputValue] = useState('');
   const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
