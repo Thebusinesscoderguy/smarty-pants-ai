@@ -356,7 +356,7 @@ const Index = () => {
             <div className="flex flex-wrap justify-center gap-4 pt-6">
               <Button 
                 size="lg" 
-                onClick={() => navigate('/quiz-generator')}
+                onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-lg"
               >
                 {t('home.cta.getStarted')} <ArrowRight className="ml-2 w-5 h-5" />
