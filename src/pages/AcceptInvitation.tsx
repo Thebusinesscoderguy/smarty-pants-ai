@@ -50,59 +50,59 @@ const AcceptInvitation = () => {
   const validateInvitation = async () => {
     try {
       setIsValidating(true);
-      
-      const { data, error } = await supabase
-        .from('student_invitations')
-        .select(`
-          id,
-          email,
-          first_name,
-          last_name,
-          school_id,
-          expires_at,
-          used
-        `)
-        .eq('invitation_code', invitationCode)
-        .single();
 
-      if (error || !data) {
-        toast({
-          title: "Invalid Invitation",
-          description: "The invitation code is invalid or has expired.",
-          variant: "destructive"
-        });
+      const normalizedCode = invitationCode.trim();
+      if (!normalizedCode) {
+        setInvitation(null);
         return;
       }
 
-      if (data.used) {
-        toast({
-          title: "Invitation Already Used",
-          description: "This invitation has already been accepted.",
-          variant: "destructive"
-        });
+      const { data, error } = await supabase.functions.invoke('validate-student-invitation', {
+        body: { invitationCode: normalizedCode }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to validate invitation');
+      }
+
+      const response = data as {
+        valid: boolean;
+        reason?: 'invalid_code' | 'not_found' | 'used' | 'expired';
+        invitation?: InvitationData;
+      } | null;
+
+      if (!response?.valid || !response.invitation) {
+        setInvitation(null);
+
+        if (response?.reason === 'used') {
+          toast({
+            title: "Invitation Already Used",
+            description: "This invitation has already been accepted.",
+            variant: "destructive"
+          });
+        } else if (response?.reason === 'expired') {
+          toast({
+            title: "Invitation Expired",
+            description: "This invitation has expired. Please request a new one.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Invalid Invitation",
+            description: "The invitation code is invalid or has expired.",
+            variant: "destructive"
+          });
+        }
+
         return;
       }
 
-      if (new Date() > new Date(data.expires_at)) {
-        toast({
-          title: "Invitation Expired",
-          description: "This invitation has expired. Please request a new one.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const invitationData: InvitationData = {
-        ...data,
-        school_name: 'your school'
-      };
-
-      setInvitation(invitationData);
+      setInvitation(response.invitation);
       setFormData(prev => ({
         ...prev,
-        email: invitationData.email,
-        firstName: invitationData.first_name || '',
-        lastName: invitationData.last_name || ''
+        email: response.invitation!.email,
+        firstName: response.invitation!.first_name || '',
+        lastName: response.invitation!.last_name || ''
       }));
 
     } catch (error) {
@@ -112,6 +112,7 @@ const AcceptInvitation = () => {
         description: "Failed to validate invitation",
         variant: "destructive"
       });
+      setInvitation(null);
     } finally {
       setIsValidating(false);
     }
