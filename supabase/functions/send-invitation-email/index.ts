@@ -82,7 +82,7 @@ serve(async (req) => {
     const acceptLink = `${siteUrl}/accept-invitation?code=${encodeURIComponent(invitationCode)}`;
 
     const emailData = {
-      from: 'Teachly <onboarding@resend.dev>',
+      from: 'Teachly <noreply@teachlyai.com>',
       to: [studentEmail],
       subject: `You're invited to join ${safeSchoolName} on Teachly!`,
       html: `
