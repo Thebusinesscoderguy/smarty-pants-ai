@@ -60,8 +60,7 @@ const AcceptInvitation = () => {
           last_name,
           school_id,
           expires_at,
-          used,
-          school_accounts!inner(school_name)
+          used
         `)
         .eq('invitation_code', invitationCode)
         .single();
@@ -95,7 +94,7 @@ const AcceptInvitation = () => {
 
       const invitationData: InvitationData = {
         ...data,
-        school_name: (data.school_accounts as any).school_name
+        school_name: 'your school'
       };
 
       setInvitation(invitationData);
