@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 const Index = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isSchoolAdmin, isTeacher } = useAuth();
   const [inputValue, setInputValue] = useState('');
   const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -74,9 +74,13 @@ const Index = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // If user is signed in, take them to role selection
+    // If user is signed in, route based on role
     if (user) {
-      navigate('/dashboard');
+      if (isSchoolAdmin || isTeacher) {
+        navigate('/school-admin');
+      } else {
+        navigate('/dashboard');
+      }
       return;
     }
     
@@ -327,7 +331,7 @@ const Index = () => {
             <div className="text-center mt-12">
               <Button 
                 size="lg"
-                onClick={() => navigate('/quiz-generator')}
+                onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')}
                 className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
               >
                 {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
@@ -352,7 +356,7 @@ const Index = () => {
             <div className="flex flex-wrap justify-center gap-4 pt-6">
               <Button 
                 size="lg" 
-                onClick={() => navigate('/quiz-generator')}
+                onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-lg"
               >
                 {t('home.cta.getStarted')} <ArrowRight className="ml-2 w-5 h-5" />
