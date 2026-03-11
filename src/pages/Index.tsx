@@ -74,9 +74,13 @@ const Index = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // If user is signed in, take them to role selection
+    // If user is signed in, route based on role
     if (user) {
-      navigate('/dashboard');
+      if (isSchoolAdmin || isTeacher) {
+        navigate('/school-admin');
+      } else {
+        navigate('/dashboard');
+      }
       return;
     }
     
