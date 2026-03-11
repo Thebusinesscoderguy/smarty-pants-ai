@@ -14,7 +14,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isSchoolAdmin, isTeacher } = useAuth();
   const { userRole, loading: roleLoading } = useUserRole();
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,16 +26,24 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     console.log('ProtectedRoute: Checking user setup', {
       hasUser: !!user,
       loading,
+      isSchoolAdmin,
+      isTeacher,
       currentPath: location.pathname
     });
     
-    // Always show role selector for authenticated users on main routes
+    // School admins and teachers should never see the parent/child role selector
+    if (!loading && user && (isSchoolAdmin || isTeacher)) {
+      setShowRoleSelector(false);
+      return;
+    }
+    
+    // Only show role selector for non-school users on main routes
     if (!loading && user && (location.pathname === '/' || location.pathname === '/dashboard')) {
       console.log('ProtectedRoute: User authenticated, showing role selector');
       setShowRoleSelector(true);
-      setHasNavigated(false); // Reset navigation flag
+      setHasNavigated(false);
     }
-  }, [loading, user, location.pathname]);
+  }, [loading, user, location.pathname, isSchoolAdmin, isTeacher]);
 
   // Show loading only while auth is being determined
   if (loading) {
