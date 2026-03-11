@@ -26,7 +26,7 @@ const AcceptInvitation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, signUp, signIn } = useAuth();
-  const [invitationCode, setInvitationCode] = useState(searchParams.get('code') || '');
+  const [invitationCode, setInvitationCode] = useState((searchParams.get('code') || '').trim());
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
   const [loading, setLoading] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
