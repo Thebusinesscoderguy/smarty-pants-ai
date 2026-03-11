@@ -331,7 +331,7 @@ const Index = () => {
             <div className="text-center mt-12">
               <Button 
                 size="lg"
-                onClick={() => navigate('/quiz-generator')}
+                onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')}
                 className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
               >
                 {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
