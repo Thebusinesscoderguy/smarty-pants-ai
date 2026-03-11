@@ -31,14 +31,18 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       currentPath: location.pathname
     });
     
+    // Don't do anything while still loading
+    if (loading) return;
+    
     // School admins and teachers should never see the parent/child role selector
-    if (!loading && user && (isSchoolAdmin || isTeacher)) {
+    if (user && (isSchoolAdmin || isTeacher)) {
       setShowRoleSelector(false);
       return;
     }
     
-    // Only show role selector for non-school users on main routes
-    if (!loading && user && (location.pathname === '/' || location.pathname === '/dashboard')) {
+    // Only show role selector for non-school users on dashboard/home routes
+    // Never show it on specific feature routes like /school-admin, /chat, etc.
+    if (user && (location.pathname === '/' || location.pathname === '/dashboard')) {
       console.log('ProtectedRoute: User authenticated, showing role selector');
       setShowRoleSelector(true);
       setHasNavigated(false);
