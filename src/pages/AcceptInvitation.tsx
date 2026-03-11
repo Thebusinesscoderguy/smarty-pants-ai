@@ -94,7 +94,7 @@ const AcceptInvitation = () => {
 
       const invitationData: InvitationData = {
         ...data,
-        school_name: (data.school_accounts as any).school_name
+        school_name: 'your school'
       };
 
       setInvitation(invitationData);
