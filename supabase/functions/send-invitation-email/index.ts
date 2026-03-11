@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,47 @@ serve(async (req) => {
   }
 
   try {
+    // --- Auth Check: Verify the caller is a school admin ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // Verify the user is actually a school admin
+    const { data: schoolData, error: schoolError } = await supabase
+      .from('school_accounts')
+      .select('id, school_name')
+      .eq('admin_user_id', userId)
+      .maybeSingle();
+
+    if (schoolError || !schoolData) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: only school admins can send invitations' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // --- Resend API key check ---
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) {
       return new Response(
@@ -28,13 +70,21 @@ serve(async (req) => {
       );
     }
 
+    // Sanitize user-controlled inputs to prevent HTML injection / phishing
+    const sanitize = (str: string) => str.replace(/[<>"'&]/g, (c) => ({
+      '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '&': '&amp;'
+    }[c] || c));
+
+    const safeName = sanitize((studentName || '').substring(0, 100));
+    const safeSchoolName = sanitize((schoolName || schoolData.school_name || '').substring(0, 200));
+
     const siteUrl = Deno.env.get('SITE_URL') || 'https://smarty-pants-ai.lovable.app';
-    const acceptLink = `${siteUrl}/accept-invitation?code=${invitationCode}`;
+    const acceptLink = `${siteUrl}/accept-invitation?code=${encodeURIComponent(invitationCode)}`;
 
     const emailData = {
       from: 'Teachly <onboarding@resend.dev>',
       to: [studentEmail],
-      subject: `You're invited to join ${schoolName || 'your school'} on Teachly!`,
+      subject: `You're invited to join ${safeSchoolName} on Teachly!`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -43,10 +93,10 @@ serve(async (req) => {
           <div style="max-width: 480px; margin: 0 auto; background: #fff8f0; border-radius: 12px; padding: 32px; border: 1px solid #fed7aa;">
             <h1 style="color: #1a1a1a; font-size: 24px; margin-bottom: 16px;">Welcome to Teachly! 🎓</h1>
             <p style="color: #444; font-size: 16px; line-height: 1.6;">
-              Hi ${studentName || 'there'},
+              Hi ${safeName || 'there'},
             </p>
             <p style="color: #444; font-size: 16px; line-height: 1.6;">
-              <strong>${schoolName || 'Your school'}</strong> has invited you to join their learning platform on Teachly.
+              <strong>${safeSchoolName}</strong> has invited you to join their learning platform on Teachly.
             </p>
             <p style="color: #444; font-size: 16px; line-height: 1.6;">
               Click the button below to create your account and start learning:
