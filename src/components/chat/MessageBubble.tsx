@@ -1,6 +1,9 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, Volume2, Copy, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
+import { User, Volume2, Copy, ThumbsUp, ThumbsDown, RotateCcw, Lightbulb, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface DatabaseMessage {
   id: string;
@@ -17,10 +20,29 @@ interface MessageBubbleProps {
 }
 
 export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBubbleProps) => {
+  const [eli5Text, setEli5Text] = useState<string | null>(null);
+  const [eli5Loading, setEli5Loading] = useState(false);
+
+  const handleELI5 = async () => {
+    if (eli5Text) { setEli5Text(null); return; }
+    setEli5Loading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('eli5-explain', {
+        body: { text: message.content }
+      });
+      if (error) throw error;
+      setEli5Text(data?.text || 'Could not simplify.');
+    } catch (e: any) {
+      toast.error('Failed to simplify: ' + (e.message || 'Unknown error'));
+    } finally {
+      setEli5Loading(false);
+    }
+  };
+
   return (
     <div className={`flex gap-4 ${message.is_from_user ? 'justify-end' : 'justify-start'}`}>
       {!message.is_from_user && (
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0">
+        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-sm font-semibold text-primary-foreground flex-shrink-0">
           AI
         </div>
       )}
@@ -31,7 +53,7 @@ export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBu
             ? 'bg-primary text-primary-foreground ml-auto' 
             : 'bg-card text-foreground border border-border'
         }`}>
-          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          <p className="whitespace-pre-wrap leading-relaxed">{eli5Text || message.content}</p>
           
           {message.audioUrl && (
             <Button
@@ -45,37 +67,36 @@ export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBu
           )}
         </div>
         
-        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
           <span>{new Date(message.created_at).toLocaleTimeString()}</span>
           {!message.is_from_user && (
             <div className="flex gap-1">
               <Button
                 size="sm"
                 variant="ghost"
+                onClick={handleELI5}
+                disabled={eli5Loading}
+                className="p-1 h-6 hover:bg-muted text-muted-foreground gap-1"
+                title="Explain Like I'm 5"
+              >
+                {eli5Loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
+                <span className="text-[10px]">{eli5Text ? 'Original' : 'ELI5'}</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
                 onClick={() => onCopyMessage?.(message.content)}
-                className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
+                className="p-1 h-6 w-6 hover:bg-muted text-muted-foreground"
               >
                 <Copy className="h-3 w-3" />
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-              >
+              <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-muted text-muted-foreground">
                 <ThumbsUp className="h-3 w-3" />
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-              >
+              <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-muted text-muted-foreground">
                 <ThumbsDown className="h-3 w-3" />
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="p-1 h-6 w-6 hover:bg-gray-700 text-gray-400"
-              >
+              <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-muted text-muted-foreground">
                 <RotateCcw className="h-3 w-3" />
               </Button>
             </div>
@@ -84,8 +105,8 @@ export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBu
       </div>
 
       {message.is_from_user && (
-        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-          <User className="h-4 w-4 text-gray-300" />
+        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+          <User className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
     </div>

@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Quiz } from '@/hooks/useQuizGenerator';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { Lightbulb, Loader2 } from 'lucide-react';
 
 interface QuizResultsProps {
   quiz: Quiz;
@@ -27,6 +28,31 @@ interface AttemptRow {
     explanation?: string | null;
   }>
 }
+
+const ELI5Button = ({ text }: { text: string }) => {
+  const [simplified, setSimplified] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    if (simplified) { setSimplified(null); return; }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('eli5-explain', { body: { text } });
+      if (error) throw error;
+      setSimplified(data?.text || text);
+    } catch { setSimplified(null); } finally { setLoading(false); }
+  };
+
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={handleClick} disabled={loading} className="gap-1">
+        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
+        {simplified ? 'Original' : 'ELI5'}
+      </Button>
+      {simplified && <div className="text-sm bg-accent/20 p-2 rounded mt-1">{simplified}</div>}
+    </>
+  );
+};
 
 export const QuizResults = ({ quiz }: QuizResultsProps) => {
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
@@ -149,13 +175,14 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
                     {explanation && (
                       <div className="mt-2 space-y-2">
                         <div><span className="font-semibold">Explanation:</span> {explanation}</div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('summary')}>
                             {loadingIdx === i ? 'Loading…' : 'Summarise'}
                           </Button>
                           <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('detail')}>
                             {loadingIdx === i ? 'Loading…' : 'More detail'}
                           </Button>
+                          <ELI5Button text={explanation} />
                         </div>
                       </div>
                     )}

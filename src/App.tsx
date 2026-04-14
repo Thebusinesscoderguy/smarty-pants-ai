@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ViewingModeProvider } from '@/contexts/ViewingModeContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import Index from './pages/Index';
 import Chat from './pages/Chat';
 import LearningModule from './pages/LearningModule';
@@ -40,49 +42,51 @@ import Leaderboard from './pages/Leaderboard';
 const queryClient = new QueryClient();
 
 function App() {
-  // Clean app without system tests
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
           <ViewingModeProvider>
             <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/dashboard" element={<ProtectedRoute><div /></ProtectedRoute>} />
-                  <Route path="/family-hub" element={<FamilyHub />} />
-                  <Route path="/parent-onboarding" element={<ParentOnboarding />} />
-                  <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-                  <Route path="/modules" element={<LearningModule />} />
-                  <Route path="/voice" element={<Chat />} />
-                  <Route path="/progress" element={<Progress />} />
-                  <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
-                  <Route path="/auth" element={<Auth />} />
+              <ErrorBoundary>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <WelcomeTour />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/dashboard" element={<ProtectedRoute><div /></ProtectedRoute>} />
+                    <Route path="/family-hub" element={<FamilyHub />} />
+                    <Route path="/parent-onboarding" element={<ParentOnboarding />} />
+                    <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                    <Route path="/modules" element={<LearningModule />} />
+                    <Route path="/voice" element={<Chat />} />
+                    <Route path="/progress" element={<Progress />} />
+                    <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
+                    <Route path="/auth" element={<Auth />} />
 
-                  <Route path="/features" element={<Features />} />
-                  <Route path="/how-it-works" element={<HowItWorks />} />
-                  <Route path="/pricing" element={<PublicPricing />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/pricing-checkout" element={<PricingCheckout />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/school-admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
-                  <Route path="/accept-invitation" element={<AcceptInvitation />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/how-it-works" element={<HowItWorks />} />
+                    <Route path="/pricing" element={<PublicPricing />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/pricing-checkout" element={<PricingCheckout />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/school-admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
+                    <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
-                  <Route path="/math-solver" element={<MathSolver />} />
-                  <Route path="/quiz-generator" element={<QuizGenerator />} />
-                  <Route path="/demo" element={<Demo />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
+                    <Route path="/math-solver" element={<MathSolver />} />
+                    <Route path="/quiz-generator" element={<QuizGenerator />} />
+                    <Route path="/demo" element={<Demo />} />
+                    <Route path="/leaderboard" element={<Leaderboard />} />
+                    <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
 
-                  <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />
-                  <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
+                    <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />
+                    <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </ErrorBoundary>
             </TooltipProvider>
           </ViewingModeProvider>
         </AuthProvider>
