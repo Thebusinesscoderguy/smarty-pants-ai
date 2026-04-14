@@ -42,6 +42,12 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
+                <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <FileText className="h-4 w-4 mr-2" />Lesson Plans
+                </TabsTrigger>
+                <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <ListChecks className="h-4 w-4 mr-2" />Homework
+                </TabsTrigger>
               </TabsList>
               <div className="mt-6">
                 <TabsContent value="gradebook" className="space-y-6">
@@ -49,6 +55,12 @@ const SchoolAdmin = () => {
                 </TabsContent>
                 <TabsContent value="assessments" className="space-y-6">
                   <AssessmentManagement />
+                </TabsContent>
+                <TabsContent value="lesson-plans" className="space-y-6">
+                  <TeacherLessonPlanGenerator />
+                </TabsContent>
+                <TabsContent value="homework" className="space-y-6">
+                  <HomeworkManagement />
                 </TabsContent>
               </div>
             </Tabs>
