@@ -743,6 +743,86 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_teacher_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read_at: string | null
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read_at?: string | null
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read_at?: string | null
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_teacher_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "parent_teacher_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_teacher_threads: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          parent_id: string
+          school_id: string
+          student_id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          parent_id: string
+          school_id: string
+          student_id: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          parent_id?: string
+          school_id?: string
+          student_id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_teacher_threads_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_teacher_threads_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "school_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_verification_codes: {
         Row: {
           created_at: string
@@ -782,6 +862,8 @@ export type Database = {
           guardian_email: string | null
           id: string
           leaderboard_visible: boolean | null
+          onboarding_completed: boolean | null
+          referral_code: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
@@ -793,6 +875,8 @@ export type Database = {
           guardian_email?: string | null
           id: string
           leaderboard_visible?: boolean | null
+          onboarding_completed?: boolean | null
+          referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -804,6 +888,8 @@ export type Database = {
           guardian_email?: string | null
           id?: string
           leaderboard_visible?: boolean | null
+          onboarding_completed?: boolean | null
+          referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -907,6 +993,62 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_bank: {
+        Row: {
+          answer: string
+          created_at: string | null
+          created_by: string | null
+          curriculum: string | null
+          difficulty: string | null
+          grade_level: string | null
+          id: string
+          options: Json | null
+          question_text: string
+          question_type: string | null
+          school_id: string | null
+          subject: string
+          tags: string[] | null
+        }
+        Insert: {
+          answer: string
+          created_at?: string | null
+          created_by?: string | null
+          curriculum?: string | null
+          difficulty?: string | null
+          grade_level?: string | null
+          id?: string
+          options?: Json | null
+          question_text: string
+          question_type?: string | null
+          school_id?: string | null
+          subject: string
+          tags?: string[] | null
+        }
+        Update: {
+          answer?: string
+          created_at?: string | null
+          created_by?: string | null
+          curriculum?: string | null
+          difficulty?: string | null
+          grade_level?: string | null
+          id?: string
+          options?: Json | null
+          question_text?: string
+          question_type?: string | null
+          school_id?: string | null
+          subject?: string
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_bank_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -1104,6 +1246,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          referred_email: string
+          referred_id: string | null
+          referrer_id: string
+          reward_claimed: boolean | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referred_email: string
+          referred_id?: string | null
+          referrer_id: string
+          reward_claimed?: boolean | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referred_email?: string
+          referred_id?: string | null
+          referrer_id?: string
+          reward_claimed?: boolean | null
+          status?: string | null
+        }
+        Relationships: []
       }
       school_accounts: {
         Row: {
@@ -1749,6 +1921,33 @@ export type Database = {
           subject_area?: string | null
           topic_name?: string
           total_interactions?: number | null
+        }
+        Relationships: []
+      }
+      study_buddy_memory: {
+        Row: {
+          created_at: string | null
+          id: string
+          memory_key: string
+          memory_value: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          memory_key: string
+          memory_value: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          memory_key?: string
+          memory_value?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -2403,6 +2602,36 @@ export type Database = {
           longest_streak?: number
           total_active_days?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage: {
+        Row: {
+          count: number | null
+          created_at: string | null
+          feature: string
+          id: string
+          period_end: string
+          period_start: string
+          user_id: string
+        }
+        Insert: {
+          count?: number | null
+          created_at?: string | null
+          feature: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          user_id: string
+        }
+        Update: {
+          count?: number | null
+          created_at?: string | null
+          feature?: string
+          id?: string
+          period_end?: string
+          period_start?: string
           user_id?: string
         }
         Relationships: []
