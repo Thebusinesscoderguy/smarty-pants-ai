@@ -274,6 +274,70 @@ export type Database = {
         }
         Relationships: []
       }
+      homework_assignments: {
+        Row: {
+          assignment_type: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          is_active: boolean | null
+          school_id: string
+          section_id: string | null
+          subject_id: string | null
+          teacher_id: string
+          title: string
+        }
+        Insert: {
+          assignment_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          school_id: string
+          section_id?: string | null
+          subject_id?: string | null
+          teacher_id: string
+          title: string
+        }
+        Update: {
+          assignment_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          school_id?: string
+          section_id?: string | null
+          subject_id?: string | null
+          teacher_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_assignments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_assignments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "school_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_assignments_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homework_sessions: {
         Row: {
           completed: boolean | null
@@ -327,6 +391,50 @@ export type Database = {
           total_steps?: number | null
         }
         Relationships: []
+      }
+      homework_submissions: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          feedback: string | null
+          id: string
+          response_data: Json | null
+          score: number | null
+          status: string | null
+          student_id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          response_data?: Json | null
+          score?: number | null
+          status?: string | null
+          student_id: string
+          submitted_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          response_data?: Json | null
+          score?: number | null
+          status?: string | null
+          student_id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "homework_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       instant_quizzes: {
         Row: {
@@ -1798,6 +1906,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      teacher_lesson_plans: {
+        Row: {
+          content: string
+          created_at: string | null
+          duration_minutes: number | null
+          grade_level: string | null
+          id: string
+          school_id: string | null
+          subject: string | null
+          teacher_id: string
+          topic: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          grade_level?: string | null
+          id?: string
+          school_id?: string | null
+          subject?: string | null
+          teacher_id: string
+          topic: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          grade_level?: string | null
+          id?: string
+          school_id?: string | null
+          subject?: string | null
+          teacher_id?: string
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_lesson_plans_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teacher_student_relationships: {
         Row: {
