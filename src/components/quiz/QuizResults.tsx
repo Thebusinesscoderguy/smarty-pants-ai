@@ -29,6 +29,31 @@ interface AttemptRow {
   }>
 }
 
+const ELI5Button = ({ text }: { text: string }) => {
+  const [simplified, setSimplified] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    if (simplified) { setSimplified(null); return; }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('eli5-explain', { body: { text } });
+      if (error) throw error;
+      setSimplified(data?.text || text);
+    } catch { setSimplified(null); } finally { setLoading(false); }
+  };
+
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={handleClick} disabled={loading} className="gap-1">
+        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
+        {simplified ? 'Original' : 'ELI5'}
+      </Button>
+      {simplified && <div className="text-sm bg-accent/20 p-2 rounded mt-1">{simplified}</div>}
+    </>
+  );
+};
+
 export const QuizResults = ({ quiz }: QuizResultsProps) => {
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
   const [loading, setLoading] = useState(true);
