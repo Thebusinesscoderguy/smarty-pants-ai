@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School } from 'lucide-react';
+import { GraduationCap, School, Trophy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -51,6 +51,10 @@ export const Header = () => {
                   Teacher Dashboard
                 </Link>
               )}
+              <Link to="/leaderboard" className="inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors">
+                <Trophy className="w-4 h-4" />
+                Leaderboard
+              </Link>
               <LanguageSelector />
               <Button
                 onClick={handleSignOut}
