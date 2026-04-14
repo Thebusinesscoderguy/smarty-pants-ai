@@ -1,131 +1,134 @@
 
 
-# Build Features 6-8: Teacher Lesson Plans, Homework System, School Analytics PDF
+# Build Remaining 10 Growth Features
 
-## Feature 6: Teacher Lesson Plan Generator
+## Overview
+Implementing all remaining features from the growth strategy, excluding social proof and SEO blog.
 
-**What**: Teachers type a topic, grade level, and subject → AI generates a structured lesson plan with objectives, activities, assessment questions, and homework suggestions.
+---
 
-**Implementation**:
-1. **New Edge Function** `generate-lesson-plan/index.ts` — Takes topic, grade level, subject, duration. Uses OpenAI to produce a structured lesson plan with: learning objectives, warm-up activity, main lesson, practice activities, assessment questions, homework assignment, and differentiation notes.
-2. **New Component** `src/components/admin/TeacherLessonPlanGenerator.tsx` — Form with topic, grade, subject, duration inputs. Displays generated plan in formatted markdown with print/download option.
-3. **Add "Lesson Plans" tab** to the SchoolAdmin page (for both teacher and admin views). New tab with `FileText` icon.
-4. **New DB table** `teacher_lesson_plans` — stores generated plans (teacher_id, school_id, topic, subject, grade_level, content, created_at) so teachers can revisit them. RLS: teachers see their own plans.
+## Feature List
 
-**Database migration**:
-```sql
-CREATE TABLE teacher_lesson_plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  teacher_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  school_id UUID REFERENCES school_accounts(id) ON DELETE CASCADE,
-  topic TEXT NOT NULL,
-  subject TEXT,
-  grade_level TEXT,
-  duration_minutes INTEGER DEFAULT 45,
-  content TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-ALTER TABLE teacher_lesson_plans ENABLE ROW LEVEL SECURITY;
--- Teachers see own plans
-CREATE POLICY "Teachers manage own plans" ON teacher_lesson_plans
-  FOR ALL TO authenticated USING (teacher_id = auth.uid());
+### 1. AI "Explain Like I'm 5" (ELI5) Mode
+Add a "Simplify" button to lesson content, quiz explanations, and chat responses that re-explains concepts in ultra-simple language with analogies.
+
+- New edge function `eli5-explain/index.ts` — takes text, returns simplified version targeted at young learners
+- Add "Explain Simply" button to `LessonViewer.tsx`, `QuizResults.tsx`, and `MessageBubble.tsx`
+- Uses existing `explain-text` edge function pattern but with a dedicated ELI5 prompt
+
+### 2. Curriculum-Aligned Question Bank
+Pre-built question sets organized by curriculum, grade, and subject that teachers can browse and assign.
+
+- New DB table `question_bank` (curriculum, grade, subject, question_text, answer, difficulty, tags)
+- New component `src/components/admin/QuestionBankBrowser.tsx` — filterable list with "Add to Assessment" action
+- Seed initial questions via edge function using AI generation per curriculum/subject
+- Add "Question Bank" tab to SchoolAdmin
+
+### 3. AI Study Buddy with Memory
+A persistent AI companion that remembers past conversations, student strengths/weaknesses, and adapts over time.
+
+- New DB table `study_buddy_memory` (user_id, memory_key, memory_value, updated_at) to store learning context
+- Modify `chat-completion` edge function to inject student's learning analytics and past memory into system prompt
+- New component `src/components/chat/StudyBuddyMode.tsx` — toggle in chat that activates personalized mode
+- Pulls from `learning_analytics` table to inject strengths/weaknesses into context
+
+### 4. Video Lesson Support
+Embed YouTube/external video URLs in lessons with timestamped notes and comprehension checks.
+
+- Add `video_url` column to lessons table (or use existing content field with type detection)
+- Update `LessonViewer.tsx` to render embedded YouTube player when lesson type is 'video'
+- Add video URL field to lesson content generation in the study plan flow
+- Use `react-player` or native iframe for YouTube embeds
+
+### 5. Parent-Teacher Messaging
+In-app messaging between parents and teachers within the school system.
+
+- New DB tables:
+  - `parent_teacher_messages` (sender_id, receiver_id, school_id, student_id, subject, message, read_at, created_at)
+  - `parent_teacher_threads` (parent_id, teacher_id, student_id, school_id, last_message_at)
+- New component `src/components/admin/ParentTeacherMessaging.tsx` — thread-based inbox for teachers
+- New component `src/components/dashboards/ParentMessages.tsx` — parent-side messaging UI
+- Add "Messages" tab to SchoolAdmin and parent dashboard
+- RLS: participants can only see their own threads
+
+### 6. Referral Program
+Users share a referral link → referred user signs up → both get rewards (extended free tier or XP bonus).
+
+- New DB table `referrals` (referrer_id, referred_email, referred_id, status, reward_claimed, created_at)
+- Add `referral_code` column to profiles table
+- New component `src/components/gamification/ReferralProgram.tsx` — shows unique link, tracks referrals, displays rewards
+- Modify `handle_new_user()` DB function to check for referral code in signup metadata
+- Add referral section to Settings page
+
+### 7. Free Tier / Usage Limits
+Enforce generation limits for logged-in free users (not just guests).
+
+- New DB table `user_usage` (user_id, feature, count, period_start, period_end)
+- New edge function `check-usage-limit/index.ts` — validates before allowing generation
+- Modify quiz/study-plan/presentation generators to check limits server-side
+- Update `useGuestUsage.ts` → `useUsageLimits.ts` to handle both guest and free-tier limits
+- Free tier: 5 quizzes/month, 3 study plans/month, 2 presentations/month
+
+### 8. Mobile-Responsive Polish
+Audit and fix layout issues across all key pages for mobile viewports.
+
+- Fix Header.tsx mobile menu (hamburger nav with slide-out drawer)
+- Fix SchoolAdmin tabs to use horizontal scroll or dropdown on mobile
+- Fix QuizGenerator tabs spacing on small screens
+- Ensure chat interface is full-height on mobile without overflow
+- Fix Index.tsx hero section text sizing and input layout on mobile
+- Test and fix StudentDashboard card grid for single-column on mobile
+
+### 9. Onboarding Flow Cleanup
+Streamline the first-time user experience after signup.
+
+- Add welcome tour overlay component `src/components/onboarding/WelcomeTour.tsx` using tooltips pointing at key UI elements
+- Track onboarding completion in profiles table (`onboarding_completed` boolean)
+- Simplify role selection UI with clearer visual cards
+- Auto-redirect new users to quiz generator after onboarding (the main value prop)
+
+### 10. Enhanced Loading & Error States
+Add consistent loading skeletons and error boundaries across the app.
+
+- Create `src/components/ui/page-skeleton.tsx` — reusable skeleton layouts for dashboard, chat, quiz pages
+- Add React Error Boundary wrapper component `src/components/ErrorBoundary.tsx`
+- Wrap all route components with error boundary
+- Replace spinner-only loading with skeleton UI in StudentDashboard, SchoolAdmin, Chat
+- Add retry buttons on error states
+
+---
+
+## Database Migrations Required
+
+```text
+Tables to create:
+├── question_bank (curriculum, grade, subject, question data)
+├── study_buddy_memory (user_id, memory_key, memory_value)
+├── parent_teacher_messages (sender, receiver, message, read status)
+├── parent_teacher_threads (parent, teacher, student linkage)
+├── referrals (referrer, referred, status, rewards)
+└── user_usage (user_id, feature, count, period tracking)
+
+Columns to add:
+├── profiles.referral_code (TEXT, unique)
+└── profiles.onboarding_completed (BOOLEAN, default false)
 ```
 
----
+## Edge Functions to Create
+- `eli5-explain` — Simplify text for young learners
+- `check-usage-limit` — Server-side usage validation
 
-## Feature 7: Homework Assignment System
+## NPM Packages to Install
+- `react-player` — For video lesson embeds
+- `react-joyride` — For onboarding tour tooltips
 
-**What**: Teachers create homework assignments (linked to subjects/sections) → students see them in their dashboard → auto-graded quizzes or manual submission → results flow to gradebook.
+## Implementation Order
+1. Mobile-responsive polish + Loading/Error states (foundation)
+2. ELI5 mode + Video lessons (quick content wins)
+3. Free tier limits + Referral program (growth mechanics)
+4. Study buddy + Question bank (deeper learning features)
+5. Parent-teacher messaging + Onboarding cleanup (engagement)
 
-**Implementation**:
-1. **New DB tables**:
-   - `homework_assignments` — school_id, teacher_id, subject_id, section_id, title, description, type (quiz/reading/practice), due_date, quiz_id (nullable, links to existing quizzes), is_active
-   - `homework_submissions` — assignment_id, student_id, status (pending/submitted/graded), submitted_at, score, feedback
-2. **New Component** `src/components/admin/HomeworkManagement.tsx` — Teachers create assignments, pick subject/section, set due date, optionally attach a quiz from existing assessments.
-3. **New Component** `src/components/student/HomeworkList.tsx` — Students see pending homework, click to complete (opens quiz or text submission).
-4. **Add "Homework" tab** to SchoolAdmin for teachers/admins.
-5. **Add homework section** to the student dashboard showing pending assignments with due dates.
-6. **RLS policies**: Teachers see assignments they created or for their school. Students see assignments for their section.
-
-**Database migration**:
-```sql
-CREATE TABLE homework_assignments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  school_id UUID REFERENCES school_accounts(id) ON DELETE CASCADE NOT NULL,
-  teacher_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  subject_id UUID REFERENCES school_subjects(id) ON DELETE CASCADE,
-  section_id UUID REFERENCES school_sections(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  description TEXT,
-  assignment_type TEXT DEFAULT 'practice' CHECK (assignment_type IN ('quiz','reading','practice')),
-  quiz_id UUID REFERENCES school_assessments(id) ON DELETE SET NULL,
-  due_date TIMESTAMPTZ,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE homework_submissions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  assignment_id UUID REFERENCES homework_assignments(id) ON DELETE CASCADE NOT NULL,
-  student_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending','submitted','graded')),
-  submitted_at TIMESTAMPTZ,
-  score NUMERIC,
-  feedback TEXT,
-  response_data JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(assignment_id, student_id)
-);
-
-ALTER TABLE homework_assignments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE homework_submissions ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Teachers manage homework" ON homework_assignments
-  FOR ALL TO authenticated USING (teacher_id = auth.uid());
-CREATE POLICY "Students view homework" ON homework_assignments
-  FOR SELECT TO authenticated USING (
-    section_id IN (
-      SELECT section_id FROM school_students WHERE user_id = auth.uid()
-    )
-  );
-CREATE POLICY "Students manage own submissions" ON homework_submissions
-  FOR ALL TO authenticated USING (student_id = auth.uid());
-CREATE POLICY "Teachers view submissions" ON homework_submissions
-  FOR SELECT TO authenticated USING (
-    assignment_id IN (
-      SELECT id FROM homework_assignments WHERE teacher_id = auth.uid()
-    )
-  );
-```
-
----
-
-## Feature 8: School Analytics PDF Report
-
-**What**: Admin clicks "Generate Report" → downloads a branded PDF with class averages, top performers, at-risk students, subject breakdowns, and attendance stats.
-
-**Implementation**:
-1. **New Component** `src/components/admin/SchoolAnalyticsReport.tsx` — Button on SchoolOverview that generates a PDF using `jspdf` + `jspdf-autotable`.
-2. **PDF content**: School name header, date range, student count, per-subject averages (from gradebook data), top 5 performers, at-risk students (score < 50%), attendance summary, section breakdown.
-3. **Data source**: Queries existing tables (`student_daily_grades`, `student_attendance`, `student_semester_marks`, `school_students`, `school_subjects`, `school_sections`).
-4. **Install** `jspdf` and `jspdf-autotable` npm packages.
-5. **Add "Reports" button** to the SchoolOverview tab or as a new "Reports" tab.
-
-No new database tables needed — this reads from existing data.
-
----
-
-## Files to Create/Modify
-
-| Action | File |
-|--------|------|
-| Create | `supabase/functions/generate-lesson-plan/index.ts` |
-| Create | `src/components/admin/TeacherLessonPlanGenerator.tsx` |
-| Create | `src/components/admin/HomeworkManagement.tsx` |
-| Create | `src/components/student/HomeworkList.tsx` |
-| Create | `src/components/admin/SchoolAnalyticsReport.tsx` |
-| Modify | `src/pages/SchoolAdmin.tsx` — Add Lesson Plans, Homework, Reports tabs |
-| Modify | `src/components/dashboards/StudentDashboard.tsx` — Show pending homework |
-| Migration | New tables: `teacher_lesson_plans`, `homework_assignments`, `homework_submissions` |
-| Install | `jspdf`, `jspdf-autotable` |
+## Files Summary
+~15 new components, 2 new edge functions, 6 new DB tables, 2 column additions, 2 npm packages. Approximately 8-10 implementation rounds.
 
