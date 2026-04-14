@@ -72,12 +72,7 @@ export const WelcomeTour = () => {
       showSkipButton
       showProgress
       callback={handleCallback}
-      styles={{
-        options: {
-          primaryColor: 'hsl(24, 95%, 53%)',
-          zIndex: 10000,
-        },
-      }}
+      locale={{ back: 'Back', close: 'Close', last: 'Done', next: 'Next', skip: 'Skip' }}
     />
   );
 };
