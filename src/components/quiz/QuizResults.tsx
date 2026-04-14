@@ -148,18 +148,17 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
                       <div><span className="font-semibold">Time spent:</span> {Math.round(timeMs / 1000)}s</div>
                     )}
                     {explanation && (
-                        <div className="mt-2 space-y-2">
-                                                <div><span className="font-semibold">Explanation:</span> {explanation}</div>
-                                                <div className="flex gap-2 flex-wrap">
-                                                  <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('summary')}>
-                                                    {loadingIdx === i ? 'Loading…' : 'Summarise'}
-                                                  </Button>
-                                                  <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('detail')}>
-                                                    {loadingIdx === i ? 'Loading…' : 'More detail'}
-                                                  </Button>
-                                                  <ELI5Button text={explanation} />
-                                                </div>
-                                              </div>
+                      <div className="mt-2 space-y-2">
+                        <div><span className="font-semibold">Explanation:</span> {explanation}</div>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('summary')}>
+                            {loadingIdx === i ? 'Loading…' : 'Summarise'}
+                          </Button>
+                          <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('detail')}>
+                            {loadingIdx === i ? 'Loading…' : 'More detail'}
+                          </Button>
+                          <ELI5Button text={explanation} />
+                        </div>
                       </div>
                     )}
                   </div>
