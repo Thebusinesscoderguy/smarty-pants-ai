@@ -35,6 +35,7 @@ import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import Demo from './pages/Demo';
+import Leaderboard from './pages/Leaderboard';
 
 const queryClient = new QueryClient();
 
