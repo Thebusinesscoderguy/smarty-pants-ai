@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Target, Trophy, BookOpen, TrendingUp, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SchoolAnalyticsReport } from './SchoolAnalyticsReport';
 
 interface OverviewStats {
   totalInvitations: number;
@@ -97,9 +98,12 @@ export const SchoolOverview = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">{t('adminOverview.title')}</h2>
-        <p className="text-muted-foreground">{t('adminOverview.subtitle')}</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">{t('adminOverview.title')}</h2>
+          <p className="text-muted-foreground">{t('adminOverview.subtitle')}</p>
+        </div>
+        <SchoolAnalyticsReport />
       </div>
 
       {/* Stats Grid */}
