@@ -12,17 +12,17 @@ const tourSteps: Step[] = [
   },
   {
     target: '[data-tour="quiz-generator"]',
-    content: 'Generate AI-powered quizzes and study plans here. This is where the magic happens!',
+    content: 'Generate AI-powered quizzes and study plans here.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="chat"]',
-    content: 'Chat with your AI tutor for personalized help on any subject.',
+    content: 'Chat with your AI tutor for personalized help.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="quests"]',
-    content: 'Complete quests and earn achievements to track your learning progress!',
+    content: 'Complete quests and earn achievements!',
     placement: 'bottom',
   },
 ];
@@ -33,31 +33,24 @@ export const WelcomeTour = () => {
 
   useEffect(() => {
     if (!user) return;
-    
     const checkOnboarding = async () => {
       const { data } = await supabase
         .from('profiles')
         .select('onboarding_completed')
         .eq('id', user.id)
         .single();
-      
       if (data && !data.onboarding_completed) {
         setTimeout(() => setRun(true), 1000);
       }
     };
-
     checkOnboarding();
   }, [user]);
 
-  const handleCallback = async (data: any) => {
-    const { status } = data;
-    if (status === 'finished' || status === 'skipped') {
+  const handleEvent = (event: any) => {
+    if (event.type === 'tour:end') {
       setRun(false);
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({ onboarding_completed: true })
-          .eq('id', user.id);
+        supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id);
       }
     }
   };
@@ -69,10 +62,7 @@ export const WelcomeTour = () => {
       steps={tourSteps}
       run={run}
       continuous
-      showSkipButton
-      showProgress
-      callback={handleCallback}
-      locale={{ back: 'Back', close: 'Close', last: 'Done', next: 'Next', skip: 'Skip' }}
+      onEvent={handleEvent}
     />
   );
 };
