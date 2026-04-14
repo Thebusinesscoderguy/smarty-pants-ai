@@ -181,6 +181,14 @@ const SchoolAdmin = () => {
                 <StudentAnalyticsView />
               </TabsContent>
 
+              <TabsContent value="lesson-plans" className="space-y-6">
+                <TeacherLessonPlanGenerator />
+              </TabsContent>
+
+              <TabsContent value="homework" className="space-y-6">
+                <HomeworkManagement />
+              </TabsContent>
+
               <TabsContent value="billing" className="space-y-6">
                 <PaymentManagement />
               </TabsContent>
