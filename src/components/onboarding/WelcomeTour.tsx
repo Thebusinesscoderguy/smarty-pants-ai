@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
+import { Joyride } from 'react-joyride';
+import type { Step } from 'react-joyride';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -8,7 +9,6 @@ const tourSteps: Step[] = [
     target: 'body',
     content: 'Welcome to Teachly! 🎓 Let me show you around the platform.',
     placement: 'center',
-    disableBeacon: true,
   },
   {
     target: '[data-tour="quiz-generator"]',
@@ -42,7 +42,6 @@ export const WelcomeTour = () => {
         .single();
       
       if (data && !data.onboarding_completed) {
-        // Small delay to let the page render
         setTimeout(() => setRun(true), 1000);
       }
     };
@@ -50,9 +49,9 @@ export const WelcomeTour = () => {
     checkOnboarding();
   }, [user]);
 
-  const handleCallback = async (data: CallBackProps) => {
+  const handleCallback = async (data: any) => {
     const { status } = data;
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status as any)) {
+    if (status === 'finished' || status === 'skipped') {
       setRun(false);
       if (user) {
         await supabase
@@ -75,11 +74,8 @@ export const WelcomeTour = () => {
       callback={handleCallback}
       styles={{
         options: {
-          primaryColor: 'hsl(var(--primary))',
+          primaryColor: 'hsl(24, 95%, 53%)',
           zIndex: 10000,
-        },
-        tooltip: {
-          borderRadius: 12,
         },
       }}
     />
