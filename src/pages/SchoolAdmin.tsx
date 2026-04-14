@@ -14,7 +14,9 @@ import { SubjectManagement } from '@/components/admin/SubjectManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlanGenerator';
 import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks } from 'lucide-react';
+import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
+import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,7 +37,7 @@ const SchoolAdmin = () => {
               <p className="text-muted-foreground">Manage grades and assessments for your assigned subjects and sections.</p>
             </div>
             <Tabs defaultValue="gradebook" className="w-full">
-              <TabsList className="flex w-full overflow-x-auto bg-muted">
+              <TabsList className="flex w-full overflow-x-auto bg-muted scrollbar-none">
                 <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ClipboardList className="h-4 w-4 mr-2" />Grade Book
                 </TabsTrigger>
@@ -48,20 +50,20 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ListChecks className="h-4 w-4 mr-2" />Homework
                 </TabsTrigger>
+                <TabsTrigger value="question-bank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Database className="h-4 w-4 mr-2" />Question Bank
+                </TabsTrigger>
+                <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <MessageCircle className="h-4 w-4 mr-2" />Messages
+                </TabsTrigger>
               </TabsList>
               <div className="mt-6">
-                <TabsContent value="gradebook" className="space-y-6">
-                  <GradeBook />
-                </TabsContent>
-                <TabsContent value="assessments" className="space-y-6">
-                  <AssessmentManagement />
-                </TabsContent>
-                <TabsContent value="lesson-plans" className="space-y-6">
-                  <TeacherLessonPlanGenerator />
-                </TabsContent>
-                <TabsContent value="homework" className="space-y-6">
-                  <HomeworkManagement />
-                </TabsContent>
+                <TabsContent value="gradebook"><GradeBook /></TabsContent>
+                <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+                <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
+                <TabsContent value="homework"><HomeworkManagement /></TabsContent>
+                <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
+                <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               </div>
             </Tabs>
           </div>
@@ -85,113 +87,70 @@ const SchoolAdmin = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="flex w-full overflow-x-auto bg-muted">
+            <TabsList className="flex w-full overflow-x-auto bg-muted scrollbar-none">
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.overview')}
+                <BarChart3 className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.overview')}
               </TabsTrigger>
               <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Users className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.students')}
+                <Users className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.students')}
               </TabsTrigger>
               <TabsTrigger value="teachers" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <GraduationCap className="h-4 w-4 mr-2" />
-                Teachers
+                <GraduationCap className="h-4 w-4 mr-2" />Teachers
               </TabsTrigger>
               <TabsTrigger value="subjects" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Library className="h-4 w-4 mr-2" />
-                Subjects
+                <Library className="h-4 w-4 mr-2" />Subjects
               </TabsTrigger>
               <TabsTrigger value="sections" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <FolderTree className="h-4 w-4 mr-2" />
-                Sections
+                <FolderTree className="h-4 w-4 mr-2" />Sections
               </TabsTrigger>
               <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <FileCheck className="h-4 w-4 mr-2" />
-                Assessments
+                <FileCheck className="h-4 w-4 mr-2" />Assessments
               </TabsTrigger>
               <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <ClipboardList className="h-4 w-4 mr-2" />
-                Grade Book
+                <ClipboardList className="h-4 w-4 mr-2" />Grade Book
               </TabsTrigger>
               <TabsTrigger value="at-risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                At-Risk
+                <AlertTriangle className="h-4 w-4 mr-2" />At-Risk
               </TabsTrigger>
               <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <BookOpen className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.curriculum')}
+                <BookOpen className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.curriculum')}
               </TabsTrigger>
               <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Brain className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.studentAnalysis')}
+                <Brain className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.studentAnalysis')}
               </TabsTrigger>
               <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <FileText className="h-4 w-4 mr-2" />
-                Lesson Plans
+                <FileText className="h-4 w-4 mr-2" />Lesson Plans
               </TabsTrigger>
               <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <ListChecks className="h-4 w-4 mr-2" />
-                Homework
+                <ListChecks className="h-4 w-4 mr-2" />Homework
+              </TabsTrigger>
+              <TabsTrigger value="question-bank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <Database className="h-4 w-4 mr-2" />Question Bank
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <MessageCircle className="h-4 w-4 mr-2" />Messages
               </TabsTrigger>
               <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <CreditCard className="h-4 w-4 mr-2" />
-                {t('schoolAdmin.tabs.billing')}
+                <CreditCard className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.billing')}
               </TabsTrigger>
             </TabsList>
 
             <div className="mt-6">
-              <TabsContent value="overview" className="space-y-6">
-                <SchoolOverview />
-              </TabsContent>
-
-              <TabsContent value="students" className="space-y-6">
-                <StudentManagement />
-              </TabsContent>
-
-              <TabsContent value="teachers" className="space-y-6">
-                <TeacherManagement />
-              </TabsContent>
-
-              <TabsContent value="subjects" className="space-y-6">
-                <SubjectManagement />
-              </TabsContent>
-
-              <TabsContent value="sections" className="space-y-6">
-                <SectionManagement />
-              </TabsContent>
-
-              <TabsContent value="gradebook" className="space-y-6">
-                <GradeBook />
-              </TabsContent>
-
-              <TabsContent value="at-risk" className="space-y-6">
-                <AtRiskAlerts />
-              </TabsContent>
-
-              <TabsContent value="assessments" className="space-y-6">
-                <AssessmentManagement />
-              </TabsContent>
-
-              <TabsContent value="curriculum" className="space-y-6">
-                <CurriculumManagement />
-              </TabsContent>
-
-              <TabsContent value="student-analytics" className="space-y-6">
-                <StudentAnalyticsView />
-              </TabsContent>
-
-              <TabsContent value="lesson-plans" className="space-y-6">
-                <TeacherLessonPlanGenerator />
-              </TabsContent>
-
-              <TabsContent value="homework" className="space-y-6">
-                <HomeworkManagement />
-              </TabsContent>
-
-              <TabsContent value="billing" className="space-y-6">
-                <PaymentManagement />
-              </TabsContent>
+              <TabsContent value="overview"><SchoolOverview /></TabsContent>
+              <TabsContent value="students"><StudentManagement /></TabsContent>
+              <TabsContent value="teachers"><TeacherManagement /></TabsContent>
+              <TabsContent value="subjects"><SubjectManagement /></TabsContent>
+              <TabsContent value="sections"><SectionManagement /></TabsContent>
+              <TabsContent value="gradebook"><GradeBook /></TabsContent>
+              <TabsContent value="at-risk"><AtRiskAlerts /></TabsContent>
+              <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+              <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
+              <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
+              <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
+              <TabsContent value="homework"><HomeworkManagement /></TabsContent>
+              <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
+              <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
+              <TabsContent value="billing"><PaymentManagement /></TabsContent>
             </div>
           </Tabs>
         </div>
