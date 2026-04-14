@@ -74,6 +74,7 @@ function App() {
                   <Route path="/math-solver" element={<MathSolver />} />
                   <Route path="/quiz-generator" element={<QuizGenerator />} />
                   <Route path="/demo" element={<Demo />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
 
                   <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />
