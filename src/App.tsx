@@ -35,6 +35,7 @@ import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import Demo from './pages/Demo';
+import Leaderboard from './pages/Leaderboard';
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ function App() {
                   <Route path="/math-solver" element={<MathSolver />} />
                   <Route path="/quiz-generator" element={<QuizGenerator />} />
                   <Route path="/demo" element={<Demo />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
 
                   <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />

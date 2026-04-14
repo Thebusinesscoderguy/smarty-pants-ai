@@ -2222,8 +2222,55 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_active_date: string | null
+          longest_streak: number
+          total_active_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          total_active_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          total_active_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
+      student_leaderboard: {
+        Row: {
+          avatar_url: string | null
+          current_streak: number | null
+          display_name: string | null
+          longest_streak: number | null
+          quest_xp: number | null
+          quiz_xp: number | null
+          total_active_days: number | null
+          total_xp: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       user_quest_progress_detailed: {
         Row: {
           completed: boolean | null
@@ -2298,6 +2345,25 @@ export type Database = {
       update_student_monitoring_snapshot: {
         Args: { user_id: string }
         Returns: undefined
+      }
+      update_user_streak: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_active_date: string | null
+          longest_streak: number
+          total_active_days: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_streaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
