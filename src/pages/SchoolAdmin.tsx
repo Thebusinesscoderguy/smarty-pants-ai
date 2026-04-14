@@ -126,6 +126,14 @@ const SchoolAdmin = () => {
                 <Brain className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.studentAnalysis')}
               </TabsTrigger>
+              <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <FileText className="h-4 w-4 mr-2" />
+                Lesson Plans
+              </TabsTrigger>
+              <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <ListChecks className="h-4 w-4 mr-2" />
+                Homework
+              </TabsTrigger>
               <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <CreditCard className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.billing')}
