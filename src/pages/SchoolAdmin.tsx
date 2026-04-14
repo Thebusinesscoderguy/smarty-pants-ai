@@ -12,7 +12,9 @@ import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
 import { SubjectManagement } from '@/components/admin/SubjectManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap } from 'lucide-react';
+import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlanGenerator';
+import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +42,12 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
+                <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <FileText className="h-4 w-4 mr-2" />Lesson Plans
+                </TabsTrigger>
+                <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <ListChecks className="h-4 w-4 mr-2" />Homework
+                </TabsTrigger>
               </TabsList>
               <div className="mt-6">
                 <TabsContent value="gradebook" className="space-y-6">
@@ -47,6 +55,12 @@ const SchoolAdmin = () => {
                 </TabsContent>
                 <TabsContent value="assessments" className="space-y-6">
                   <AssessmentManagement />
+                </TabsContent>
+                <TabsContent value="lesson-plans" className="space-y-6">
+                  <TeacherLessonPlanGenerator />
+                </TabsContent>
+                <TabsContent value="homework" className="space-y-6">
+                  <HomeworkManagement />
                 </TabsContent>
               </div>
             </Tabs>
@@ -112,6 +126,14 @@ const SchoolAdmin = () => {
                 <Brain className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.studentAnalysis')}
               </TabsTrigger>
+              <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <FileText className="h-4 w-4 mr-2" />
+                Lesson Plans
+              </TabsTrigger>
+              <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <ListChecks className="h-4 w-4 mr-2" />
+                Homework
+              </TabsTrigger>
               <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <CreditCard className="h-4 w-4 mr-2" />
                 {t('schoolAdmin.tabs.billing')}
@@ -157,6 +179,14 @@ const SchoolAdmin = () => {
 
               <TabsContent value="student-analytics" className="space-y-6">
                 <StudentAnalyticsView />
+              </TabsContent>
+
+              <TabsContent value="lesson-plans" className="space-y-6">
+                <TeacherLessonPlanGenerator />
+              </TabsContent>
+
+              <TabsContent value="homework" className="space-y-6">
+                <HomeworkManagement />
               </TabsContent>
 
               <TabsContent value="billing" className="space-y-6">
