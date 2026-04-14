@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { HomeworkList } from '@/components/student/HomeworkList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -202,6 +203,11 @@ export const StudentDashboard = () => {
             </CardContent>
           </Card>
 
+        </div>
+
+        {/* Homework */}
+        <div className="mt-8">
+          <HomeworkList />
         </div>
 
         {/* Active Quests */}
