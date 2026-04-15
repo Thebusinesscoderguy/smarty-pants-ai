@@ -420,10 +420,10 @@ Please generate 5 questions that test understanding of this topic.`;
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as 'file' | 'chat' | 'topic')}>
-            <TabsList className="flex w-full overflow-x-auto scrollbar-hide">
-              <TabsTrigger value="file" className="whitespace-nowrap flex-shrink-0">{t('studyPlan.uploadMaterial')}</TabsTrigger>
-              <TabsTrigger value="chat" className="whitespace-nowrap flex-shrink-0">{t('studyPlan.describeIssues')}</TabsTrigger>
-              <TabsTrigger value="topic" className="whitespace-nowrap flex-shrink-0">{t('studyPlan.selectTopic')}</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="file">{t('studyPlan.uploadMaterial')}</TabsTrigger>
+              <TabsTrigger value="chat">{t('studyPlan.describeIssues')}</TabsTrigger>
+              <TabsTrigger value="topic">{t('studyPlan.selectTopic')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="file" className="space-y-4">
