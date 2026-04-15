@@ -202,11 +202,8 @@ const QuestsAchievements = () => {
           {/* Navigation */}
           {renderNavigation()}
 
-          {/* Streak & Progress */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StreakDisplay />
-            <ShareableProgressCard />
-          </div>
+
+
 
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
