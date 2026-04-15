@@ -6,10 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Gift, Copy, Users, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 export const ReferralProgram = () => {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
+  const isRTL = language === 'ar';
   const [referralCode, setReferralCode] = useState('');
   const [referrals, setReferrals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +46,7 @@ export const ReferralProgram = () => {
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
-    toast.success('Referral link copied!');
+    toast.success(t('referral.copied'));
   };
 
   const completedCount = referrals.filter(r => r.status === 'completed' || r.status === 'rewarded').length;
@@ -51,20 +54,20 @@ export const ReferralProgram = () => {
   if (loading) return null;
 
   return (
-    <Card className="border-primary/20 rounded-2xl hover:shadow-lg transition-all duration-300">
+    <Card className="border-primary/20 rounded-2xl hover:shadow-lg transition-all duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Gift className="h-5 w-5 text-primary" />
-          Referral Program
+          {t('referral.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Invite friends to Teachly! When they sign up, both of you get bonus features.
+          {t('referral.description')}
         </p>
 
         <div className="flex gap-2">
-          <Input value={referralLink} readOnly className="text-xs" />
+          <Input value={referralLink} readOnly className="text-xs" dir="ltr" />
           <Button onClick={copyLink} size="sm" variant="outline">
             <Copy className="h-4 w-4" />
           </Button>
@@ -73,22 +76,22 @@ export const ReferralProgram = () => {
         <div className="flex gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">{referrals.length}</div>
-            <div className="text-xs text-muted-foreground">Invited</div>
+            <div className="text-xs text-muted-foreground">{t('referral.invited')}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-500">{completedCount}</div>
-            <div className="text-xs text-muted-foreground">Joined</div>
+            <div className="text-xs text-muted-foreground">{t('referral.joined')}</div>
           </div>
         </div>
 
         {referrals.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Recent Referrals</h4>
+            <h4 className="text-sm font-medium">{t('referral.recentReferrals')}</h4>
             {referrals.slice(0, 5).map(ref => (
               <div key={ref.id} className="flex items-center justify-between text-sm py-1">
-                <span className="text-muted-foreground">{ref.referred_email}</span>
+                <span className="text-muted-foreground" dir="ltr">{ref.referred_email}</span>
                 <Badge variant={ref.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                  {ref.status === 'completed' ? <><CheckCircle className="h-3 w-3 mr-1" />Joined</> : 'Pending'}
+                  {ref.status === 'completed' ? <><CheckCircle className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />{t('referral.joined')}</> : t('referral.pending')}
                 </Badge>
               </div>
             ))}

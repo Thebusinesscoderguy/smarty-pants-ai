@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudyBuddyModeProps {
   enabled: boolean;
@@ -11,6 +12,8 @@ interface StudyBuddyModeProps {
 }
 
 export const StudyBuddyMode = ({ enabled, onToggle }: StudyBuddyModeProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${
       enabled 
@@ -19,7 +22,7 @@ export const StudyBuddyMode = ({ enabled, onToggle }: StudyBuddyModeProps) => {
     }`}>
       <Brain className={`h-4 w-4 transition-colors ${enabled ? 'text-primary' : 'text-muted-foreground'}`} />
       <Label htmlFor="study-buddy" className="text-xs font-medium cursor-pointer">
-        Study Buddy
+        {t('studyBuddy.label')}
       </Label>
       <Switch
         id="study-buddy"
