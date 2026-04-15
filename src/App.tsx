@@ -33,6 +33,7 @@ import QuestsAchievements from './pages/QuestsAchievements';
 import AIGenerateQuest from './pages/AIGenerateQuest';
 import MadeByMe from './pages/MadeByMe';
 import Monitoring from './pages/Monitoring';
+import News from './pages/News';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -82,6 +83,7 @@ function App() {
 
                     <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />
                     <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
+                    <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

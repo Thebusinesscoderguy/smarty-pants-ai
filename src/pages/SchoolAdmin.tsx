@@ -16,7 +16,8 @@ import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlan
 import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
 import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle } from 'lucide-react';
+import { NewsManagement } from '@/components/admin/NewsManagement';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,6 +57,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <MessageCircle className="h-4 w-4 mr-2" />Messages
                 </TabsTrigger>
+                <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Newspaper className="h-4 w-4 mr-2" />News
+                </TabsTrigger>
               </TabsList>
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
@@ -64,6 +68,7 @@ const SchoolAdmin = () => {
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
                 <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
+                <TabsContent value="news"><NewsManagement /></TabsContent>
               </div>
             </Tabs>
           </div>
@@ -130,6 +135,9 @@ const SchoolAdmin = () => {
               <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <MessageCircle className="h-4 w-4 mr-2" />Messages
               </TabsTrigger>
+              <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <Newspaper className="h-4 w-4 mr-2" />News
+              </TabsTrigger>
               <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <CreditCard className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.billing')}
               </TabsTrigger>
@@ -150,6 +158,7 @@ const SchoolAdmin = () => {
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
               <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
+              <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
             </div>
           </Tabs>
