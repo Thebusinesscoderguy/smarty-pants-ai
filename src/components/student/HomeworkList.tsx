@@ -87,37 +87,37 @@ export const HomeworkList = () => {
   if (homework.length === 0) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30 backdrop-blur-sm">
+    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 rounded-2xl hover:shadow-lg transition-all duration-300">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <ClipboardCheck className="h-5 w-5 text-amber-400" />
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <ClipboardCheck className="h-5 w-5 text-primary" />
           Pending Homework
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {homework.map(hw => (
-          <div key={hw.id} className="p-4 rounded-lg bg-white/5 border border-white/10">
+          <div key={hw.id} className="p-4 rounded-xl bg-muted/50 border border-border transition-all duration-200 hover:border-primary/30">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h4 className="font-semibold text-white">{hw.title}</h4>
-                {hw.description && <p className="text-sm text-white/60 mt-1">{hw.description}</p>}
+                <h4 className="font-semibold text-foreground">{hw.title}</h4>
+                {hw.description && <p className="text-sm text-muted-foreground mt-1">{hw.description}</p>}
               </div>
               <div className="flex gap-2">
-                <Badge variant="outline" className="border-amber-500/30 text-amber-400">{hw.assignment_type}</Badge>
+                <Badge variant="outline" className="border-primary/30 text-primary">{hw.assignment_type}</Badge>
                 {hw.submission?.status === 'submitted' && (
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">
                     <CheckCircle className="h-3 w-3 mr-1" />Submitted
                   </Badge>
                 )}
                 {hw.submission?.status === 'graded' && (
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                  <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30">
                     Score: {hw.submission.score}
                   </Badge>
                 )}
               </div>
             </div>
             {hw.due_date && (
-              <p className={`text-xs flex items-center gap-1 mb-3 ${isOverdue(hw.due_date) ? 'text-red-400' : 'text-white/50'}`}>
+              <p className={`text-xs flex items-center gap-1 mb-3 ${isOverdue(hw.due_date) ? 'text-destructive' : 'text-muted-foreground'}`}>
                 <Clock className="h-3 w-3" />
                 Due: {new Date(hw.due_date).toLocaleDateString()} {isOverdue(hw.due_date) && '(Overdue)'}
               </p>
@@ -126,7 +126,7 @@ export const HomeworkList = () => {
               <div className="space-y-2">
                 <Textarea
                   placeholder="Type your answer here..."
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                   value={responses[hw.id] || ''}
                   onChange={e => setResponses(prev => ({ ...prev, [hw.id]: e.target.value }))}
                 />
@@ -139,8 +139,8 @@ export const HomeworkList = () => {
                 </Button>
               </div>
             ) : hw.submission.feedback ? (
-              <p className="text-sm text-white/70 mt-2 p-2 bg-white/5 rounded">
-                <strong>Feedback:</strong> {hw.submission.feedback}
+              <p className="text-sm text-muted-foreground mt-2 p-2 bg-muted/50 rounded-lg">
+                <strong className="text-foreground">Feedback:</strong> {hw.submission.feedback}
               </p>
             ) : null}
           </div>

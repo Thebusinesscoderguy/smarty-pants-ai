@@ -51,7 +51,7 @@ export const ReferralProgram = () => {
   if (loading) return null;
 
   return (
-    <Card className="border-primary/20">
+    <Card className="border-primary/20 rounded-2xl hover:shadow-lg transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Gift className="h-5 w-5 text-primary" />
