@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Send, User, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 export const ParentTeacherMessaging = () => {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
+  const isRTL = language === 'ar';
   const [threads, setThreads] = useState<any[]>([]);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -46,7 +48,6 @@ export const ParentTeacherMessaging = () => {
     
     setMessages(data || []);
 
-    // Mark unread as read
     if (data?.length) {
       await supabase
         .from('parent_teacher_messages')
@@ -67,7 +68,7 @@ export const ParentTeacherMessaging = () => {
     });
 
     if (error) {
-      toast.error('Failed to send message');
+      toast.error(t('messaging.sendFailed'));
       return;
     }
 
@@ -81,39 +82,38 @@ export const ParentTeacherMessaging = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       <h2 className="text-2xl font-bold flex items-center gap-2">
         <MessageCircle className="h-6 w-6 text-primary" />
-        Messages
+        {t('messaging.title')}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[500px]">
-        {/* Thread list */}
         <Card className="md:col-span-1 rounded-2xl">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Conversations</CardTitle>
+            <CardTitle className="text-sm">{t('messaging.conversations')}</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
             <ScrollArea className="h-[420px]">
               {threads.length === 0 ? (
-                <p className="text-sm text-muted-foreground p-4 text-center">No conversations yet</p>
+                <p className="text-sm text-muted-foreground p-4 text-center">{t('messaging.noConversations')}</p>
               ) : (
                 threads.map(thread => (
                   <button
                     key={thread.id}
                     onClick={() => setSelectedThread(thread.id)}
-                    className={`w-full text-left p-3 rounded-lg mb-1 transition-all duration-200 ${
+                    className={`w-full text-${isRTL ? 'right' : 'left'} p-3 rounded-lg mb-1 transition-all duration-200 ${
                       selectedThread === thread.id ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium truncate">Thread</span>
+                      <span className="text-sm font-medium truncate">{t('messaging.thread')}</span>
                     </div>
                     <div className="flex items-center gap-1 mt-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">
-                        {new Date(thread.last_message_at).toLocaleDateString()}
+                        {new Date(thread.last_message_at).toLocaleDateString(isRTL ? 'ar-SA' : undefined)}
                       </span>
                     </div>
                   </button>
@@ -123,7 +123,6 @@ export const ParentTeacherMessaging = () => {
           </CardContent>
         </Card>
 
-        {/* Messages */}
         <Card className="md:col-span-2 rounded-2xl">
           <CardContent className="p-4 flex flex-col h-full">
             {selectedThread ? (
@@ -133,7 +132,7 @@ export const ParentTeacherMessaging = () => {
                     {messages.map(msg => (
                       <div
                         key={msg.id}
-                        className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${msg.sender_id === user?.id ? (isRTL ? 'justify-start' : 'justify-end') : (isRTL ? 'justify-end' : 'justify-start')}`}
                       >
                         <div className={`max-w-[70%] p-3 rounded-2xl text-sm ${
                           msg.sender_id === user?.id
@@ -142,7 +141,7 @@ export const ParentTeacherMessaging = () => {
                         }`}>
                           {msg.message}
                           <div className="text-[10px] opacity-60 mt-1">
-                            {new Date(msg.created_at).toLocaleTimeString()}
+                            {new Date(msg.created_at).toLocaleTimeString(isRTL ? 'ar-SA' : undefined)}
                           </div>
                         </div>
                       </div>
@@ -153,17 +152,18 @@ export const ParentTeacherMessaging = () => {
                   <Input
                     value={newMessage}
                     onChange={e => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder={t('messaging.typePlaceholder')}
                     onKeyDown={e => e.key === 'Enter' && sendMessage()}
+                    dir={isRTL ? 'rtl' : 'ltr'}
                   />
                   <Button onClick={sendMessage} size="sm">
-                    <Send className="h-4 w-4" />
+                    <Send className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
                   </Button>
                 </div>
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                Select a conversation to start messaging
+                {t('messaging.selectConversation')}
               </div>
             )}
           </CardContent>

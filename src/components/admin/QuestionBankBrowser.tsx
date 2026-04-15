@@ -7,10 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Plus, Database, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 export const QuestionBankBrowser = () => {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
+  const isRTL = language === 'ar';
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -64,7 +67,7 @@ export const QuestionBankBrowser = () => {
         });
       }
 
-      toast.success(`Added ${generatedQuestions.length} questions to the bank`);
+      toast.success(t('questionBank.added').replace('{count}', String(generatedQuestions.length)));
       fetchQuestions();
     } catch (error: any) {
       toast.error('Failed to generate questions: ' + (error.message || 'Unknown error'));
@@ -85,48 +88,48 @@ export const QuestionBankBrowser = () => {
   const subjects = [...new Set(questions.map(q => q.subject))];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Database className="h-6 w-6 text-primary" />
-            Question Bank
+            {t('questionBank.title')}
           </h2>
-          <p className="text-muted-foreground">{questions.length} questions available</p>
+          <p className="text-muted-foreground">{questions.length} {t('questionBank.questionsAvailable')}</p>
         </div>
         <Button onClick={generateQuestions} disabled={generating}>
-          {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-          {generating ? 'Generating...' : 'Generate Questions'}
+          {generating ? <Loader2 className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'} animate-spin`} /> : <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />}
+          {generating ? t('questionBank.generating') : t('questionBank.generateQuestions')}
         </Button>
       </div>
 
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
           <Input
-            placeholder="Search questions..."
+            placeholder={t('questionBank.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-10"
+            className={isRTL ? 'pr-10' : 'pl-10'}
           />
         </div>
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Difficulty" />
+            <SelectValue placeholder={t('questionBank.allLevels')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
-            <SelectItem value="easy">Easy</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="hard">Hard</SelectItem>
+            <SelectItem value="all">{t('questionBank.allLevels')}</SelectItem>
+            <SelectItem value="easy">{t('quizGenerator.easy')}</SelectItem>
+            <SelectItem value="medium">{t('quizGenerator.medium')}</SelectItem>
+            <SelectItem value="hard">{t('quizGenerator.hard')}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={subjectFilter} onValueChange={setSubjectFilter}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Subject" />
+            <SelectValue placeholder={t('questionBank.allSubjects')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Subjects</SelectItem>
+            <SelectItem value="all">{t('questionBank.allSubjects')}</SelectItem>
             {subjects.map(s => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
@@ -135,12 +138,12 @@ export const QuestionBankBrowser = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading questions...</div>
+        <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div>
       ) : filtered.length === 0 ? (
-        <Card>
+        <Card className="rounded-2xl">
           <CardContent className="py-12 text-center text-muted-foreground">
             <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No questions found. Generate some to get started!</p>
+            <p>{t('questionBank.noQuestions')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -152,7 +155,7 @@ export const QuestionBankBrowser = () => {
                   <div className="flex-1">
                     <p className="font-medium">{q.question_text}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Answer: <span className="text-foreground">{q.answer}</span>
+                      {t('questionBank.answer')}: <span className="text-foreground">{q.answer}</span>
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">

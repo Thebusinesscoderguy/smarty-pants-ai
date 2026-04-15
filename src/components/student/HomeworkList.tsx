@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ClipboardCheck, Clock, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 
 interface HomeworkItem {
@@ -24,6 +25,8 @@ interface HomeworkItem {
 
 export const HomeworkList = () => {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
+  const isRTL = language === 'ar';
   const [homework, setHomework] = useState<HomeworkItem[]>([]);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -73,10 +76,10 @@ export const HomeworkList = () => {
         response_data: { text: responses[assignmentId] || '' },
       }, { onConflict: 'assignment_id,student_id' });
       if (error) throw error;
-      toast({ title: 'Submitted!', description: 'Your homework has been submitted.' });
+      toast({ title: t('homework.success'), description: t('homework.successDesc') });
       fetchHomework();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      toast({ title: t('common.error'), description: err.message, variant: 'destructive' });
     } finally {
       setSubmitting(null);
     }
@@ -87,11 +90,11 @@ export const HomeworkList = () => {
   if (homework.length === 0) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 rounded-2xl hover:shadow-lg transition-all duration-300">
+    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 rounded-2xl hover:shadow-lg transition-all duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
       <CardHeader>
         <CardTitle className="text-foreground flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5 text-primary" />
-          Pending Homework
+          {t('homework.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -102,16 +105,16 @@ export const HomeworkList = () => {
                 <h4 className="font-semibold text-foreground">{hw.title}</h4>
                 {hw.description && <p className="text-sm text-muted-foreground mt-1">{hw.description}</p>}
               </div>
-              <div className="flex gap-2">
+              <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Badge variant="outline" className="border-primary/30 text-primary">{hw.assignment_type}</Badge>
                 {hw.submission?.status === 'submitted' && (
                   <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">
-                    <CheckCircle className="h-3 w-3 mr-1" />Submitted
+                    <CheckCircle className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />{t('homework.submitted')}
                   </Badge>
                 )}
                 {hw.submission?.status === 'graded' && (
                   <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30">
-                    Score: {hw.submission.score}
+                    {t('homework.graded')}: {hw.submission.score}
                   </Badge>
                 )}
               </div>
@@ -119,28 +122,29 @@ export const HomeworkList = () => {
             {hw.due_date && (
               <p className={`text-xs flex items-center gap-1 mb-3 ${isOverdue(hw.due_date) ? 'text-destructive' : 'text-muted-foreground'}`}>
                 <Clock className="h-3 w-3" />
-                Due: {new Date(hw.due_date).toLocaleDateString()} {isOverdue(hw.due_date) && '(Overdue)'}
+                {t('homework.due')}: {new Date(hw.due_date).toLocaleDateString(isRTL ? 'ar-SA' : undefined)} {isOverdue(hw.due_date) && `(${t('homework.overdue')})`}
               </p>
             )}
             {!hw.submission || hw.submission.status === 'pending' ? (
               <div className="space-y-2">
                 <Textarea
-                  placeholder="Type your answer here..."
+                  placeholder={t('homework.placeholder')}
                   className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                   value={responses[hw.id] || ''}
                   onChange={e => setResponses(prev => ({ ...prev, [hw.id]: e.target.value }))}
+                  dir={isRTL ? 'rtl' : 'ltr'}
                 />
                 <Button
                   size="sm"
                   onClick={() => handleSubmit(hw.id)}
                   disabled={submitting === hw.id}
                 >
-                  {submitting === hw.id ? 'Submitting...' : 'Submit'}
+                  {submitting === hw.id ? t('homework.submitting') : t('homework.submit')}
                 </Button>
               </div>
             ) : hw.submission.feedback ? (
               <p className="text-sm text-muted-foreground mt-2 p-2 bg-muted/50 rounded-lg">
-                <strong className="text-foreground">Feedback:</strong> {hw.submission.feedback}
+                <strong className="text-foreground">{t('homework.feedback')}:</strong> {hw.submission.feedback}
               </p>
             ) : null}
           </div>
