@@ -36,7 +36,7 @@ export const ChatSidebar = ({
   isDemoMode = false
 }: ChatSidebarProps) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   useEffect(() => {
@@ -146,14 +146,16 @@ export const ChatSidebar = ({
     }
   };
 
+  const isRTL = language === 'ar';
+
   return (
-    <div className="w-full md:w-80 bg-card border-r border-border p-4 space-y-4 h-full flex flex-col">
+    <div className={`w-full md:w-80 bg-card ${isRTL ? 'border-l' : 'border-r'} border-border p-4 space-y-4 h-full flex flex-col`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex-shrink-0">
         <Button
           onClick={onNewChat}
           className="w-full bg-primary hover:bg-primary/90 h-11 text-sm font-medium"
         >
-          <MessageSquarePlus className="h-4 w-4 mr-2 flex-shrink-0" />
+          <MessageSquarePlus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'} flex-shrink-0`} />
           <span className="truncate">{t('chat.newChat')}</span>
         </Button>
       </div>
@@ -162,7 +164,7 @@ export const ChatSidebar = ({
 
       {/* Previous Chats */}
       <div className="flex-1 min-h-0">
-        <h3 className="text-sm font-medium text-gray-300 mb-3 px-1">{t('chat.previousChats')}</h3>
+        <h3 className={`text-sm font-medium text-gray-300 mb-3 px-1 ${isRTL ? 'text-right' : ''}`}>{t('chat.previousChats')}</h3>
         <div className="space-y-2 h-full overflow-y-auto custom-scrollbar">
           {chatSessions.map((session) => (
             <div
