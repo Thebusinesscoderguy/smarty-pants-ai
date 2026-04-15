@@ -146,7 +146,7 @@ export const QuestionBankBrowser = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map(q => (
-            <Card key={q.id} className="hover:border-primary/30 transition-colors">
+            <Card key={q.id} className="rounded-2xl hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">

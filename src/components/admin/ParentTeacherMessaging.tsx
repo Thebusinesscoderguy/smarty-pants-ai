@@ -89,7 +89,7 @@ export const ParentTeacherMessaging = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[500px]">
         {/* Thread list */}
-        <Card className="md:col-span-1">
+        <Card className="md:col-span-1 rounded-2xl">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Conversations</CardTitle>
           </CardHeader>
@@ -102,7 +102,7 @@ export const ParentTeacherMessaging = () => {
                   <button
                     key={thread.id}
                     onClick={() => setSelectedThread(thread.id)}
-                    className={`w-full text-left p-3 rounded-lg mb-1 transition-colors ${
+                    className={`w-full text-left p-3 rounded-lg mb-1 transition-all duration-200 ${
                       selectedThread === thread.id ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted'
                     }`}
                   >
@@ -124,7 +124,7 @@ export const ParentTeacherMessaging = () => {
         </Card>
 
         {/* Messages */}
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 rounded-2xl">
           <CardContent className="p-4 flex flex-col h-full">
             {selectedThread ? (
               <>

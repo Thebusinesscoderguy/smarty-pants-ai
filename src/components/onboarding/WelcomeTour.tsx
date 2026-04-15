@@ -27,6 +27,45 @@ const tourSteps: Step[] = [
   },
 ];
 
+const joyrideStyles = {
+  options: {
+    primaryColor: 'hsl(24, 95%, 53%)',
+    zIndex: 10000,
+    arrowColor: 'hsl(var(--card))',
+    backgroundColor: 'hsl(var(--card))',
+    textColor: 'hsl(var(--foreground))',
+  },
+  tooltip: {
+    borderRadius: '1rem',
+    padding: '1.25rem',
+    boxShadow: '0 10px 30px -10px rgba(0,0,0,0.15)',
+  },
+  tooltipContent: {
+    fontSize: '0.925rem',
+    lineHeight: '1.5',
+  },
+  buttonNext: {
+    borderRadius: '0.75rem',
+    padding: '0.5rem 1.25rem',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    backgroundColor: 'hsl(24, 95%, 53%)',
+  },
+  buttonBack: {
+    borderRadius: '0.75rem',
+    padding: '0.5rem 1.25rem',
+    fontSize: '0.875rem',
+    color: 'hsl(var(--muted-foreground))',
+  },
+  buttonSkip: {
+    fontSize: '0.8rem',
+    color: 'hsl(var(--muted-foreground))',
+  },
+  spotlight: {
+    // styled via CSS overlay
+  },
+};
+
 export const WelcomeTour = () => {
   const { user } = useAuth();
   const [run, setRun] = useState(false);
@@ -63,6 +102,7 @@ export const WelcomeTour = () => {
       run={run}
       continuous
       onEvent={handleEvent}
+      styles={joyrideStyles}
     />
   );
 };

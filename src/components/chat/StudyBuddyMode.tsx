@@ -12,8 +12,12 @@ interface StudyBuddyModeProps {
 
 export const StudyBuddyMode = ({ enabled, onToggle }: StudyBuddyModeProps) => {
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg">
-      <Brain className="h-4 w-4 text-primary" />
+    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+      enabled 
+        ? 'bg-primary/10 border-primary/30' 
+        : 'bg-muted/50 border-border'
+    }`}>
+      <Brain className={`h-4 w-4 transition-colors ${enabled ? 'text-primary' : 'text-muted-foreground'}`} />
       <Label htmlFor="study-buddy" className="text-xs font-medium cursor-pointer">
         Study Buddy
       </Label>
@@ -36,7 +40,6 @@ export const useStudyBuddyContext = () => {
     if (!user) return;
     
     const loadContext = async () => {
-      // Load memory
       const { data: memData } = await supabase
         .from('study_buddy_memory')
         .select('memory_key, memory_value')
@@ -48,7 +51,6 @@ export const useStudyBuddyContext = () => {
         setMemory(mem);
       }
 
-      // Load learning analytics
       const { data: analyticsData } = await supabase
         .from('learning_analytics')
         .select('topic_name, strength_score, total_attempts')

@@ -76,10 +76,10 @@ export const MessageBubble = ({ message, onPlayAudio, onCopyMessage }: MessageBu
                 variant="ghost"
                 onClick={handleELI5}
                 disabled={eli5Loading}
-                className="p-1 h-6 hover:bg-muted text-muted-foreground gap-1"
+                className="p-1 h-6 hover:bg-primary/10 text-primary gap-1 rounded-lg transition-colors"
                 title="Explain Like I'm 5"
               >
-                {eli5Loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
+                {eli5Loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3 text-primary" />}
                 <span className="text-[10px]">{eli5Text ? 'Original' : 'ELI5'}</span>
               </Button>
               <Button
