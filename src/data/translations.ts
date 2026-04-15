@@ -1681,6 +1681,79 @@ export const translations: TranslationData = {
     'schoolAdmin.tabs.analytics': 'Analytics',
     'schoolAdmin.tabs.studentAnalysis': 'Student Analysis',
     'schoolAdmin.tabs.billing': 'Billing',
+
+    // Homework
+    'homework.title': 'Pending Homework',
+    'homework.submit': 'Submit',
+    'homework.submitting': 'Submitting...',
+    'homework.submitted': 'Submitted',
+    'homework.graded': 'Score',
+    'homework.overdue': 'Overdue',
+    'homework.due': 'Due',
+    'homework.placeholder': 'Type your answer here...',
+    'homework.feedback': 'Feedback',
+    'homework.success': 'Submitted!',
+    'homework.successDesc': 'Your homework has been submitted.',
+
+    // Referral Program
+    'referral.title': 'Referral Program',
+    'referral.description': 'Invite friends to Teachly! When they sign up, both of you get bonus features.',
+    'referral.copyLink': 'Copy Link',
+    'referral.copied': 'Referral link copied!',
+    'referral.invited': 'Invited',
+    'referral.joined': 'Joined',
+    'referral.recentReferrals': 'Recent Referrals',
+    'referral.pending': 'Pending',
+
+    // Parent-Teacher Messaging
+    'messaging.title': 'Messages',
+    'messaging.conversations': 'Conversations',
+    'messaging.noConversations': 'No conversations yet',
+    'messaging.selectConversation': 'Select a conversation to start messaging',
+    'messaging.typePlaceholder': 'Type a message...',
+    'messaging.thread': 'Thread',
+    'messaging.sendFailed': 'Failed to send message',
+
+    // Question Bank
+    'questionBank.title': 'Question Bank',
+    'questionBank.questionsAvailable': 'questions available',
+    'questionBank.generateQuestions': 'Generate Questions',
+    'questionBank.generating': 'Generating...',
+    'questionBank.searchPlaceholder': 'Search questions...',
+    'questionBank.allLevels': 'All Levels',
+    'questionBank.allSubjects': 'All Subjects',
+    'questionBank.noQuestions': 'No questions found. Generate some to get started!',
+    'questionBank.answer': 'Answer',
+    'questionBank.added': 'Added {count} questions to the bank',
+
+    // Onboarding Tour
+    'onboarding.welcome': 'Welcome to Teachly! 🎓 Let me show you around the platform.',
+    'onboarding.quizGenerator': 'Generate AI-powered quizzes and study plans here.',
+    'onboarding.chat': 'Chat with your AI tutor for personalized help.',
+    'onboarding.quests': 'Complete quests and earn achievements!',
+
+    // Study Buddy
+    'studyBuddy.label': 'Study Buddy',
+
+    // Progress Display
+    'progress.subjectProgress': 'Subject Progress',
+    'progress.signInToSee': 'Sign in to see your learning progress',
+    'progress.todaysQuests': "Today's Quests",
+    'progress.completed': '✓ Completed',
+    'progress.progressLabel': 'Progress',
+    'progress.noSubjects': 'No subjects assigned yet. Start learning to see your progress!',
+    'progress.noQuests': 'No active quests today. Complete lessons to unlock new challenges!',
+    'progress.topicsMastered': 'topics mastered',
+    'progress.assignedBy': 'Assigned by',
+
+    // ELI5
+    'eli5.label': 'ELI5',
+    'eli5.original': 'Original',
+
+    // Error Boundary
+    'error.somethingWrong': 'Something went wrong',
+    'error.unexpected': 'An unexpected error occurred.',
+    'error.tryAgain': 'Try Again',
     
   },
   es: {
@@ -3263,6 +3336,79 @@ export const translations: TranslationData = {
     'adaptiveQuiz.grades.collegeSenior': 'السنة الجامعية الرابعة',
     'adaptiveQuiz.grades.graduate': 'الدراسات العليا',
     'studyTools.tabs.adaptiveQuiz': 'اختبار تكيفي',
+
+    // Homework
+    'homework.title': 'الواجبات المعلقة',
+    'homework.submit': 'إرسال',
+    'homework.submitting': 'جاري الإرسال...',
+    'homework.submitted': 'تم الإرسال',
+    'homework.graded': 'الدرجة',
+    'homework.overdue': 'متأخر',
+    'homework.due': 'الموعد',
+    'homework.placeholder': 'اكتب إجابتك هنا...',
+    'homework.feedback': 'الملاحظات',
+    'homework.success': 'تم الإرسال!',
+    'homework.successDesc': 'تم إرسال واجبك بنجاح.',
+
+    // Referral Program
+    'referral.title': 'برنامج الإحالة',
+    'referral.description': 'ادعُ أصدقاءك إلى Teachly! عند تسجيلهم، يحصل كلاكما على ميزات إضافية.',
+    'referral.copyLink': 'نسخ الرابط',
+    'referral.copied': 'تم نسخ رابط الإحالة!',
+    'referral.invited': 'تمت الدعوة',
+    'referral.joined': 'انضموا',
+    'referral.recentReferrals': 'الإحالات الأخيرة',
+    'referral.pending': 'معلق',
+
+    // Parent-Teacher Messaging
+    'messaging.title': 'الرسائل',
+    'messaging.conversations': 'المحادثات',
+    'messaging.noConversations': 'لا توجد محادثات بعد',
+    'messaging.selectConversation': 'اختر محادثة لبدء المراسلة',
+    'messaging.typePlaceholder': 'اكتب رسالة...',
+    'messaging.thread': 'المحادثة',
+    'messaging.sendFailed': 'فشل إرسال الرسالة',
+
+    // Question Bank
+    'questionBank.title': 'بنك الأسئلة',
+    'questionBank.questionsAvailable': 'سؤال متاح',
+    'questionBank.generateQuestions': 'إنشاء أسئلة',
+    'questionBank.generating': 'جاري الإنشاء...',
+    'questionBank.searchPlaceholder': 'البحث في الأسئلة...',
+    'questionBank.allLevels': 'جميع المستويات',
+    'questionBank.allSubjects': 'جميع المواد',
+    'questionBank.noQuestions': 'لم يتم العثور على أسئلة. أنشئ بعضها للبدء!',
+    'questionBank.answer': 'الإجابة',
+    'questionBank.added': 'تمت إضافة {count} سؤال إلى البنك',
+
+    // Onboarding Tour
+    'onboarding.welcome': 'مرحباً بك في Teachly! 🎓 دعني أعرفك على المنصة.',
+    'onboarding.quizGenerator': 'أنشئ اختبارات وخطط دراسية مدعومة بالذكاء الاصطناعي هنا.',
+    'onboarding.chat': 'تحدث مع معلمك الذكي للحصول على مساعدة شخصية.',
+    'onboarding.quests': 'أكمل المهام واكسب الإنجازات!',
+
+    // Study Buddy
+    'studyBuddy.label': 'رفيق الدراسة',
+
+    // Progress Display
+    'progress.subjectProgress': 'تقدم المواد',
+    'progress.signInToSee': 'سجل الدخول لمشاهدة تقدمك التعليمي',
+    'progress.todaysQuests': 'مهام اليوم',
+    'progress.completed': '✓ مكتمل',
+    'progress.progressLabel': 'التقدم',
+    'progress.noSubjects': 'لم يتم تعيين مواد بعد. ابدأ التعلم لمشاهدة تقدمك!',
+    'progress.noQuests': 'لا توجد مهام نشطة اليوم. أكمل الدروس لفتح تحديات جديدة!',
+    'progress.topicsMastered': 'مواضيع متقنة',
+    'progress.assignedBy': 'مُعيَّن من',
+
+    // ELI5
+    'eli5.label': 'بسّطها',
+    'eli5.original': 'الأصلي',
+
+    // Error Boundary
+    'error.somethingWrong': 'حدث خطأ ما',
+    'error.unexpected': 'حدث خطأ غير متوقع.',
+    'error.tryAgain': 'حاول مرة أخرى',
   },
   nl: {
     // Navigation
