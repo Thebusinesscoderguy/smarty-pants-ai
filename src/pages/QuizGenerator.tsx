@@ -81,12 +81,12 @@ const QuizGeneratorPage = () => {
 
           <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
             <TabsList className="flex w-full overflow-x-auto bg-muted border border-border scrollbar-hide">
-              <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
-              <TabsTrigger value="presentation">{isArabic ? 'العروض' : 'Presentations'}</TabsTrigger>
-              <TabsTrigger value="adaptive">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
-              <TabsTrigger value="generate">{t('studyTools.tabs.generate')}</TabsTrigger>
-              <TabsTrigger value="quiz-library">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
-              <TabsTrigger value="study-library">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
+              <TabsTrigger value="study-plan" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+              <TabsTrigger value="presentation" className="whitespace-nowrap flex-shrink-0">{isArabic ? 'العروض' : 'Presentations'}</TabsTrigger>
+              <TabsTrigger value="adaptive" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
+              <TabsTrigger value="generate" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.generate')}</TabsTrigger>
+              <TabsTrigger value="quiz-library" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
+              <TabsTrigger value="study-library" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="study-plan" className="mt-6">
