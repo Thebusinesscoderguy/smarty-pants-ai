@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, X } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, X, Newspaper } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -66,6 +66,14 @@ export const Header = () => {
               Teacher Dashboard
             </Link>
           )}
+          <Link
+            to="/news"
+            onClick={() => mobile && setMobileOpen(false)}
+            className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+          >
+            <Newspaper className="w-4 h-4" />
+            News
+          </Link>
           <Link
             to="/leaderboard"
             onClick={() => mobile && setMobileOpen(false)}
