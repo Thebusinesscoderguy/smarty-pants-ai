@@ -80,13 +80,13 @@ const QuizGeneratorPage = () => {
           <p className="text-muted-foreground mb-6">{t('studyTools.subtitle')}</p>
 
           <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
-            <TabsList className="flex w-full overflow-x-auto bg-muted border border-border scrollbar-hide">
-              <TabsTrigger value="study-plan" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
-              <TabsTrigger value="presentation" className="whitespace-nowrap flex-shrink-0">{isArabic ? 'العروض' : 'Presentations'}</TabsTrigger>
-              <TabsTrigger value="adaptive" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
-              <TabsTrigger value="generate" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.generate')}</TabsTrigger>
-              <TabsTrigger value="quiz-library" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
-              <TabsTrigger value="study-library" className="whitespace-nowrap flex-shrink-0">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-muted border border-border h-auto gap-1 p-1">
+              <TabsTrigger value="study-plan" className="text-xs md:text-sm px-2 py-2">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
+              <TabsTrigger value="presentation" className="text-xs md:text-sm px-2 py-2">{isArabic ? 'العروض' : 'Presentations'}</TabsTrigger>
+              <TabsTrigger value="adaptive" className="text-xs md:text-sm px-2 py-2">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
+              <TabsTrigger value="generate" className="text-xs md:text-sm px-2 py-2">{t('studyTools.tabs.generate')}</TabsTrigger>
+              <TabsTrigger value="quiz-library" className="text-xs md:text-sm px-2 py-2">{t('studyTools.tabs.quizLibrary')}</TabsTrigger>
+              <TabsTrigger value="study-library" className="text-xs md:text-sm px-2 py-2">{t('studyTools.tabs.studyLibrary')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="study-plan" className="mt-6">
