@@ -8,7 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ViewingModeProvider } from '@/contexts/ViewingModeContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
+
 import Index from './pages/Index';
 import Chat from './pages/Chat';
 import LearningModule from './pages/LearningModule';
@@ -52,7 +52,7 @@ function App() {
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                  <WelcomeTour />
+                  
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/dashboard" element={<ProtectedRoute><div /></ProtectedRoute>} />
