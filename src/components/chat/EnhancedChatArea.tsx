@@ -22,7 +22,8 @@ interface EnhancedChatAreaProps {
 export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCurriculum }: EnhancedChatAreaProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeCurriculum, setActiveCurriculum] = useState<any>(selectedCurriculum || null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -242,7 +243,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
   const displayMessages = (isDemoMode && !user) ? demoMessages : messages;
   
   return (
-    <div className="flex h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className={`flex h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 ${isRTL ? 'flex-row-reverse' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
         <ChatSidebar
@@ -260,8 +261,8 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
       <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-800/50 to-purple-800/50 backdrop-blur-sm">
         {/* Chat Header */}
         <div className="flex-shrink-0 px-6 py-4 border-b border-white/10 bg-black/20 backdrop-blur-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -274,8 +275,8 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
               {renderNavigation()}
             </div>
             
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">AI</span>
                 </div>
@@ -284,7 +285,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                 </h2>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                 {!isDemoMode && (
                   <Badge variant="outline" className="border-white/30 text-white/80 bg-white/10 text-sm px-3 py-1">
                     {totalTokensUsed.toLocaleString()} tokens used
@@ -310,7 +311,7 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
             />
             {isProcessing && (
               <div className="flex justify-center py-8">
-                <div className="flex items-center space-x-3 text-white/70 bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm">
+                <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'} text-white/70 bg-white/10 px-6 py-3 rounded-2xl backdrop-blur-sm`}>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white/70"></div>
                   <span className="text-lg">AI is thinking...</span>
                 </div>
@@ -324,8 +325,8 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
         <div className="flex-shrink-0 p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl">
           <div className="max-w-5xl mx-auto">
             {selectedFile && (
-              <div className="mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm">
-                <div className="flex items-center space-x-3">
+              <div className={`mb-4 p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between backdrop-blur-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                   <Upload className="h-5 w-5 text-blue-400" />
                   <span className="text-white font-medium">{selectedFile.name}</span>
                   <Badge className="bg-blue-600 text-white">
@@ -348,14 +349,15 @@ export const EnhancedChatArea = ({ isDemoMode = false, demoTimeLeft, selectedCur
                 value={textMessage}
                 onChange={(e) => setTextMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about learning..."
-                className="w-full px-6 py-4 pr-32 bg-white/10 border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg"
+                placeholder={t('chat.askAnything') || 'Ask me anything about learning...'}
+                className={`w-full px-6 py-4 ${isRTL ? 'pl-32' : 'pr-32'} bg-white/10 border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm text-lg ${isRTL ? 'text-right' : ''}`}
+                dir={isRTL ? 'rtl' : 'ltr'}
                 rows={1}
                 style={{ minHeight: '60px', maxHeight: '120px' }}
                 disabled={isDemoMode && demoTimeLeft !== undefined && demoTimeLeft <= 0}
               />
               
-              <div className="absolute right-3 bottom-3 flex items-center space-x-2">
+              <div className={`absolute ${isRTL ? 'left-3' : 'right-3'} bottom-3 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                 <input
                   type="file"
                   ref={fileInputRef}
