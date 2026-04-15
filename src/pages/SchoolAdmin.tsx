@@ -68,7 +68,7 @@ const SchoolAdmin = () => {
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
                 <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
-                <TabsContent value="news"><NewsManagement schoolId="" /></TabsContent>
+                <TabsContent value="news"><NewsManagement /></TabsContent>
               </div>
             </Tabs>
           </div>
@@ -158,7 +158,7 @@ const SchoolAdmin = () => {
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
               <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
-              <TabsContent value="news"><NewsManagement schoolId="" /></TabsContent>
+              <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
             </div>
           </Tabs>
