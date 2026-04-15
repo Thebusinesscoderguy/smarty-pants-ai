@@ -8,41 +8,67 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 
-interface NewsManagementProps {
-  schoolId: string;
-}
-
-export const NewsManagement = ({ schoolId }: NewsManagementProps) => {
+export const NewsManagement = () => {
   const { user } = useAuth();
-  const { posts, loading, createPost, deletePost, togglePin } = useSchoolNews(schoolId);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    const getTeacherId = async () => {
-      // Check if user is a teacher at this school
-      const { data } = await supabase
-        .from('school_teachers')
+    const init = async () => {
+      // Try as school admin first
+      const { data: school } = await supabase
+        .from('school_accounts')
         .select('id')
-        .eq('school_id', schoolId)
-        .ilike('email', user.email || '')
-        .eq('is_active', true)
+        .eq('admin_user_id', user.id)
         .maybeSingle();
-      if (data) setTeacherId(data.id);
-      else {
-        // For admin, use first teacher or create virtual teacher ID
-        const { data: firstTeacher } = await supabase
+
+      let sid = school?.id || null;
+
+      // If not admin, try as teacher
+      if (!sid) {
+        const { data: teacher } = await supabase
           .from('school_teachers')
-          .select('id')
-          .eq('school_id', schoolId)
+          .select('id, school_id')
+          .ilike('email', user.email || '')
           .eq('is_active', true)
-          .limit(1)
           .maybeSingle();
-        if (firstTeacher) setTeacherId(firstTeacher.id);
+        if (teacher) {
+          sid = teacher.school_id;
+          setTeacherId(teacher.id);
+        }
       }
+
+      if (sid) {
+        setSchoolId(sid);
+        // If admin, get a teacher ID to post as
+        if (!teacherId && school) {
+          const { data: firstTeacher } = await supabase
+            .from('school_teachers')
+            .select('id')
+            .eq('school_id', sid)
+            .eq('is_active', true)
+            .limit(1)
+            .maybeSingle();
+          if (firstTeacher) setTeacherId(firstTeacher.id);
+        }
+      }
+      setReady(true);
     };
-    getTeacherId();
-  }, [user, schoolId]);
+    init();
+  }, [user]);
+
+  if (!ready) return <div className="animate-pulse text-muted-foreground">Loading...</div>;
+  if (!schoolId) return (
+    <Card><CardContent className="p-8 text-center text-muted-foreground">No school found for your account.</CardContent></Card>
+  );
+
+  return <NewsManagementInner schoolId={schoolId} teacherId={teacherId} />;
+};
+
+const NewsManagementInner = ({ schoolId, teacherId }: { schoolId: string; teacherId: string | null }) => {
+  const { posts, loading, createPost, deletePost, togglePin } = useSchoolNews(schoolId);
 
   return (
     <div className="space-y-6">
