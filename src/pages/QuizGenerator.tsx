@@ -80,7 +80,7 @@ const QuizGeneratorPage = () => {
           <p className="text-muted-foreground mb-6">{t('studyTools.subtitle')}</p>
 
           <Tabs defaultValue={type === 'quiz' ? 'generate' : 'study-plan'} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-muted border border-border">
+            <TabsList className="flex w-full overflow-x-auto bg-muted border border-border scrollbar-hide">
               <TabsTrigger value="study-plan">{t('studyTools.tabs.studyPlan')}</TabsTrigger>
               <TabsTrigger value="presentation">{isArabic ? 'العروض' : 'Presentations'}</TabsTrigger>
               <TabsTrigger value="adaptive">{t('studyTools.tabs.adaptiveQuiz')}</TabsTrigger>
