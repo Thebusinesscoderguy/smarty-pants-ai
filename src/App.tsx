@@ -14,6 +14,7 @@ import Chat from './pages/Chat';
 import LearningModule from './pages/LearningModule';
 import FamilyHub from './pages/FamilyHub';
 import ParentOnboarding from './components/onboarding/ParentOnboarding';
+import { StudentDashboard } from './components/dashboards/StudentDashboard';
 
 import Progress from './pages/Progress';
 import Auth from './pages/Auth';
@@ -56,7 +57,7 @@ function App() {
                   
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    <Route path="/dashboard" element={<ProtectedRoute><div /></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
                     <Route path="/family-hub" element={<FamilyHub />} />
                     <Route path="/parent-onboarding" element={<ParentOnboarding />} />
                     <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
