@@ -6,7 +6,7 @@ import { Trophy, Flame, Medal, Crown, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { StreakDisplay } from '@/components/gamification/StreakDisplay';
+
 import { Loader2 } from 'lucide-react';
 
 const getRankIcon = (rank: number) => {
@@ -32,15 +32,10 @@ const Leaderboard = () => {
           <p className="text-muted-foreground">Top learners ranked by XP</p>
         </div>
 
-        {user && (
-          <div className="mb-6">
-            <StreakDisplay />
-            {userRank && (
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                Your rank: <span className="font-bold text-foreground">#{userRank}</span>
-              </p>
-            )}
-          </div>
+        {user && userRank && (
+          <p className="text-center text-sm text-muted-foreground mb-6">
+            Your rank: <span className="font-bold text-foreground">#{userRank}</span>
+          </p>
         )}
 
         {loading ? (

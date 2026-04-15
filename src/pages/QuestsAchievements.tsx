@@ -5,8 +5,6 @@ import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, Target, BookOpen, MessageCircle, Plus, List, BarChart3 } from 'lucide-react';
-import { StreakDisplay } from '@/components/gamification/StreakDisplay';
-import { ShareableProgressCard } from '@/components/gamification/ShareableProgressCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -204,11 +202,8 @@ const QuestsAchievements = () => {
           {/* Navigation */}
           {renderNavigation()}
 
-          {/* Streak & Progress */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StreakDisplay />
-            <ShareableProgressCard />
-          </div>
+
+
 
           {/* Page Header - Always consistent */}
           <div className="text-center space-y-4">
