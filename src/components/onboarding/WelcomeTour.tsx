@@ -62,7 +62,7 @@ const joyrideStyles = {
     color: 'hsl(var(--muted-foreground))',
   },
   spotlight: {
-    borderRadius: '1rem',
+    // styled via CSS overlay
   },
 };
 
