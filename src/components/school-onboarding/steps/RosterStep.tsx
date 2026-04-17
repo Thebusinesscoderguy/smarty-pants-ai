@@ -242,7 +242,7 @@ export const RosterStep = ({
                       <td className="p-2">{r.grade_level ? `${r.grade_level} ${r.section || ''}` : '—'}</td>
                       <td className="p-2">
                         {r._valid
-                          ? <Badge variant="outline" className="text-[10px] text-green-600">Valid</Badge>
+                          ? <Badge variant="outline" className="text-[10px]">Valid</Badge>
                           : <Badge variant="destructive" className="text-[10px]">Invalid</Badge>}
                       </td>
                     </tr>
