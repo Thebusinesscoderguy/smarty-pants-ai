@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SpeakButton } from '@/components/voice/SpeakButton';
 import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
+import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
 
 interface DailyLesson {
   day: number;
@@ -142,13 +143,24 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                   {studyPlan.description}
                 </DialogDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button 
                   onClick={() => handleStartDay(1)}
                   className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   Start Plan
                 </Button>
+                <ShareArtifactButton
+                  artifactType="study_plan"
+                  title={studyPlan.title}
+                  content={{
+                    description: studyPlan.description,
+                    daily_lessons: studyPlan.daily_lessons,
+                    estimated_duration: studyPlan.estimated_duration,
+                  }}
+                  sourceId={studyPlan.id}
+                  label="Share plan"
+                />
                 <Button 
                   variant="outline"
                   className="border-orange-500 text-orange-500 hover:bg-orange-50"
