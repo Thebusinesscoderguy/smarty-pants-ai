@@ -130,6 +130,48 @@ export type Database = {
         }
         Relationships: []
       }
+      content_curriculum_tags: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string | null
+          curriculum_unit_id: string
+          id: string
+          school_id: string | null
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          curriculum_unit_id: string
+          id?: string
+          school_id?: string | null
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          curriculum_unit_id?: string
+          id?: string
+          school_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_curriculum_tags_curriculum_unit_id_fkey"
+            columns: ["curriculum_unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_curriculum_tags_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curricula: {
         Row: {
           content: Json
@@ -184,6 +226,88 @@ export type Database = {
           },
         ]
       }
+      curriculum_frameworks: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_custom: boolean | null
+          name_ar: string | null
+          name_en: string
+          region: string
+          school_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_custom?: boolean | null
+          name_ar?: string | null
+          name_en: string
+          region: string
+          school_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_custom?: boolean | null
+          name_ar?: string | null
+          name_en?: string
+          region?: string
+          school_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_frameworks_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_grade_levels: {
+        Row: {
+          created_at: string | null
+          framework_id: string
+          id: string
+          label_ar: string | null
+          label_en: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          framework_id: string
+          id?: string
+          label_ar?: string | null
+          label_en: string
+          sort_order: number
+        }
+        Update: {
+          created_at?: string | null
+          framework_id?: string
+          id?: string
+          label_ar?: string | null
+          label_en?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_grade_levels_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_frameworks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_progress: {
         Row: {
           completed_sections: string[] | null
@@ -219,6 +343,128 @@ export type Database = {
           time_spent_minutes?: number | null
         }
         Relationships: []
+      }
+      curriculum_subjects: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          framework_id: string
+          id: string
+          is_custom: boolean | null
+          name_ar: string | null
+          name_en: string
+          school_id: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          framework_id: string
+          id?: string
+          is_custom?: boolean | null
+          name_ar?: string | null
+          name_en: string
+          school_id?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          framework_id?: string
+          id?: string
+          is_custom?: boolean | null
+          name_ar?: string | null
+          name_en?: string
+          school_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_subjects_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_units: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          framework_id: string
+          grade_level_id: string
+          id: string
+          is_custom: boolean | null
+          school_id: string | null
+          subject_id: string
+          title_ar: string | null
+          title_en: string
+          topics: Json
+          unit_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          framework_id: string
+          grade_level_id: string
+          id?: string
+          is_custom?: boolean | null
+          school_id?: string | null
+          subject_id: string
+          title_ar?: string | null
+          title_en: string
+          topics?: Json
+          unit_number: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          framework_id?: string
+          grade_level_id?: string
+          id?: string
+          is_custom?: boolean | null
+          school_id?: string | null
+          subject_id?: string
+          title_ar?: string | null
+          title_en?: string
+          topics?: Json
+          unit_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_units_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_units_grade_level_id_fkey"
+            columns: ["grade_level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_grade_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_units_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_units_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_challenges: {
         Row: {
@@ -1306,6 +1552,45 @@ export type Database = {
           student_limit?: number
         }
         Relationships: []
+      }
+      school_curriculum_settings: {
+        Row: {
+          created_at: string | null
+          framework_id: string
+          id: string
+          is_primary: boolean | null
+          school_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          framework_id: string
+          id?: string
+          is_primary?: boolean | null
+          school_id: string
+        }
+        Update: {
+          created_at?: string | null
+          framework_id?: string
+          id?: string
+          is_primary?: boolean | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_curriculum_settings_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_curriculum_settings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       school_news: {
         Row: {
@@ -2695,6 +2980,28 @@ export type Database = {
       }
     }
     Views: {
+      school_curriculum_coverage: {
+        Row: {
+          content_count: number | null
+          framework_name: string | null
+          grade_label: string | null
+          school_id: string | null
+          sort_order: number | null
+          subject_name: string | null
+          unit_number: number | null
+          unit_title: string | null
+          unit_title_ar: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_curriculum_settings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_leaderboard: {
         Row: {
           avatar_url: string | null
