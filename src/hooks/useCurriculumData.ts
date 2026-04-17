@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Framework { id: string; code: string; name_en: string; name_ar: string | null; region: string; is_custom: boolean; }
 export interface Subject { id: string; name_en: string; name_ar: string | null; code: string | null; }
 export interface GradeLevel { id: string; label_en: string; label_ar: string | null; sort_order: number; }
-export interface CurriculumUnit { id: string; unit_number: number; title_en: string; title_ar: string | null; description: string | null; topics: { en: string; ar: string }[]; }
+export interface CurriculumUnit { id: string; unit_number: number; title_en: string; title_ar: string | null; description: string | null; topics: { en: string; ar: string }[]; verification_status?: string; confidence_score?: number | null; }
 export interface CurriculumSelection {
   framework: Framework;
   subject: Subject;
@@ -78,7 +78,7 @@ export function useCurriculumData() {
     setSelectedUnitId(null);
     (supabase as any)
       .from("curriculum_units")
-      .select("id,unit_number,title_en,title_ar,description,topics")
+      .select("id,unit_number,title_en,title_ar,description,topics,verification_status,confidence_score")
       .eq("subject_id", selectedSubjectId)
       .eq("grade_level_id", selectedGradeLevelId)
       .order("unit_number")

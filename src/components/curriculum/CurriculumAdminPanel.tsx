@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Check, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { Plus, Trash2, Check, ChevronDown, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface Framework { id: string; code: string; name_en: string; name_ar: string | null; region: string; is_custom: boolean; }
@@ -37,7 +37,29 @@ export function CurriculumAdminPanel({ schoolId }: { schoolId: string }) {
   const [addUnitSubjects, setAddUnitSubjects] = useState<Subject[]>([]);
   const [addUnitGrades, setAddUnitGrades] = useState<GradeLevel[]>([]);
   const [addingUnit, setAddingUnit] = useState(false);
+  const [generatingFor, setGeneratingFor] = useState<string | null>(null);
   const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(new Set());
+
+  async function generateUnitsWithAI(opts: { framework_id?: string; force?: boolean }) {
+    const key = opts.framework_id ?? "all";
+    setGeneratingFor(key);
+    toast.info(ar ? "جارٍ توليد الوحدات بالذكاء الاصطناعي..." : "Generating units with AI (this may take a few minutes)...");
+    try {
+      const { data, error } = await (supabase as any).functions.invoke("backfill-curriculum-units", {
+        body: { framework_id: opts.framework_id, force: opts.force ?? false },
+      });
+      if (error) throw error;
+      toast.success(ar
+        ? `تم إدراج ${data?.inserted ?? 0} وحدة عبر ${data?.processed ?? 0} مادة`
+        : `Inserted ${data?.inserted ?? 0} units across ${data?.processed ?? 0} (framework, grade, subject) combos`);
+      if (data?.errors?.length) console.warn("backfill errors", data.errors);
+      loadData();
+    } catch (e: any) {
+      toast.error(e.message ?? (ar ? "فشل التوليد" : "Generation failed"));
+    } finally {
+      setGeneratingFor(null);
+    }
+  }
 
   useEffect(() => { loadData(); }, [schoolId]);
 
@@ -155,11 +177,22 @@ export function CurriculumAdminPanel({ schoolId }: { schoolId: string }) {
                       <div className="font-medium">{ar && fw.name_ar ? fw.name_ar : fw.name_en}</div>
                       <Badge variant="outline" className="text-xs mt-1">{REGION_LABELS[fw.region]}</Badge>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => removeFramework(fw.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => generateUnitsWithAI({ framework_id: fw.id })} disabled={generatingFor !== null} title={ar ? "توليد الوحدات بالذكاء الاصطناعي" : "Generate units with AI"}>
+                        {generatingFor === fw.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-primary" />}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => removeFramework(fw.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
+                <div className="pt-2 border-t border-border">
+                  <Button size="sm" variant="outline" className="w-full gap-2" onClick={() => generateUnitsWithAI({})} disabled={generatingFor !== null}>
+                    {generatingFor === "all" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {ar ? "توليد جميع الوحدات المفقودة بالذكاء الاصطناعي" : "Backfill all missing units with AI"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}

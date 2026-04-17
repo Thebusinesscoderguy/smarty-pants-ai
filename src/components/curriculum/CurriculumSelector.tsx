@@ -133,11 +133,17 @@ export function CurriculumSelector({ onSelectionChange, className }: Props) {
             {units.length === 0 && !loadingUnits && (
               <div className="px-2 py-3 text-xs text-muted-foreground">{ar ? "لا توجد وحدات" : "No units yet"}</div>
             )}
-            {units.map(u => (
-              <SelectItem key={u.id} value={u.id}>
-                {ar && u.title_ar ? `الوحدة ${u.unit_number}: ${u.title_ar}` : `Unit ${u.unit_number}: ${u.title_en}`}
-              </SelectItem>
-            ))}
+            {units.map(u => {
+              const isAi = u.verification_status === "ai_generated" || u.verification_status === "ai_cross_verified";
+              return (
+                <SelectItem key={u.id} value={u.id}>
+                  <span className="inline-flex items-center gap-2">
+                    {ar && u.title_ar ? `الوحدة ${u.unit_number}: ${u.title_ar}` : `Unit ${u.unit_number}: ${u.title_en}`}
+                    {isAi && <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{ar ? "مولّد بالذكاء" : "AI"}</span>}
+                  </span>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
