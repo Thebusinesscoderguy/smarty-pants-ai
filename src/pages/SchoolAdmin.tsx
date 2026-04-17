@@ -17,14 +17,24 @@ import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
 import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper } from 'lucide-react';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
+import { CurriculumAdminPanel } from '@/components/curriculum/CurriculumAdminPanel';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
-  const { isSchoolAdmin, isTeacher } = useAuth();
+  const { user, isSchoolAdmin, isTeacher } = useAuth();
+  const [schoolId, setSchoolId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user || !isSchoolAdmin) return;
+    supabase.from('school_accounts').select('id').eq('admin_user_id', user.id).maybeSingle()
+      .then(({ data }) => { if (data) setSchoolId(data.id); });
+  }, [user, isSchoolAdmin]);
 
   // Teachers only see Grade Book and Assessments
   if (isTeacher && !isSchoolAdmin) {
@@ -123,6 +133,9 @@ const SchoolAdmin = () => {
               <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <Brain className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.studentAnalysis')}
               </TabsTrigger>
+              <TabsTrigger value="curriculum-align" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                <Globe className="h-4 w-4 mr-2" />Curriculum
+              </TabsTrigger>
               <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                 <FileText className="h-4 w-4 mr-2" />Lesson Plans
               </TabsTrigger>
@@ -154,6 +167,7 @@ const SchoolAdmin = () => {
               <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
               <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
+              <TabsContent value="curriculum-align">{schoolId && <CurriculumAdminPanel schoolId={schoolId} />}</TabsContent>
               <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
               <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>

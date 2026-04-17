@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { CurriculumSelector } from '@/components/curriculum/CurriculumSelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
   const [showSignInDialog, setShowSignInDialog] = useState(false);
+  const [curriculumSelection, setCurriculumSelection] = useState<import('@/hooks/useCurriculumData').CurriculumSelection | null>(null);
 const autoRanRef = useRef(false);
   
   const { t, language } = useLanguage();
@@ -82,10 +84,11 @@ useEffect(() => {
       return;
     }
     let quiz: Quiz | null = null;
+    const ctx = curriculumSelection?.promptContext ? `\n\n${curriculumSelection.promptContext}` : '';
 
       switch (inputMethod) {
         case 'manual':
-          quiz = await generateQuiz(topic, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
+          quiz = await generateQuiz(topic + ctx, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         case 'file':
@@ -147,7 +150,7 @@ useEffect(() => {
             toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorInstructions'), variant: 'destructive' });
             return;
           }
-          quiz = await generateQuiz(customInstructions, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
+          quiz = await generateQuiz(customInstructions + ctx, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         default:
@@ -544,6 +547,8 @@ useEffect(() => {
               </p>
             </div>
           )}
+
+          <CurriculumSelector onSelectionChange={setCurriculumSelection} />
 
           <Button 
             onClick={handleGenerateQuiz} 
