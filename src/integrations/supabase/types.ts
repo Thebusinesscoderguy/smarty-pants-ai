@@ -234,6 +234,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_custom: boolean | null
+          launch_visible: boolean
           name_ar: string | null
           name_en: string
           region: string
@@ -246,6 +247,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_custom?: boolean | null
+          launch_visible?: boolean
           name_ar?: string | null
           name_en: string
           region: string
@@ -258,6 +260,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_custom?: boolean | null
+          launch_visible?: boolean
           name_ar?: string | null
           name_en?: string
           region?: string
@@ -392,48 +395,101 @@ export type Database = {
           },
         ]
       }
+      curriculum_unit_usage: {
+        Row: {
+          content_id: string | null
+          content_type: string
+          curriculum_unit_id: string
+          id: string
+          school_id: string | null
+          used_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          content_type: string
+          curriculum_unit_id: string
+          id?: string
+          school_id?: string | null
+          used_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          content_type?: string
+          curriculum_unit_id?: string
+          id?: string
+          school_id?: string | null
+          used_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_unit_usage_curriculum_unit_id_fkey"
+            columns: ["curriculum_unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_units: {
         Row: {
+          confidence_score: number | null
           created_at: string | null
           description: string | null
           framework_id: string
+          generated_at: string | null
+          generation_model: string | null
           grade_level_id: string
           id: string
           is_custom: boolean | null
           school_id: string | null
+          source_reference: string | null
           subject_id: string
           title_ar: string | null
           title_en: string
           topics: Json
           unit_number: number
+          verification_status: string
         }
         Insert: {
+          confidence_score?: number | null
           created_at?: string | null
           description?: string | null
           framework_id: string
+          generated_at?: string | null
+          generation_model?: string | null
           grade_level_id: string
           id?: string
           is_custom?: boolean | null
           school_id?: string | null
+          source_reference?: string | null
           subject_id: string
           title_ar?: string | null
           title_en: string
           topics?: Json
           unit_number: number
+          verification_status?: string
         }
         Update: {
+          confidence_score?: number | null
           created_at?: string | null
           description?: string | null
           framework_id?: string
+          generated_at?: string | null
+          generation_model?: string | null
           grade_level_id?: string
           id?: string
           is_custom?: boolean | null
           school_id?: string | null
+          source_reference?: string | null
           subject_id?: string
           title_ar?: string | null
           title_en?: string
           topics?: Json
           unit_number?: number
+          verification_status?: string
         }
         Relationships: [
           {
