@@ -14,7 +14,7 @@ import { LiveStep } from '@/components/school-onboarding/steps/LiveStep';
 const STEP_TITLES: Record<typeof STEP_KEYS[number], { title: string; subtitle?: string }> = {
   welcome: { title: 'Get your school live in 15 minutes', subtitle: "We'll walk you through everything step by step." },
   framework: { title: 'Pick your curriculum', subtitle: 'This shapes the AI-generated content for your students.' },
-  roster: { title: 'Import your students', subtitle: 'Upload a CSV and we'll send invitations automatically.' },
+  roster: { title: 'Import your students', subtitle: "Upload a CSV and we'll send invitations automatically." },
   teachers: { title: 'Invite your teachers', subtitle: 'They get access to grading, assessments, and messaging.' },
   gradebook: { title: 'Set up the gradebook', subtitle: 'Bring in legacy grades or start fresh.' },
   live: { title: '', subtitle: '' },
