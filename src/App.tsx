@@ -38,6 +38,7 @@ import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import Demo from './pages/Demo';
 import Leaderboard from './pages/Leaderboard';
+import SharedArtifact from './pages/SharedArtifact';
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ function App() {
                     <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
                     <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
                     <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+                    <Route path="/s/:token" element={<SharedArtifact />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

@@ -8,6 +8,7 @@ import type { Quiz } from '@/hooks/useQuizGenerator';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Lightbulb, Loader2 } from 'lucide-react';
+import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
 
 interface QuizResultsProps {
   quiz: Quiz;
@@ -110,7 +111,16 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Latest Result</CardTitle>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <CardTitle className="text-lg">Latest Result</CardTitle>
+            <ShareArtifactButton
+              artifactType="quiz"
+              title={quiz.title}
+              content={{ questions: quiz.questions, description: quiz.description }}
+              sourceId={quiz.id}
+              label="Share quiz"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3">

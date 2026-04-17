@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { SpeakButton } from '@/components/voice/SpeakButton';
 import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
+import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
 
 interface SlideVisualComparison {
   type: 'comparison';
@@ -253,6 +254,13 @@ export const SlideViewer = ({ slides, title, topic, onClose }: SlideViewerProps)
         </span>
         <div className="flex items-center gap-2">
           <TTSSettingsBar voice={ttsVoice} onVoiceChange={setTtsVoice} />
+          <ShareArtifactButton
+            artifactType="presentation"
+            title={title}
+            content={slides as unknown as unknown[]}
+            label="Share"
+            variant="ghost"
+          />
           <span className="text-xs text-muted-foreground px-2">
             {current + 1} / {slides.length}
           </span>
