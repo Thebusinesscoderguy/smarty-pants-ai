@@ -28,10 +28,8 @@ import SchoolAdmin from './pages/SchoolAdmin';
 import AcceptInvitation from './pages/AcceptInvitation';
 import FAQ from './pages/FAQ';
 
-import MathSolver from './pages/MathSolver';
 import QuizGenerator from './pages/QuizGenerator';
 import QuestsAchievements from './pages/QuestsAchievements';
-import AIGenerateQuest from './pages/AIGenerateQuest';
 import MadeByMe from './pages/MadeByMe';
 import Monitoring from './pages/Monitoring';
 import News from './pages/News';
@@ -76,13 +74,10 @@ function App() {
                     <Route path="/school-admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
-                    <Route path="/math-solver" element={<MathSolver />} />
                     <Route path="/quiz-generator" element={<QuizGenerator />} />
                     <Route path="/demo" element={<Demo />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
-
-                    <Route path="/quests/ai-generate" element={<ProtectedRoute><AIGenerateQuest /></ProtectedRoute>} />
                     <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
                     <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                     <Route path="/settings" element={<Settings />} />
