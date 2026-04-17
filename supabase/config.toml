@@ -64,3 +64,6 @@ verify_jwt = false
 
 [functions.validate-student-invitation]
 verify_jwt = false
+
+[functions.seed-curriculum]
+verify_jwt = false
