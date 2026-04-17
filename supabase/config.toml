@@ -67,3 +67,6 @@ verify_jwt = false
 
 [functions.seed-curriculum]
 verify_jwt = false
+
+[functions.backfill-curriculum-units]
+verify_jwt = false
