@@ -17,18 +17,21 @@ import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
 import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper, Globe } from 'lucide-react';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper, Globe, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { CurriculumAdminPanel } from '@/components/curriculum/CurriculumAdminPanel';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
   const { user, isSchoolAdmin, isTeacher } = useAuth();
   const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     if (!user || !isSchoolAdmin) return;
@@ -87,7 +90,23 @@ const SchoolAdmin = () => {
       </div>
     );
   }
-  
+
+  const moreItems = [
+    { value: 'subjects', label: 'Subjects', icon: Library },
+    { value: 'at-risk', label: 'At-Risk', icon: AlertTriangle },
+    { value: 'curriculum', label: t('schoolAdmin.tabs.curriculum'), icon: BookOpen },
+    { value: 'student-analytics', label: t('schoolAdmin.tabs.studentAnalysis'), icon: Brain },
+    { value: 'curriculum-align', label: 'Curriculum Alignment', icon: Globe },
+    { value: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
+    { value: 'homework', label: 'Homework', icon: ListChecks },
+    { value: 'question-bank', label: 'Question Bank', icon: Database },
+    { value: 'messages', label: 'Messages', icon: MessageCircle },
+    { value: 'billing', label: t('schoolAdmin.tabs.billing'), icon: CreditCard },
+  ];
+
+  const isMoreActive = moreItems.some(i => i.value === activeTab);
+  const activeMoreItem = moreItems.find(i => i.value === activeTab);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
@@ -101,60 +120,60 @@ const SchoolAdmin = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="flex w-full overflow-x-auto bg-muted scrollbar-none">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <BarChart3 className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.overview')}
-              </TabsTrigger>
-              <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Users className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.students')}
-              </TabsTrigger>
-              <TabsTrigger value="teachers" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <GraduationCap className="h-4 w-4 mr-2" />Teachers
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Library className="h-4 w-4 mr-2" />Subjects
-              </TabsTrigger>
-              <TabsTrigger value="sections" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <FolderTree className="h-4 w-4 mr-2" />Sections
-              </TabsTrigger>
-              <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <FileCheck className="h-4 w-4 mr-2" />Assessments
-              </TabsTrigger>
-              <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <ClipboardList className="h-4 w-4 mr-2" />Grade Book
-              </TabsTrigger>
-              <TabsTrigger value="at-risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <AlertTriangle className="h-4 w-4 mr-2" />At-Risk
-              </TabsTrigger>
-              <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <BookOpen className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.curriculum')}
-              </TabsTrigger>
-              <TabsTrigger value="student-analytics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Brain className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.studentAnalysis')}
-              </TabsTrigger>
-              <TabsTrigger value="curriculum-align" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Globe className="h-4 w-4 mr-2" />Curriculum
-              </TabsTrigger>
-              <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <FileText className="h-4 w-4 mr-2" />Lesson Plans
-              </TabsTrigger>
-              <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <ListChecks className="h-4 w-4 mr-2" />Homework
-              </TabsTrigger>
-              <TabsTrigger value="question-bank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Database className="h-4 w-4 mr-2" />Question Bank
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <MessageCircle className="h-4 w-4 mr-2" />Messages
-              </TabsTrigger>
-              <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <Newspaper className="h-4 w-4 mr-2" />News
-              </TabsTrigger>
-              <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                <CreditCard className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.billing')}
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex items-center gap-2 w-full overflow-x-auto scrollbar-none">
+              <TabsList className="flex bg-muted">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <BarChart3 className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.overview')}
+                </TabsTrigger>
+                <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Users className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.students')}
+                </TabsTrigger>
+                <TabsTrigger value="sections" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <FolderTree className="h-4 w-4 mr-2" />Classes
+                </TabsTrigger>
+                <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <ClipboardList className="h-4 w-4 mr-2" />Grades
+                </TabsTrigger>
+                <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <FileCheck className="h-4 w-4 mr-2" />Assessments
+                </TabsTrigger>
+                <TabsTrigger value="teachers" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <GraduationCap className="h-4 w-4 mr-2" />Teachers
+                </TabsTrigger>
+                <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Newspaper className="h-4 w-4 mr-2" />News
+                </TabsTrigger>
+              </TabsList>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={isMoreActive ? 'default' : 'ghost'}
+                    size="sm"
+                    className={`whitespace-nowrap ${isMoreActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
+                  >
+                    {isMoreActive && activeMoreItem ? (
+                      <>
+                        <activeMoreItem.icon className="h-4 w-4 mr-2" />
+                        {activeMoreItem.label}
+                      </>
+                    ) : (
+                      'More'
+                    )}
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover">
+                  {moreItems.map((item) => (
+                    <DropdownMenuItem key={item.value} onSelect={() => setActiveTab(item.value)}>
+                      <item.icon className="h-4 w-4 mr-2" />
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             <div className="mt-6">
               <TabsContent value="overview"><SchoolOverview /></TabsContent>
