@@ -26,6 +26,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { ResumeOnboardingBanner } from '@/components/school-onboarding/ResumeOnboardingBanner';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
@@ -113,6 +114,7 @@ const SchoolAdmin = () => {
       
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          <ResumeOnboardingBanner />
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">{t('schoolAdmin.title')}</h1>
             <p className="text-muted-foreground">
