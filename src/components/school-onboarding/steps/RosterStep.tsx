@@ -81,13 +81,14 @@ export const RosterStep = ({
   const mappedFields = Object.values(mapping).filter(v => v !== 'ignore');
   const missingRequired = REQUIRED.filter(r => !mappedFields.includes(r));
 
-  const validRows = rows.map(r => {
+  type MappedRow = { first_name: string; last_name: string; email: string; grade_level?: string; section?: string; parent_email?: string; student_id?: string; _valid: boolean };
+  const validRows: MappedRow[] = rows.map(r => {
     const obj: Record<string, string> = {};
     Object.entries(mapping).forEach(([h, f]) => {
       if (f !== 'ignore') obj[f] = (r[h] || '').toString().trim();
     });
-    const valid = obj.first_name && obj.last_name && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(obj.email || '');
-    return { ...obj, _valid: !!valid };
+    const valid = !!(obj.first_name && obj.last_name && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(obj.email || ''));
+    return { first_name: obj.first_name || '', last_name: obj.last_name || '', email: obj.email || '', grade_level: obj.grade_level, section: obj.section, parent_email: obj.parent_email, student_id: obj.student_id, _valid: valid };
   });
 
   const validCount = validRows.filter(r => r._valid).length;
