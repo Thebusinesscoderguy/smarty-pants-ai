@@ -174,10 +174,6 @@ export const StudentDashboard = () => {
     {
       title: t('studentDashboard.mathSolver'),
       description: t('studentDashboard.mathSolverDesc'),
-      icon: Target,
-      color: "from-green-500 to-emerald-500",
-      action: () => navigate("/math-solver")
-    }
   ];
 
   return (

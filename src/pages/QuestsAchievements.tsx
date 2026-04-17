@@ -218,10 +218,6 @@ const QuestsAchievements = () => {
                 <Plus className="mr-2 h-4 w-4" />
                 {t('quests.madeByMe')}
               </Button>
-              <Button onClick={() => navigate('/quests/ai-generate')} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Target className="mr-2 h-4 w-4" />
-                {t('quests.madeByAI')}
-              </Button>
               <Button onClick={() => navigate('/quests/made-by-me')} variant="outline" className="border-border text-foreground hover:bg-muted">
                 <List className="mr-2 h-4 w-4" />
                 {t('quests.viewMyQuests')}
