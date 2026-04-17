@@ -1,0 +1,133 @@
+import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSchoolOnboarding, STEP_KEYS } from '@/hooks/useSchoolOnboarding';
+import { WizardShell } from '@/components/school-onboarding/WizardShell';
+import { WelcomeStep } from '@/components/school-onboarding/steps/WelcomeStep';
+import { FrameworkStep } from '@/components/school-onboarding/steps/FrameworkStep';
+import { RosterStep } from '@/components/school-onboarding/steps/RosterStep';
+import { TeachersStep } from '@/components/school-onboarding/steps/TeachersStep';
+import { GradebookStep } from '@/components/school-onboarding/steps/GradebookStep';
+import { LiveStep } from '@/components/school-onboarding/steps/LiveStep';
+
+const STEP_TITLES: Record<typeof STEP_KEYS[number], { title: string; subtitle?: string }> = {
+  welcome: { title: 'Get your school live in 15 minutes', subtitle: "We'll walk you through everything step by step." },
+  framework: { title: 'Pick your curriculum', subtitle: 'This shapes the AI-generated content for your students.' },
+  roster: { title: 'Import your students', subtitle: 'Upload a CSV and we'll send invitations automatically.' },
+  teachers: { title: 'Invite your teachers', subtitle: 'They get access to grading, assessments, and messaging.' },
+  gradebook: { title: 'Set up the gradebook', subtitle: 'Bring in legacy grades or start fresh.' },
+  live: { title: '', subtitle: '' },
+};
+
+const SchoolOnboarding = () => {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const {
+    schoolId, schoolName, progress, loading,
+    markStepComplete, goToStep, finish, updateProgress,
+  } = useSchoolOnboarding();
+
+  useEffect(() => {
+    if (!loading && !schoolId && user) {
+      // Not a school admin
+      navigate('/');
+    }
+  }, [loading, schoolId, user, navigate]);
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!schoolId || !progress) return null;
+
+  const currentKey = STEP_KEYS[progress.current_step] || 'welcome';
+  const meta = STEP_TITLES[currentKey];
+
+  const goNext = () => goToStep(Math.min(progress.current_step + 1, STEP_KEYS.length - 1));
+  const goBack = () => goToStep(Math.max(progress.current_step - 1, 0));
+
+  let content: React.ReactNode = null;
+  let nextDisabled = false;
+  let nextLabel = 'Continue';
+  let onNext = async () => { await markStepComplete(currentKey); goNext(); };
+  let onSkip: (() => void) | undefined = undefined;
+  let hideNext = false;
+
+  switch (currentKey) {
+    case 'welcome':
+      content = <WelcomeStep schoolName={schoolName} />;
+      nextLabel = "Let's go";
+      break;
+    case 'framework':
+      content = (
+        <FrameworkStep
+          schoolId={schoolId}
+          onPicked={(id) => updateProgress({ framework_chosen: !!id })}
+        />
+      );
+      nextDisabled = !progress.framework_chosen;
+      onSkip = async () => { await markStepComplete('framework'); goNext(); };
+      break;
+    case 'roster':
+      content = (
+        <RosterStep
+          schoolId={schoolId}
+          onImported={(count) => updateProgress({ students_imported: progress.students_imported + count })}
+        />
+      );
+      onSkip = async () => { await markStepComplete('roster'); goNext(); };
+      break;
+    case 'teachers':
+      content = (
+        <TeachersStep
+          schoolId={schoolId}
+          onInvited={(count) => updateProgress({ teachers_invited: count })}
+        />
+      );
+      onSkip = async () => { await markStepComplete('teachers'); goNext(); };
+      break;
+    case 'gradebook':
+      content = <GradebookStep onChoice={(s) => updateProgress({ gradebook_status: s })} />;
+      nextDisabled = progress.gradebook_status === 'pending';
+      onSkip = async () => { await updateProgress({ gradebook_status: 'fresh' }); await markStepComplete('gradebook'); goNext(); };
+      break;
+    case 'live':
+      content = (
+        <LiveStep
+          schoolName={schoolName}
+          studentsImported={progress.students_imported}
+          teachersInvited={progress.teachers_invited}
+          frameworkChosen={progress.framework_chosen}
+          onFinish={async () => { await markStepComplete('live'); await finish(); }}
+        />
+      );
+      hideNext = true;
+      break;
+  }
+
+  return (
+    <WizardShell
+      currentStep={progress.current_step}
+      completedSteps={progress.completed_steps || []}
+      onStepClick={goToStep}
+      onBack={goBack}
+      onNext={onNext}
+      onSkip={onSkip}
+      nextLabel={nextLabel}
+      nextDisabled={nextDisabled}
+      hideNext={hideNext}
+      title={meta.title}
+      subtitle={meta.subtitle}
+    >
+      {content}
+    </WizardShell>
+  );
+};
+
+export default SchoolOnboarding;
