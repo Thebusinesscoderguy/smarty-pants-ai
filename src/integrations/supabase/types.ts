@@ -1705,6 +1705,48 @@ export type Database = {
           },
         ]
       }
+      school_onboarding_progress: {
+        Row: {
+          completed_at: string | null
+          completed_steps: string[]
+          created_at: string
+          current_step: number
+          framework_chosen: boolean
+          gradebook_status: string
+          id: string
+          school_id: string
+          students_imported: number
+          teachers_invited: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_steps?: string[]
+          created_at?: string
+          current_step?: number
+          framework_chosen?: boolean
+          gradebook_status?: string
+          id?: string
+          school_id: string
+          students_imported?: number
+          teachers_invited?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_steps?: string[]
+          created_at?: string
+          current_step?: number
+          framework_chosen?: boolean
+          gradebook_status?: string
+          id?: string
+          school_id?: string
+          students_imported?: number
+          teachers_invited?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       school_sections: {
         Row: {
           created_at: string
