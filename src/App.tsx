@@ -39,6 +39,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Demo from './pages/Demo';
 import Leaderboard from './pages/Leaderboard';
 import SharedArtifact from './pages/SharedArtifact';
+import SchoolOnboarding from './pages/SchoolOnboarding';
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ function App() {
                     <Route path="/pricing-checkout" element={<PricingCheckout />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/school-admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
+                    <Route path="/school-onboarding" element={<ProtectedRoute><SchoolOnboarding /></ProtectedRoute>} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
                     <Route path="/quiz-generator" element={<QuizGenerator />} />
