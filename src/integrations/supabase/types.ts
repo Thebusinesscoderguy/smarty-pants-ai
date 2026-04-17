@@ -1865,6 +1865,48 @@ export type Database = {
           },
         ]
       }
+      shared_artifacts: {
+        Row: {
+          artifact_type: string
+          content: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          owner_id: string
+          share_token: string
+          source_id: string | null
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          artifact_type: string
+          content?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_id: string
+          share_token?: string
+          source_id?: string | null
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          artifact_type?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_id?: string
+          share_token?: string
+          source_id?: string | null
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       student_activity_logs: {
         Row: {
           activity_type: string
@@ -3122,6 +3164,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_share_view: { Args: { _token: string }; Returns: undefined }
       initialize_user_quests: {
         Args: { target_user_id: string }
         Returns: undefined
