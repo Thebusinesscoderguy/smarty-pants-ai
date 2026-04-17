@@ -171,9 +171,6 @@ export const StudentDashboard = () => {
       color: "from-purple-500 to-pink-500",
       action: () => navigate("/quiz-generator")
     },
-    {
-      title: t('studentDashboard.mathSolver'),
-      description: t('studentDashboard.mathSolverDesc'),
   ];
 
   return (
