@@ -2733,6 +2733,13 @@ export const translations: TranslationData = {
     'home.cta.startFree': 'ابدأ مجاناً',
     'home.cta.watchItWork': 'شاهدها تعمل',
     'home.cta.getStartedFree': 'ابدأ مجاناً الآن',
+    'home.trust.label': 'متوافقة مع',
+    'home.trust.curriculum1': 'البكالوريا الدولية (IB)',
+    'home.trust.curriculum2': 'كامبريدج',
+    'home.trust.curriculum3': 'المنهج الأمريكي المشترك',
+    'home.trust.curriculum4': 'المنهج البريطاني',
+    'home.trust.curriculum5': 'وزارات التعليم (الشرق الأوسط)',
+    'home.mobileCta.start': 'ابدأ مجاناً',
 
     // ===== Home — Showcase =====
     'home.showcase.eyebrow': 'منصة واحدة · أربعة منظورات',
