@@ -43,9 +43,9 @@ export const GradingInbox = () => {
 
   const confidenceBadge = (c: number | null) => {
     const v = c ?? 0;
-    if (v >= 0.8) return <Badge className="bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30">High confidence</Badge>;
-    if (v >= 0.5) return <Badge className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30">Medium</Badge>;
-    return <Badge className="bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30">Low — review carefully</Badge>;
+    if (v >= 0.8) return <Badge variant="outline" className="border-primary/30 text-primary">High confidence</Badge>;
+    if (v >= 0.5) return <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">Medium</Badge>;
+    return <Badge variant="destructive">Low — review carefully</Badge>;
   };
 
   if (loading) {
