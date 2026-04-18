@@ -549,6 +549,42 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          role: string | null
+          school_name: string | null
+          school_size: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          role?: string | null
+          school_name?: string | null
+          school_size?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          role?: string | null
+          school_name?: string | null
+          school_size?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       files: {
         Row: {
           created_at: string | null
@@ -1684,6 +1720,38 @@ export type Database = {
           },
         ]
       }
+      school_email_preferences: {
+        Row: {
+          created_at: string
+          last_digest_sent_at: string | null
+          school_id: string
+          updated_at: string
+          weekly_digest_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          last_digest_sent_at?: string | null
+          school_id: string
+          updated_at?: string
+          weekly_digest_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          last_digest_sent_at?: string | null
+          school_id?: string
+          updated_at?: string
+          weekly_digest_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_email_preferences_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_news: {
         Row: {
           content: string
@@ -2631,6 +2699,7 @@ export type Database = {
           duration_minutes: number | null
           grade_level: string | null
           id: string
+          linked_quiz_id: string | null
           school_id: string | null
           subject: string | null
           teacher_id: string
@@ -2642,6 +2711,7 @@ export type Database = {
           duration_minutes?: number | null
           grade_level?: string | null
           id?: string
+          linked_quiz_id?: string | null
           school_id?: string | null
           subject?: string | null
           teacher_id: string
@@ -2653,12 +2723,20 @@ export type Database = {
           duration_minutes?: number | null
           grade_level?: string | null
           id?: string
+          linked_quiz_id?: string | null
           school_id?: string | null
           subject?: string | null
           teacher_id?: string
           topic?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "teacher_lesson_plans_linked_quiz_id_fkey"
+            columns: ["linked_quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teacher_lesson_plans_school_id_fkey"
             columns: ["school_id"]
