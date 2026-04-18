@@ -129,7 +129,12 @@ export const Header = () => {
             <SheetContent side="right" className="w-[280px] pt-12">
               <nav className="flex flex-col space-y-1">
                 <NavItems mobile />
-                <div className="pt-4 border-t border-border mt-4">
+                <div className="pt-4 border-t border-border mt-4 space-y-2">
+                  {!user && (
+                    <Button onClick={() => { setDemoOpen(true); setMobileOpen(false); }} variant="outline" className="w-full rounded-full border-primary/40 text-primary">
+                      <Calendar className="w-4 h-4 mr-1.5" />Book a demo
+                    </Button>
+                  )}
                   {user ? (
                     <Button onClick={() => { handleSignOut(); setMobileOpen(false); }} variant="outline" className="w-full rounded-full">
                       {t('nav.signOut')}
@@ -145,6 +150,7 @@ export const Header = () => {
           </Sheet>
         </div>
       </div>
+      <BookDemoModal open={demoOpen} onOpenChange={setDemoOpen} />
     </header>
   );
 };
