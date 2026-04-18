@@ -2651,6 +2651,8 @@ export const translations: TranslationData = {
     'auth.error.alreadyRegistered': 'Этот email уже зарегистрирован. Войдите в систему.',
   },
   ar: {
+    // ===== Navigation =====
+    'nav.home': 'الرئيسية',
     'nav.features': 'الميزات',
     'nav.pricing': 'الأسعار',
     'nav.about': 'حولنا',
@@ -2658,6 +2660,75 @@ export const translations: TranslationData = {
     'nav.chat': 'الدردشة',
     'nav.progress': 'التقدم',
     'nav.modules': 'الوحدات',
+    'nav.studyPlans': 'الخطط الدراسية',
+    'nav.signOut': 'تسجيل الخروج',
+    'nav.getStarted': 'ابدأ الآن',
+    'nav.faq': 'الأسئلة الشائعة',
+    'nav.bookDemo': 'احجز عرضاً تجريبياً',
+    'nav.schoolAdmin': 'لوحة المدرسة',
+    'nav.teacherDashboard': 'لوحة المعلم',
+    'nav.news': 'الأخبار',
+    'nav.leaderboard': 'لوحة المتصدرين',
+    'auth.signOutSuccess': 'تم تسجيل الخروج بنجاح',
+    'auth.signOutError': 'حدث خطأ أثناء تسجيل الخروج',
+
+    // ===== Home — Hero (new) =====
+    'home.hero.headline1': 'تعلّم',
+    'home.hero.headline2': 'يتكيّف معك حقاً.',
+    'home.hero.subhead': 'المنصة الأصلية بالذكاء الاصطناعي للطلاب وأولياء الأمور والمعلمين والمدارس. أنشئ خططاً دراسية، شغّل اختبارات ذكية، وتابع التقدم الحقيقي — كل شيء في مكان واحد.',
+    'home.cta.startFree': 'ابدأ مجاناً',
+    'home.cta.watchItWork': 'شاهدها تعمل',
+    'home.cta.getStartedFree': 'ابدأ مجاناً الآن',
+
+    // ===== Home — Showcase =====
+    'home.showcase.eyebrow': 'منصة واحدة · أربعة منظورات',
+    'home.showcase.title1': 'كل ما يحتاجه التعليم.',
+    'home.showcase.title2': 'بلا أي إضافات لا داعي لها.',
+    'home.showcase.studyPlans.title': 'خطط دراسية بالذكاء الاصطناعي',
+    'home.showcase.studyPlans.desc': 'مسارات تعلم تكيفية مبنية حول وتيرتك وأهدافك ومنهجك.',
+    'home.showcase.quizzes.title': 'اختبارات ذكية',
+    'home.showcase.quizzes.desc': 'ولّد أسئلة من أي موضوع أو مستند أو درس — تُصحَّح فوراً.',
+    'home.showcase.family.title': 'متابعة عائلية',
+    'home.showcase.family.desc': 'لوحات فورية تُري الأهل بالضبط أين يقف أبناؤهم.',
+    'home.showcase.ops.title': 'إدارة المدرسة',
+    'home.showcase.ops.desc': 'دفاتر الدرجات والحضور والواجبات والتحليلات في مكان واحد.',
+    'home.showcase.tag.students': 'للطلاب',
+    'home.showcase.tag.teachers': 'للمعلمين',
+    'home.showcase.tag.parents': 'لأولياء الأمور',
+    'home.showcase.tag.schools': 'للمدارس',
+
+    // ===== Home — Testimonials =====
+    'home.testimonials.title': 'يحبّها المتعلمون في كل مكان',
+    'home.testimonials.subtitle': 'من طلاب أفراد إلى مدارس بأكملها.',
+    'home.testimonial1.quote': 'انتقلت ابنتي من كراهية الواجبات إلى طلب اختبارات إضافية. المعلم الذكي يلتقيها فعلاً عند مستواها.',
+    'home.testimonial1.author': 'سارة م.',
+    'home.testimonial1.role': 'والدة لطفلين',
+    'home.testimonial2.quote': 'أنشئ خطط دروس متمايزة لأسبوع كامل في أقل من 10 دقائق. أعاد لي أمسياتي.',
+    'home.testimonial2.author': 'داود ل.',
+    'home.testimonial2.role': 'معلم مرحلة متوسطة',
+    'home.testimonial3.quote': 'تسجيل 400 طالب استغرق بعد ظهر يوم واحد. ملخص المدير هو أول بريد أفتحه كل اثنين.',
+    'home.testimonial3.author': 'د. أمينة ك.',
+    'home.testimonial3.role': 'مديرة مدرسة',
+
+    // ===== Home — Why =====
+    'home.why.eyebrow': 'لماذا تنجح',
+    'home.why.title1': 'مبنية على علوم تربوية حقيقية.',
+    'home.why.title2': 'مدعومة بأحدث الذكاء الاصطناعي.',
+    'home.why.desc': 'معظم منصات التعليم تضيف الذكاء الاصطناعي إلى أنظمة قديمة. نحن أعدنا بناء التعلم من الصفر — محتوى تكيفي، دعم متعدد اللغات، وتحليلات تُحرّك النتائج فعلاً.',
+    'home.why.adaptive.title': 'تكيّف',
+    'home.why.adaptive.desc': 'يتغير المحتوى لكل متعلم.',
+    'home.why.insightful.title': 'بصيرة',
+    'home.why.insightful.desc': 'تحليلات يستخدمها المعلمون فعلاً.',
+    'home.why.multilingual.title': 'متعددة اللغات',
+    'home.why.multilingual.desc': 'العربية والإنجليزية والمزيد.',
+    'home.why.engaging.title': 'تفاعلية',
+    'home.why.engaging.desc': 'مهام، سلاسل إنجاز، ومكافآت.',
+
+    // ===== Home — Final CTA =====
+    'home.finalCta.title1': 'مستعد للتعلم',
+    'home.finalCta.title2': 'بطريقة مختلفة؟',
+    'home.finalCta.desc': 'انضم إلى الطلاب وأولياء الأمور والمدارس الذين يعيدون التفكير في التعليم بذكاء اصطناعي يُعلّم فعلاً.',
+
     
     // Home Page - Arabic
     'home.badge': 'منصة تعليمية مدعومة بالذكاء الاصطناعي',
