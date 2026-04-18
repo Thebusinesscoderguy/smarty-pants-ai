@@ -13,6 +13,11 @@ export const translations: TranslationData = {
     'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.chat': 'Chat',
+    'nav.faq': 'FAQ',
+    'nav.news': 'News',
+    'nav.leaderboard': 'Leaderboard',
+    'nav.teacherDashboard': 'Teacher Dashboard',
+    'nav.schoolAdmin': 'School Admin',
     
     // Home Page
     'home.badge': 'AI-Powered Education Platform',
