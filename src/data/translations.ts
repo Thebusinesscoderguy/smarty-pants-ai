@@ -1679,8 +1679,7 @@ export const translations: TranslationData = {
     'testCreator.testTitlePlaceholder': 'Enter test title',
     'testCreator.questionPlaceholder': 'Enter your question',
 
-    // Navigation - School Admin
-    'nav.schoolAdmin': 'School Admin',
+    // Navigation - School Admin (moved up)
 
     // Auth - Account Type Selection
     'auth.accountType.title': 'How will you use Teachly?',
