@@ -3266,7 +3266,6 @@ export const translations: TranslationData = {
     'settings.voiceTest.saveReminder': 'لا تنسَ حفظ التغييرات عندما تجد الصوت المثالي!',
 
     // Navigation - School Admin
-    'nav.schoolAdmin': 'إدارة المدرسة',
 
     // Auth - Account Type Selection
     'auth.accountType.title': 'كيف ستستخدم Teachly؟',
