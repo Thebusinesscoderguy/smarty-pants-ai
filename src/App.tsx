@@ -20,7 +20,6 @@ import Progress from './pages/Progress';
 import Auth from './pages/Auth';
 
 import Features from './pages/Features';
-import HowItWorks from './pages/HowItWorks';
 import PublicPricing from './pages/PublicPricing';
 import PricingCheckout from './pages/PricingCheckout';
 import Onboarding from './pages/Onboarding';
@@ -40,6 +39,7 @@ import Demo from './pages/Demo';
 import Leaderboard from './pages/Leaderboard';
 import SharedArtifact from './pages/SharedArtifact';
 import SchoolOnboarding from './pages/SchoolOnboarding';
+import { Navigate } from 'react-router-dom';
 
 const queryClient = new QueryClient();
 
@@ -68,7 +68,7 @@ function App() {
                     <Route path="/auth" element={<Auth />} />
 
                     <Route path="/features" element={<Features />} />
-                    <Route path="/how-it-works" element={<HowItWorks />} />
+                    <Route path="/how-it-works" element={<Navigate to="/#features" replace />} />
                     <Route path="/pricing" element={<PublicPricing />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/pricing-checkout" element={<PricingCheckout />} />
