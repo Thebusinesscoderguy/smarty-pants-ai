@@ -3,6 +3,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Arabic / RTL native typography ===== */
+html[dir="rtl"],
+html.lang-ar,
+html.lang-ar body {
+  font-family: 'Tajawal', 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html.lang-ar h1,
+html.lang-ar h2,
+html.lang-ar h3,
+html.lang-ar h4,
+html.lang-ar h5,
+html.lang-ar h6,
+html.lang-ar .font-display {
+  font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+/* RTL-friendly tweaks */
+html[dir="rtl"] .lucide-arrow-right,
+html[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Numerals stay readable */
+html.lang-ar {
+  font-feature-settings: "kern", "liga", "calt";
+}
+
 @layer base {
   :root {
     --background: 30 30% 94%;
