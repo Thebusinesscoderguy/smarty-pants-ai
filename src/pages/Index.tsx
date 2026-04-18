@@ -460,6 +460,28 @@ const Index = () => {
 
       <Footer />
       <BookDemoModal open={demoOpen} onOpenChange={setDemoOpen} />
+
+      {/* Sticky mobile CTA — only for unauthenticated users */}
+      {!user && (
+        <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border p-3 shadow-lg">
+          <div className="flex gap-2 max-w-md mx-auto">
+            <Button
+              onClick={() => navigate('/auth')}
+              className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
+            >
+              <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+              {t('home.mobileCta.start')}
+            </Button>
+            <Button
+              onClick={() => setDemoOpen(true)}
+              variant="outline"
+              className="rounded-full border-primary/40 text-primary hover:bg-primary/10"
+            >
+              <Calendar className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
