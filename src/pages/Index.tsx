@@ -358,6 +358,7 @@ const Index = () => {
       </section>
 
       <Footer />
+      <BookDemoModal open={demoOpen} onOpenChange={setDemoOpen} />
     </div>
   );
 };
