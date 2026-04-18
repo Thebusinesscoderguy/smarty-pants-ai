@@ -31,8 +31,9 @@ const Demo = () => {
   const role = searchParams.get('role');
   const [showRoleSelection, setShowRoleSelection] = useState(!role);
   const [demoStarted, setDemoStarted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(15 * 60);
+  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30-min soft timer
   const [showTimeWarning, setShowTimeWarning] = useState(false);
+  const [softPromptDismissed, setSoftPromptDismissed] = useState(false);
   const { toast } = useToast();
   const { selectedVoice, changeVoice } = useVoiceSettings();
 
@@ -97,25 +98,19 @@ const Demo = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Soft countdown — never blocks input. Just nudges the user to sign up.
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (demoStarted && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((time) => {
-          const newTime = time - 1;
-          if (newTime === 120) {
-            setShowTimeWarning(true);
-          }
-          return newTime;
-        });
+        setTimeLeft((time) => Math.max(0, time - 1));
       }, 1000);
     }
     return () => clearInterval(interval);
   }, [demoStarted, timeLeft]);
 
   useEffect(() => {
-    if (timeLeft <= 0 && demoStarted) {
-      setShowTimeWarning(true);
+    if (timeLeft === 0 && demoStarted) {
       localStorage.setItem('demo_used', 'true');
     }
   }, [timeLeft, demoStarted]);
@@ -132,7 +127,7 @@ const Demo = () => {
 
   const startDemo = () => {
     setDemoStarted(true);
-    setTimeLeft(15 * 60);
+    setTimeLeft(30 * 60);
   };
 
   const handleRoleSelect = (selectedRole: string) => {
