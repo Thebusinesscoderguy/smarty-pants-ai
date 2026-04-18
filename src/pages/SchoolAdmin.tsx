@@ -82,6 +82,7 @@ const SchoolAdmin = () => {
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+                <TabsContent value="grading"><GradingInbox /></TabsContent>
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
                 <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
