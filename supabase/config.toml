@@ -70,3 +70,9 @@ verify_jwt = false
 
 [functions.backfill-curriculum-units]
 verify_jwt = false
+
+[functions.submit-demo-request]
+verify_jwt = false
+
+[functions.send-principal-weekly-digest]
+verify_jwt = false
