@@ -1776,7 +1776,65 @@ export const translations: TranslationData = {
     'error.somethingWrong': 'Something went wrong',
     'error.unexpected': 'An unexpected error occurred.',
     'error.tryAgain': 'Try Again',
-    
+
+    // ===== Home — Hero (revamp) =====
+    'home.hero.headline1': 'Learning',
+    'home.hero.headline2': 'that actually adapts to you.',
+    'home.hero.subhead': 'The AI-native platform for students, parents, teachers, and schools. Build study plans, run smart quizzes, and track real progress — all in one place.',
+    'home.cta.startFree': 'Start free',
+    'home.cta.watchItWork': 'Watch it work',
+    'home.cta.getStartedFree': 'Get started free',
+    'nav.bookDemo': 'Book a demo',
+
+    // ===== Home — Showcase =====
+    'home.showcase.eyebrow': 'Built for every learner',
+    'home.showcase.title1': 'One platform.',
+    'home.showcase.title2': 'Every role covered.',
+    'home.showcase.tag.students': 'Students',
+    'home.showcase.tag.teachers': 'Teachers',
+    'home.showcase.tag.parents': 'Parents',
+    'home.showcase.tag.schools': 'Schools',
+    'home.showcase.studyPlans.title': 'Personalized study plans',
+    'home.showcase.studyPlans.desc': 'AI builds a daily plan around your goals, pace, and curriculum — and adjusts as you go.',
+    'home.showcase.quizzes.title': 'Adaptive quizzes & grading',
+    'home.showcase.quizzes.desc': 'Generate quizzes from any topic or file. Auto-grade open answers and target weak spots.',
+    'home.showcase.family.title': 'Family visibility',
+    'home.showcase.family.desc': 'Parents see real progress, set quests, and stay connected with teachers — without the noise.',
+    'home.showcase.ops.title': 'School operations',
+    'home.showcase.ops.desc': 'Roster, sections, gradebook, homework, attendance, and analytics in one clean dashboard.',
+
+    // ===== Home — Testimonials =====
+    'home.testimonials.title': 'Loved by learners and teams',
+    'home.testimonials.subtitle': 'Real feedback from students, parents, and educators using Teachly every day.',
+    'home.testimonial1.quote': "My daughter's grades jumped a full letter in one term. The study plans actually fit her schedule.",
+    'home.testimonial1.author': 'Sarah M.',
+    'home.testimonial1.role': 'Parent of 8th grader',
+    'home.testimonial2.quote': 'I generate quizzes in seconds and the auto-grading saves me hours every week.',
+    'home.testimonial2.author': 'Mr. Khaled',
+    'home.testimonial2.role': 'High school science teacher',
+    'home.testimonial3.quote': 'The dashboard finally gives me a clear view of every student without chasing spreadsheets.',
+    'home.testimonial3.author': 'Dr. Lina A.',
+    'home.testimonial3.role': 'School principal',
+
+    // ===== Home — Why =====
+    'home.why.eyebrow': 'Why Teachly',
+    'home.why.title1': 'Smarter than a textbook.',
+    'home.why.title2': 'Kinder than a tutor.',
+    'home.why.desc': 'Teachly blends adaptive AI with real classroom workflows so learning feels personal and progress feels obvious.',
+    'home.why.adaptive.title': 'Adaptive',
+    'home.why.adaptive.desc': 'Adjusts difficulty and pacing in real time.',
+    'home.why.insightful.title': 'Insightful',
+    'home.why.insightful.desc': 'Clear analytics for students, parents, and schools.',
+    'home.why.multilingual.title': 'Multilingual',
+    'home.why.multilingual.desc': 'Native experience in Arabic and English.',
+    'home.why.engaging.title': 'Engaging',
+    'home.why.engaging.desc': 'Quests, achievements, and streaks that keep learners coming back.',
+
+    // ===== Home — Final CTA =====
+    'home.finalCta.title1': 'Start learning smarter',
+    'home.finalCta.title2': 'today.',
+    'home.finalCta.desc': 'Free to try. No credit card required. Set up in minutes — for one student or a whole school.',
+
   },
   es: {
     'nav.features': 'Características',
