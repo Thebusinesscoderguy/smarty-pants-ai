@@ -194,6 +194,7 @@ const SchoolAdmin = () => {
               <TabsContent value="gradebook"><GradeBook /></TabsContent>
               <TabsContent value="at-risk"><AtRiskAlerts /></TabsContent>
               <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+              <TabsContent value="grading"><GradingInbox /></TabsContent>
               <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
               <TabsContent value="curriculum-align">{schoolId && <CurriculumAdminPanel schoolId={schoolId} />}</TabsContent>
