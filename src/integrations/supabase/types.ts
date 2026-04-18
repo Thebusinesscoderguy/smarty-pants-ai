@@ -696,6 +696,10 @@ export type Database = {
       }
       homework_submissions: {
         Row: {
+          ai_confidence: number | null
+          ai_feedback: string | null
+          ai_graded_at: string | null
+          ai_score: number | null
           assignment_id: string
           created_at: string | null
           feedback: string | null
@@ -707,6 +711,10 @@ export type Database = {
           submitted_at: string | null
         }
         Insert: {
+          ai_confidence?: number | null
+          ai_feedback?: string | null
+          ai_graded_at?: string | null
+          ai_score?: number | null
           assignment_id: string
           created_at?: string | null
           feedback?: string | null
@@ -718,6 +726,10 @@ export type Database = {
           submitted_at?: string | null
         }
         Update: {
+          ai_confidence?: number | null
+          ai_feedback?: string | null
+          ai_graded_at?: string | null
+          ai_score?: number | null
           assignment_id?: string
           created_at?: string | null
           feedback?: string | null
@@ -1042,6 +1054,30 @@ export type Database = {
           created_at?: string | null
           id?: string
           parent_id?: string | null
+        }
+        Relationships: []
+      }
+      parent_email_preferences: {
+        Row: {
+          created_at: string
+          last_digest_sent_at: string | null
+          parent_id: string
+          updated_at: string
+          weekly_digest_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          last_digest_sent_at?: string | null
+          parent_id: string
+          updated_at?: string
+          weekly_digest_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          last_digest_sent_at?: string | null
+          parent_id?: string
+          updated_at?: string
+          weekly_digest_enabled?: boolean
         }
         Relationships: []
       }

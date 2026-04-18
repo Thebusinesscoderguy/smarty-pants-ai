@@ -17,7 +17,8 @@ import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
 import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
-import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper, Globe, ChevronDown } from 'lucide-react';
+import { GradingInbox } from '@/components/admin/GradingInbox';
+import { Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle, FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database, MessageCircle, Newspaper, Globe, ChevronDown, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,6 +60,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
+                <TabsTrigger value="grading" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Sparkles className="h-4 w-4 mr-2" />Grading Inbox
+                </TabsTrigger>
                 <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileText className="h-4 w-4 mr-2" />Lesson Plans
                 </TabsTrigger>
@@ -78,6 +82,7 @@ const SchoolAdmin = () => {
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+                <TabsContent value="grading"><GradingInbox /></TabsContent>
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
                 <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
@@ -140,6 +145,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
+                <TabsTrigger value="grading" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Sparkles className="h-4 w-4 mr-2" />Grading
+                </TabsTrigger>
                 <TabsTrigger value="teachers" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <GraduationCap className="h-4 w-4 mr-2" />Teachers
                 </TabsTrigger>
@@ -186,6 +194,7 @@ const SchoolAdmin = () => {
               <TabsContent value="gradebook"><GradeBook /></TabsContent>
               <TabsContent value="at-risk"><AtRiskAlerts /></TabsContent>
               <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+              <TabsContent value="grading"><GradingInbox /></TabsContent>
               <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
               <TabsContent value="curriculum-align">{schoolId && <CurriculumAdminPanel schoolId={schoolId} />}</TabsContent>

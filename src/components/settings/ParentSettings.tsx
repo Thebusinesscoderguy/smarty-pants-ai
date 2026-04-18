@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -13,7 +14,9 @@ import {
   ExternalLink,
   Shield,
   Users,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Mail,
+  Send
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -22,6 +25,44 @@ export const ParentSettings = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [digestEnabled, setDigestEnabled] = useState(true);
+  const [sendingPreview, setSendingPreview] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('parent_email_preferences').select('weekly_digest_enabled')
+      .eq('parent_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) setDigestEnabled(data.weekly_digest_enabled);
+      });
+  }, [user]);
+
+  const toggleDigest = async (next: boolean) => {
+    if (!user) return;
+    setDigestEnabled(next);
+    const { error } = await supabase.from('parent_email_preferences')
+      .upsert({ parent_id: user.id, weekly_digest_enabled: next }, { onConflict: 'parent_id' });
+    if (error) {
+      toast({ title: 'Could not save', description: error.message, variant: 'destructive' });
+      setDigestEnabled(!next);
+    } else {
+      toast({ title: next ? 'Weekly digest enabled' : 'Weekly digest disabled' });
+    }
+  };
+
+  const sendPreview = async () => {
+    if (!user) return;
+    setSendingPreview(true);
+    try {
+      const { error } = await supabase.functions.invoke(`send-parent-weekly-digest?parent_id=${user.id}`);
+      if (error) throw error;
+      toast({ title: 'Preview sent', description: 'Check your inbox in a moment.' });
+    } catch (e: any) {
+      toast({ title: 'Failed to send preview', description: e.message, variant: 'destructive' });
+    } finally {
+      setSendingPreview(false);
+    }
+  };
 
   const handleManageSubscription = async () => {
     setIsLoading(true);
@@ -179,6 +220,41 @@ export const ParentSettings = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Email Notifications */}
+      <Card className="rounded-3xl shadow-lg">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-foreground flex items-center text-2xl">
+            <div className="p-3 bg-primary/10 rounded-xl mr-4">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            Email Notifications
+          </CardTitle>
+          <p className="text-muted-foreground text-lg ml-16">
+            Stay updated on your child's progress.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4 ml-16">
+          <div className="p-6 bg-muted/50 border border-border rounded-xl">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-foreground font-semibold mb-1">Weekly progress digest</h3>
+                <p className="text-muted-foreground text-sm">
+                  Every Friday: lessons completed, quiz scores, strengths, and focus areas for each child.
+                </p>
+              </div>
+              <Switch checked={digestEnabled} onCheckedChange={toggleDigest} />
+            </div>
+            <Button
+              variant="outline" size="sm" className="mt-4"
+              onClick={sendPreview} disabled={sendingPreview}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {sendingPreview ? 'Sending…' : 'Send me a preview'}
+            </Button>
           </div>
         </CardContent>
       </Card>
