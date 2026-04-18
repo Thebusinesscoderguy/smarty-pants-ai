@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentManagement } from '@/components/admin/StudentManagement';
-import { SchoolOverview } from '@/components/admin/SchoolOverview';
+import { SchoolPulse } from '@/components/admin/SchoolPulse';
 import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
@@ -131,7 +131,7 @@ const SchoolAdmin = () => {
             <div className="flex items-center gap-2 w-full overflow-x-auto scrollbar-none">
               <TabsList className="flex bg-muted">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <BarChart3 className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.overview')}
+                  <BarChart3 className="h-4 w-4 mr-2" />School Pulse
                 </TabsTrigger>
                 <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <Users className="h-4 w-4 mr-2" />{t('schoolAdmin.tabs.students')}
@@ -186,7 +186,7 @@ const SchoolAdmin = () => {
             </div>
 
             <div className="mt-6">
-              <TabsContent value="overview"><SchoolOverview /></TabsContent>
+              <TabsContent value="overview"><SchoolPulse /></TabsContent>
               <TabsContent value="students"><StudentManagement /></TabsContent>
               <TabsContent value="teachers"><TeacherManagement /></TabsContent>
               <TabsContent value="subjects"><SubjectManagement /></TabsContent>

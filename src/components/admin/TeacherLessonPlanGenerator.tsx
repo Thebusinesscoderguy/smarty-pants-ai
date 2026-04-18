@@ -4,15 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, FileText, Printer, Save, Trash2 } from 'lucide-react';
+import { Loader2, FileText, Printer, Save, Trash2, Sparkles, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const TeacherLessonPlanGenerator = () => {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const [topic, setTopic] = useState('');
   const [subject, setSubject] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
@@ -22,6 +24,8 @@ export const TeacherLessonPlanGenerator = () => {
   const [savedPlans, setSavedPlans] = useState<any[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [schoolId, setSchoolId] = useState<string | null>(null);
+  const [generatingQuiz, setGeneratingQuiz] = useState(false);
+  const [linkedQuizId, setLinkedQuizId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSchoolId();
@@ -122,6 +126,63 @@ export const TeacherLessonPlanGenerator = () => {
     setSubject(plan.subject || '');
     setGradeLevel(plan.grade_level || '');
     setDuration(String(plan.duration_minutes || 45));
+    setLinkedQuizId(plan.linked_quiz_id || null);
+  };
+
+  const generateMatchingQuiz = async () => {
+    if (!selectedPlan || !generatedPlan) {
+      toast({ title: 'Save the plan first', description: 'Save your lesson plan before generating a quiz.', variant: 'destructive' });
+      return;
+    }
+    setGeneratingQuiz(true);
+    try {
+      // Generate quiz based on the lesson plan content
+      const quizPrompt = `${topic}${subject ? ' (' + subject + ')' : ''}\n\nBase questions on this lesson plan:\n${generatedPlan.substring(0, 2000)}`;
+      const { data, error } = await supabase.functions.invoke('generate-quiz', {
+        body: { topic: quizPrompt, difficulty: 'medium', questionCount: 8, gradeLevel, language },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Persist quiz
+      const { data: quizRow, error: quizErr } = await supabase
+        .from('quizzes')
+        .insert({
+          user_id: user!.id,
+          title: data.title || `Quiz: ${topic}`,
+          description: data.description || `Auto-generated from lesson plan`,
+          difficulty: 'medium',
+          total_questions: data.questions?.length || 0,
+        })
+        .select('id')
+        .single();
+      if (quizErr) throw quizErr;
+
+      // Persist questions
+      if (data.questions?.length) {
+        const rows = data.questions.map((q: any, i: number) => ({
+          quiz_id: quizRow.id,
+          question: q.question,
+          question_type: q.type || 'multiple_choice',
+          options: q.options || null,
+          correct_answer: q.correct_answer,
+          explanation: q.explanation || null,
+          order_index: i,
+          points: 1,
+        }));
+        await supabase.from('quiz_questions').insert(rows);
+      }
+
+      // Link quiz to lesson plan
+      await supabase.from('teacher_lesson_plans').update({ linked_quiz_id: quizRow.id }).eq('id', selectedPlan);
+      setLinkedQuizId(quizRow.id);
+      toast({ title: 'Quiz ready!', description: `${data.questions?.length || 0} questions generated and linked to this lesson plan.` });
+      fetchSavedPlans();
+    } catch (err: any) {
+      toast({ title: 'Could not generate quiz', description: err.message || 'Try again', variant: 'destructive' });
+    } finally {
+      setGeneratingQuiz(false);
+    }
   };
 
   const deletePlan = async (planId: string) => {
@@ -227,13 +288,24 @@ export const TeacherLessonPlanGenerator = () => {
             <div className="flex justify-between items-center">
               <CardTitle>Lesson Plan</CardTitle>
               {generatedPlan && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={handleSave}>
                     <Save className="h-4 w-4 mr-1" />Save
                   </Button>
                   <Button variant="outline" size="sm" onClick={handlePrint}>
                     <Printer className="h-4 w-4 mr-1" />Print
                   </Button>
+                  {selectedPlan && (
+                    linkedQuizId ? (
+                      <Button variant="outline" size="sm" onClick={() => navigate('/quiz-generator')}>
+                        <ExternalLink className="h-4 w-4 mr-1" />View linked quiz
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={generateMatchingQuiz} disabled={generatingQuiz} className="bg-primary text-primary-foreground">
+                        {generatingQuiz ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Generating...</> : <><Sparkles className="h-4 w-4 mr-1" />Generate matching quiz</>}
+                      </Button>
+                    )
+                  )}
                 </div>
               )}
             </div>
