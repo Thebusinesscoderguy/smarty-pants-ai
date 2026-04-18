@@ -507,16 +507,21 @@ const Demo = () => {
 
            <div className="flex items-center space-x-3">
              {timeLeft > 0 ? (
-               <>
-                 <div className="flex items-center space-x-2 px-3 py-1 bg-muted rounded-xl backdrop-blur-sm border border-border">
-                   <Clock className="h-4 w-4" />
-                   <span className={`font-mono text-sm font-semibold ${timeLeft <= 120 ? 'text-yellow-600' : ''}`}>
-                     {formatTime(timeLeft)} remaining
-                   </span>
-                 </div>
-               </>
+               <div className="flex items-center space-x-2 px-3 py-1 bg-muted rounded-xl backdrop-blur-sm border border-border">
+                 <Clock className="h-4 w-4" />
+                 <span className={`font-mono text-sm font-semibold ${timeLeft <= 300 ? 'text-primary' : ''}`}>
+                   {formatTime(timeLeft)} left in demo
+                 </span>
+               </div>
              ) : (
-               <div className="text-destructive font-semibold text-sm bg-destructive/20 px-3 py-1 rounded-xl">Demo Time Expired</div>
+               <Button
+                 size="sm"
+                 onClick={() => navigate('/auth?signup=true')}
+                 className="rounded-xl"
+               >
+                 <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                 Sign up to save your work
+               </Button>
              )}
            </div>
         </div>
@@ -661,7 +666,7 @@ const Demo = () => {
                           value={inputMessage}
                           onChange={(e) => setInputMessage(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                          placeholder={timeLeft <= 0 ? "Demo time expired - Sign up to continue!" : "Ask me anything about learning..."}
+                          placeholder="Ask me anything about learning..."
                           className="w-full px-6 py-4 pr-20 bg-background border border-input rounded-2xl placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring text-lg backdrop-blur-sm cursor-pointer"
                         />
                       </div>
@@ -922,39 +927,36 @@ const Demo = () => {
         </main>
       </div>
 
-      {/* Time Warning Modal */}
-      {(showTimeWarning || timeLeft <= 0) && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="bg-card border-border max-w-lg w-full shadow-2xl rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-center text-2xl">
-                {timeLeft <= 0 ? "Demo Time Complete!" : "Demo Ending Soon!"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <p className="text-muted-foreground text-lg">
-                {timeLeft <= 0 
-                  ? "Your 15-minute demo has ended. Ready to continue with full access?"
-                  : `Only ${formatTime(timeLeft)} left in your demo. Continue with full access to keep learning!`
-                }
-              </p>
-              <div className="flex flex-col gap-4">
-                <Button
-                  onClick={() => navigate('/auth?signup=true')}
-                  className="py-3 rounded-xl text-lg"
+      {/* Soft Sign-Up Prompt — never blocks, always dismissable */}
+      {timeLeft <= 0 && !softPromptDismissed && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm animate-fade-in">
+          <Card className="bg-card border-primary/40 shadow-2xl rounded-2xl">
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/15 shrink-0">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-sm mb-1">Loving the demo?</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Sign up to save your chats, track progress, and unlock the full platform — free.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSoftPromptDismissed(true)}
+                  className="text-muted-foreground hover:text-foreground shrink-0"
+                  aria-label="Dismiss"
                 >
-                  Get Full Access
-                </Button>
-                {timeLeft > 0 && (
-                  <Button
-                    onClick={() => setShowTimeWarning(false)}
-                    variant="outline"
-                    className="py-3 rounded-xl"
-                  >
-                    Continue Demo
-                  </Button>
-                )}
+                  ✕
+                </button>
               </div>
+              <Button
+                onClick={() => navigate('/auth?signup=true')}
+                className="w-full rounded-xl"
+                size="sm"
+              >
+                Save my work · Sign up free
+              </Button>
             </CardContent>
           </Card>
         </div>
