@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, X, Newspaper } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, X, Newspaper, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { BookDemoModal } from '@/components/demo/BookDemoModal';
 
 export const Header = () => {
   const navigate = useNavigate();
   const { user, signOut, isSchoolAdmin, isTeacher } = useAuth();
   const { t } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -96,9 +98,14 @@ export const Header = () => {
         </Link>
         
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-6">
           <NavItems />
           <LanguageSelector />
+          {!user && (
+            <Button onClick={() => setDemoOpen(true)} variant="outline" size="sm" className="rounded-full border-primary/40 text-primary hover:bg-primary/10">
+              <Calendar className="w-4 h-4 mr-1.5" />Book a demo
+            </Button>
+          )}
           {user ? (
             <Button onClick={handleSignOut} variant="outline" size="sm" className="rounded-full">
               {t('nav.signOut')}

@@ -5,8 +5,9 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, ArrowRight, BookOpen, Brain, Eye, Trophy, Target, BarChart3, Gamepad2, CheckCircle, GraduationCap, Users, School } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Brain, Eye, Trophy, Target, BarChart3, Gamepad2, CheckCircle, GraduationCap, Users, School, Calendar } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { BookDemoModal } from '@/components/demo/BookDemoModal';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -15,6 +16,7 @@ const Index = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [demoOpen, setDemoOpen] = useState(false);
   const [typewriterText, setTypewriterText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -182,6 +184,20 @@ const Index = () => {
                 </Button>
               </div>
             </form>
+
+            {/* School-focused CTA above the fold */}
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
+              <span className="text-muted-foreground">Running a school?</span>
+              <Button
+                onClick={() => setDemoOpen(true)}
+                variant="outline"
+                size="sm"
+                className="rounded-full border-primary/40 text-primary hover:bg-primary/10 font-medium"
+              >
+                <Calendar className="w-4 h-4 mr-1.5" />
+                Book a 30-min demo
+              </Button>
+            </div>
           </div>
         </div>
       </section>
