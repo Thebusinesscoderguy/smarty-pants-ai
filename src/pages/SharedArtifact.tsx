@@ -132,8 +132,6 @@ const SharedArtifact = () => {
         <Link to="/" className="hover:text-foreground">teachlyai.com</Link>
         <span className="mx-2">·</span>
         <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
-        <span className="mx-2">·</span>
-        <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
       </footer>
     </div>
   );

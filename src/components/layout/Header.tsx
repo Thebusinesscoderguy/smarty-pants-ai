@@ -29,7 +29,6 @@ export const Header = () => {
   const navLinks = [
     { to: '/', label: t('nav.home') },
     { to: '/features', label: t('nav.features') },
-    { to: '/how-it-works', label: t('nav.howItWorks') },
     { to: '/pricing', label: t('nav.pricing') },
     { to: '/faq', label: 'FAQ' },
   ];

@@ -92,13 +92,6 @@ const Index = () => {
     navigate(`/quiz-generator?${params.toString()}`);
   };
 
-  const stats = [
-    { value: '50K+', label: 'Active learners' },
-    { value: '200+', label: 'Schools onboard' },
-    { value: '1M+', label: 'Quizzes generated' },
-    { value: '4.9★', label: 'Avg. rating' },
-  ];
-
   const showcaseFeatures = [
     {
       icon: BookOpen,
@@ -189,16 +182,6 @@ const Index = () => {
 
         <div className="container mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-card border border-border shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-              <span className="text-xs font-medium tracking-wide uppercase text-foreground">
-                Now live · AI Tutor v2
-              </span>
-            </div>
-
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95]">
               <span className="block text-foreground">Learning that</span>
               <span className="block bg-gradient-to-r from-primary via-primary to-accent-foreground bg-clip-text text-transparent">

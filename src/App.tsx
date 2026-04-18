@@ -39,7 +39,6 @@ import Demo from './pages/Demo';
 import Leaderboard from './pages/Leaderboard';
 import SharedArtifact from './pages/SharedArtifact';
 import SchoolOnboarding from './pages/SchoolOnboarding';
-import { Navigate } from 'react-router-dom';
 
 const queryClient = new QueryClient();
 
@@ -68,7 +67,6 @@ function App() {
                     <Route path="/auth" element={<Auth />} />
 
                     <Route path="/features" element={<Features />} />
-                    <Route path="/how-it-works" element={<Navigate to="/#features" replace />} />
                     <Route path="/pricing" element={<PublicPricing />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/pricing-checkout" element={<PricingCheckout />} />
