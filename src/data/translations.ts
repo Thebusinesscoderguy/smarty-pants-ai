@@ -1765,6 +1765,13 @@ export const translations: TranslationData = {
     'eli5.label': 'ELI5',
     'eli5.original': 'Original',
 
+    'home.trust.label': 'Aligned with',
+    'home.trust.curriculum1': 'IB',
+    'home.trust.curriculum2': 'Cambridge',
+    'home.trust.curriculum3': 'US Common Core',
+    'home.trust.curriculum4': 'UK National Curriculum',
+    'home.trust.curriculum5': 'MoE (MENA)',
+    'home.mobileCta.start': 'Start free',
     // Error Boundary
     'error.somethingWrong': 'Something went wrong',
     'error.unexpected': 'An unexpected error occurred.',
