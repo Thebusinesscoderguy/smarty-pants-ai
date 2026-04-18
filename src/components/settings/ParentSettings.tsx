@@ -224,6 +224,41 @@ export const ParentSettings = () => {
         </CardContent>
       </Card>
 
+      {/* Email Notifications */}
+      <Card className="rounded-3xl shadow-lg">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-foreground flex items-center text-2xl">
+            <div className="p-3 bg-primary/10 rounded-xl mr-4">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            Email Notifications
+          </CardTitle>
+          <p className="text-muted-foreground text-lg ml-16">
+            Stay updated on your child's progress.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4 ml-16">
+          <div className="p-6 bg-muted/50 border border-border rounded-xl">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-foreground font-semibold mb-1">Weekly progress digest</h3>
+                <p className="text-muted-foreground text-sm">
+                  Every Friday: lessons completed, quiz scores, strengths, and focus areas for each child.
+                </p>
+              </div>
+              <Switch checked={digestEnabled} onCheckedChange={toggleDigest} />
+            </div>
+            <Button
+              variant="outline" size="sm" className="mt-4"
+              onClick={sendPreview} disabled={sendingPreview}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {sendingPreview ? 'Sending…' : 'Send me a preview'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Family Management */}
       <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
