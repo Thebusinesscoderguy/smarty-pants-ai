@@ -133,11 +133,6 @@ export const SchoolPulse = () => {
     if (!schoolId) return;
     setSendingPreview(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-principal-weekly-digest', {
-        body: {},
-        method: 'POST',
-      });
-      // Use query param via direct fetch since we need ?school_id=
       const url = `https://twfzlbockonxopuindaw.supabase.co/functions/v1/send-principal-weekly-digest?school_id=${schoolId}`;
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
       if (res.ok) {
