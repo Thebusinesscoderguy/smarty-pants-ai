@@ -1821,14 +1821,10 @@ export const translations: TranslationData = {
     'home.why.title1': 'Smarter than a textbook.',
     'home.why.title2': 'Kinder than a tutor.',
     'home.why.desc': 'Teachly blends adaptive AI with real classroom workflows so learning feels personal and progress feels obvious.',
-    'home.why.adaptive.title': 'Adaptive',
-    'home.why.adaptive.desc': 'Adjusts difficulty and pacing in real time.',
     'home.why.insightful.title': 'Insightful',
     'home.why.insightful.desc': 'Clear analytics for students, parents, and schools.',
     'home.why.multilingual.title': 'Multilingual',
     'home.why.multilingual.desc': 'Native experience in Arabic and English.',
-    'home.why.engaging.title': 'Engaging',
-    'home.why.engaging.desc': 'Quests, achievements, and streaks that keep learners coming back.',
 
     // ===== Home — Final CTA =====
     'home.finalCta.title1': 'Start learning smarter',
