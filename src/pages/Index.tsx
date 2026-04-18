@@ -217,6 +217,31 @@ const Index = () => {
         </div>
       </section>
 
+      {/* TRUST STRIP — curriculum frameworks */}
+      <section className="border-y border-border bg-background/60">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('home.trust.label')}
+            </span>
+            {[
+              t('home.trust.curriculum1'),
+              t('home.trust.curriculum2'),
+              t('home.trust.curriculum3'),
+              t('home.trust.curriculum4'),
+              t('home.trust.curriculum5'),
+            ].map((label) => (
+              <span
+                key={label}
+                className="text-sm font-semibold text-foreground/70 tracking-tight"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* SHOWCASE */}
       <section className="py-20 md:py-28 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-6">
