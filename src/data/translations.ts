@@ -81,18 +81,7 @@ export const translations: TranslationData = {
     'home.advancedSubtitle': 'Human-Like Intuition',
     'home.advancedDesc': 'Built with cutting-edge technology to understand, learn, and adapt to your unique needs.',
     
-    'home.feature.adaptive.title': 'Adaptive Learning',
-    'home.feature.adaptive.desc': 'Our AI learns your unique style and adjusts in real-time to maximize understanding and retention.',
-    'home.feature.progress.title': 'Progress Tracking',
-    'home.feature.progress.desc': 'Comprehensive analytics show growth across all subjects, helping you stay motivated and on track.',
-    'home.feature.gamified.title': 'Gamified Experience',
-    'home.feature.gamified.desc': 'Earn achievements, level up, and complete quests as you master new concepts and skills.',
-    'home.feature.studyPlans.title': 'AI Study Plans',
-    'home.feature.studyPlans.desc': 'Generate personalized study plans with daily objectives and comprehensive learning schedules.',
-    'home.feature.parentDash.title': 'Parent Dashboard',
-    'home.feature.parentDash.desc': 'Parents and teachers can monitor progress, set goals, and provide support when needed.',
-    'home.feature.quizzes.title': 'Smart Quizzes',
-    'home.feature.quizzes.desc': 'AI-generated quizzes that adapt to your knowledge level and focus on areas needing improvement.',
+    // (home.feature.* duplicates removed — see home.features.* block below)
     
     'home.cta.title': 'Ready to Transform Your Learning Journey?',
     'home.cta.subtitle': "Join thousands of students already learning smarter with Teachly's AI-powered platform.",
