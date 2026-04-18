@@ -156,7 +156,8 @@ const Demo = () => {
               content: "You are a helpful AI tutor. Provide clear, educational responses to help students learn."
             },
             { role: "user", content: userMessage }
-          ]
+          ],
+          language: localStorage.getItem('language') || 'en'
         })
       });
 

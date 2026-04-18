@@ -124,7 +124,7 @@ export const useMessageHandler = () => {
               ...conversationHistory,
               { role: "user", content: userMessage }
             ],
-            language: localStorage.getItem('selectedLanguage') || 'en'
+            language: localStorage.getItem('language') || localStorage.getItem('selectedLanguage') || 'en'
           })
         });
 
