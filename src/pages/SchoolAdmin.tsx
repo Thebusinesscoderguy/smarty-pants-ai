@@ -60,6 +60,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
+                <TabsTrigger value="grading" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Sparkles className="h-4 w-4 mr-2" />Grading Inbox
+                </TabsTrigger>
                 <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileText className="h-4 w-4 mr-2" />Lesson Plans
                 </TabsTrigger>
