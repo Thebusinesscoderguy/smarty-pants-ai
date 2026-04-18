@@ -405,24 +405,24 @@ const Index = () => {
       <section className="py-20 md:py-28 bg-background">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-primary/10 rounded-[2.5rem] blur-2xl opacity-50" />
-            <div className="relative bg-foreground text-background rounded-[2.5rem] p-12 md:p-20 text-center overflow-hidden">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-accent/20 to-primary/10 rounded-[2.5rem] blur-2xl opacity-60" />
+            <div className="relative bg-card border border-border rounded-[2.5rem] p-12 md:p-20 text-center overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/25 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
 
               <div className="relative z-10 space-y-8">
-                <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95]">
+                <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] text-foreground">
                   {t('home.finalCta.title1')}<br />
-                  <span className="text-background/60">{t('home.finalCta.title2')}</span>
+                  <span className="bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">{t('home.finalCta.title2')}</span>
                 </h2>
-                <p className="text-lg md:text-xl text-background/70 max-w-2xl mx-auto">
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
                   {t('home.finalCta.desc')}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3 pt-4">
-                  <Button size="lg" onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')} className="bg-background text-foreground hover:bg-background/90 rounded-full px-8 shadow-xl font-semibold">
+                  <Button size="lg" onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 shadow-lg font-semibold">
                     {t('home.cta.getStartedFree')} <ArrowRight className={`${isRTL ? 'mr-2 rotate-180' : 'ml-2'} w-5 h-5`} />
                   </Button>
-                  <Button size="lg" variant="outline" onClick={() => setDemoOpen(true)} className="rounded-full px-8 border-2 border-background/30 bg-transparent text-background hover:bg-background/10">
+                  <Button size="lg" variant="outline" onClick={() => setDemoOpen(true)} className="rounded-full px-8 border-2 border-primary/30 bg-transparent text-foreground hover:bg-primary/10">
                     <Calendar className={`${isRTL ? 'ml-2' : 'mr-2'} w-4 h-4`} />
                     {t('nav.bookDemo')}
                   </Button>

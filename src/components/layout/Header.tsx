@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, School, Trophy, Menu, Newspaper, Calendar } from 'lucide-react';
@@ -8,6 +8,7 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { BookDemoModal } from '@/components/demo/BookDemoModal';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -15,7 +16,27 @@ export const Header = () => {
   const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
+  const [isSchoolStudent, setIsSchoolStudent] = useState(false);
   const isRTL = language === 'ar';
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!user || isSchoolAdmin || isTeacher) {
+      setIsSchoolStudent(false);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from('school_student_relationships')
+        .select('school_id')
+        .eq('student_id', user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) setIsSchoolStudent(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user, isSchoolAdmin, isTeacher]);
 
   const handleSignOut = async () => {
     try {
@@ -68,14 +89,16 @@ export const Header = () => {
               {t('nav.teacherDashboard')}
             </Link>
           )}
-          <Link
-            to="/news"
-            onClick={() => mobile && setMobileOpen(false)}
-            className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-          >
-            <Newspaper className="w-4 h-4" />
-            {t('nav.news')}
-          </Link>
+          {(isSchoolAdmin || isTeacher || isSchoolStudent) && (
+            <Link
+              to="/news"
+              onClick={() => mobile && setMobileOpen(false)}
+              className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+            >
+              <Newspaper className="w-4 h-4" />
+              {t('nav.news')}
+            </Link>
+          )}
           <Link
             to="/leaderboard"
             onClick={() => mobile && setMobileOpen(false)}
