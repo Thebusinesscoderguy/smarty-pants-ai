@@ -81,10 +81,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return translation;
   };
 
-  if (!isInitialized) {
-    return <div>Loading translations...</div>;
-  }
-
   return (
     <LanguageContext.Provider value={{ language, setLanguage: changeLanguage, t }}>
       {children}

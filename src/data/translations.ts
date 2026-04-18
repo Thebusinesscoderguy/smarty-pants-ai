@@ -81,18 +81,7 @@ export const translations: TranslationData = {
     'home.advancedSubtitle': 'Human-Like Intuition',
     'home.advancedDesc': 'Built with cutting-edge technology to understand, learn, and adapt to your unique needs.',
     
-    'home.feature.adaptive.title': 'Adaptive Learning',
-    'home.feature.adaptive.desc': 'Our AI learns your unique style and adjusts in real-time to maximize understanding and retention.',
-    'home.feature.progress.title': 'Progress Tracking',
-    'home.feature.progress.desc': 'Comprehensive analytics show growth across all subjects, helping you stay motivated and on track.',
-    'home.feature.gamified.title': 'Gamified Experience',
-    'home.feature.gamified.desc': 'Earn achievements, level up, and complete quests as you master new concepts and skills.',
-    'home.feature.studyPlans.title': 'AI Study Plans',
-    'home.feature.studyPlans.desc': 'Generate personalized study plans with daily objectives and comprehensive learning schedules.',
-    'home.feature.parentDash.title': 'Parent Dashboard',
-    'home.feature.parentDash.desc': 'Parents and teachers can monitor progress, set goals, and provide support when needed.',
-    'home.feature.quizzes.title': 'Smart Quizzes',
-    'home.feature.quizzes.desc': 'AI-generated quizzes that adapt to your knowledge level and focus on areas needing improvement.',
+    // (home.feature.* duplicates removed — see home.features.* block below)
     
     'home.cta.title': 'Ready to Transform Your Learning Journey?',
     'home.cta.subtitle': "Join thousands of students already learning smarter with Teachly's AI-powered platform.",
@@ -1776,6 +1765,13 @@ export const translations: TranslationData = {
     'eli5.label': 'ELI5',
     'eli5.original': 'Original',
 
+    'home.trust.label': 'Aligned with',
+    'home.trust.curriculum1': 'IB',
+    'home.trust.curriculum2': 'Cambridge',
+    'home.trust.curriculum3': 'US Common Core',
+    'home.trust.curriculum4': 'UK National Curriculum',
+    'home.trust.curriculum5': 'MoE (MENA)',
+    'home.mobileCta.start': 'Start free',
     // Error Boundary
     'error.somethingWrong': 'Something went wrong',
     'error.unexpected': 'An unexpected error occurred.',
@@ -2737,6 +2733,13 @@ export const translations: TranslationData = {
     'home.cta.startFree': 'ابدأ مجاناً',
     'home.cta.watchItWork': 'شاهدها تعمل',
     'home.cta.getStartedFree': 'ابدأ مجاناً الآن',
+    'home.trust.label': 'متوافقة مع',
+    'home.trust.curriculum1': 'البكالوريا الدولية (IB)',
+    'home.trust.curriculum2': 'كامبريدج',
+    'home.trust.curriculum3': 'المنهج الأمريكي المشترك',
+    'home.trust.curriculum4': 'المنهج البريطاني',
+    'home.trust.curriculum5': 'وزارات التعليم (الشرق الأوسط)',
+    'home.mobileCta.start': 'ابدأ مجاناً',
 
     // ===== Home — Showcase =====
     'home.showcase.eyebrow': 'منصة واحدة · أربعة منظورات',

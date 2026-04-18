@@ -217,6 +217,31 @@ const Index = () => {
         </div>
       </section>
 
+      {/* TRUST STRIP — curriculum frameworks */}
+      <section className="border-y border-border bg-background/60">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('home.trust.label')}
+            </span>
+            {[
+              t('home.trust.curriculum1'),
+              t('home.trust.curriculum2'),
+              t('home.trust.curriculum3'),
+              t('home.trust.curriculum4'),
+              t('home.trust.curriculum5'),
+            ].map((label) => (
+              <span
+                key={label}
+                className="text-sm font-semibold text-foreground/70 tracking-tight"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* SHOWCASE */}
       <section className="py-20 md:py-28 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-6">
@@ -435,6 +460,28 @@ const Index = () => {
 
       <Footer />
       <BookDemoModal open={demoOpen} onOpenChange={setDemoOpen} />
+
+      {/* Sticky mobile CTA — only for unauthenticated users */}
+      {!user && (
+        <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border p-3 shadow-lg">
+          <div className="flex gap-2 max-w-md mx-auto">
+            <Button
+              onClick={() => navigate('/auth')}
+              className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
+            >
+              <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+              {t('home.mobileCta.start')}
+            </Button>
+            <Button
+              onClick={() => setDemoOpen(true)}
+              variant="outline"
+              className="rounded-full border-primary/40 text-primary hover:bg-primary/10"
+            >
+              <Calendar className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
