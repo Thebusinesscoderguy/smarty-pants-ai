@@ -94,7 +94,7 @@ async function sendDigestForParent(supabase: any, parentId: string): Promise<boo
       'X-Connection-Api-Key': RESEND_API_KEY,
     },
     body: JSON.stringify({
-      from: 'Teachly <onboarding@resend.dev>',
+      from: 'Teachly <noreply@teachlyai.com>',
       to: [parentUser.email],
       subject: `📚 ${childSummaries.length === 1 ? `${childSummaries[0].name}'s` : "Your kids'"} week on Teachly`,
       html,
