@@ -34,14 +34,18 @@ serve(async (req) => {
     // Use messages as-is without custom system instructions (base GPT behavior)
     const finalMessages = messages || [{ role: 'user', content: 'Hello' }];
     
-    // Add system message with accuracy requirements and language instruction
+    // Add system message with accuracy + strong language instruction
     let messagesWithSystem;
     const accuracyInstruction = 'CRITICAL: If you encounter any conflicting information or are uncertain about factual accuracy, do NOT present that information to the student. Only provide information you are confident is accurate and consistent. If uncertain, acknowledge your uncertainty rather than presenting potentially incorrect information.';
-    
+
     if (language !== 'en') {
+      const langName = getLanguageName(language);
+      const arabicExtra = language === 'ar'
+        ? ' Use Modern Standard Arabic (الفصحى). Use Arabic numerals where natural. Format any math/code with Arabic explanations. Never mix English words unless they are proper nouns or untranslatable technical terms.'
+        : '';
       const languageSystemMessage = {
         role: 'system',
-        content: `${accuracyInstruction}\n\nAlways respond in ${getLanguageName(language)}.`
+        content: `${accuracyInstruction}\n\n🔴 CRITICAL LANGUAGE RULE: You MUST respond ONLY in ${langName}. Every single word, including greetings, explanations, examples, headings, and bullet points must be in ${langName}.${arabicExtra} Do NOT switch to English under any circumstance, even if the user writes in English.`
       };
       messagesWithSystem = [languageSystemMessage, ...finalMessages];
     } else {

@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Footer = () => {
   const { t } = useLanguage();
-  
+
   return (
     <footer className="w-full px-6 py-12 border-t border-border bg-muted/30">
       <div className="container mx-auto">
