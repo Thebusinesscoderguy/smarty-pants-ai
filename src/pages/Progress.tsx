@@ -8,9 +8,7 @@ import { ParentDashboard } from '@/components/monitoring/ParentDashboard';
 import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { DemoParentDashboard } from '@/components/demo/DemoParentDashboard';
-import { DemoQuestDisplay } from '@/components/demo/DemoQuestDisplay';
-import { DemoAnalytics } from '@/components/demo/DemoAnalytics';
+import { Link } from 'react-router-dom';
 import { CurriculumSelector } from '@/components/CurriculumSelector';
 import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -97,9 +95,20 @@ const Progress = () => {
     </div>
   );
 
+  const SignInPrompt = ({ message }: { message: string }) => (
+    <Card>
+      <CardContent className="p-10 text-center space-y-4">
+        <p className="text-muted-foreground">{message}</p>
+        <Button asChild>
+          <Link to="/auth">Sign in to continue</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   const renderMonitoringTab = () => {
     if (!user) {
-      return <DemoParentDashboard />;
+      return <SignInPrompt message="Sign in to view your learning progress dashboard." />;
     }
     
     if (userRole === 'parent') {
@@ -529,7 +538,7 @@ const Progress = () => {
             </TabsContent>
 
             <TabsContent value="quests" className="space-y-8">
-              {user ? <StudentQuestDisplay /> : <DemoQuestDisplay />}
+              {user ? <StudentQuestDisplay /> : <SignInPrompt message="Sign in to track your quests and achievements." />}
             </TabsContent>
 
 
