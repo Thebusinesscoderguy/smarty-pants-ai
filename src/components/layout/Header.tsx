@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, X, Newspaper, Calendar } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -12,17 +12,18 @@ import { BookDemoModal } from '@/components/demo/BookDemoModal';
 export const Header = () => {
   const navigate = useNavigate();
   const { user, signOut, isSchoolAdmin, isTeacher } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
+  const isRTL = language === 'ar';
 
   const handleSignOut = async () => {
     try {
       await signOut();
       navigate('/');
-      toast.success('Signed out successfully');
+      toast.success(t('auth.signOutSuccess'));
     } catch (error) {
-      toast.error('Error signing out');
+      toast.error(t('auth.signOutError'));
     }
   };
 
@@ -30,7 +31,7 @@ export const Header = () => {
     { to: '/', label: t('nav.home') },
     { to: '/features', label: t('nav.features') },
     { to: '/pricing', label: t('nav.pricing') },
-    { to: '/faq', label: 'FAQ' },
+    { to: '/faq', label: t('nav.faq') },
   ];
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
@@ -54,7 +55,7 @@ export const Header = () => {
               className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
             >
               <School className="w-4 h-4" />
-              {t('nav.schoolAdmin') || 'School Admin'}
+              {t('nav.schoolAdmin')}
             </Link>
           )}
           {isTeacher && !isSchoolAdmin && (
@@ -64,7 +65,7 @@ export const Header = () => {
               className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
             >
               <School className="w-4 h-4" />
-              Teacher Dashboard
+              {t('nav.teacherDashboard')}
             </Link>
           )}
           <Link
@@ -73,7 +74,7 @@ export const Header = () => {
             className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
           >
             <Newspaper className="w-4 h-4" />
-            News
+            {t('nav.news')}
           </Link>
           <Link
             to="/leaderboard"
@@ -81,7 +82,7 @@ export const Header = () => {
             className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
           >
             <Trophy className="w-4 h-4" />
-            Leaderboard
+            {t('nav.leaderboard')}
           </Link>
         </>
       )}
@@ -95,14 +96,14 @@ export const Header = () => {
           <GraduationCap className="w-6 h-6" />
           Teachly
         </Link>
-        
+
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'}`}>
           <NavItems />
           <LanguageSelector />
           {!user && (
             <Button onClick={() => setDemoOpen(true)} variant="outline" size="sm" className="rounded-full border-primary/40 text-primary hover:bg-primary/10">
-              <Calendar className="w-4 h-4 mr-1.5" />Book a demo
+              <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />{t('nav.bookDemo')}
             </Button>
           )}
           {user ? (
@@ -125,13 +126,13 @@ export const Header = () => {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] pt-12">
+            <SheetContent side={isRTL ? 'left' : 'right'} className="w-[280px] pt-12">
               <nav className="flex flex-col space-y-1">
                 <NavItems mobile />
                 <div className="pt-4 border-t border-border mt-4 space-y-2">
                   {!user && (
                     <Button onClick={() => { setDemoOpen(true); setMobileOpen(false); }} variant="outline" className="w-full rounded-full border-primary/40 text-primary">
-                      <Calendar className="w-4 h-4 mr-1.5" />Book a demo
+                      <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />{t('nav.bookDemo')}
                     </Button>
                   )}
                   {user ? (

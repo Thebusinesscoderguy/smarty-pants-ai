@@ -69,7 +69,6 @@ const Index = () => {
     return () => clearTimeout(timeout);
   }, [typewriterText, isDeleting, placeholderIndex, currentPlaceholders]);
 
-  // Auto-rotate the showcase
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % 4);
@@ -93,30 +92,10 @@ const Index = () => {
   };
 
   const showcaseFeatures = [
-    {
-      icon: BookOpen,
-      title: 'AI Study Plans',
-      desc: 'Adaptive learning paths built around your pace, goals, and curriculum.',
-      tag: 'For students',
-    },
-    {
-      icon: Brain,
-      title: 'Smart Quizzes',
-      desc: 'Generate questions from any topic, document, or lesson — graded instantly.',
-      tag: 'For teachers',
-    },
-    {
-      icon: Eye,
-      title: 'Family Insights',
-      desc: 'Real-time dashboards so parents see exactly where their kids stand.',
-      tag: 'For parents',
-    },
-    {
-      icon: School,
-      title: 'School Operations',
-      desc: 'Grade books, attendance, homework, and analytics in one place.',
-      tag: 'For schools',
-    },
+    { icon: BookOpen, title: t('home.showcase.studyPlans.title'), desc: t('home.showcase.studyPlans.desc'), tag: t('home.showcase.tag.students') },
+    { icon: Brain, title: t('home.showcase.quizzes.title'), desc: t('home.showcase.quizzes.desc'), tag: t('home.showcase.tag.teachers') },
+    { icon: Eye, title: t('home.showcase.family.title'), desc: t('home.showcase.family.desc'), tag: t('home.showcase.tag.parents') },
+    { icon: School, title: t('home.showcase.ops.title'), desc: t('home.showcase.ops.desc'), tag: t('home.showcase.tag.schools') },
   ];
 
   const roleCards = [
@@ -150,30 +129,17 @@ const Index = () => {
   ];
 
   const testimonials = [
-    {
-      quote: 'My daughter went from dreading homework to asking for extra quizzes. The AI tutor actually meets her where she is.',
-      author: 'Sarah M.',
-      role: 'Parent of two',
-    },
-    {
-      quote: 'I generate a full week of differentiated lesson plans in under 10 minutes. It gave me my evenings back.',
-      author: 'David L.',
-      role: 'Middle school teacher',
-    },
-    {
-      quote: 'Onboarding 400 students took an afternoon. The principal digest is the first email I open every Monday.',
-      author: 'Dr. Amina K.',
-      role: 'School principal',
-    },
+    { quote: t('home.testimonial1.quote'), author: t('home.testimonial1.author'), role: t('home.testimonial1.role') },
+    { quote: t('home.testimonial2.quote'), author: t('home.testimonial2.author'), role: t('home.testimonial2.role') },
+    { quote: t('home.testimonial3.quote'), author: t('home.testimonial3.author'), role: t('home.testimonial3.role') },
   ];
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       <Header />
 
-      {/* ============== HERO ============== */}
+      {/* HERO */}
       <section className="relative">
-        {/* Background flourishes */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 -left-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute top-40 -right-40 w-[600px] h-[600px] rounded-full bg-accent/20 blur-3xl" />
@@ -183,18 +149,16 @@ const Index = () => {
         <div className="container mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8 animate-fade-in">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95]">
-              <span className="block text-foreground">Learning that</span>
+              <span className="block text-foreground">{t('home.hero.headline1')}</span>
               <span className="block bg-gradient-to-r from-primary via-primary to-accent-foreground bg-clip-text text-transparent">
-                actually adapts.
+                {t('home.hero.headline2')}
               </span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              The AI-native platform for students, parents, teachers, and schools.
-              Generate study plans, run smart quizzes, and track real progress — all in one place.
+              {t('home.hero.subhead')}
             </p>
 
-            {/* Search bar */}
             <form onSubmit={handleSubmit} className="mt-10 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/40 via-accent/40 to-primary/40 rounded-full opacity-50 blur group-hover:opacity-75 transition-opacity" />
@@ -233,64 +197,47 @@ const Index = () => {
               </div>
             </form>
 
-            {/* Quick CTAs */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-              <Button
-                onClick={() => navigate('/auth')}
-                variant="ghost"
-                className="rounded-full text-sm font-medium hover:bg-muted"
-              >
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                Start free
+              <Button onClick={() => navigate('/auth')} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
+                <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {t('home.cta.startFree')}
               </Button>
               <span className="text-muted-foreground/40">·</span>
-              <Button
-                onClick={() => setDemoOpen(true)}
-                variant="ghost"
-                className="rounded-full text-sm font-medium hover:bg-muted"
-              >
-                <Calendar className="w-4 h-4 mr-1.5" />
-                Book a demo
+              <Button onClick={() => setDemoOpen(true)} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
+                <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {t('nav.bookDemo')}
               </Button>
               <span className="text-muted-foreground/40">·</span>
-              <Button
-                onClick={() => navigate('/demo')}
-                variant="ghost"
-                className="rounded-full text-sm font-medium hover:bg-muted"
-              >
-                <PlayCircle className="w-4 h-4 mr-1.5" />
-                Watch it work
+              <Button onClick={() => navigate('/demo')} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
+                <PlayCircle className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {t('home.cta.watchItWork')}
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* ============== INTERACTIVE SHOWCASE ============== */}
+      {/* SHOWCASE */}
       <section className="py-20 md:py-28 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mb-14">
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-4">
-              <Zap className="w-3.5 h-3.5" /> One platform · Four perspectives
+              <Zap className="w-3.5 h-3.5" /> {t('home.showcase.eyebrow')}
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight leading-tight">
-              Everything education needs.<br />
-              <span className="text-muted-foreground">Nothing it doesn't.</span>
+              {t('home.showcase.title1')}<br />
+              <span className="text-muted-foreground">{t('home.showcase.title2')}</span>
             </h2>
           </div>
 
           <div className="grid lg:grid-cols-5 gap-6 max-w-6xl">
-            {/* Tabs */}
             <div className="lg:col-span-2 space-y-2">
               {showcaseFeatures.map((f, i) => (
                 <button
                   key={f.title}
                   onClick={() => setActiveFeature(i)}
-                  className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 ${
-                    activeFeature === i
-                      ? 'bg-card border-primary/40 shadow-lg'
-                      : 'bg-transparent border-transparent hover:bg-card/50 hover:border-border'
+                  className={`w-full ${isRTL ? 'text-right' : 'text-left'} p-5 rounded-2xl border transition-all duration-300 ${
+                    activeFeature === i ? 'bg-card border-primary/40 shadow-lg' : 'bg-transparent border-transparent hover:bg-card/50 hover:border-border'
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -300,7 +247,7 @@ const Index = () => {
                       <f.icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-bold text-foreground">{f.title}</h3>
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider">
                           {f.tag}
@@ -313,11 +260,10 @@ const Index = () => {
               ))}
             </div>
 
-            {/* Visual panel */}
             <div className="lg:col-span-3 relative">
               <div className="aspect-[4/3] rounded-3xl bg-card border border-border shadow-2xl overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10" />
-                <div className="absolute top-4 left-4 flex gap-1.5">
+                <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'} flex gap-1.5`}>
                   <div className="w-3 h-3 rounded-full bg-muted-foreground/20" />
                   <div className="w-3 h-3 rounded-full bg-muted-foreground/20" />
                   <div className="w-3 h-3 rounded-full bg-muted-foreground/20" />
@@ -334,12 +280,7 @@ const Index = () => {
                     <p className="text-muted-foreground leading-relaxed">{showcaseFeatures[activeFeature].desc}</p>
                     <div className="flex gap-2 justify-center pt-2">
                       {showcaseFeatures.map((_, i) => (
-                        <div
-                          key={i}
-                          className={`h-1.5 rounded-full transition-all ${
-                            i === activeFeature ? 'w-8 bg-primary' : 'w-1.5 bg-muted-foreground/20'
-                          }`}
-                        />
+                        <div key={i} className={`h-1.5 rounded-full transition-all ${i === activeFeature ? 'w-8 bg-primary' : 'w-1.5 bg-muted-foreground/20'}`} />
                       ))}
                     </div>
                   </div>
@@ -350,7 +291,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ============== ROLES ============== */}
+      {/* ROLES */}
       <section className="py-20 md:py-28 bg-background">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 max-w-2xl mx-auto">
@@ -362,10 +303,7 @@ const Index = () => {
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {roleCards.map((card, idx) => (
-              <div
-                key={card.title}
-                className={`group relative bg-card border border-border rounded-3xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col overflow-hidden`}
-              >
+              <div key={card.title} className="group relative bg-card border border-border rounded-3xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${card.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                 <div className="relative z-10 flex flex-col h-full">
                   <div className="flex items-start justify-between mb-6">
@@ -384,11 +322,7 @@ const Index = () => {
                       </div>
                     ))}
                   </div>
-                  <Button
-                    onClick={() => navigate(card.href)}
-                    variant="outline"
-                    className="w-full rounded-full border-foreground/20 hover:bg-foreground hover:text-background transition-all"
-                  >
+                  <Button onClick={() => navigate(card.href)} variant="outline" className="w-full rounded-full border-foreground/20 hover:bg-foreground hover:text-background transition-all">
                     {card.cta}
                     <ArrowRight className={`${isRTL ? 'mr-1.5 rotate-180' : 'ml-1.5'} w-4 h-4`} />
                   </Button>
@@ -399,7 +333,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ============== TESTIMONIALS ============== */}
+      {/* TESTIMONIALS */}
       <section className="py-20 md:py-28 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-6">
           <div className="max-w-2xl mx-auto text-center mb-16">
@@ -409,24 +343,19 @@ const Index = () => {
               ))}
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-4">
-              Loved by learners everywhere
+              {t('home.testimonials.title')}
             </h2>
-            <p className="text-lg text-muted-foreground">
-              From individual students to entire school districts.
-            </p>
+            <p className="text-lg text-muted-foreground">{t('home.testimonials.subtitle')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="bg-card border border-border rounded-3xl p-8 flex flex-col hover:shadow-xl transition-all duration-300"
-              >
+            {testimonials.map((tm, i) => (
+              <div key={i} className="bg-card border border-border rounded-3xl p-8 flex flex-col hover:shadow-xl transition-all duration-300">
                 <div className="text-5xl text-primary/30 leading-none mb-2 font-serif">"</div>
-                <p className="text-foreground leading-relaxed flex-1 mb-6">{t.quote}</p>
+                <p className="text-foreground leading-relaxed flex-1 mb-6">{tm.quote}</p>
                 <div className="pt-6 border-t border-border">
-                  <div className="font-semibold text-foreground">{t.author}</div>
-                  <div className="text-sm text-muted-foreground">{t.role}</div>
+                  <div className="font-semibold text-foreground">{tm.author}</div>
+                  <div className="text-sm text-muted-foreground">{tm.role}</div>
                 </div>
               </div>
             ))}
@@ -434,41 +363,34 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ============== WHY ============== */}
+      {/* WHY */}
       <section className="py-20 md:py-28 bg-background">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 max-w-6xl mx-auto items-center">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-4">
-                <Brain className="w-3.5 h-3.5" /> Why it works
+                <Brain className="w-3.5 h-3.5" /> {t('home.why.eyebrow')}
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight leading-tight mb-6">
-                Built on real pedagogy.<br />
-                Powered by frontier AI.
+                {t('home.why.title1')}<br />
+                {t('home.why.title2')}
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                Most edtech bolts AI onto old workflows. We rebuilt learning from scratch — adaptive content, multilingual support, and analytics that actually move outcomes.
+                {t('home.why.desc')}
               </p>
-              <Button
-                size="lg"
-                onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')}
-                className="rounded-full px-8 bg-foreground text-background hover:bg-foreground/90 shadow-lg"
-              >
-                {t('nav.getStarted')} <ArrowRight className="ml-2 w-4 h-4" />
+              <Button size="lg" onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')} className="rounded-full px-8 bg-foreground text-background hover:bg-foreground/90 shadow-lg">
+                {t('nav.getStarted')} <ArrowRight className={`${isRTL ? 'mr-2 rotate-180' : 'ml-2'} w-4 h-4`} />
               </Button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: Target, title: 'Adaptive', desc: 'Content shifts to each learner.' },
-                { icon: BarChart3, title: 'Insightful', desc: 'Analytics teachers actually use.' },
-                { icon: Globe, title: 'Multilingual', desc: 'Arabic, English, and more.' },
-                { icon: Gamepad2, title: 'Engaging', desc: 'Quests, streaks, and rewards.' },
+                { icon: Target, title: t('home.why.adaptive.title'), desc: t('home.why.adaptive.desc') },
+                { icon: BarChart3, title: t('home.why.insightful.title'), desc: t('home.why.insightful.desc') },
+                { icon: Globe, title: t('home.why.multilingual.title'), desc: t('home.why.multilingual.desc') },
+                { icon: Gamepad2, title: t('home.why.engaging.title'), desc: t('home.why.engaging.desc') },
               ].map((c) => (
-                <div
-                  key={c.title}
-                  className="bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:shadow-lg transition-all"
-                >
+                <div key={c.title} className="bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:shadow-lg transition-all">
                   <c.icon className="w-7 h-7 text-primary mb-3" />
                   <h3 className="font-bold text-foreground mb-1">{c.title}</h3>
                   <p className="text-sm text-muted-foreground">{c.desc}</p>
@@ -479,7 +401,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ============== FINAL CTA ============== */}
+      {/* FINAL CTA */}
       <section className="py-20 md:py-28 bg-background">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto relative">
@@ -490,28 +412,19 @@ const Index = () => {
 
               <div className="relative z-10 space-y-8">
                 <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95]">
-                  Ready to learn<br />
-                  <span className="text-background/60">differently?</span>
+                  {t('home.finalCta.title1')}<br />
+                  <span className="text-background/60">{t('home.finalCta.title2')}</span>
                 </h2>
                 <p className="text-lg md:text-xl text-background/70 max-w-2xl mx-auto">
-                  Join the students, parents, and schools rethinking education with AI that actually teaches.
+                  {t('home.finalCta.desc')}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3 pt-4">
-                  <Button
-                    size="lg"
-                    onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')}
-                    className="bg-background text-foreground hover:bg-background/90 rounded-full px-8 shadow-xl font-semibold"
-                  >
-                    Get started free <ArrowRight className="ml-2 w-5 h-5" />
+                  <Button size="lg" onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')} className="bg-background text-foreground hover:bg-background/90 rounded-full px-8 shadow-xl font-semibold">
+                    {t('home.cta.getStartedFree')} <ArrowRight className={`${isRTL ? 'mr-2 rotate-180' : 'ml-2'} w-5 h-5`} />
                   </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => setDemoOpen(true)}
-                    className="rounded-full px-8 border-2 border-background/30 bg-transparent text-background hover:bg-background/10"
-                  >
-                    <Calendar className="mr-2 w-4 h-4" />
-                    Book a demo
+                  <Button size="lg" variant="outline" onClick={() => setDemoOpen(true)} className="rounded-full px-8 border-2 border-background/30 bg-transparent text-background hover:bg-background/10">
+                    <Calendar className={`${isRTL ? 'ml-2' : 'mr-2'} w-4 h-4`} />
+                    {t('nav.bookDemo')}
                   </Button>
                 </div>
               </div>

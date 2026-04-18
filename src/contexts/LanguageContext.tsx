@@ -12,6 +12,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isInitialized, setIsInitialized] = useState(false);
   const { autoTranslationCache, autoTranslate } = useTranslation();
 
+  // Apply RTL/LTR + Arabic font on <html> whenever language changes
+  useEffect(() => {
+    const html = document.documentElement;
+    const isAr = language === 'ar';
+    html.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+    html.setAttribute('lang', language);
+    if (isAr) {
+      html.classList.add('lang-ar');
+    } else {
+      html.classList.remove('lang-ar');
+    }
+  }, [language]);
+
   useEffect(() => {
     const savedLanguage = getStoredLanguage();
     if (savedLanguage && isValidLanguage(savedLanguage)) {
