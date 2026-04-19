@@ -9,7 +9,7 @@ import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Link } from 'react-router-dom';
-import { CurriculumSelector } from '@/components/CurriculumSelector';
+import { CurriculumSelector } from '@/components/curriculum/CurriculumSelector';
 import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';

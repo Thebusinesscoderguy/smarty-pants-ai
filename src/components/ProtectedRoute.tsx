@@ -6,8 +6,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
 import { UserRoleSelector } from '@/components/onboarding/UserRoleSelector';
-import { ParentDashboard } from '@/components/dashboards/ParentDashboard';
-import { StudentDashboard } from '@/components/dashboards/StudentDashboard';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
