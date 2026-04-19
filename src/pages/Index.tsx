@@ -265,25 +265,6 @@ const Index = () => {
               </div>
             </form>
           </div>
-            </form>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-              <Button onClick={() => navigate('/auth')} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('home.cta.startFree')}
-              </Button>
-              <span className="text-muted-foreground/40">·</span>
-              <Button onClick={() => setDemoOpen(true)} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('nav.bookDemo')}
-              </Button>
-              <span className="text-muted-foreground/40">·</span>
-              <Button onClick={() => navigate('/demo')} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <PlayCircle className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('home.cta.watchItWork')}
-              </Button>
-            </div>
-          </div>
         </div>
       </section>
 
