@@ -411,6 +411,31 @@ const Index = () => {
         </div>
       </section>
 
+      {/* WHY SWITCH */}
+      <section className="py-20 md:py-28 bg-background border-t border-border">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-14 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-4">
+              <Zap className="w-3.5 h-3.5" /> {isAr ? 'لماذا التبديل' : 'Why switch'}
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+              {isAr ? 'كيف نقارن بالأدوات الأخرى' : 'How we compare'}
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {competitors.map((c) => (
+              <div key={c.name} className="bg-card border border-border rounded-3xl p-8 hover:shadow-xl hover:border-primary/40 transition-all">
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-muted text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                  {c.name}
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-snug">{c.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="py-20 md:py-28 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-6">
