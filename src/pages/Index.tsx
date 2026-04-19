@@ -372,9 +372,11 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 max-w-2xl mx-auto">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-4">
-              {t('home.roles.title')}
+              {isAr ? 'منصة واحدة لكل دور' : 'One platform, every role covered'}
             </h2>
-            <p className="text-lg text-muted-foreground">{t('home.roles.subtitle')}</p>
+            <p className="text-lg text-muted-foreground">
+              {isAr ? 'مصمم للمدارس — مع أدوات مدمجة للمعلمين والطلاب.' : 'Built for schools — with tools baked in for teachers and students.'}
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
