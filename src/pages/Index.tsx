@@ -186,17 +186,48 @@ const Index = () => {
         <div className="container mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8 animate-fade-in">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95]">
-              <span className="block text-foreground">{t('home.hero.headline1')}</span>
+              <span className="block text-foreground">
+                {isAr ? 'منصة إدارة المدارس' : 'The school management platform'}
+              </span>
               <span className="block bg-gradient-to-r from-primary via-primary to-accent-foreground bg-clip-text text-transparent">
-                {t('home.hero.headline2')}
+                {isAr ? 'مع ذكاء اصطناعي مدمج' : 'with AI built in'}
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              {t('home.hero.subhead')}
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              {isAr
+                ? 'استبدل نظام إدارة التعلم وأدوات تواصل أولياء الأمور بمنصة واحدة — وامنح كل طالب مدرّساً ذكياً ومولّد اختبارات ومخطط دراسي مدرجاً.'
+                : 'Replace your LMS and parent communication tools with one platform — and give every student an AI tutor, quiz generator, and study planner included.'}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-10 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Button
+                onClick={() => navigate('/auth')}
+                size="lg"
+                className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+              >
+                <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {isAr ? 'ابدأ مجاناً' : 'Start Free'}
+              </Button>
+              <Button
+                onClick={() => navigate('/features')}
+                size="lg"
+                variant="outline"
+                className="rounded-full px-8 border-2 border-primary/30 hover:bg-primary/10"
+              >
+                {isAr ? 'كيف تعمل' : 'See how it works'}
+                <ArrowRight className={`${isRTL ? 'mr-1.5 rotate-180' : 'ml-1.5'} w-4 h-4`} />
+              </Button>
+              <Button onClick={() => setDemoOpen(true)} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
+                <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {t('nav.bookDemo')}
+              </Button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">
+                {isAr ? 'أو جرّب أداة الطالب فوراً' : 'Or try a student tool instantly'}
+              </div>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/40 via-accent/40 to-primary/40 rounded-full opacity-50 blur group-hover:opacity-75 transition-opacity" />
                 <div className="relative">
@@ -232,6 +263,8 @@ const Index = () => {
                   </Button>
                 </div>
               </div>
+            </form>
+          </div>
             </form>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
