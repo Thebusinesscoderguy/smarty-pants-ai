@@ -194,18 +194,24 @@ const Progress = () => {
           </Card>
         </div>
 
-        <CurriculumSelector
-          isOpen={isCurriculumSelectorOpen}
-          onClose={() => setIsCurriculumSelectorOpen(false)}
-          onSelect={(curriculum) => {
-            if (curriculum) {
-              console.log('Selected curriculum:', curriculum);
-            } else {
-              handleCreateCustomCurriculum();
-            }
-            setIsCurriculumSelectorOpen(false);
-          }}
-        />
+        {isCurriculumSelectorOpen && (
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setIsCurriculumSelectorOpen(false)}>
+            <div className="bg-card rounded-2xl border border-border max-w-3xl w-full p-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <CurriculumSelector
+                onSelectionChange={(sel) => {
+                  if (sel) {
+                    console.log('Selected curriculum:', sel);
+                    setIsCurriculumSelectorOpen(false);
+                  }
+                }}
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <Button variant="outline" onClick={handleCreateCustomCurriculum}>Create custom with AI</Button>
+                <Button variant="ghost" onClick={() => setIsCurriculumSelectorOpen(false)}>Close</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

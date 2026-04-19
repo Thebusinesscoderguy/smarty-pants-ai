@@ -44,7 +44,7 @@ export const FeaturesDemo = () => {
       title: t('features.voice.title'),
       description: t('features.voice.desc'),
       icon: <Mic className="h-6 w-6" />,
-      route: '/voice',
+      route: '/chat',
       category: 'learning',
       status: 'available',
       level: 1
