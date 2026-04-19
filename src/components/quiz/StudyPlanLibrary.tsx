@@ -216,11 +216,20 @@ export const StudyPlanLibrary = () => {
 
   if (studyPlans.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center">
-          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">{t('studyPlanLibrary.noPlans')}</h3>
-          <p className="text-muted-foreground">{t('studyPlanLibrary.noPlansDesc')}</p>
+      <Card className="border-dashed">
+        <CardContent className="py-12 text-center flex flex-col items-center">
+          <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <BookOpen className="h-7 w-7 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">{t('studyPlanLibrary.noPlans')}</h3>
+          <p className="text-sm text-muted-foreground mb-5 max-w-sm">{t('studyPlanLibrary.noPlansDesc')}</p>
+          <Button
+            onClick={() => navigate('/quiz-generator?tab=study-plan')}
+            className="rounded-full bg-primary hover:bg-primary/90"
+          >
+            <Target className="h-4 w-4 mr-2" />
+            Generate your first study plan
+          </Button>
         </CardContent>
       </Card>
     );

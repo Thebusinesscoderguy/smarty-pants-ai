@@ -438,6 +438,9 @@ export type Database = {
           confidence_score: number | null
           created_at: string | null
           description: string | null
+          difficulty_level: string | null
+          estimated_minutes: number | null
+          exam_topics: Json | null
           framework_id: string
           generated_at: string | null
           generation_model: string | null
@@ -445,6 +448,7 @@ export type Database = {
           id: string
           is_custom: boolean | null
           school_id: string | null
+          short_description: string | null
           source_reference: string | null
           subject_id: string
           title_ar: string | null
@@ -457,6 +461,9 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string | null
           description?: string | null
+          difficulty_level?: string | null
+          estimated_minutes?: number | null
+          exam_topics?: Json | null
           framework_id: string
           generated_at?: string | null
           generation_model?: string | null
@@ -464,6 +471,7 @@ export type Database = {
           id?: string
           is_custom?: boolean | null
           school_id?: string | null
+          short_description?: string | null
           source_reference?: string | null
           subject_id: string
           title_ar?: string | null
@@ -476,6 +484,9 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string | null
           description?: string | null
+          difficulty_level?: string | null
+          estimated_minutes?: number | null
+          exam_topics?: Json | null
           framework_id?: string
           generated_at?: string | null
           generation_model?: string | null
@@ -483,6 +494,7 @@ export type Database = {
           id?: string
           is_custom?: boolean | null
           school_id?: string | null
+          short_description?: string | null
           source_reference?: string | null
           subject_id?: string
           title_ar?: string | null

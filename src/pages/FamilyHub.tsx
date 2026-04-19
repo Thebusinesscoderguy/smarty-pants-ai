@@ -116,7 +116,7 @@ const FamilyHub = () => {
       description: 'Interactive AI tutoring with voice',
       icon: PlayCircle,
       color: 'from-purple-500 to-pink-600',
-      action: () => navigate('/voice')
+      action: () => navigate('/chat')
     },
     {
       id: 'progress-review',

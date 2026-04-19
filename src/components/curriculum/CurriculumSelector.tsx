@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Loader2 } from "lucide-react";
+import { Globe, Loader2, Clock, Target, Sparkles } from "lucide-react";
 import { useCurriculumData, type CurriculumSelection } from "@/hooks/useCurriculumData";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -9,6 +9,12 @@ const REGION_LABELS: Record<string, { en: string; ar: string }> = {
   global: { en: "International", ar: "دولي" },
   us: { en: "United States", ar: "الولايات المتحدة" },
   uk: { en: "United Kingdom", ar: "المملكة المتحدة" },
+};
+
+const DIFFICULTY_LABEL: Record<string, { en: string; ar: string; cls: string }> = {
+  beginner: { en: "Beginner", ar: "مبتدئ", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  intermediate: { en: "Intermediate", ar: "متوسط", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+  advanced: { en: "Advanced", ar: "متقدم", cls: "bg-rose-500/10 text-rose-600 border-rose-500/20" },
 };
 
 interface Props {
@@ -24,6 +30,7 @@ export function CurriculumSelector({ onSelectionChange, className }: Props) {
     selectedFrameworkId, selectedSubjectId, selectedGradeLevelId, selectedUnitId,
     setSelectedFrameworkId, setSelectedSubjectId, setSelectedGradeLevelId, setSelectedUnitId,
     loadingFrameworks, loadingSubjects, loadingGrades, loadingUnits,
+    autoGenerating,
   } = useCurriculumData();
 
   const handleUnitChange = (unitId: string) => {
@@ -46,6 +53,7 @@ export function CurriculumSelector({ onSelectionChange, className }: Props) {
   }, {});
 
   const selectedUnit = units.find(u => u.id === selectedUnitId);
+  const diff = selectedUnit?.difficulty_level && DIFFICULTY_LABEL[selectedUnit.difficulty_level];
 
   return (
     <div className={`rounded-xl border border-border bg-card p-4 space-y-4 ${className ?? ""}`} dir={ar ? "rtl" : "ltr"}>
@@ -122,15 +130,22 @@ export function CurriculumSelector({ onSelectionChange, className }: Props) {
         <Select
           value={selectedUnitId ?? undefined}
           onValueChange={handleUnitChange}
-          disabled={!selectedSubjectId || !selectedGradeLevelId || loadingUnits}
+          disabled={!selectedSubjectId || !selectedGradeLevelId || loadingUnits || autoGenerating}
         >
           <SelectTrigger>
-            {loadingUnits
-              ? <Loader2 className="h-3 w-3 animate-spin" />
+            {loadingUnits || autoGenerating
+              ? (
+                <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {autoGenerating
+                    ? (ar ? "إنشاء الوحدات بالذكاء الاصطناعي…" : "AI generating units…")
+                    : (ar ? "جاري التحميل…" : "Loading…")}
+                </span>
+              )
               : <SelectValue placeholder={ar ? "اختر الوحدة" : "Choose unit"} />}
           </SelectTrigger>
           <SelectContent>
-            {units.length === 0 && !loadingUnits && (
+            {units.length === 0 && !loadingUnits && !autoGenerating && (
               <div className="px-2 py-3 text-xs text-muted-foreground">{ar ? "لا توجد وحدات" : "No units yet"}</div>
             )}
             {units.map(u => {
@@ -149,13 +164,50 @@ export function CurriculumSelector({ onSelectionChange, className }: Props) {
       </div>
 
       {selectedUnit && (
-        <div className="rounded-lg bg-muted/50 p-3">
-          <p className="text-xs text-muted-foreground mb-2">{ar ? "المحاور المغطاة:" : "Topics covered:"}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {(selectedUnit.topics as { en: string; ar: string }[]).map((t, i) => (
-              <Badge key={i} variant="secondary" className="text-xs">{ar ? t.ar : t.en}</Badge>
-            ))}
+        <div className="rounded-lg bg-muted/50 p-3 space-y-3">
+          {selectedUnit.short_description && (
+            <p className="text-sm text-foreground/90 leading-relaxed">{selectedUnit.short_description}</p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2">
+            {diff && (
+              <Badge variant="outline" className={`text-xs ${diff.cls}`}>
+                <Target className="h-3 w-3 me-1" />
+                {ar ? diff.ar : diff.en}
+              </Badge>
+            )}
+            {selectedUnit.estimated_minutes != null && (
+              <Badge variant="outline" className="text-xs">
+                <Clock className="h-3 w-3 me-1" />
+                {Math.round(selectedUnit.estimated_minutes / 60 * 10) / 10}{ar ? " ساعة" : " h"}
+              </Badge>
+            )}
           </div>
+
+          {selectedUnit.topics?.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5">{ar ? "المحاور المغطاة:" : "Topics covered:"}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(selectedUnit.topics as { en: string; ar: string }[]).map((t, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">{ar ? t.ar : t.en}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedUnit.exam_topics && selectedUnit.exam_topics.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                {ar ? "موضوعات شائعة في الامتحانات:" : "Commonly tested in exams:"}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedUnit.exam_topics.map((t, i) => (
+                  <Badge key={i} variant="outline" className="text-xs border-primary/30 text-primary">{t}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

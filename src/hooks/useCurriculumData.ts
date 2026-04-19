@@ -4,7 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Framework { id: string; code: string; name_en: string; name_ar: string | null; region: string; is_custom: boolean; }
 export interface Subject { id: string; name_en: string; name_ar: string | null; code: string | null; }
 export interface GradeLevel { id: string; label_en: string; label_ar: string | null; sort_order: number; }
-export interface CurriculumUnit { id: string; unit_number: number; title_en: string; title_ar: string | null; description: string | null; topics: { en: string; ar: string }[]; verification_status?: string; confidence_score?: number | null; }
+export interface CurriculumUnit {
+  id: string;
+  unit_number: number;
+  title_en: string;
+  title_ar: string | null;
+  description: string | null;
+  topics: { en: string; ar: string }[];
+  verification_status?: string;
+  confidence_score?: number | null;
+  // Enriched metadata (may be null for legacy rows)
+  short_description?: string | null;
+  estimated_minutes?: number | null;
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | null;
+  exam_topics?: string[];
+}
 export interface CurriculumSelection {
   framework: Framework;
   subject: Subject;
@@ -26,6 +40,7 @@ export function useCurriculumData() {
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingGrades, setLoadingGrades] = useState(false);
   const [loadingUnits, setLoadingUnits] = useState(false);
+  const [autoGenerating, setAutoGenerating] = useState(false);
 
   useEffect(() => {
     setLoadingFrameworks(true);
@@ -72,21 +87,71 @@ export function useCurriculumData() {
       });
   }, [selectedFrameworkId]);
 
+  // Loads units for the chosen subject + grade. If none exist, asks the
+  // edge function to AI-generate and persist a starter set of 6 units.
   useEffect(() => {
-    if (!selectedSubjectId || !selectedGradeLevelId) { setUnits([]); return; }
-    setLoadingUnits(true);
-    setSelectedUnitId(null);
-    (supabase as any)
-      .from("curriculum_units")
-      .select("id,unit_number,title_en,title_ar,description,topics,verification_status,confidence_score")
-      .eq("subject_id", selectedSubjectId)
-      .eq("grade_level_id", selectedGradeLevelId)
-      .order("unit_number")
-      .then(({ data }: any) => {
-        if (data) setUnits(data.map((u: any) => ({ ...u, topics: (u.topics as { en: string; ar: string }[]) ?? [] })));
+    if (!selectedSubjectId || !selectedGradeLevelId || !selectedFrameworkId) {
+      setUnits([]);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      setLoadingUnits(true);
+      setSelectedUnitId(null);
+      const { data } = await (supabase as any)
+        .from("curriculum_units")
+        .select("id,unit_number,title_en,title_ar,description,topics,verification_status,confidence_score,short_description,estimated_minutes,difficulty_level,exam_topics")
+        .eq("subject_id", selectedSubjectId)
+        .eq("grade_level_id", selectedGradeLevelId)
+        .order("unit_number");
+      if (cancelled) return;
+
+      const mapped: CurriculumUnit[] = (data ?? []).map((u: any) => ({
+        ...u,
+        topics: (u.topics as { en: string; ar: string }[]) ?? [],
+        exam_topics: Array.isArray(u.exam_topics) ? u.exam_topics : [],
+      }));
+
+      if (mapped.length > 0) {
+        setUnits(mapped);
         setLoadingUnits(false);
-      });
-  }, [selectedSubjectId, selectedGradeLevelId]);
+        return;
+      }
+
+      // No units found — auto-generate via edge function (cached forever).
+      try {
+        setAutoGenerating(true);
+        const { data: gen, error } = await supabase.functions.invoke('auto-generate-curriculum-units', {
+          body: {
+            framework_id: selectedFrameworkId,
+            subject_id: selectedSubjectId,
+            grade_level_id: selectedGradeLevelId,
+          },
+        });
+        if (cancelled) return;
+        if (!error && gen?.units) {
+          const genMapped: CurriculumUnit[] = gen.units.map((u: any) => ({
+            ...u,
+            topics: Array.isArray(u.topics) ? u.topics : [],
+            exam_topics: Array.isArray(u.exam_topics) ? u.exam_topics : [],
+          }));
+          setUnits(genMapped);
+        } else {
+          setUnits([]);
+        }
+      } catch (err) {
+        console.error('Auto-generate units failed', err);
+        setUnits([]);
+      } finally {
+        if (!cancelled) {
+          setAutoGenerating(false);
+          setLoadingUnits(false);
+        }
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [selectedSubjectId, selectedGradeLevelId, selectedFrameworkId]);
 
   const selection: CurriculumSelection | null = (() => {
     if (!selectedFrameworkId || !selectedSubjectId || !selectedGradeLevelId || !selectedUnitId) return null;
@@ -109,6 +174,7 @@ export function useCurriculumData() {
     selectedFrameworkId, selectedSubjectId, selectedGradeLevelId, selectedUnitId,
     setSelectedFrameworkId, setSelectedSubjectId, setSelectedGradeLevelId, setSelectedUnitId,
     loadingFrameworks, loadingSubjects, loadingGrades, loadingUnits,
+    autoGenerating,
     selection,
   };
 }

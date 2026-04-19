@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Play, BookOpen } from 'lucide-react';
+import { Trash2, Play, BookOpen, Sparkles } from 'lucide-react';
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import QuizTaker from './QuizTaker';
@@ -11,9 +11,11 @@ import QuizResults from './QuizResults';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 export const QuizLibrary = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { quizzes, fetchQuizzes, deleteQuiz } = useQuizGenerator();
   const [open, setOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -61,11 +63,20 @@ export const QuizLibrary = () => {
 
   if (quizzes.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center">
-          <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('quizLibrary.noQuizzes')}</h3>
-          <p className="text-gray-500">{t('quizLibrary.noQuizzesDesc')}</p>
+      <Card className="border-dashed">
+        <CardContent className="py-12 text-center flex flex-col items-center">
+          <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <BookOpen className="h-7 w-7 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">{t('quizLibrary.noQuizzes')}</h3>
+          <p className="text-sm text-muted-foreground mb-5 max-w-sm">{t('quizLibrary.noQuizzesDesc')}</p>
+          <Button
+            onClick={() => navigate('/quiz-generator?tab=generate')}
+            className="rounded-full bg-primary hover:bg-primary/90"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Generate your first quiz
+          </Button>
         </CardContent>
       </Card>
     );

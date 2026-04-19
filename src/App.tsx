@@ -39,6 +39,7 @@ import Demo from './pages/Demo';
 import Leaderboard from './pages/Leaderboard';
 import SharedArtifact from './pages/SharedArtifact';
 import SchoolOnboarding from './pages/SchoolOnboarding';
+import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 const queryClient = new QueryClient();
 
@@ -61,7 +62,6 @@ function App() {
                     <Route path="/parent-onboarding" element={<ParentOnboarding />} />
                     <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
                     <Route path="/modules" element={<LearningModule />} />
-                    <Route path="/voice" element={<Chat />} />
                     <Route path="/progress" element={<Progress />} />
                     <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
                     <Route path="/auth" element={<Auth />} />
@@ -85,6 +85,7 @@ function App() {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                  <MobileBottomNav />
                 </BrowserRouter>
               </ErrorBoundary>
             </TooltipProvider>
