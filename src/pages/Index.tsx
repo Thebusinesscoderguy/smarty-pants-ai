@@ -491,7 +491,7 @@ const Index = () => {
                 { icon: Target, title: t('home.why.adaptive.title'), desc: t('home.why.adaptive.desc') },
                 { icon: BarChart3, title: t('home.why.insightful.title'), desc: t('home.why.insightful.desc') },
                 { icon: Globe, title: t('home.why.multilingual.title'), desc: t('home.why.multilingual.desc') },
-                { icon: Gamepad2, title: t('home.why.engaging.title'), desc: t('home.why.engaging.desc') },
+                { icon: MessageSquare, title: isAr ? 'تواصل مع الأهل' : 'Parent communication', desc: isAr ? 'رسائل وتقارير أسبوعية تلقائية لكل ولي أمر.' : 'Messaging and automated weekly reports for every parent.' },
               ].map((c) => (
                 <div key={c.title} className="bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:shadow-lg transition-all">
                   <c.icon className="w-7 h-7 text-primary mb-3" />
