@@ -98,33 +98,70 @@ const Index = () => {
     { icon: School, title: t('home.showcase.ops.title'), desc: t('home.showcase.ops.desc'), tag: t('home.showcase.tag.schools') },
   ];
 
+  const isAr = language === 'ar';
   const roleCards = [
     {
+      icon: School,
+      title: isAr ? 'للمدارس' : 'For Schools',
+      desc: isAr
+        ? 'إدارة الفصول والدرجات والواجبات والحضور والمناهج في مكان واحد.'
+        : 'Manage classes, grades, homework, attendance and curriculum in one place.',
+      features: isAr
+        ? ['لوحة إدارة شاملة', 'تقارير وتحليلات', 'إعداد سريع للمعلمين والطلاب']
+        : ['Complete admin dashboard', 'Reports & analytics', 'Fast teacher & student onboarding'],
+      cta: isAr ? 'ابدأ الآن' : 'Get started',
+      href: '/auth',
+      accent: 'from-primary/15 to-accent/10',
+    },
+    {
       icon: GraduationCap,
-      title: t('home.roles.student.title'),
-      desc: t('home.roles.student.desc'),
-      features: [t('home.roles.student.feature1'), t('home.roles.student.feature2'), t('home.roles.student.feature3')],
-      cta: t('home.roles.student.cta'),
-      href: '/quiz-generator',
+      title: isAr ? 'للمعلمين' : 'For Teachers',
+      desc: isAr
+        ? 'خطط دروس بالذكاء الاصطناعي ومولد اختبارات وسجل درجات وإدارة واجبات.'
+        : 'AI lesson plans, quiz generator, gradebook and homework management.',
+      features: isAr
+        ? ['خطط دروس فورية', 'تصحيح آلي للواجبات', 'سجل درجات مرن']
+        : ['Instant lesson plans', 'Auto-graded homework', 'Flexible gradebook'],
+      cta: isAr ? 'جرّب مجاناً' : 'Try it free',
+      href: '/auth',
       accent: 'from-primary/20 to-primary/5',
     },
     {
-      icon: Users,
-      title: t('home.roles.parent.title'),
-      desc: t('home.roles.parent.desc'),
-      features: [t('home.roles.parent.feature1'), t('home.roles.parent.feature2'), t('home.roles.parent.feature3')],
-      cta: t('home.roles.parent.cta'),
-      href: '/auth',
+      icon: Brain,
+      title: isAr ? 'للطلاب' : 'For Students',
+      desc: isAr
+        ? 'مدرّس ذكاء اصطناعي وخطط دراسة واختبارات وتتبع التقدم — مدرجة مع مدرستك.'
+        : 'AI tutor, study plans, quizzes and progress tracking — included with your school.',
+      features: isAr
+        ? ['مساعد دراسة ذكي 24/7', 'خطط دراسة مخصصة', 'اختبارات تكيفية']
+        : ['24/7 AI study buddy', 'Personalised study plans', 'Adaptive quizzes'],
+      cta: isAr ? 'استكشف الأدوات' : 'Explore tools',
+      href: '/quiz-generator',
       accent: 'from-accent/30 to-accent/5',
     },
+  ];
+
+  const competitors = [
     {
-      icon: School,
-      title: t('home.roles.school.title'),
-      desc: t('home.roles.school.desc'),
-      features: [t('home.roles.school.feature1'), t('home.roles.school.feature2'), t('home.roles.school.feature3')],
-      cta: t('home.roles.school.cta'),
-      href: '/auth',
-      accent: 'from-primary/15 to-accent/10',
+      name: 'vs ClassDojo',
+      title: isAr ? 'لدينا ذكاء اصطناعي، هم لا' : 'We have AI, they don\'t',
+      desc: isAr
+        ? 'تواصل ClassDojo + كل أدوات التعلم بالذكاء الاصطناعي للطلاب والمعلمين.'
+        : 'All of ClassDojo\'s communication, plus AI learning tools for students and teachers.',
+    },
+    {
+      name: 'vs Educore',
+      title: isAr ? 'لدينا أدوات تعلم للطلاب، هم لا' : 'We have student learning tools, they don\'t',
+      desc: isAr
+        ? 'إدارة مدرسية كاملة مع مدرّس ذكي وخطط دراسة لكل طالب.'
+        : 'Full school management plus an AI tutor and study plans for every student.',
+    },
+    {
+      name: 'vs Google Classroom',
+      title: isAr ? 'دعم عربي كامل + ذكاء اصطناعي' : 'Arabic RTL + AI built in',
+      desc: isAr
+        ? 'منصة عربية أصلية بالكامل مع ذكاء اصطناعي مدمج — لا إضافات، لا حلول مؤقتة.'
+        : 'Native Arabic RTL platform with AI built in — no add-ons, no workarounds.',
     },
   ];
 
