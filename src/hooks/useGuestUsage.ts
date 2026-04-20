@@ -29,7 +29,8 @@ export function useGuestUsage() {
   const canGenerate = useCallback((feature: FeatureType): boolean => {
     if (user) return true; // logged-in users have no limit
     const usage = getUsage();
-    return usage[feature] < 1;
+    const limit = feature === 'quiz' ? 3 : 1;
+    return usage[feature] < limit;
   }, [user]);
 
   const recordUsage = useCallback((feature: FeatureType) => {
