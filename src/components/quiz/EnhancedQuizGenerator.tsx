@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useGuestUsage } from '@/hooks/useGuestUsage';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
@@ -44,7 +45,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes, extractQuizFromFile } = useQuizGenerator();
   const { canGenerate: canGuestGenerate, recordUsage, isGuest } = useGuestUsage();
 
-useEffect(() => {
+const { user } = useAuth();
   if (auto && !autoRanRef.current) {
     autoRanRef.current = true;
     if (auto.mode === 'manual') {
@@ -474,24 +475,6 @@ useEffect(() => {
           <div className="border-t pt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label>{t('quizGenerator.curriculum')}</Label>
-                <Select value={curriculum} onValueChange={setCurriculum}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('quizGenerator.selectCurriculum')} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    <SelectItem value="us-common-core">US Common Core</SelectItem>
-                    <SelectItem value="uk-national">UK National Curriculum</SelectItem>
-                    <SelectItem value="ib">International Baccalaureate</SelectItem>
-                    <SelectItem value="cambridge">Cambridge International</SelectItem>
-                    <SelectItem value="australian">Australian Curriculum</SelectItem>
-                    <SelectItem value="french">French (Éducation Nationale)</SelectItem>
-                    <SelectItem value="other">Other / General</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
                 <Label>{t('quizGenerator.gradeLevel')}</Label>
                 <Select value={gradeLevel} onValueChange={setGradeLevel}>
                   <SelectTrigger>
@@ -548,7 +531,7 @@ useEffect(() => {
             </div>
           )}
 
-          <CurriculumSelector onSelectionChange={setCurriculumSelection} />
+          
 
           <Button 
             onClick={handleGenerateQuiz} 
