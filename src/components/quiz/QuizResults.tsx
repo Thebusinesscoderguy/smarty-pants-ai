@@ -113,6 +113,72 @@ export const QuizResults = ({ quiz, onRetakeReady }: QuizResultsProps) => {
 
   return (
     <div className="space-y-4">
+  const wrongAnswers = (attempt.answers || []).filter((a: any) => a && a.is_correct === false);
+
+  const handleRetakeSame = async () => {
+    setCreatingPractice('retake');
+    try {
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Retake)` });
+      if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(null);
+    }
+  };
+
+  const handleRetakeMistakes = async () => {
+    if (wrongAnswers.length === 0) {
+      toast({ title: 'No mistakes', description: 'You got everything correct!' });
+      return;
+    }
+    setCreatingPractice('mistakes');
+    try {
+      const wrongQs: QuizQuestion[] = wrongAnswers.map((ans: any, i: number) => {
+        const base = (quiz.questions || []).find((q: any) => q.id === ans.id) || quiz.questions[ans.index] || {} as any;
+        return {
+          id: base.id,
+          question: base.question || ans.question,
+          type: (base as any).type || 'multiple_choice',
+          options: base.options,
+          correct_answer: base.correct_answer || String(ans.correct ?? ''),
+          explanation: base.explanation || ans.explanation,
+          points: base.points ?? 1,
+          order_index: i,
+        } as QuizQuestion;
+      });
+      const newQuiz: Quiz = {
+        title: `${quiz.title} – Mistakes Only`,
+        description: 'Practice only the questions you missed.',
+        difficulty: quiz.difficulty,
+        questions: wrongQs,
+      };
+      const savedId = await saveQuiz(newQuiz);
+      if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(null);
+    }
+  };
+
+  const handleRetakeSimilar = async () => {
+    setCreatingPractice('similar');
+    try {
+      const target = Math.max(quiz.questions.length, 5);
+      const similar = await generateQuiz(quiz.title, quiz.difficulty as any, target);
+      if (!similar) return;
+      const savedId = await saveQuiz({ ...similar, title: `${quiz.title} (Similar)` });
+      if (savedId) toast({ title: 'Saved', description: 'Similar quiz saved to your Library.' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setCreatingPractice(null);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -126,10 +192,28 @@ export const QuizResults = ({ quiz, onRetakeReady }: QuizResultsProps) => {
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
             <Badge variant="outline">Score</Badge>
             <div className="text-base font-medium">{attempt.score}/{attempt.total_possible} ({percent}%)</div>
+          </div>
+
+          <div className="pt-2 border-t">
+            <div className="text-sm font-medium mb-2">Practice again</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <Button onClick={handleRetakeSame} disabled={creatingPractice !== null}>
+                {creatingPractice === 'retake' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}
+                Retake Quiz
+              </Button>
+              <Button variant="outline" onClick={handleRetakeMistakes} disabled={creatingPractice !== null || wrongAnswers.length === 0}>
+                {creatingPractice === 'mistakes' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Target className="mr-2 h-4 w-4" />}
+                Retake Mistakes Only
+              </Button>
+              <Button variant="outline" onClick={handleRetakeSimilar} disabled={creatingPractice !== null}>
+                {creatingPractice === 'similar' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                Retake Similar Quiz
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
