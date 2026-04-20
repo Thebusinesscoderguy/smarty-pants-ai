@@ -1,23 +1,23 @@
 import { useNavigate } from 'react-router-dom';
-import { useSchoolOnboarding, type StepKey } from '@/hooks/useSchoolOnboarding';
+import { useSchoolOnboarding, STEP_KEYS, type StepKey } from '@/hooks/useSchoolOnboarding';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import {
   Sparkles, ArrowRight, CheckCircle2, Circle, ChevronDown, ChevronUp, X,
-  School, GraduationCap, Users, BookMarked, ClipboardList,
+  Compass, BookMarked, Users, GraduationCap, ClipboardList, Rocket,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-// 5-step activation checklist (maps to backend step keys)
-const CHECKLIST: { key: StepKey; label: string; desc: string; icon: any }[] = [
-  { key: 'welcome',   label: 'Name your school',      desc: 'Set school identity',       icon: School },
-  { key: 'teachers',  label: 'Add your first teacher', desc: 'Invite a staff member',     icon: GraduationCap },
-  { key: 'roster',    label: 'Add your first students', desc: 'Import or invite students', icon: Users },
-  { key: 'framework', label: 'Select curriculum',     desc: 'Pick your framework',       icon: BookMarked },
-  { key: 'gradebook', label: 'Create first assignment', desc: 'Set up gradebook',         icon: ClipboardList },
-];
+const STEP_META: Record<StepKey, { label: string; icon: any; desc: string }> = {
+  welcome:   { label: 'Welcome',          icon: Compass,       desc: 'Tell us about your school' },
+  framework: { label: 'Curriculum',       icon: BookMarked,    desc: 'Pick your framework' },
+  roster:    { label: 'Add Students',     icon: Users,         desc: 'Import your student roster' },
+  teachers:  { label: 'Invite Teachers',  icon: GraduationCap, desc: 'Bring your staff onboard' },
+  gradebook: { label: 'Grade Book',       icon: ClipboardList, desc: 'Configure grading rules' },
+  live:      { label: 'Go Live',          icon: Rocket,        desc: 'Activate your school' },
+};
 
 const DISMISS_KEY = 'onboarding-checklist-dismissed';
 
@@ -35,8 +35,8 @@ export const OnboardingChecklistWidget = () => {
   if (loading || !progress || progress.completed_at || dismissedThisSession) return null;
 
   const completed = new Set(progress.completed_steps || []);
-  const completedCount = CHECKLIST.filter(s => completed.has(s.key)).length;
-  const total = CHECKLIST.length;
+  const completedCount = completed.size;
+  const total = STEP_KEYS.length;
   const pct = Math.round((completedCount / total) * 100);
   const isDone = completedCount === total;
 
@@ -56,7 +56,7 @@ export const OnboardingChecklistWidget = () => {
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-sm">Get your school live</h3>
             <Badge variant="secondary" className="text-xs">
-              {completedCount} of {total} steps complete
+              {completedCount} of {total} done
             </Badge>
             {isDone && <Badge className="text-xs bg-primary">Ready 🎉</Badge>}
           </div>
@@ -93,14 +93,15 @@ export const OnboardingChecklistWidget = () => {
       {/* Steps grid */}
       {expanded && (
         <div className="px-4 pb-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-            {CHECKLIST.map((step, idx) => {
-              const isComplete = completed.has(step.key);
-              const isCurrent = !isComplete && CHECKLIST.slice(0, idx).every(s => completed.has(s.key));
-              const Icon = step.icon;
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            {STEP_KEYS.map((key, idx) => {
+              const meta = STEP_META[key];
+              const isComplete = completed.has(key);
+              const isCurrent = !isComplete && idx === completedCount;
+              const Icon = meta.icon;
               return (
                 <button
-                  key={step.key}
+                  key={key}
                   onClick={() => navigate('/school-onboarding')}
                   className={`text-left p-3 rounded-lg border transition-all hover:shadow-sm ${
                     isComplete
@@ -118,11 +119,11 @@ export const OnboardingChecklistWidget = () => {
                     )}
                     <Icon className={`h-3.5 w-3.5 ${isComplete ? 'text-primary' : 'text-muted-foreground'}`} />
                   </div>
-                  <div className="text-xs font-medium text-foreground">
-                    {idx + 1}. {step.label}
+                  <div className={`text-xs font-medium ${isComplete ? 'text-foreground' : 'text-foreground'}`}>
+                    {meta.label}
                   </div>
                   <div className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                    {step.desc}
+                    {meta.desc}
                   </div>
                 </button>
               );

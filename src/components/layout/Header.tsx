@@ -50,7 +50,7 @@ export const Header = () => {
 
   const navLinks = [
     { to: '/', label: t('nav.home') },
-    { to: '/features', label: language === 'ar' ? 'للمدارس' : 'For Schools' },
+    { to: '/features', label: t('nav.features') },
     { to: '/pricing', label: t('nav.pricing') },
     { to: '/faq', label: t('nav.faq') },
   ];
