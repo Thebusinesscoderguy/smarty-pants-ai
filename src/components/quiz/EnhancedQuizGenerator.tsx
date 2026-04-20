@@ -45,7 +45,9 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes, extractQuizFromFile } = useQuizGenerator();
   const { canGenerate: canGuestGenerate, recordUsage, isGuest } = useGuestUsage();
 
-const { user } = useAuth();
+  const { user } = useAuth();
+
+useEffect(() => {
   if (auto && !autoRanRef.current) {
     autoRanRef.current = true;
     if (auto.mode === 'manual') {
