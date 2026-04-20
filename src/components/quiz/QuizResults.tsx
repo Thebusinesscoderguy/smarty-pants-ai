@@ -110,10 +110,7 @@ export const QuizResults = ({ quiz, onRetakeReady }: QuizResultsProps) => {
   }
 
   const answers = attempt.answers || [];
-
-  return (
-    <div className="space-y-4">
-  const wrongAnswers = (attempt.answers || []).filter((a: any) => a && a.is_correct === false);
+  const wrongAnswers = answers.filter((a: any) => a && a.is_correct === false);
 
   const handleRetakeSame = async () => {
     setCreatingPractice('retake');
