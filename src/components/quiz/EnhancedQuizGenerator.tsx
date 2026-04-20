@@ -249,11 +249,11 @@ useEffect(() => {
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('quizGenerator.signInRequired') || 'Sign in to continue'}</DialogTitle>
+            <DialogTitle>{language === 'ar' ? 'تسجيل الدخول مطلوب' : 'Sign in to continue'}</DialogTitle>
             <DialogDescription>
               {language === 'ar' 
-                ? 'لقد استخدمت الاختبار المجاني. سجل دخولك لإنشاء المزيد من الاختبارات.'
-                : 'You\'ve used your free quiz. Sign in to generate more quizzes.'}
+                ? 'لقد استخدمت اختباراتك المجانية الثلاثة. سجل دخولك لإنشاء المزيد من الاختبارات.'
+                : 'You\'ve used your 3 free quizzes. Sign in to generate more quizzes.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -638,22 +638,6 @@ useEffect(() => {
               </div>
             )}
 
-            {inputMethod === 'file' && (
-              <div className="space-y-3 pt-4">
-                <div className="text-sm font-medium">Practice options from your last quiz</div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating}>
-                    {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
-                  </Button>
-                  <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating}>
-                    {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
-                  </Button>
-                  <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating}>
-                    {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
-                  </Button>
-                </div>
-              </div>
-            )}
 
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSaveQuiz} className="flex-1">
