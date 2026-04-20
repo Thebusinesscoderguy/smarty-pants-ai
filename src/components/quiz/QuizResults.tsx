@@ -57,12 +57,14 @@ const ELI5Button = ({ text }: { text: string }) => {
   );
 };
 
-export const QuizResults = ({ quiz }: QuizResultsProps) => {
+export const QuizResults = ({ quiz, onRetakeReady }: QuizResultsProps) => {
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<number, string>>({});
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
+  const [creatingPractice, setCreatingPractice] = useState<null | 'retake' | 'mistakes' | 'similar'>(null);
+  const { generateQuiz, saveQuiz } = useQuizGenerator();
 
   useEffect(() => {
     const load = async () => {
