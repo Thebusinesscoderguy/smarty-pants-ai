@@ -4,14 +4,16 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
-import type { Quiz } from '@/hooks/useQuizGenerator';
+import type { Quiz, QuizQuestion } from '@/hooks/useQuizGenerator';
+import { useQuizGenerator } from '@/hooks/useQuizGenerator';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2, RotateCcw, Target, Sparkles } from 'lucide-react';
 import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
 
 interface QuizResultsProps {
   quiz: Quiz;
+  onRetakeReady?: (quiz: Quiz) => void;
 }
 
 interface AttemptRow {
