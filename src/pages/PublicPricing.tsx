@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CheckCircle, Sparkles, School, ArrowRight } from 'lucide-react';
+import { CheckCircle, Sparkles, School, ArrowRight, Gift } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,7 +10,7 @@ const PublicPricing = () => {
   const { language } = useLanguage();
   const isAr = language === 'ar';
 
-  const schoolFeatures = isAr ? [
+  const includedFeatures = isAr ? [
     'إدارة كاملة للفصول والأقسام والمعلمين',
     'سجل درجات وحضور وواجبات',
     'مولّد خطط دروس وأسئلة بالذكاء الاصطناعي',
@@ -26,6 +26,45 @@ const PublicPricing = () => {
     'Parent messaging & weekly digests',
     'Arabic + international curricula',
     'Complete analytics dashboard',
+  ];
+
+  const tiers = [
+    {
+      name: isAr ? 'مجاني' : 'Free',
+      price: isAr ? '$0' : '$0',
+      cadence: isAr ? '/شهرياً' : '/month',
+      cap: isAr ? 'حتى 30 طالباً' : 'Up to 30 students',
+      blurb: isAr ? 'بدون بطاقة ائتمان · جميع الميزات' : 'No credit card · full features',
+      cta: isAr ? 'ابدأ مجاناً' : 'Start Free',
+      highlight: false,
+    },
+    {
+      name: isAr ? 'المبتدئ' : 'Starter',
+      price: '$79',
+      cadence: isAr ? '/شهرياً' : '/month',
+      cap: isAr ? 'حتى 150 طالباً' : 'Up to 150 students',
+      blurb: isAr ? 'للمدارس الصغيرة' : 'For small schools',
+      cta: isAr ? 'ابدأ المبتدئ' : 'Choose Starter',
+      highlight: false,
+    },
+    {
+      name: isAr ? 'النمو' : 'Growth',
+      price: '$149',
+      cadence: isAr ? '/شهرياً' : '/month',
+      cap: isAr ? 'حتى 400 طالب' : 'Up to 400 students',
+      blurb: isAr ? 'الأكثر شعبية بين المدارس' : 'Most popular for schools',
+      cta: isAr ? 'ابدأ النمو' : 'Choose Growth',
+      highlight: true,
+    },
+    {
+      name: isAr ? 'غير محدود' : 'Unlimited',
+      price: '$249',
+      cadence: isAr ? '/شهرياً' : '/month',
+      cap: isAr ? 'طلاب غير محدودين' : 'Unlimited students',
+      blurb: isAr ? 'للمدارس الكبيرة والمناطق التعليمية' : 'For large schools & districts',
+      cta: isAr ? 'ابدأ غير المحدود' : 'Choose Unlimited',
+      highlight: false,
+    },
   ];
 
   const upgradeFeatures = isAr ? [
@@ -45,117 +84,149 @@ const PublicPricing = () => {
       <Header />
       <main className="flex-1 flex flex-col items-center p-4 md:p-8">
         <div className="max-w-7xl mx-auto w-full">
-          <div className="text-center mb-12 mt-8">
+          <div className="text-center mb-10 mt-8">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              {isAr ? 'تسعير بسيط للمدارس' : 'Simple pricing, built for schools'}
+              {isAr ? 'تسعير ثابت بسيط للمدارس' : 'Simple flat pricing for schools'}
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               {isAr
-                ? 'كل ميزة لكل دور — بسعر واحد واضح. الذكاء الاصطناعي مدمج، لا إضافات مخفية.'
-                : 'Every feature for every role — one clear price. AI included, no hidden add-ons.'}
+                ? 'سعر واحد ثابت شهرياً. كل الميزات مدرجة في كل خطة. لا تكاليف لكل طالب.'
+                : 'One flat price per month. Every feature included in every tier. No per-student surprises.'}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* SCHOOL PLAN */}
-            <Card className="bg-card border-2 border-primary/40 relative shadow-xl">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-bold">
-                {isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}
+          {/* GCC promo banner */}
+          <div className="mb-10 max-w-4xl mx-auto">
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/5 to-transparent border border-primary/30 shadow-sm">
+              <div className="p-2 rounded-lg bg-primary/20 shrink-0">
+                <Gift className="h-5 w-5 text-primary" />
               </div>
-              <CardHeader className="text-center pt-8">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <School className="h-6 w-6 text-primary" />
-                  <span className="text-lg font-semibold">{isAr ? 'خطة المدرسة' : 'School Plan'}</span>
-                </div>
-                <CardTitle className="text-4xl font-bold">
-                  {isAr ? '$25/شهرياً' : '$25/month'}
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  {isAr ? '+ $5 لكل طالب · كل شيء مدرج' : '+ $5 per student · everything included'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <ul className="space-y-3">
-                  {schoolFeatures.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-foreground">
-                      <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="bg-muted p-4 rounded-lg text-sm space-y-1">
-                  <p className="font-semibold">{isAr ? 'مثال:' : 'Example:'}</p>
-                  <p className="text-muted-foreground">
-                    {isAr ? '50 طالباً = $25 + (50 × $5) = $275/شهرياً' : '50 students = $25 + (50 × $5) = $275/month'}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {isAr ? 'بدون رسوم إعداد · إلغاء في أي وقت' : 'No setup fees · cancel anytime'}
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col gap-3">
-                <Button className="w-full rounded-full shadow-lg" size="lg" asChild>
-                  <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
-                    {isAr ? 'ابدأ مجاناً' : 'Start Free'}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* STUDENT AI UPGRADE */}
-            <Card className="bg-card border border-border relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground px-4 py-1 rounded-full text-sm font-bold">
-                {isAr ? 'إضافة اختيارية' : 'OPTIONAL ADD-ON'}
-              </div>
-              <CardHeader className="text-center pt-8">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  <span className="text-lg font-semibold">{isAr ? 'ترقية الذكاء الاصطناعي للطالب' : 'Student AI Upgrade'}</span>
-                </div>
-                <CardTitle className="text-4xl font-bold">
-                  {isAr ? '$6/شهرياً' : '$6/month'}
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  {isAr ? 'لكل طالب · توليد ذكاء اصطناعي غير محدود' : 'Per student · unlimited AI generation'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-sm text-muted-foreground">
-                  {isAr
-                    ? 'تتضمن خطة المدرسة حصة ذكاء اصطناعي سخية لكل طالب. هذه الترقية للطلاب الذين يحتاجون أكثر.'
-                    : 'The School Plan includes a generous AI quota per student. This upgrade is for students who want unlimited usage beyond that.'}
+              <div className="flex-1">
+                <p className="font-semibold">
+                  {isAr ? '🎁 عرض خاص لدول الخليج' : '🎁 Special offer for GCC schools'}
                 </p>
-                <ul className="space-y-3">
-                  {upgradeFeatures.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-foreground">
-                      <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="bg-muted p-4 rounded-lg text-sm">
-                  <p className="text-muted-foreground">
-                    {isAr
-                      ? 'متاح للطلاب وأولياء الأمور بعد تسجيل المدرسة.'
-                      : 'Available to students and parents once their school is enrolled.'}
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full rounded-full" size="lg" asChild>
-                  <Link to="/auth?signup=true">{isAr ? 'تعرّف أكثر' : 'Learn more'}</Link>
-                </Button>
-              </CardFooter>
-            </Card>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {isAr
+                    ? 'احصل على 3 أشهر مجانية عند التسجيل قبل يونيو 2026.'
+                    : 'Schools in the GCC get 3 months free when signing up before June 2026.'}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="text-center mt-12 p-8 bg-card border border-border rounded-2xl shadow-lg max-w-4xl mx-auto">
+          {/* TIERS */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {tiers.map((tier) => (
+              <Card
+                key={tier.name}
+                className={`relative flex flex-col bg-card transition-all ${
+                  tier.highlight
+                    ? 'border-2 border-primary shadow-xl scale-[1.02]'
+                    : 'border border-border'
+                }`}
+              >
+                {tier.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-0.5 rounded-full text-xs font-bold">
+                    {isAr ? 'الأكثر شعبية' : 'MOST POPULAR'}
+                  </div>
+                )}
+                <CardHeader className="text-center pt-6 pb-4">
+                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    {tier.name}
+                  </div>
+                  <CardTitle className="text-4xl font-bold mt-2">
+                    {tier.price}
+                    <span className="text-base font-normal text-muted-foreground">{tier.cadence}</span>
+                  </CardTitle>
+                  <CardDescription className="font-medium text-foreground/80 mt-1">
+                    {tier.cap}
+                  </CardDescription>
+                  <p className="text-xs text-muted-foreground mt-1">{tier.blurb}</p>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <ul className="space-y-2">
+                    {includedFeatures.slice(0, 5).map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    variant={tier.highlight ? 'default' : 'outline'}
+                    className="w-full rounded-full"
+                    asChild
+                  >
+                    <Link to="/auth?signup=true" className="flex items-center justify-center gap-2">
+                      {tier.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+
+          {/* Everything included */}
+          <div className="max-w-4xl mx-auto mb-14 p-6 rounded-2xl bg-muted/40 border border-border">
+            <div className="flex items-center gap-2 mb-4">
+              <School className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold">{isAr ? 'كل الميزات مدرجة في كل خطة' : 'Every plan includes everything'}</h3>
+            </div>
+            <ul className="grid sm:grid-cols-2 gap-2">
+              {includedFeatures.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* STUDENT AI UPGRADE */}
+          <Card className="max-w-3xl mx-auto bg-card border border-border relative mb-12">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground px-4 py-0.5 rounded-full text-xs font-bold">
+              {isAr ? 'إضافة اختيارية' : 'OPTIONAL ADD-ON'}
+            </div>
+            <CardHeader className="text-center pt-7">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <span className="text-lg font-semibold">
+                  {isAr ? 'ترقية الذكاء الاصطناعي للطالب' : 'Student AI Upgrade'}
+                </span>
+              </div>
+              <CardTitle className="text-3xl font-bold">
+                {isAr ? '$6/شهرياً' : '$6/month'}
+              </CardTitle>
+              <CardDescription>
+                {isAr ? 'لكل طالب · توليد ذكاء اصطناعي غير محدود' : 'Per student · unlimited AI generation'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                {isAr
+                  ? 'تتضمن خطة المدرسة حصة ذكاء اصطناعي سخية لكل طالب. هذه الترقية للطلاب الذين يحتاجون أكثر.'
+                  : 'Every school plan includes a generous AI quota per student. This optional upgrade is for students who want unlimited usage beyond that.'}
+              </p>
+              <ul className="grid sm:grid-cols-2 gap-2 max-w-xl mx-auto">
+                {upgradeFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <div className="text-center mt-4 mb-12 p-8 bg-card border border-border rounded-2xl shadow-lg max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold mb-4">
-              {isAr ? 'مدرسة كبيرة؟ لنتحدث.' : 'Larger school? Let\'s talk.'}
+              {isAr ? 'منطقة تعليمية أو عدة مدارس؟' : 'District or multi-school?'}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {isAr ? 'تسعير مخصص ودعم تنفيذ متاح للمدارس بأكثر من 500 طالب.' : 'Custom pricing and implementation support available for schools with 500+ students.'}
+              {isAr ? 'تسعير مخصص ودعم تنفيذ متاح للمناطق التعليمية والمدارس الكبيرة.' : 'Custom pricing and dedicated implementation support for districts and multi-campus schools.'}
             </p>
             <Button size="lg" className="rounded-full shadow-lg" asChild>
               <Link to="/auth?signup=true">{isAr ? 'احجز عرضاً توضيحياً' : 'Book a demo'}</Link>
