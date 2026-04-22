@@ -189,7 +189,14 @@ export const useQuizGenerator = () => {
   };
 
   const saveQuiz = async (quiz: Quiz): Promise<string | null> => {
-    if (!user) return null;
+    if (!user) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to save quizzes to your library.',
+        variant: 'destructive',
+      });
+      return null;
+    }
     try {
       const { data: quizData, error: quizError } = await supabase
         .from('quizzes')
