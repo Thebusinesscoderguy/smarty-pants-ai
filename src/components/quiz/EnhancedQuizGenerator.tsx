@@ -631,7 +631,7 @@ useEffect(() => {
               </div>
             )}
 
-            {inputMethod === 'file' && (
+            {inputMethod === 'file' && uploadType === 'graded_quiz' && (
               <div className="space-y-3 pt-4">
                 <div className="text-sm font-medium">Practice options from your last quiz</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
