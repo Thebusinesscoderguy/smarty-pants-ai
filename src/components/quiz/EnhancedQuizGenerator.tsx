@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CurriculumSelector } from '@/components/curriculum/CurriculumSelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [questionCountInput, setQuestionCountInput] = useState('5');
   const getQuestionCount = () => Math.max(1, Math.min(50, parseInt(questionCountInput || '5', 10)));
   const [gradeLevel, setGradeLevel] = useState<string>('');
-  const [curriculum, setCurriculum] = useState<string>('');
+  // curriculum removed
   const [customInstructions, setCustomInstructions] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
@@ -39,7 +38,6 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
   const [showSignInDialog, setShowSignInDialog] = useState(false);
-  const [curriculumSelection, setCurriculumSelection] = useState<import('@/hooks/useCurriculumData').CurriculumSelection | null>(null);
 const autoRanRef = useRef(false);
   
   const { t, language } = useLanguage();
@@ -84,11 +82,10 @@ useEffect(() => {
       return;
     }
     let quiz: Quiz | null = null;
-    const ctx = curriculumSelection?.promptContext ? `\n\n${curriculumSelection.promptContext}` : '';
 
       switch (inputMethod) {
         case 'manual':
-          quiz = await generateQuiz(topic + ctx, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
+          quiz = await generateQuiz(topic, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         case 'file':
@@ -150,7 +147,7 @@ useEffect(() => {
             toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorInstructions'), variant: 'destructive' });
             return;
           }
-          quiz = await generateQuiz(customInstructions + ctx, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
+          quiz = await generateQuiz(customInstructions, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         default:
@@ -472,24 +469,7 @@ useEffect(() => {
 
           {/* Shared settings for all input methods */}
           <div className="border-t pt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label>{t('quizGenerator.curriculum')}</Label>
-                <Select value={curriculum} onValueChange={setCurriculum}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('quizGenerator.selectCurriculum')} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    <SelectItem value="us-common-core">US Common Core</SelectItem>
-                    <SelectItem value="uk-national">UK National Curriculum</SelectItem>
-                    <SelectItem value="ib">International Baccalaureate</SelectItem>
-                    <SelectItem value="cambridge">Cambridge International</SelectItem>
-                    <SelectItem value="australian">Australian Curriculum</SelectItem>
-                    <SelectItem value="french">French (Éducation Nationale)</SelectItem>
-                    <SelectItem value="other">Other / General</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
               <div className="space-y-2">
                 <Label>{t('quizGenerator.gradeLevel')}</Label>
@@ -547,8 +527,6 @@ useEffect(() => {
               </p>
             </div>
           )}
-
-          <CurriculumSelector onSelectionChange={setCurriculumSelection} />
 
           <Button 
             onClick={handleGenerateQuiz} 
