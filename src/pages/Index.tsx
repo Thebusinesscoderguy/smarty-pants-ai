@@ -98,33 +98,70 @@ const Index = () => {
     { icon: School, title: t('home.showcase.ops.title'), desc: t('home.showcase.ops.desc'), tag: t('home.showcase.tag.schools') },
   ];
 
+  const isAr = language === 'ar';
   const roleCards = [
     {
+      icon: School,
+      title: isAr ? 'للمدارس' : 'For Schools',
+      desc: isAr
+        ? 'إدارة الفصول والدرجات والواجبات والحضور والمناهج في مكان واحد.'
+        : 'Manage classes, grades, homework, attendance and curriculum in one place.',
+      features: isAr
+        ? ['لوحة إدارة شاملة', 'تقارير وتحليلات', 'إعداد سريع للمعلمين والطلاب']
+        : ['Complete admin dashboard', 'Reports & analytics', 'Fast teacher & student onboarding'],
+      cta: isAr ? 'ابدأ الآن' : 'Get started',
+      href: '/auth',
+      accent: 'from-primary/15 to-accent/10',
+    },
+    {
       icon: GraduationCap,
-      title: t('home.roles.student.title'),
-      desc: t('home.roles.student.desc'),
-      features: [t('home.roles.student.feature1'), t('home.roles.student.feature2'), t('home.roles.student.feature3')],
-      cta: t('home.roles.student.cta'),
-      href: '/quiz-generator',
+      title: isAr ? 'للمعلمين' : 'For Teachers',
+      desc: isAr
+        ? 'خطط دروس بالذكاء الاصطناعي ومولد اختبارات وسجل درجات وإدارة واجبات.'
+        : 'AI lesson plans, quiz generator, gradebook and homework management.',
+      features: isAr
+        ? ['خطط دروس فورية', 'تصحيح آلي للواجبات', 'سجل درجات مرن']
+        : ['Instant lesson plans', 'Auto-graded homework', 'Flexible gradebook'],
+      cta: isAr ? 'جرّب مجاناً' : 'Try it free',
+      href: '/auth',
       accent: 'from-primary/20 to-primary/5',
     },
     {
-      icon: Users,
-      title: t('home.roles.parent.title'),
-      desc: t('home.roles.parent.desc'),
-      features: [t('home.roles.parent.feature1'), t('home.roles.parent.feature2'), t('home.roles.parent.feature3')],
-      cta: t('home.roles.parent.cta'),
-      href: '/auth',
+      icon: Brain,
+      title: isAr ? 'للطلاب' : 'For Students',
+      desc: isAr
+        ? 'مدرّس ذكاء اصطناعي وخطط دراسة واختبارات وتتبع التقدم — مدرجة مع مدرستك.'
+        : 'AI tutor, study plans, quizzes and progress tracking — included with your school.',
+      features: isAr
+        ? ['مساعد دراسة ذكي 24/7', 'خطط دراسة مخصصة', 'اختبارات تكيفية']
+        : ['24/7 AI study buddy', 'Personalised study plans', 'Adaptive quizzes'],
+      cta: isAr ? 'استكشف الأدوات' : 'Explore tools',
+      href: '/quiz-generator',
       accent: 'from-accent/30 to-accent/5',
     },
+  ];
+
+  const competitors = [
     {
-      icon: School,
-      title: t('home.roles.school.title'),
-      desc: t('home.roles.school.desc'),
-      features: [t('home.roles.school.feature1'), t('home.roles.school.feature2'), t('home.roles.school.feature3')],
-      cta: t('home.roles.school.cta'),
-      href: '/auth',
-      accent: 'from-primary/15 to-accent/10',
+      name: 'vs ClassDojo',
+      title: isAr ? 'لدينا ذكاء اصطناعي، هم لا' : 'We have AI, they don\'t',
+      desc: isAr
+        ? 'تواصل ClassDojo + كل أدوات التعلم بالذكاء الاصطناعي للطلاب والمعلمين.'
+        : 'All of ClassDojo\'s communication, plus AI learning tools for students and teachers.',
+    },
+    {
+      name: 'vs Educore',
+      title: isAr ? 'لدينا أدوات تعلم للطلاب، هم لا' : 'We have student learning tools, they don\'t',
+      desc: isAr
+        ? 'إدارة مدرسية كاملة مع مدرّس ذكي وخطط دراسة لكل طالب.'
+        : 'Full school management plus an AI tutor and study plans for every student.',
+    },
+    {
+      name: 'vs Google Classroom',
+      title: isAr ? 'دعم عربي كامل + ذكاء اصطناعي' : 'Arabic RTL + AI built in',
+      desc: isAr
+        ? 'منصة عربية أصلية بالكامل مع ذكاء اصطناعي مدمج — لا إضافات، لا حلول مؤقتة.'
+        : 'Native Arabic RTL platform with AI built in — no add-ons, no workarounds.',
     },
   ];
 
@@ -149,17 +186,48 @@ const Index = () => {
         <div className="container mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-8 animate-fade-in">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95]">
-              <span className="block text-foreground">{t('home.hero.headline1')}</span>
+              <span className="block text-foreground">
+                {isAr ? 'منصة إدارة المدارس' : 'The school management platform'}
+              </span>
               <span className="block bg-gradient-to-r from-primary via-primary to-accent-foreground bg-clip-text text-transparent">
-                {t('home.hero.headline2')}
+                {isAr ? 'مع ذكاء اصطناعي مدمج' : 'with AI built in'}
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              {t('home.hero.subhead')}
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              {isAr
+                ? 'استبدل نظام إدارة التعلم وأدوات تواصل أولياء الأمور بمنصة واحدة — وامنح كل طالب مدرّساً ذكياً ومولّد اختبارات ومخطط دراسي مدرجاً.'
+                : 'Replace your LMS and parent communication tools with one platform — and give every student an AI tutor, quiz generator, and study planner included.'}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-10 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Button
+                onClick={() => navigate('/auth')}
+                size="lg"
+                className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+              >
+                <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {isAr ? 'ابدأ مجاناً' : 'Start Free'}
+              </Button>
+              <Button
+                onClick={() => navigate('/features')}
+                size="lg"
+                variant="outline"
+                className="rounded-full px-8 border-2 border-primary/30 hover:bg-primary/10"
+              >
+                {isAr ? 'كيف تعمل' : 'See how it works'}
+                <ArrowRight className={`${isRTL ? 'mr-1.5 rotate-180' : 'ml-1.5'} w-4 h-4`} />
+              </Button>
+              <Button onClick={() => setDemoOpen(true)} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
+                <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
+                {t('nav.bookDemo')}
+              </Button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-8 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">
+                {isAr ? 'أو جرّب أداة الطالب فوراً' : 'Or try a student tool instantly'}
+              </div>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/40 via-accent/40 to-primary/40 rounded-full opacity-50 blur group-hover:opacity-75 transition-opacity" />
                 <div className="relative">
@@ -196,23 +264,6 @@ const Index = () => {
                 </div>
               </div>
             </form>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-              <Button onClick={() => navigate('/auth')} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('home.cta.startFree')}
-              </Button>
-              <span className="text-muted-foreground/40">·</span>
-              <Button onClick={() => setDemoOpen(true)} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('nav.bookDemo')}
-              </Button>
-              <span className="text-muted-foreground/40">·</span>
-              <Button onClick={() => navigate('/demo')} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <PlayCircle className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('home.cta.watchItWork')}
-              </Button>
-            </div>
           </div>
         </div>
       </section>
@@ -321,9 +372,11 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 max-w-2xl mx-auto">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-4">
-              {t('home.roles.title')}
+              {isAr ? 'منصة واحدة لكل دور' : 'One platform, every role covered'}
             </h2>
-            <p className="text-lg text-muted-foreground">{t('home.roles.subtitle')}</p>
+            <p className="text-lg text-muted-foreground">
+              {isAr ? 'مصمم للمدارس — مع أدوات مدمجة للمعلمين والطلاب.' : 'Built for schools — with tools baked in for teachers and students.'}
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -352,6 +405,31 @@ const Index = () => {
                     <ArrowRight className={`${isRTL ? 'mr-1.5 rotate-180' : 'ml-1.5'} w-4 h-4`} />
                   </Button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHY SWITCH */}
+      <section className="py-20 md:py-28 bg-background border-t border-border">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-14 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-4">
+              <Zap className="w-3.5 h-3.5" /> {isAr ? 'لماذا التبديل' : 'Why switch'}
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+              {isAr ? 'كيف نقارن بالأدوات الأخرى' : 'How we compare'}
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {competitors.map((c) => (
+              <div key={c.name} className="bg-card border border-border rounded-3xl p-8 hover:shadow-xl hover:border-primary/40 transition-all">
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-muted text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                  {c.name}
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-snug">{c.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{c.desc}</p>
               </div>
             ))}
           </div>
@@ -413,7 +491,7 @@ const Index = () => {
                 { icon: Target, title: t('home.why.adaptive.title'), desc: t('home.why.adaptive.desc') },
                 { icon: BarChart3, title: t('home.why.insightful.title'), desc: t('home.why.insightful.desc') },
                 { icon: Globe, title: t('home.why.multilingual.title'), desc: t('home.why.multilingual.desc') },
-                { icon: Gamepad2, title: t('home.why.engaging.title'), desc: t('home.why.engaging.desc') },
+                { icon: MessageSquare, title: isAr ? 'تواصل مع الأهل' : 'Parent communication', desc: isAr ? 'رسائل وتقارير أسبوعية تلقائية لكل ولي أمر.' : 'Messaging and automated weekly reports for every parent.' },
               ].map((c) => (
                 <div key={c.title} className="bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:shadow-lg transition-all">
                   <c.icon className="w-7 h-7 text-primary mb-3" />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { CurriculumSelector } from '@/components/curriculum/CurriculumSelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,6 @@ import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useGuestUsage } from '@/hooks/useGuestUsage';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface EnhancedQuizGeneratorProps {
   conversationHistory?: any[];
@@ -30,6 +30,7 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [questionCountInput, setQuestionCountInput] = useState('5');
   const getQuestionCount = () => Math.max(1, Math.min(50, parseInt(questionCountInput || '5', 10)));
   const [gradeLevel, setGradeLevel] = useState<string>('');
+  const [curriculum, setCurriculum] = useState<string>('');
   const [customInstructions, setCustomInstructions] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'study_material' | 'graded_quiz'>('study_material');
@@ -38,14 +39,13 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
   const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
   const [showSignInDialog, setShowSignInDialog] = useState(false);
-  const autoRanRef = useRef(false);
+  const [curriculumSelection, setCurriculumSelection] = useState<import('@/hooks/useCurriculumData').CurriculumSelection | null>(null);
+const autoRanRef = useRef(false);
   
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { isGenerating, generateQuiz, saveQuiz, retakeLatestQuiz, quizFromLatestMistakes, extractQuizFromFile } = useQuizGenerator();
   const { canGenerate: canGuestGenerate, recordUsage, isGuest } = useGuestUsage();
-
-  const { user } = useAuth();
 
 useEffect(() => {
   if (auto && !autoRanRef.current) {
@@ -84,10 +84,11 @@ useEffect(() => {
       return;
     }
     let quiz: Quiz | null = null;
+    const ctx = curriculumSelection?.promptContext ? `\n\n${curriculumSelection.promptContext}` : '';
 
       switch (inputMethod) {
         case 'manual':
-          quiz = await generateQuiz(topic, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
+          quiz = await generateQuiz(topic + ctx, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         case 'file':
@@ -149,7 +150,7 @@ useEffect(() => {
             toast({ title: t('quizGenerator.error'), description: t('quizGenerator.errorInstructions'), variant: 'destructive' });
             return;
           }
-          quiz = await generateQuiz(customInstructions, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
+          quiz = await generateQuiz(customInstructions + ctx, difficulty, getQuestionCount(), conversationHistory, gradeLevel);
           break;
         
         default:
@@ -165,10 +166,6 @@ useEffect(() => {
 
   const handleSaveQuiz = async () => {
     if (!generatedQuiz) return;
-    if (!user) {
-      setShowSignInDialog(true);
-      return;
-    }
     const quizId = await saveQuiz(generatedQuiz);
     if (quizId) {
       setGeneratedQuiz(null);
@@ -249,11 +246,11 @@ useEffect(() => {
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{language === 'ar' ? 'تسجيل الدخول مطلوب' : 'Sign in to continue'}</DialogTitle>
+            <DialogTitle>{t('quizGenerator.signInRequired') || 'Sign in to continue'}</DialogTitle>
             <DialogDescription>
               {language === 'ar' 
-                ? 'لقد استخدمت اختباراتك المجانية الثلاثة. سجل دخولك لإنشاء المزيد من الاختبارات.'
-                : 'You\'ve used your 3 free quizzes. Sign in to generate more quizzes.'}
+                ? 'لقد استخدمت الاختبار المجاني. سجل دخولك لإنشاء المزيد من الاختبارات.'
+                : 'You\'ve used your free quiz. Sign in to generate more quizzes.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -477,6 +474,24 @@ useEffect(() => {
           <div className="border-t pt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
+                <Label>{t('quizGenerator.curriculum')}</Label>
+                <Select value={curriculum} onValueChange={setCurriculum}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('quizGenerator.selectCurriculum')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="us-common-core">US Common Core</SelectItem>
+                    <SelectItem value="uk-national">UK National Curriculum</SelectItem>
+                    <SelectItem value="ib">International Baccalaureate</SelectItem>
+                    <SelectItem value="cambridge">Cambridge International</SelectItem>
+                    <SelectItem value="australian">Australian Curriculum</SelectItem>
+                    <SelectItem value="french">French (Éducation Nationale)</SelectItem>
+                    <SelectItem value="other">Other / General</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label>{t('quizGenerator.gradeLevel')}</Label>
                 <Select value={gradeLevel} onValueChange={setGradeLevel}>
                   <SelectTrigger>
@@ -510,6 +525,18 @@ useEffect(() => {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>{t('quizGenerator.quizMode')}</Label>
+                <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('quizGenerator.selectMode')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="take">{t('quizGenerator.takeQuiz')}</SelectItem>
+                    <SelectItem value="view">{t('quizGenerator.viewAnswers')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -521,7 +548,7 @@ useEffect(() => {
             </div>
           )}
 
-          
+          <CurriculumSelector onSelectionChange={setCurriculumSelection} />
 
           <Button 
             onClick={handleGenerateQuiz} 
@@ -568,19 +595,80 @@ useEffect(() => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-muted/50 rounded-lg text-center space-y-4">
-              <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
-              <div>
-                <h3 className="text-lg font-semibold">{t('quizGenerator.quizReady')}</h3>
-                <p className="text-muted-foreground">
-                  {generatedQuiz.questions.length} {t('quizGenerator.questionsGenerated')}
+            {quizMode === 'take' ? (
+              <div className="p-4 bg-muted/50 rounded-lg text-center space-y-4">
+                <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
+                <div>
+                  <h3 className="text-lg font-semibold">{t('quizGenerator.quizReady')}</h3>
+                  <p className="text-muted-foreground">
+                    {generatedQuiz.questions.length} {t('quizGenerator.questionsGenerated')}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t('quizGenerator.saveToTake')}
                 </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {t('quizGenerator.saveToTake')}
-              </p>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {generatedQuiz.questions.map((question, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-card">
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-medium">Question {index + 1}</h4>
+                      <Badge variant="secondary" className="text-xs">
+                        {question.type.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <p className="mb-3">{question.question}</p>
+                    
+                    {question.options && (
+                      <div className="space-y-1 mb-3">
+                        {question.options.map((option, optIndex) => (
+                          <div 
+                            key={optIndex}
+                            className={`p-2 rounded text-sm ${
+                              option === question.correct_answer 
+                                ? 'bg-green-500/10 text-green-600 border border-green-500/20 font-medium' 
+                                : 'bg-muted/50'
+                            }`}
+                          >
+                            {String.fromCharCode(65 + optIndex)}. {option}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {!question.options && (
+                      <div className="p-2 bg-green-500/10 text-green-600 border border-green-500/20 rounded text-sm font-medium mb-3">
+                        Answer: {question.correct_answer}
+                      </div>
+                    )}
+                    
+                    {question.explanation && (
+                      <div className="text-sm text-muted-foreground bg-blue-500/10 border border-blue-500/20 p-2 rounded">
+                        <strong>Explanation:</strong> {question.explanation}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
+            {inputMethod === 'file' && (
+              <div className="space-y-3 pt-4">
+                <div className="text-sm font-medium">Practice options from your last quiz</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <Button onClick={handleCreateRetake} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Retake Quiz to Library'}
+                  </Button>
+                  <Button variant="outline" onClick={handleCreateMistakes} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Mistakes-only Quiz'}
+                  </Button>
+                  <Button variant="outline" onClick={handleCreateMistakesSimilar} disabled={creatingPractice || isGenerating}>
+                    {creatingPractice ? 'Working…' : 'Save Mistakes + Similar Quiz'}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSaveQuiz} className="flex-1">
