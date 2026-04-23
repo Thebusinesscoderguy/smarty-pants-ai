@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Teachly.AI icon">
+  <rect width="512" height="512" rx="112" fill="#EA7A3D"/>
+  <circle cx="392" cy="116" r="54" fill="#F7B48A" opacity="0.9"/>
+  <path d="M110 134h292v74H294v194h-76V208H110z" fill="#FFFFFF"/>
+  <path d="M110 134h292v32H110z" fill="#FFE6D6" opacity="0.55"/>
+</svg>
