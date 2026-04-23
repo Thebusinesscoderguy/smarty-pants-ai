@@ -169,7 +169,13 @@ export const QuizLibrary = () => {
                 }}
               />
             ) : (
-              <QuizResults quiz={selectedQuiz} />
+              <QuizResults
+                quiz={selectedQuiz}
+                onStartQuiz={(nextQuiz) => {
+                  setSelectedQuiz(nextQuiz);
+                  setMode('take');
+                }}
+              />
             )
           )}
         </DialogContent>
