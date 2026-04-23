@@ -36,7 +36,6 @@ export const EnhancedQuizGenerator = ({ conversationHistory, auto }: EnhancedQui
   const [quizDifficulty, setQuizDifficulty] = useState<'easier' | 'same' | 'harder'>('same');
   const [generationOption, setGenerationOption] = useState<'same_questions' | 'mistakes_only' | 'questions_like_mistakes' | 'mistakes_similar' | 'similar_quiz' | ''>('');
   const [generatedQuiz, setGeneratedQuiz] = useState<Quiz | null>(null);
-  const [quizMode, setQuizMode] = useState<'take' | 'view'>('take');
   const [showSignInDialog, setShowSignInDialog] = useState(false);
 const autoRanRef = useRef(false);
   
@@ -469,7 +468,7 @@ useEffect(() => {
 
           {/* Shared settings for all input methods */}
           <div className="border-t pt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               <div className="space-y-2">
                 <Label>{t('quizGenerator.gradeLevel')}</Label>
@@ -503,19 +502,6 @@ useEffect(() => {
                   placeholder="5"
                   className="w-full"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t('quizGenerator.quizMode')}</Label>
-                <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('quizGenerator.selectMode')} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    <SelectItem value="take">{t('quizGenerator.takeQuiz')}</SelectItem>
-                    <SelectItem value="view">{t('quizGenerator.viewAnswers')}</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -573,63 +559,18 @@ useEffect(() => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {quizMode === 'take' ? (
-              <div className="p-4 bg-muted/50 rounded-lg text-center space-y-4">
-                <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
-                <div>
-                  <h3 className="text-lg font-semibold">{t('quizGenerator.quizReady')}</h3>
-                  <p className="text-muted-foreground">
-                    {generatedQuiz.questions.length} {t('quizGenerator.questionsGenerated')}
-                  </p>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t('quizGenerator.saveToTake')}
+            <div className="p-4 bg-muted/50 rounded-lg text-center space-y-4">
+              <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
+              <div>
+                <h3 className="text-lg font-semibold">{t('quizGenerator.quizReady')}</h3>
+                <p className="text-muted-foreground">
+                  {generatedQuiz.questions.length} {t('quizGenerator.questionsGenerated')}
                 </p>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {generatedQuiz.questions.map((question, index) => (
-                  <div key={index} className="p-4 border rounded-lg bg-card">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium">Question {index + 1}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {question.type.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="mb-3">{question.question}</p>
-                    
-                    {question.options && (
-                      <div className="space-y-1 mb-3">
-                        {question.options.map((option, optIndex) => (
-                          <div 
-                            key={optIndex}
-                            className={`p-2 rounded text-sm ${
-                              option === question.correct_answer 
-                                ? 'bg-green-500/10 text-green-600 border border-green-500/20 font-medium' 
-                                : 'bg-muted/50'
-                            }`}
-                          >
-                            {String.fromCharCode(65 + optIndex)}. {option}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {!question.options && (
-                      <div className="p-2 bg-green-500/10 text-green-600 border border-green-500/20 rounded text-sm font-medium mb-3">
-                        Answer: {question.correct_answer}
-                      </div>
-                    )}
-                    
-                    {question.explanation && (
-                      <div className="text-sm text-muted-foreground bg-blue-500/10 border border-blue-500/20 p-2 rounded">
-                        <strong>Explanation:</strong> {question.explanation}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+              <p className="text-sm text-muted-foreground">
+                {t('quizGenerator.saveToTake')}
+              </p>
+            </div>
 
             {inputMethod === 'file' && uploadType === 'graded_quiz' && (
               <div className="space-y-3 pt-4">
