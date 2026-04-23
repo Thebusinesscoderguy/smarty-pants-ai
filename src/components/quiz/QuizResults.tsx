@@ -4,14 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
-import type { Quiz } from '@/hooks/useQuizGenerator';
+import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2, RotateCcw, Sparkles, Target } from 'lucide-react';
 import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
 
 interface QuizResultsProps {
   quiz: Quiz;
+  onStartQuiz?: (quiz: Quiz) => void;
 }
 
 interface AttemptRow {
@@ -55,9 +56,11 @@ const ELI5Button = ({ text }: { text: string }) => {
   );
 };
 
-export const QuizResults = ({ quiz }: QuizResultsProps) => {
+export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
+  const { generateQuiz, saveQuiz } = useQuizGenerator();
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creatingPractice, setCreatingPractice] = useState<'mistakes' | 'similar' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<number, string>>({});
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
@@ -106,6 +109,62 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
   }
 
   const answers = attempt.answers || [];
+  const missedAnswers = answers.filter((answer) => !answer.is_correct);
+
+  const startMistakesQuiz = async () => {
+    if (!missedAnswers.length) {
+      toast({ title: 'No mistakes found', description: 'You got every question correct on your latest attempt.' });
+      return;
+    }
+
+    setCreatingPractice('mistakes');
+    try {
+      const mistakesQuiz: Quiz = {
+        title: `${quiz.title} – Mistakes Only`,
+        description: 'Retake only the questions missed in your latest attempt.',
+        difficulty: quiz.difficulty,
+        subject_id: quiz.subject_id,
+        questions: missedAnswers.map((answer, index) => {
+          const original = quiz.questions?.[answer.index];
+          return {
+            ...original,
+            id: undefined,
+            question: original?.question || answer.question,
+            type: original?.type || 'multiple_choice',
+            options: original?.options,
+            correct_answer: original?.correct_answer || answer.correct,
+            explanation: original?.explanation || answer.explanation || undefined,
+            points: original?.points || answer.points || 1,
+            order_index: index,
+          };
+        }),
+      };
+      const savedId = await saveQuiz(mistakesQuiz);
+      if (savedId) onStartQuiz?.({ ...mistakesQuiz, id: savedId });
+    } finally {
+      setCreatingPractice(null);
+    }
+  };
+
+  const startSimilarQuiz = async () => {
+    setCreatingPractice('similar');
+    try {
+      const source = quiz.questions
+        .map((q, index) => `${index + 1}. ${q.question}\nAnswer: ${q.correct_answer}`)
+        .join('\n\n');
+      const similarQuiz = await generateQuiz(
+        `Create a new quiz similar to "${quiz.title}". Match the same learning objectives, difficulty, and question count, but use new wording, contexts, values, and answers. Do not repeat the original questions exactly. Original quiz:\n\n${source}`,
+        quiz.difficulty,
+        quiz.questions.length
+      );
+      if (!similarQuiz) return;
+      const quizToSave = { ...similarQuiz, title: `${quiz.title} – Similar Quiz`, subject_id: quiz.subject_id };
+      const savedId = await saveQuiz(quizToSave);
+      if (savedId) onStartQuiz?.({ ...quizToSave, id: savedId });
+    } finally {
+      setCreatingPractice(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -123,9 +182,27 @@ export const QuizResults = ({ quiz }: QuizResultsProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline">Score</Badge>
-            <div className="text-base font-medium">{attempt.score}/{attempt.total_possible} ({percent}%)</div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Badge variant="outline">Score</Badge>
+              <div className="text-base font-medium">{attempt.score}/{attempt.total_possible} ({percent}%)</div>
+            </div>
+            {onStartQuiz && quiz.id && (
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => onStartQuiz(quiz)} className="gap-2">
+                  <RotateCcw className="h-4 w-4" />
+                  Retake quiz
+                </Button>
+                <Button variant="outline" onClick={startMistakesQuiz} disabled={creatingPractice !== null || missedAnswers.length === 0} className="gap-2">
+                  {creatingPractice === 'mistakes' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Target className="h-4 w-4" />}
+                  Retake mistakes only
+                </Button>
+                <Button variant="outline" onClick={startSimilarQuiz} disabled={creatingPractice !== null} className="gap-2">
+                  {creatingPractice === 'similar' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  Retake similar quiz
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
