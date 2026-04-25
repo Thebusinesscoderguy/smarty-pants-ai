@@ -219,6 +219,13 @@ export const AssessmentManagement = () => {
           ai_graded: true,
           total_points: questions.length,
           time_limit_minutes: aiForm.timeLimitMinutes,
+          assessment_mode: examSettings.mode,
+          question_randomization: examSettings.randomization,
+          question_order_locked: examSettings.orderLocked,
+          allow_backtracking: examSettings.allowBacktracking,
+          violation_threshold: examSettings.violationThreshold,
+          violation_action: examSettings.violationAction,
+          exam_instructions: examSettings.instructions || null,
         })
         .select()
         .single();
@@ -284,6 +291,13 @@ export const AssessmentManagement = () => {
           ai_graded: true,
           total_points: manualForm.questions.reduce((sum, q) => sum + q.points, 0),
           time_limit_minutes: manualForm.timeLimitMinutes,
+          assessment_mode: examSettings.mode,
+          question_randomization: examSettings.randomization,
+          question_order_locked: examSettings.orderLocked,
+          allow_backtracking: examSettings.allowBacktracking,
+          violation_threshold: examSettings.violationThreshold,
+          violation_action: examSettings.violationAction,
+          exam_instructions: examSettings.instructions || null,
         })
         .select()
         .single();
