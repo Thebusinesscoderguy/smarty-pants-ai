@@ -444,6 +444,83 @@ export const AssessmentManagement = () => {
               <DialogTitle className="text-foreground">Create Assessment</DialogTitle>
             </DialogHeader>
 
+            {/* Mode + Exam Settings */}
+            <Card className="bg-muted/40 border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" /> Mode
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={examSettings.mode === 'practice' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setExamSettings(p => ({ ...p, mode: 'practice' }))}
+                  >Practice</Button>
+                  <Button
+                    type="button"
+                    variant={examSettings.mode === 'exam' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setExamSettings(p => ({ ...p, mode: 'exam' }))}
+                  >
+                    <Lock className="h-3 w-3 mr-1" /> Exam
+                  </Button>
+                </div>
+                {examSettings.mode === 'exam' && (
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center justify-between gap-2 text-sm">
+                        <span>Randomize questions</span>
+                        <Switch checked={examSettings.randomization} onCheckedChange={(v) => setExamSettings(p => ({ ...p, randomization: v }))} />
+                      </label>
+                      <label className="flex items-center justify-between gap-2 text-sm">
+                        <span>Lock question order</span>
+                        <Switch checked={examSettings.orderLocked} onCheckedChange={(v) => setExamSettings(p => ({ ...p, orderLocked: v }))} />
+                      </label>
+                      <label className="flex items-center justify-between gap-2 text-sm">
+                        <span>Allow backtracking</span>
+                        <Switch checked={examSettings.allowBacktracking} onCheckedChange={(v) => setExamSettings(p => ({ ...p, allowBacktracking: v }))} />
+                      </label>
+                      <div className="flex items-center justify-between gap-2 text-sm">
+                        <span>Violation threshold</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          className="w-16 h-8 text-center"
+                          value={examSettings.violationThreshold}
+                          onChange={(e) => setExamSettings(p => ({ ...p, violationThreshold: Math.max(1, Number(e.target.value) || 1) }))}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">On threshold reached</Label>
+                      <Select
+                        value={examSettings.violationAction}
+                        onValueChange={(v: any) => setExamSettings(p => ({ ...p, violationAction: v }))}
+                      >
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="flag">Flag submission</SelectItem>
+                          <SelectItem value="auto_submit">Auto-submit exam</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Exam instructions (shown before start)</Label>
+                      <Textarea
+                        rows={2}
+                        value={examSettings.instructions}
+                        onChange={(e) => setExamSettings(p => ({ ...p, instructions: e.target.value }))}
+                        placeholder="e.g., No notes allowed. Stay in fullscreen at all times."
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Tabs value={createMode} onValueChange={(v: any) => setCreateMode(v)}>
               <TabsList className="grid w-full grid-cols-2 bg-muted">
                 <TabsTrigger value="ai">
