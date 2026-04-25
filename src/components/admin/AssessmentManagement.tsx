@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2,
+  Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2, Lock,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -81,6 +82,17 @@ export const AssessmentManagement = () => {
     timeLimitMinutes: 30,
     selectedSections: [] as string[],
     questions: [] as QuizQuestion[],
+  });
+
+  // Shared exam-mode settings (apply to whichever form is submitted)
+  const [examSettings, setExamSettings] = useState({
+    mode: 'practice' as 'practice' | 'exam',
+    randomization: false,
+    orderLocked: false,
+    allowBacktracking: true,
+    violationThreshold: 3,
+    violationAction: 'flag' as 'flag' | 'auto_submit',
+    instructions: '',
   });
 
   const [newQuestion, setNewQuestion] = useState<QuizQuestion>({
