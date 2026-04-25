@@ -10,6 +10,7 @@ import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
+import { ExamMonitoring } from '@/components/admin/ExamMonitoring';
 import { SubjectManagement } from '@/components/admin/SubjectManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlanGenerator';
@@ -99,6 +100,7 @@ const SchoolAdmin = () => {
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+                <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
