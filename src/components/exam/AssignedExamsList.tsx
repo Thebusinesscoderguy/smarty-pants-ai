@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Lock, ShieldCheck } from 'lucide-react';
+import { Clock, Lock, ShieldCheck, PlayCircle, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AssignedExam {
@@ -94,10 +94,22 @@ export const AssignedExamsList = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {done ? (
-                  <Badge variant="secondary" className="gap-1"><ShieldCheck className="h-3 w-3" /> Submitted</Badge>
-                ) : (
-                  <Button size="sm" onClick={() => navigate(`/exam/${e.id}`)}>Start exam</Button>
+                {e.attempt_status === 'not_started' && (
+                  <Badge variant="outline" className="gap-1"><Circle className="h-3 w-3" /> Not started</Badge>
+                )}
+                {e.attempt_status === 'in_progress' && (
+                  <Badge variant="secondary" className="gap-1"><PlayCircle className="h-3 w-3" /> In progress</Badge>
+                )}
+                {e.attempt_status === 'submitted' && (
+                  <Badge className="gap-1"><ShieldCheck className="h-3 w-3" /> Submitted</Badge>
+                )}
+                {e.attempt_status === 'auto_submitted' && (
+                  <Badge variant="outline" className="gap-1"><ShieldCheck className="h-3 w-3" /> Auto-submitted</Badge>
+                )}
+                {!done && (
+                  <Button size="sm" onClick={() => navigate(`/exam/${e.id}`)}>
+                    {e.attempt_status === 'in_progress' ? 'Resume' : 'Start exam'}
+                  </Button>
                 )}
               </div>
             </div>
