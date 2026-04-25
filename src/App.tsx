@@ -39,6 +39,7 @@ import Demo from './pages/Demo';
 import Leaderboard from './pages/Leaderboard';
 import SharedArtifact from './pages/SharedArtifact';
 import SchoolOnboarding from './pages/SchoolOnboarding';
+import ExamRunner from './pages/ExamRunner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ function App() {
                     <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                     <Route path="/s/:token" element={<SharedArtifact />} />
                     <Route path="/settings" element={<Settings />} />
+                    <Route path="/exam/:testId" element={<ExamRunner />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <MobileBottomNav />
