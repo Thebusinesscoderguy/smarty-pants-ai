@@ -597,6 +597,109 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_sessions: {
+        Row: {
+          answers: Json | null
+          created_at: string
+          end_time: string | null
+          flagged: boolean
+          id: string
+          percentage: number | null
+          quiz_id: string
+          score: number | null
+          start_time: string
+          status: string
+          submitted_at: string | null
+          time_limit: number
+          time_taken_seconds: number | null
+          total_points: number | null
+          updated_at: string
+          user_id: string
+          violation_count: number
+        }
+        Insert: {
+          answers?: Json | null
+          created_at?: string
+          end_time?: string | null
+          flagged?: boolean
+          id?: string
+          percentage?: number | null
+          quiz_id: string
+          score?: number | null
+          start_time?: string
+          status?: string
+          submitted_at?: string | null
+          time_limit: number
+          time_taken_seconds?: number | null
+          total_points?: number | null
+          updated_at?: string
+          user_id: string
+          violation_count?: number
+        }
+        Update: {
+          answers?: Json | null
+          created_at?: string
+          end_time?: string | null
+          flagged?: boolean
+          id?: string
+          percentage?: number | null
+          quiz_id?: string
+          score?: number | null
+          start_time?: string
+          status?: string
+          submitted_at?: string | null
+          time_limit?: number
+          time_taken_seconds?: number | null
+          total_points?: number | null
+          updated_at?: string
+          user_id?: string
+          violation_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_sessions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_violations: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          session_id: string
+          timestamp: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          session_id: string
+          timestamp?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          session_id?: string
+          timestamp?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_violations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "exam_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           created_at: string | null
@@ -2917,44 +3020,65 @@ export type Database = {
         Row: {
           ai_generated: boolean | null
           ai_graded: boolean | null
+          allow_backtracking: boolean
+          assessment_mode: string
           created_at: string | null
           creator_id: string
           description: string | null
+          exam_instructions: string | null
           id: string
           is_mandatory: boolean | null
+          question_order_locked: boolean
+          question_randomization: boolean
           subject: string | null
           time_limit_minutes: number | null
           title: string
           total_points: number | null
           updated_at: string | null
+          violation_action: string
+          violation_threshold: number
         }
         Insert: {
           ai_generated?: boolean | null
           ai_graded?: boolean | null
+          allow_backtracking?: boolean
+          assessment_mode?: string
           created_at?: string | null
           creator_id: string
           description?: string | null
+          exam_instructions?: string | null
           id?: string
           is_mandatory?: boolean | null
+          question_order_locked?: boolean
+          question_randomization?: boolean
           subject?: string | null
           time_limit_minutes?: number | null
           title: string
           total_points?: number | null
           updated_at?: string | null
+          violation_action?: string
+          violation_threshold?: number
         }
         Update: {
           ai_generated?: boolean | null
           ai_graded?: boolean | null
+          allow_backtracking?: boolean
+          assessment_mode?: string
           created_at?: string | null
           creator_id?: string
           description?: string | null
+          exam_instructions?: string | null
           id?: string
           is_mandatory?: boolean | null
+          question_order_locked?: boolean
+          question_randomization?: boolean
           subject?: string | null
           time_limit_minutes?: number | null
           title?: string
           total_points?: number | null
           updated_at?: string | null
+          violation_action?: string
+          violation_threshold?: number
         }
         Relationships: []
       }
@@ -3320,6 +3444,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_manage_test: {
+        Args: { _test_id: string; _user_id: string }
+        Returns: boolean
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -3344,6 +3472,10 @@ export type Database = {
           school_name: string
           teacher_id: string
         }[]
+      }
+      is_test_assigned_to_student: {
+        Args: { _student_id: string; _test_id: string }
+        Returns: boolean
       }
       mark_expired_daily_quests_as_failed: { Args: never; Returns: undefined }
       test_quest_system: {
