@@ -162,6 +162,7 @@ export const AssessmentManagement = () => {
 
         assessmentList.push({
           ...test,
+          assessment_mode: (test.assessment_mode as 'practice' | 'exam') ?? 'practice',
           question_count: count || 0,
           assignments: (assignments || []).map(a => ({
             id: a.id,
