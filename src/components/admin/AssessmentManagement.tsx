@@ -32,6 +32,7 @@ interface Assessment {
   ai_generated: boolean | null;
   created_at: string | null;
   question_count: number;
+  assessment_mode?: 'practice' | 'exam';
   assignments: AssessmentAssignment[];
 }
 
@@ -879,12 +880,17 @@ export const AssessmentManagement = () => {
                 assessments.map(assessment => (
                   <TableRow key={assessment.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-foreground">{assessment.title}</span>
                         {assessment.ai_generated && (
                           <Badge variant="secondary" className="text-xs">
                             <Wand2 className="h-3 w-3 mr-1" />
                             AI
+                          </Badge>
+                        )}
+                        {assessment.assessment_mode === 'exam' && (
+                          <Badge className="text-xs gap-1">
+                            <Lock className="h-3 w-3" /> Exam
                           </Badge>
                         )}
                       </div>
