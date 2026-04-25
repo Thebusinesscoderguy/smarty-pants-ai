@@ -40,7 +40,7 @@ type TabValue =
   // People
   | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
   // Academics
-  | 'gradebook' | 'assessments' | 'grading' | 'subjects' | 'curriculum'
+  | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
   | 'curriculum-align' | 'lesson-plans' | 'homework' | 'question-bank'
   // Communication
   | 'messages' | 'news'
@@ -143,6 +143,7 @@ const SchoolAdmin = () => {
       items: [
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
+        { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
         { value: 'subjects', label: 'Subjects', icon: Library },
         { value: 'curriculum', label: t('schoolAdmin.tabs.curriculum'), icon: BookOpen },
