@@ -101,6 +101,7 @@ export const ExamMonitoring = () => {
                   <TableCell className="font-medium">{r.student_name}</TableCell>
                   <TableCell>{r.test_title}</TableCell>
                   <TableCell>
+                    {r.status === 'not_started' && <Badge variant="outline">Not started</Badge>}
                     {r.status === 'in_progress' && <Badge variant="secondary">In progress</Badge>}
                     {r.status === 'submitted' && <Badge>Submitted</Badge>}
                     {r.status === 'auto_submitted' && <Badge variant="outline">Auto-submitted</Badge>}
