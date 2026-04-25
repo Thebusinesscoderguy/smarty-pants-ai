@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AssignedExamsList } from '@/components/exam/AssignedExamsList';
 
 interface UpcomingQuiz {
   id: string;

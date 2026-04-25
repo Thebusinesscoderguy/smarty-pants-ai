@@ -10,6 +10,7 @@ import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
 import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
+import { ExamMonitoring } from '@/components/admin/ExamMonitoring';
 import { SubjectManagement } from '@/components/admin/SubjectManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlanGenerator';
@@ -39,7 +40,7 @@ type TabValue =
   // People
   | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
   // Academics
-  | 'gradebook' | 'assessments' | 'grading' | 'subjects' | 'curriculum'
+  | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
   | 'curriculum-align' | 'lesson-plans' | 'homework' | 'question-bank'
   // Communication
   | 'messages' | 'news'
@@ -77,6 +78,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
+                <TabsTrigger value="exam-monitoring" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <FileCheck className="h-4 w-4 mr-2" />Exam Monitoring
+                </TabsTrigger>
                 <TabsTrigger value="grading" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <Sparkles className="h-4 w-4 mr-2" />Grading Inbox
                 </TabsTrigger>
@@ -99,6 +103,7 @@ const SchoolAdmin = () => {
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+                <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
@@ -138,6 +143,7 @@ const SchoolAdmin = () => {
       items: [
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
+        { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
         { value: 'subjects', label: 'Subjects', icon: Library },
         { value: 'curriculum', label: t('schoolAdmin.tabs.curriculum'), icon: BookOpen },
@@ -254,6 +260,7 @@ const SchoolAdmin = () => {
               <TabsContent value="gradebook"><GradeBook /></TabsContent>
               <TabsContent value="at-risk"><AtRiskAlerts /></TabsContent>
               <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
+              <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
               <TabsContent value="grading"><GradingInbox /></TabsContent>
               <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
