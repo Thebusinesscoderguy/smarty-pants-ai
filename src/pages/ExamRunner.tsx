@@ -80,7 +80,7 @@ export default function ExamRunner() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [index, setIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
-  const [phase, setPhase] = useState<'loading' | 'intro' | 'in_progress' | 'submitting' | 'submitted' | 'denied'>('loading');
+  const [phase, setPhase] = useState<'loading' | 'intro' | 'in_progress' | 'submitting' | 'submitted' | 'denied' | 'duplicate'>('loading');
   const [violations, setViolations] = useState(0);
   const [warning, setWarning] = useState<string | null>(null);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
@@ -90,6 +90,7 @@ export default function ExamRunner() {
   const submittedRef = useRef(false);
   const sessionRef = useRef<string | null>(null);
   const inactivityRef = useRef<number>(Date.now());
+  const tabIdRef = useRef<string>(Math.random().toString(36).slice(2) + Date.now().toString(36));
 
   // Load test
   useEffect(() => {
@@ -236,6 +237,64 @@ export default function ExamRunner() {
     return () => window.clearInterval(id);
   }, [phase, startTime, test]);
 
+  // Multi-tab guard: heartbeat lock in localStorage; reject second tab
+  useEffect(() => {
+    if (!testId || !user) return;
+    if (phase === 'loading' || phase === 'denied' || phase === 'duplicate' || phase === 'submitted') return;
+    const lockKey = `exam_lock:${testId}:${user.id}`;
+    const myId = tabIdRef.current;
+    const STALE_MS = 8000;
+
+    const readLock = (): { tabId: string; ts: number } | null => {
+      try {
+        const raw = localStorage.getItem(lockKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed.tabId !== 'string') return null;
+        return parsed;
+      } catch { return null; }
+    };
+
+    const existing = readLock();
+    if (existing && existing.tabId !== myId && Date.now() - existing.ts < STALE_MS) {
+      setErrorMsg('This exam is already open in another tab or window. Close the other session and try again.');
+      setPhase('duplicate');
+      return;
+    }
+
+    localStorage.setItem(lockKey, JSON.stringify({ tabId: myId, ts: Date.now() }));
+
+    const heartbeat = window.setInterval(() => {
+      localStorage.setItem(lockKey, JSON.stringify({ tabId: myId, ts: Date.now() }));
+    }, 2000);
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== lockKey || !e.newValue) return;
+      try {
+        const v = JSON.parse(e.newValue);
+        if (v?.tabId && v.tabId !== myId) {
+          if (phase === 'in_progress') recordViolation('duplicate_tab_detected');
+          setErrorMsg('Another tab opened this exam. This session has been closed.');
+          setPhase('duplicate');
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+
+    const release = () => {
+      const cur = readLock();
+      if (cur?.tabId === myId) localStorage.removeItem(lockKey);
+    };
+    window.addEventListener('beforeunload', release);
+
+    return () => {
+      window.clearInterval(heartbeat);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('beforeunload', release);
+      release();
+    };
+  }, [testId, user, phase, recordViolation]);
+
   const handleStart = async () => {
     if (!test || !user) return;
     try {
@@ -351,6 +410,28 @@ export default function ExamRunner() {
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">{errorMsg || 'You are not allowed to take this exam.'}</p>
             <Button onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (phase === 'duplicate') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-destructive" /> Exam already open</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {errorMsg || 'This exam is already open in another tab or window. Close all other sessions before continuing.'}
+            </p>
+            <p className="text-xs text-muted-foreground">For exam integrity, only one active session is allowed at a time.</p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
+              <Button onClick={() => window.location.reload()}>Try again</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
