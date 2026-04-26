@@ -185,8 +185,9 @@ Return ONLY valid JSON in this exact format:
 
   } catch (error) {
     console.error('[generate-quests] Unexpected error:', error);
+    const msg = error instanceof Error ? error.message : 'Unexpected error occurred';
     return new Response(
-      JSON.stringify({ error: error.message || 'Unexpected error occurred' }),
+      JSON.stringify({ error: msg }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
