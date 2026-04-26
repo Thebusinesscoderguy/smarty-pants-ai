@@ -597,6 +597,38 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_session_locks: {
+        Row: {
+          created_at: string
+          last_seen_at: string
+          session_id: string
+          tab_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_seen_at?: string
+          session_id: string
+          tab_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_seen_at?: string
+          session_id?: string
+          tab_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_session_locks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "exam_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_sessions: {
         Row: {
           answers: Json | null
