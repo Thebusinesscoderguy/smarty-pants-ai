@@ -237,6 +237,64 @@ export default function ExamRunner() {
     return () => window.clearInterval(id);
   }, [phase, startTime, test]);
 
+  // Multi-tab guard: heartbeat lock in localStorage; reject second tab
+  useEffect(() => {
+    if (!testId || !user) return;
+    if (phase === 'loading' || phase === 'denied' || phase === 'duplicate' || phase === 'submitted') return;
+    const lockKey = `exam_lock:${testId}:${user.id}`;
+    const myId = tabIdRef.current;
+    const STALE_MS = 8000;
+
+    const readLock = (): { tabId: string; ts: number } | null => {
+      try {
+        const raw = localStorage.getItem(lockKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed.tabId !== 'string') return null;
+        return parsed;
+      } catch { return null; }
+    };
+
+    const existing = readLock();
+    if (existing && existing.tabId !== myId && Date.now() - existing.ts < STALE_MS) {
+      setErrorMsg('This exam is already open in another tab or window. Close the other session and try again.');
+      setPhase('duplicate');
+      return;
+    }
+
+    localStorage.setItem(lockKey, JSON.stringify({ tabId: myId, ts: Date.now() }));
+
+    const heartbeat = window.setInterval(() => {
+      localStorage.setItem(lockKey, JSON.stringify({ tabId: myId, ts: Date.now() }));
+    }, 2000);
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== lockKey || !e.newValue) return;
+      try {
+        const v = JSON.parse(e.newValue);
+        if (v?.tabId && v.tabId !== myId) {
+          if (phase === 'in_progress') recordViolation('duplicate_tab_detected');
+          setErrorMsg('Another tab opened this exam. This session has been closed.');
+          setPhase('duplicate');
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+
+    const release = () => {
+      const cur = readLock();
+      if (cur?.tabId === myId) localStorage.removeItem(lockKey);
+    };
+    window.addEventListener('beforeunload', release);
+
+    return () => {
+      window.clearInterval(heartbeat);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('beforeunload', release);
+      release();
+    };
+  }, [testId, user, phase, recordViolation]);
+
   const handleStart = async () => {
     if (!test || !user) return;
     try {
