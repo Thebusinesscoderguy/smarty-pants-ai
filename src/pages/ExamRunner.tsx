@@ -80,7 +80,7 @@ export default function ExamRunner() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [index, setIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
-  const [phase, setPhase] = useState<'loading' | 'intro' | 'in_progress' | 'submitting' | 'submitted' | 'denied'>('loading');
+  const [phase, setPhase] = useState<'loading' | 'intro' | 'in_progress' | 'submitting' | 'submitted' | 'denied' | 'duplicate'>('loading');
   const [violations, setViolations] = useState(0);
   const [warning, setWarning] = useState<string | null>(null);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
@@ -90,6 +90,7 @@ export default function ExamRunner() {
   const submittedRef = useRef(false);
   const sessionRef = useRef<string | null>(null);
   const inactivityRef = useRef<number>(Date.now());
+  const tabIdRef = useRef<string>(Math.random().toString(36).slice(2) + Date.now().toString(36));
 
   // Load test
   useEffect(() => {
