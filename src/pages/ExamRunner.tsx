@@ -416,6 +416,28 @@ export default function ExamRunner() {
     );
   }
 
+  if (phase === 'duplicate') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-destructive" /> Exam already open</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {errorMsg || 'This exam is already open in another tab or window. Close all other sessions before continuing.'}
+            </p>
+            <p className="text-xs text-muted-foreground">For exam integrity, only one active session is allowed at a time.</p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
+              <Button onClick={() => window.location.reload()}>Try again</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (phase === 'intro' && test) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
