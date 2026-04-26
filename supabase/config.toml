@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.send-principal-weekly-digest]
 verify_jwt = false
+
+[functions.exam-auto-submit-expired]
+verify_jwt = false

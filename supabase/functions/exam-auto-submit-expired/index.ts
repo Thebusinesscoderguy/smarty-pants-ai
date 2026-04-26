@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { finalizeSession } from "../exam-submit/index.ts";
+import { finalizeSession } from "../exam-submit/finalize.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
