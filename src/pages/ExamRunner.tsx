@@ -138,26 +138,29 @@ export default function ExamRunner() {
 
   const recordViolation = useCallback(async (type: string, details: Record<string, any> = {}) => {
     if (submittedRef.current || !sessionRef.current) return;
+    // Optimistically increment locally for immediate UX
     violationsRef.current += 1;
     setViolations(violationsRef.current);
     setWarning(`Warning: ${type.replace(/_/g, ' ')}. Violations: ${violationsRef.current}/${test?.violation_threshold ?? 3}`);
     setTimeout(() => setWarning(null), 4000);
     try {
-      await supabase.from('exam_violations').insert({
-        session_id: sessionRef.current,
-        type,
-        details,
+      const { data, error } = await supabase.functions.invoke('exam-record-violation', {
+        body: { session_id: sessionRef.current, type, details },
       });
-      await supabase.from('exam_sessions').update({
-        violation_count: violationsRef.current,
-        flagged: violationsRef.current >= (test?.violation_threshold ?? 3),
-      }).eq('id', sessionRef.current);
+      if (error) {
+        console.error('violation log failed', error);
+        return;
+      }
+      // Reconcile with server-authoritative count
+      if (typeof data?.violation_count === 'number') {
+        violationsRef.current = data.violation_count;
+        setViolations(data.violation_count);
+      }
+      if (data?.should_auto_submit) {
+        handleSubmit(true);
+      }
     } catch (e) {
       console.error('violation log failed', e);
-    }
-
-    if (test && violationsRef.current >= test.violation_threshold && test.violation_action === 'auto_submit') {
-      handleSubmit(true);
     }
   }, [test]);
 
@@ -237,83 +240,68 @@ export default function ExamRunner() {
     return () => window.clearInterval(id);
   }, [phase, startTime, test]);
 
-  // Multi-tab guard: heartbeat lock in localStorage; reject second tab
+  // Server-side multi-tab guard via exam-heartbeat edge function.
   useEffect(() => {
-    if (!testId || !user) return;
+    if (!sessionId || !user) return;
     if (phase === 'loading' || phase === 'denied' || phase === 'duplicate' || phase === 'submitted') return;
-    const lockKey = `exam_lock:${testId}:${user.id}`;
-    const myId = tabIdRef.current;
-    const STALE_MS = 8000;
+    const myTab = tabIdRef.current;
+    let stopped = false;
 
-    const readLock = (): { tabId: string; ts: number } | null => {
+    const beat = async () => {
       try {
-        const raw = localStorage.getItem(lockKey);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed.tabId !== 'string') return null;
-        return parsed;
-      } catch { return null; }
-    };
-
-    const existing = readLock();
-    if (existing && existing.tabId !== myId && Date.now() - existing.ts < STALE_MS) {
-      setErrorMsg('This exam is already open in another tab or window. Close the other session and try again.');
-      setPhase('duplicate');
-      return;
-    }
-
-    localStorage.setItem(lockKey, JSON.stringify({ tabId: myId, ts: Date.now() }));
-
-    const heartbeat = window.setInterval(() => {
-      localStorage.setItem(lockKey, JSON.stringify({ tabId: myId, ts: Date.now() }));
-    }, 2000);
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== lockKey || !e.newValue) return;
-      try {
-        const v = JSON.parse(e.newValue);
-        if (v?.tabId && v.tabId !== myId) {
-          if (phase === 'in_progress') recordViolation('duplicate_tab_detected');
+        const { data, error } = await supabase.functions.invoke('exam-heartbeat', {
+          body: { session_id: sessionId, tab_id: myTab },
+        });
+        if (error) return;
+        if (data && data.owner === false) {
+          if (phase === 'in_progress') recordViolation('tab_switch', { reason: 'duplicate_tab_detected' });
           setErrorMsg('Another tab opened this exam. This session has been closed.');
           setPhase('duplicate');
+          stopped = true;
         }
+      } catch {
+        // ignore transient failures
+      }
+    };
+
+    beat();
+    const id = window.setInterval(() => { if (!stopped) beat(); }, 3000);
+    return () => window.clearInterval(id);
+  }, [sessionId, user, phase, recordViolation]);
+
+  // Periodically persist answer drafts so the cron auto-submitter has fresh data
+  // even if the student closes the tab.
+  useEffect(() => {
+    if (phase !== 'in_progress' || !sessionId) return;
+    const save = async () => {
+      try {
+        const payload = Object.entries(answers).map(([question_id, answer]) => ({ question_id, answer }));
+        await supabase.from('exam_sessions')
+          .update({ answers: payload as any })
+          .eq('id', sessionId);
       } catch {}
     };
-    window.addEventListener('storage', onStorage);
-
-    const release = () => {
-      const cur = readLock();
-      if (cur?.tabId === myId) localStorage.removeItem(lockKey);
-    };
-    window.addEventListener('beforeunload', release);
-
-    return () => {
-      window.clearInterval(heartbeat);
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('beforeunload', release);
-      release();
-    };
-  }, [testId, user, phase, recordViolation]);
+    const id = window.setInterval(save, 10000);
+    return () => window.clearInterval(id);
+  }, [phase, sessionId, answers]);
 
   const handleStart = async () => {
     if (!test || !user) return;
     try {
-      const { data, error } = await supabase.from('exam_sessions').insert({
-        user_id: user.id,
-        quiz_id: test.id,
-        time_limit: test.time_limit_minutes,
-        total_points: totalPoints,
-        status: 'in_progress',
-      }).select('id, start_time').single();
+      const { data, error } = await supabase.functions.invoke('exam-start', {
+        body: { test_id: test.id, tab_id: tabIdRef.current },
+      });
       if (error) throw error;
-      setSessionId(data.id);
-      sessionRef.current = data.id;
+      if (!data?.session_id) throw new Error(data?.error || 'Could not start exam');
+      setSessionId(data.session_id);
+      sessionRef.current = data.session_id;
       setStartTime(new Date(data.start_time).getTime());
       setPhase('in_progress');
       await requestFullscreen();
     } catch (e: any) {
-      toast({ title: 'Cannot start exam', description: e.message || 'You may not be assigned to this exam.', variant: 'destructive' });
-      setErrorMsg(e.message || 'You may not be assigned to this exam.');
+      const msg = e?.message || 'You may not be assigned to this exam.';
+      toast({ title: 'Cannot start exam', description: msg, variant: 'destructive' });
+      setErrorMsg(msg);
       setPhase('denied');
     }
   };
@@ -323,67 +311,16 @@ export default function ExamRunner() {
     submittedRef.current = true;
     setPhase('submitting');
 
-    let score = 0;
-    const answerPayload = await Promise.all(questions.map(async (q) => {
-      const selected = answers[q.id] ?? '';
-      let isCorrect = false;
-      let aiFeedback = '';
-      if (q.question_type === 'short_answer' && selected.trim()) {
-        try {
-          const { data } = await supabase.functions.invoke('check-open-answer', {
-            body: { userAnswer: selected, correctAnswer: q.correct_answer, question: q.question },
-          });
-          if (data?.success) {
-            isCorrect = !!data.is_correct;
-            aiFeedback = data.feedback || '';
-          } else {
-            isCorrect = selected.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
-          }
-        } catch {
-          isCorrect = selected.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
-        }
-      } else {
-        isCorrect = String(selected).trim() === String(q.correct_answer).trim();
-      }
-      if (isCorrect) score += q.points ?? 1;
-      return {
-        id: q.id,
-        question: q.question,
-        selected,
-        correct: q.correct_answer,
-        is_correct: isCorrect,
-        points: q.points ?? 1,
-        ai_feedback: aiFeedback,
-      };
+    const answerPayload = questions.map((q) => ({
+      question_id: q.id,
+      answer: answers[q.id] ?? '',
     }));
 
-    const total = totalPoints;
-    const percentage = total > 0 ? Math.round((score * 100) / total) : 0;
-    const elapsed = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
-
     try {
-      await supabase.from('exam_sessions').update({
-        end_time: new Date().toISOString(),
-        submitted_at: new Date().toISOString(),
-        status: auto ? 'auto_submitted' : 'submitted',
-        score,
-        total_points: total,
-        percentage,
-        answers: answerPayload,
-        time_taken_seconds: elapsed,
-        flagged: violationsRef.current >= (test?.violation_threshold ?? 3),
-      }).eq('id', sessionRef.current);
-
-      // Mirror to test_attempts so existing analytics/gradebook pick it up
-      await supabase.from('test_attempts').insert({
-        test_id: test.id,
-        student_id: user!.id,
-        score,
-        total_points: total,
-        percentage,
-        answers: answerPayload as any,
-        time_taken_minutes: Math.max(1, Math.round(elapsed / 60)),
+      const { error } = await supabase.functions.invoke('exam-submit', {
+        body: { session_id: sessionRef.current, answers: answerPayload, auto },
       });
+      if (error) console.error('submit failed', error);
     } catch (e) {
       console.error('submit failed', e);
     }
