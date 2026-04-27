@@ -17,7 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 import { ChildrenManagement } from '@/components/onboarding/ChildrenManagement';
 
-import { QuizPerformanceAnalytics } from '@/components/monitoring/QuizPerformanceAnalytics';
+
 
 const Monitoring = () => {
   const navigate = useNavigate();
@@ -155,7 +155,7 @@ const Monitoring = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
-            <QuizPerformanceAnalytics studentProgress={studentProgress} />
+            <ComprehensiveMonitoringDashboard />
           </TabsContent>
 
           <TabsContent value="children" className="space-y-6">

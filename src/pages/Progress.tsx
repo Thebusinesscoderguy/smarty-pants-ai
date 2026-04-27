@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { StudentDashboard } from '@/components/monitoring/StudentDashboard';
+import { EnhancedStudentDashboard } from '@/components/monitoring/EnhancedStudentDashboard';
 import { ParentDashboard } from '@/components/monitoring/ParentDashboard';
+import { ComprehensiveMonitoringDashboard } from '@/components/monitoring/ComprehensiveMonitoringDashboard';
 import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -110,19 +111,15 @@ const Progress = () => {
     if (!user) {
       return <SignInPrompt message="Sign in to view your learning progress dashboard." />;
     }
-    
+
     if (userRole === 'parent') {
       return <ParentDashboard />;
-    } else if (userRole === 'teacher' || isSchoolAdmin) {
-      return <StudentDashboard />;
-    } else {
-      return (
-        <div className="text-center py-12">
-          <User className="h-16 w-16 text-white/40 mx-auto mb-4" />
-          <p className="text-white/60 text-lg">{t('progress.monitoringNotAvailable')}</p>
-        </div>
-      );
     }
+    if (userRole === 'teacher' || isSchoolAdmin) {
+      return <ComprehensiveMonitoringDashboard />;
+    }
+    // Default: student
+    return <EnhancedStudentDashboard />;
   };
 
   const handleCreateCustomCurriculum = () => {
