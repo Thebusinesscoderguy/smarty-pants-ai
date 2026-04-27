@@ -7,11 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Sparkles, ArrowRight, BookOpen, Brain, Eye, Trophy, Target, BarChart3,
-  Gamepad2, CheckCircle, GraduationCap, Users, School, Calendar, Zap,
+  Gamepad2, CheckCircle, GraduationCap, Users, School, Zap,
   MessageSquare, Globe, Star, TrendingUp, PlayCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { BookDemoModal } from '@/components/demo/BookDemoModal';
 
 const Index = () => {
   const { t, language } = useLanguage();
@@ -20,7 +19,6 @@ const Index = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedType, setSelectedType] = useState<'study-plan' | 'quiz'>('study-plan');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [demoOpen, setDemoOpen] = useState(false);
   const [typewriterText, setTypewriterText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -217,10 +215,6 @@ const Index = () => {
               >
                 {isAr ? 'كيف تعمل' : 'See how it works'}
                 <ArrowRight className={`${isRTL ? 'mr-1.5 rotate-180' : 'ml-1.5'} w-4 h-4`} />
-              </Button>
-              <Button onClick={() => setDemoOpen(true)} variant="ghost" className="rounded-full text-sm font-medium hover:bg-muted">
-                <Calendar className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                {t('nav.bookDemo')}
               </Button>
             </div>
 
@@ -525,9 +519,9 @@ const Index = () => {
                   <Button size="lg" onClick={() => navigate(user && (isSchoolAdmin || isTeacher) ? '/school-admin' : '/quiz-generator')} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 shadow-lg font-semibold">
                     {t('home.cta.getStartedFree')} <ArrowRight className={`${isRTL ? 'mr-2 rotate-180' : 'ml-2'} w-5 h-5`} />
                   </Button>
-                  <Button size="lg" variant="outline" onClick={() => setDemoOpen(true)} className="rounded-full px-8 border-2 border-primary/30 bg-transparent text-foreground hover:bg-primary/10">
-                    <Calendar className={`${isRTL ? 'ml-2' : 'mr-2'} w-4 h-4`} />
-                    {t('nav.bookDemo')}
+                  <Button size="lg" variant="outline" onClick={() => navigate('/auth')} className="rounded-full px-8 border-2 border-primary/30 bg-transparent text-foreground hover:bg-primary/10">
+                    {isAr ? 'سجل مدرستك' : 'Register your school'}
+                    <ArrowRight className={`${isRTL ? 'mr-2 rotate-180' : 'ml-2'} w-4 h-4`} />
                   </Button>
                 </div>
               </div>
@@ -537,7 +531,6 @@ const Index = () => {
       </section>
 
       <Footer />
-      <BookDemoModal open={demoOpen} onOpenChange={setDemoOpen} />
 
       {/* Sticky mobile CTA — only for unauthenticated users */}
       {!user && (
@@ -549,13 +542,6 @@ const Index = () => {
             >
               <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
               {t('home.mobileCta.start')}
-            </Button>
-            <Button
-              onClick={() => setDemoOpen(true)}
-              variant="outline"
-              className="rounded-full border-primary/40 text-primary hover:bg-primary/10"
-            >
-              <Calendar className="w-4 h-4" />
             </Button>
           </div>
         </div>
