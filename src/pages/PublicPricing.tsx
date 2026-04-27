@@ -229,7 +229,7 @@ const PublicPricing = () => {
               {isAr ? 'تسعير مخصص ودعم تنفيذ متاح للمناطق التعليمية والمدارس الكبيرة.' : 'Custom pricing and dedicated implementation support for districts and multi-campus schools.'}
             </p>
             <Button size="lg" className="rounded-full shadow-lg" asChild>
-              <Link to="/auth?signup=true">{isAr ? 'احجز عرضاً توضيحياً' : 'Book a demo'}</Link>
+              <Link to="/auth?signup=true">{isAr ? 'سجل مدرستك' : 'Register your school'}</Link>
             </Button>
           </div>
         </div>
