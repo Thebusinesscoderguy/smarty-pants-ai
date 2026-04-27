@@ -543,13 +543,6 @@ const Index = () => {
               <Sparkles className={`w-4 h-4 ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
               {t('home.mobileCta.start')}
             </Button>
-            <Button
-              onClick={() => setDemoOpen(true)}
-              variant="outline"
-              className="rounded-full border-primary/40 text-primary hover:bg-primary/10"
-            >
-              <Calendar className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       )}
