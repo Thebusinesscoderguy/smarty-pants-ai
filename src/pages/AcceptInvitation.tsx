@@ -169,20 +169,27 @@ const AcceptInvitation = () => {
 
       if (relationshipError) throw relationshipError;
 
-      // Mark invitation as used
+      // Mark invitation as accepted
       const { error: updateError } = await supabase
         .from('student_invitations')
         .update({
           used: true,
-          used_at: new Date().toISOString()
-        })
+          used_at: new Date().toISOString(),
+          status: 'accepted',
+          accepted_user_id: userId,
+        } as any)
         .eq('id', invitation.id);
 
       if (updateError) throw updateError;
 
+      // Fire-and-forget confirmation emails (student + school admin)
+      supabase.functions
+        .invoke('send-invitation-accepted-email', { body: { invitationId: invitation.id } })
+        .catch((e) => console.error('Confirmation email failed:', e));
+
       toast({
         title: "Welcome!",
-        description: `You've successfully joined ${invitation.school_name}!`,
+        description: `You've successfully joined ${invitation.school_name}! A confirmation email is on the way.`,
       });
 
       // Redirect to dashboard or student portal
