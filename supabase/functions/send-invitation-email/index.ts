@@ -139,6 +139,21 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+
+    // Mark invitation as 'sent' (status tracking). Use service-role client so RLS doesn't block.
+    try {
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (serviceRoleKey) {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey);
+        await adminClient
+          .from('student_invitations')
+          .update({ status: 'sent', sent_at: new Date().toISOString() })
+          .eq('invitation_code', invitationCode);
+      }
+    } catch (e) {
+      console.error('Failed to mark invitation as sent:', e);
+    }
+
     return new Response(
       JSON.stringify({ success: true, emailId: data.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
