@@ -119,7 +119,7 @@ export const StudentManagement = () => {
         toast({ title: t('common.error'), description: t('adminStudentManagement.errorLoadingInvitations'), variant: "destructive" });
         return;
       }
-      setInvitations(invitationsData || []);
+      setInvitations((invitationsData || []) as unknown as StudentInvitation[]);
 
       // Fetch sections with students
       const { data: sectionData } = await supabase
