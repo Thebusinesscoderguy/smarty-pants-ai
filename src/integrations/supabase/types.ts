@@ -2474,6 +2474,7 @@ export type Database = {
       }
       student_invitations: {
         Row: {
+          accepted_user_id: string | null
           created_at: string | null
           email: string
           expires_at: string
@@ -2483,10 +2484,13 @@ export type Database = {
           invited_by_id: string
           last_name: string | null
           school_id: string | null
+          sent_at: string | null
+          status: string
           used: boolean | null
           used_at: string | null
         }
         Insert: {
+          accepted_user_id?: string | null
           created_at?: string | null
           email: string
           expires_at?: string
@@ -2496,10 +2500,13 @@ export type Database = {
           invited_by_id: string
           last_name?: string | null
           school_id?: string | null
+          sent_at?: string | null
+          status?: string
           used?: boolean | null
           used_at?: string | null
         }
         Update: {
+          accepted_user_id?: string | null
           created_at?: string | null
           email?: string
           expires_at?: string
@@ -2509,6 +2516,8 @@ export type Database = {
           invited_by_id?: string
           last_name?: string | null
           school_id?: string | null
+          sent_at?: string | null
+          status?: string
           used?: boolean | null
           used_at?: string | null
         }
