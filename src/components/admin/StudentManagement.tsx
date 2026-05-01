@@ -422,14 +422,17 @@ export const StudentManagement = () => {
             <p className="text-muted-foreground text-center py-8">{t('adminStudentManagement.noInvitations')}</p>
           ) : (
             <div className="space-y-3">
-              {invitations.map((invitation) => (
+              {invitations.map((invitation) => {
+                const effStatus = getEffectiveStatus(invitation);
+                const isAccepted = effStatus === 'accepted';
+                return (
                 <div
                   key={invitation.id}
                   className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      {invitation.used ? (
+                      {isAccepted ? (
                         <CheckCircle className="h-5 w-5 text-green-500" />
                       ) : (
                         <Mail className="h-5 w-5 text-primary" />
@@ -445,9 +448,17 @@ export const StudentManagement = () => {
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
                         <span className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
-                          Sent {new Date(invitation.created_at).toLocaleDateString()}
+                          Created {new Date(invitation.created_at).toLocaleDateString()}
                         </span>
-                        {!invitation.used && (
+                        {invitation.sent_at && effStatus !== 'pending' && (
+                          <span>Sent {new Date(invitation.sent_at).toLocaleDateString()}</span>
+                        )}
+                        {isAccepted && invitation.used_at && (
+                          <span className="text-green-600">
+                            Accepted {new Date(invitation.used_at).toLocaleDateString()}
+                          </span>
+                        )}
+                        {!isAccepted && effStatus !== 'expired' && (
                           <span>
                             Expires {new Date(invitation.expires_at).toLocaleDateString()}
                           </span>
@@ -456,17 +467,18 @@ export const StudentManagement = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant={invitation.used ? 'default' : 'secondary'}>
-                      {invitation.used ? 'Registered' : 'Pending'}
+                    <Badge variant={STATUS_VARIANT[effStatus]}>
+                      {STATUS_LABEL[effStatus]}
                     </Badge>
-                    {!invitation.used && (
+                    {!isAccepted && (
                       <Button variant="destructive" size="sm" onClick={() => deleteInvitation(invitation.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
