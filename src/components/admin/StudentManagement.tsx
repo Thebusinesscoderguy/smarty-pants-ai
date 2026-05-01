@@ -20,7 +20,32 @@ interface StudentInvitation {
   used: boolean;
   used_at: string | null;
   created_at: string;
+  status?: 'pending' | 'sent' | 'accepted' | 'expired' | null;
+  sent_at?: string | null;
 }
+
+// Derive an effective status for display, falling back to legacy fields
+const getEffectiveStatus = (inv: StudentInvitation): 'pending' | 'sent' | 'accepted' | 'expired' => {
+  if (inv.used) return 'accepted';
+  if (inv.status === 'accepted') return 'accepted';
+  if (new Date(inv.expires_at).getTime() < Date.now()) return 'expired';
+  if (inv.status === 'sent' || inv.sent_at) return 'sent';
+  return inv.status === 'pending' ? 'pending' : 'sent';
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'Pending',
+  sent: 'Email sent',
+  accepted: 'Accepted — has access',
+  expired: 'Expired',
+};
+
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  pending: 'outline',
+  sent: 'secondary',
+  accepted: 'default',
+  expired: 'destructive',
+};
 
 interface SectionWithStudents {
   id: string;
