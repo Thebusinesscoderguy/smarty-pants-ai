@@ -25,6 +25,67 @@ const FAQ = () => {
               </p>
             </div>
 
+            {/* School Registration FAQ */}
+            <div className="mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">For Schools: Registering Directly</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-foreground">How does my school sign up?</h3>
+                    <p className="text-muted-foreground">
+                      Click "Register your school" anywhere on the site to create your principal/admin account directly. No sales call, no demo booking, no waiting list — you go straight from signup into your school dashboard. The whole process takes about 2 minutes.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-foreground">What happens immediately after signup?</h3>
+                    <p className="text-muted-foreground">
+                      Your school workspace is provisioned instantly. You're dropped into a guided onboarding wizard that walks you through choosing your curriculum framework, importing your student roster, inviting teachers, and setting up your gradebook — all in one session.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-foreground">How quickly is access provisioned?</h3>
+                    <p className="text-muted-foreground">
+                      Immediately. Admin access is live the moment you finish signup. Teachers and students get access as soon as they accept their email invitation — typically within minutes. There's no manual approval step on our end.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-foreground">How do I add my teachers and students?</h3>
+                    <p className="text-muted-foreground">
+                      From the admin dashboard you can bulk-import students via CSV or add them manually, then invite teachers by email and assign them to subject-sections. Invitation emails are sent automatically and include a secure registration link.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-foreground">Do I need to talk to sales first?</h3>
+                    <p className="text-muted-foreground">
+                      No. Schools register and start using the platform on their own — same as a teacher or parent would. Pricing is transparent ($25 base + $5 per student), and you can explore the full admin suite before committing. If you want to talk to us, we're available, but it's never required.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-foreground">What if I get stuck during onboarding?</h3>
+                    <p className="text-muted-foreground">
+                      The onboarding checklist saves your progress at every step, so you can leave and return anytime. In-app help is available throughout, and our support team responds to admin questions within one business day.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">General Questions</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <Card className="bg-card border-border hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
