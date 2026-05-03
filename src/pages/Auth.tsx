@@ -31,6 +31,7 @@ const Auth = () => {
   const [onboardingStep, setOnboardingStep] = useState<'auth' | 'account-type' | 'add-children' | 'role-selector'>('auth');
   const [checkingChildren, setCheckingChildren] = useState(false);
   const [settingUpSchool, setSettingUpSchool] = useState(false);
+  const [signupAccountType, setSignupAccountType] = useState<'school' | 'parent'>('parent');
 
   const safeT = (key: string, fallback: string) => {
     const value = t(key);
