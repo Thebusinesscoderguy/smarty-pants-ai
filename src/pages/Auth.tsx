@@ -62,6 +62,14 @@ const Auth = () => {
         return;
       }
 
+      // Read saved account type from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+      const savedRole = (profile?.role as string | undefined) ?? null;
+
       // Check if user already has children (existing parent)
       const { data: children, error } = await supabase
         .from('children')
@@ -73,14 +81,21 @@ const Auth = () => {
       if (children && children.length > 0) {
         // Existing parent with children, go to role selector
         setOnboardingStep('role-selector');
+      } else if (savedRole === 'teacher') {
+        // Returning school admin without a school_accounts row — provision it
+        await setupSchoolAdmin();
+      } else if (savedRole === 'parent') {
+        // Returning parent without children yet — continue add-children flow
+        setOnboardingStep('add-children');
       } else if (activeTab === 'signup' && signupAccountType === 'school') {
-        // New school signup - provision school account directly
         await setupSchoolAdmin();
       } else if (activeTab === 'signup' && signupAccountType === 'parent') {
-        // New parent signup - go straight to add children
+        await supabase
+          .from('profiles')
+          .update({ role: 'parent' as any, updated_at: new Date().toISOString() })
+          .eq('id', user.id);
         setOnboardingStep('add-children');
       } else {
-        // Fallback - show account type choice
         setOnboardingStep('account-type');
       }
     } catch (error) {
@@ -95,7 +110,12 @@ const Auth = () => {
     if (type === 'school') {
       await setupSchoolAdmin();
     } else {
-      // Parent flow - go to add children
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ role: 'parent' as any, updated_at: new Date().toISOString() })
+          .eq('id', user.id);
+      }
       setOnboardingStep('add-children');
     }
   };
