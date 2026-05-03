@@ -31,6 +31,7 @@ const Auth = () => {
   const [onboardingStep, setOnboardingStep] = useState<'auth' | 'account-type' | 'add-children' | 'role-selector'>('auth');
   const [checkingChildren, setCheckingChildren] = useState(false);
   const [settingUpSchool, setSettingUpSchool] = useState(false);
+  const [signupAccountType, setSignupAccountType] = useState<'school' | 'parent'>('parent');
 
   const safeT = (key: string, fallback: string) => {
     const value = t(key);
@@ -72,8 +73,14 @@ const Auth = () => {
       if (children && children.length > 0) {
         // Existing parent with children, go to role selector
         setOnboardingStep('role-selector');
+      } else if (activeTab === 'signup' && signupAccountType === 'school') {
+        // New school signup - provision school account directly
+        await setupSchoolAdmin();
+      } else if (activeTab === 'signup' && signupAccountType === 'parent') {
+        // New parent signup - go straight to add children
+        setOnboardingStep('add-children');
       } else {
-        // New user - show account type choice
+        // Fallback - show account type choice
         setOnboardingStep('account-type');
       }
     } catch (error) {
@@ -651,6 +658,37 @@ const Auth = () => {
               
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      {safeT('auth.accountType.label', 'I am signing up as')}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSignupAccountType('parent')}
+                        className={`flex flex-col items-center gap-1 rounded-lg border p-3 text-sm font-medium transition-all ${
+                          signupAccountType === 'parent'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-muted/20 text-foreground hover:border-primary/40'
+                        }`}
+                      >
+                        <Users className="h-5 w-5" />
+                        {safeT('auth.accountType.parentShort', 'Student / Parent')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSignupAccountType('school')}
+                        className={`flex flex-col items-center gap-1 rounded-lg border p-3 text-sm font-medium transition-all ${
+                          signupAccountType === 'school'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-muted/20 text-foreground hover:border-primary/40'
+                        }`}
+                      >
+                        <School className="h-5 w-5" />
+                        {safeT('auth.accountType.schoolShort', 'School')}
+                      </button>
+                    </div>
+                  </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-muted-foreground">{t('auth.email')}</label>
                     <Input
