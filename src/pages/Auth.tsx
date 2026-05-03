@@ -73,8 +73,14 @@ const Auth = () => {
       if (children && children.length > 0) {
         // Existing parent with children, go to role selector
         setOnboardingStep('role-selector');
+      } else if (activeTab === 'signup' && signupAccountType === 'school') {
+        // New school signup - provision school account directly
+        await setupSchoolAdmin();
+      } else if (activeTab === 'signup' && signupAccountType === 'parent') {
+        // New parent signup - go straight to add children
+        setOnboardingStep('add-children');
       } else {
-        // New user - show account type choice
+        // Fallback - show account type choice
         setOnboardingStep('account-type');
       }
     } catch (error) {
