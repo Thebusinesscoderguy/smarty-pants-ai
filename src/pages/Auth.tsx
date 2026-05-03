@@ -110,7 +110,12 @@ const Auth = () => {
     if (type === 'school') {
       await setupSchoolAdmin();
     } else {
-      // Parent flow - go to add children
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ role: 'parent' as any, updated_at: new Date().toISOString() })
+          .eq('id', user.id);
+      }
       setOnboardingStep('add-children');
     }
   };
