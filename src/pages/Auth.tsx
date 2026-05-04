@@ -239,6 +239,19 @@ const Auth = () => {
 
       // Check if user needs email confirmation
       if (data?.user && !data?.session) {
+        // Send our own branded verification email via Resend (Supabase's built-in
+        // mailer can't deliver until the Lovable email domain DNS is verified).
+        try {
+          await supabase.functions.invoke('send-verification-email', {
+            body: {
+              email,
+              type: 'signup',
+              redirectTo: `${window.location.origin}/auth`,
+            },
+          });
+        } catch (e) {
+          console.error('Failed to send verification email:', e);
+        }
         setSignupSuccess(true);
         setError('');
         // Don't clear email for resend functionality
@@ -267,16 +280,16 @@ const Auth = () => {
     setError('');
 
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-        }
+      const { data, error } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email,
+          type: 'signup',
+          redirectTo: `${window.location.origin}/auth`,
+        },
       });
 
-      if (error) {
-        setError(error.message);
+      if (error || (data && (data as any).error)) {
+        setError((error as any)?.message || (data as any)?.error || 'Failed to resend verification email');
       } else {
         toast.success('Verification email sent! Check your inbox.');
       }

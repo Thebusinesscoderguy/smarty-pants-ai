@@ -49,6 +49,8 @@ project_id = "twfzlbockonxopuindaw"
     verify_jwt = false
   [functions.send-invitation-email]
     verify_jwt = false
+  [functions.send-verification-email]
+    verify_jwt = false
   [functions.send-principal-weekly-digest]
     verify_jwt = false
   [functions.submit-demo-request]
