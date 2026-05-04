@@ -280,16 +280,16 @@ const Auth = () => {
     setError('');
 
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
-        }
+      const { data, error } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email,
+          type: 'signup',
+          redirectTo: `${window.location.origin}/auth`,
+        },
       });
 
-      if (error) {
-        setError(error.message);
+      if (error || (data && (data as any).error)) {
+        setError((error as any)?.message || (data as any)?.error || 'Failed to resend verification email');
       } else {
         toast.success('Verification email sent! Check your inbox.');
       }
