@@ -12,8 +12,8 @@ export const Footer = () => {
           <div className="h-px w-full max-w-md bg-gradient-to-r from-transparent via-border to-transparent" />
           <p className="text-muted-foreground text-sm text-center">{t('footer.copyright')}</p>
           <div className="flex flex-wrap justify-center gap-6">
-            <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">{t('footer.terms')}</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">{t('footer.privacy')}</a>
+            <Link to="/terms" className="text-muted-foreground hover:text-foreground text-sm transition-colors">{t('footer.terms')}</Link>
+            <Link to="/privacy" className="text-muted-foreground hover:text-foreground text-sm transition-colors">{t('footer.privacy')}</Link>
             <Link to="/pricing" className="text-muted-foreground hover:text-foreground text-sm transition-colors">{t('footer.pricing')}</Link>
           </div>
         </div>
