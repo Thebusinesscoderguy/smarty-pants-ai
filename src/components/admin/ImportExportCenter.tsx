@@ -90,7 +90,7 @@ export const ImportExportCenter = () => {
       } else if (entity === 'report_cards') {
         const { data } = await supabase.from('report_cards').select('*').eq('school_id', schoolId);
         downloadCsv('report_cards.csv', [['student_id', 'term', 'academic_year', 'overall', 'attendance_rate', 'published'],
-          ...(data || []).map(d => [d.student_id, d.term, d.academic_year, d.data?.overall ?? '', d.data?.attendance_rate ?? '', String(d.published)])]);
+          ...(data || []).map(d => { const dd: any = d.data || {}; return [d.student_id, d.term, d.academic_year, dd.overall ?? '', dd.attendance_rate ?? '', String(d.published)]; })]);
       }
       toast.success('Exported');
     } finally { setBusy(false); }
