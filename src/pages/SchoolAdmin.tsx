@@ -46,10 +46,11 @@ type TabValue =
   // Academics
   | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
   | 'curriculum-align' | 'lesson-plans' | 'homework' | 'question-bank'
+  | 'attendance' | 'report-cards'
   // Communication
   | 'messages' | 'news'
   // Settings
-  | 'billing';
+  | 'billing' | 'import-export' | 'staff';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
