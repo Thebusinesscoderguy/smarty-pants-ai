@@ -110,6 +110,7 @@ const SchoolAdmin = () => {
               </TabsList>
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
+                <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
                 <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
