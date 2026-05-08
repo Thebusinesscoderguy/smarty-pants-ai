@@ -19,10 +19,14 @@ import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
 import { GradingInbox } from '@/components/admin/GradingInbox';
+import { AttendanceManagement } from '@/components/admin/AttendanceManagement';
+import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
+import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
+import { StaffManagement } from '@/components/admin/StaffManagement';
 import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
-  MessageCircle, Newspaper, Globe, Sparkles,
+  MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -42,10 +46,11 @@ type TabValue =
   // Academics
   | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
   | 'curriculum-align' | 'lesson-plans' | 'homework' | 'question-bank'
+  | 'attendance' | 'report-cards'
   // Communication
   | 'messages' | 'news'
   // Settings
-  | 'billing';
+  | 'billing' | 'import-export' | 'staff';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
@@ -75,6 +80,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ClipboardList className="h-4 w-4 mr-2" />Grade Book
                 </TabsTrigger>
+                <TabsTrigger value="attendance" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <CalendarCheck className="h-4 w-4 mr-2" />Attendance
+                </TabsTrigger>
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
@@ -102,6 +110,7 @@ const SchoolAdmin = () => {
               </TabsList>
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
+                <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
                 <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
@@ -142,6 +151,8 @@ const SchoolAdmin = () => {
       icon: BookMarked,
       items: [
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
+        { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
+        { value: 'report-cards', label: 'Report Cards', icon: FileText },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
@@ -167,6 +178,8 @@ const SchoolAdmin = () => {
       label: 'Settings',
       icon: SettingsIcon,
       items: [
+        { value: 'staff', label: 'Staff & Roles', icon: Shield },
+        { value: 'import-export', label: 'Import / Export', icon: FileSpreadsheet },
         { value: 'billing', label: t('schoolAdmin.tabs.billing'), icon: CreditCard },
       ],
     },
@@ -271,6 +284,10 @@ const SchoolAdmin = () => {
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
+              <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
+              <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
+              <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
+              <TabsContent value="staff"><StaffManagement /></TabsContent>
             </div>
           </Tabs>
         </div>
