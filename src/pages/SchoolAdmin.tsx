@@ -147,6 +147,8 @@ const SchoolAdmin = () => {
       icon: BookMarked,
       items: [
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
+        { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
+        { value: 'report-cards', label: 'Report Cards', icon: FileText },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
@@ -172,6 +174,8 @@ const SchoolAdmin = () => {
       label: 'Settings',
       icon: SettingsIcon,
       items: [
+        { value: 'staff', label: 'Staff & Roles', icon: Shield },
+        { value: 'import-export', label: 'Import / Export', icon: FileSpreadsheet },
         { value: 'billing', label: t('schoolAdmin.tabs.billing'), icon: CreditCard },
       ],
     },
