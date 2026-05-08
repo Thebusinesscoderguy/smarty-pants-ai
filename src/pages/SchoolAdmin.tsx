@@ -19,10 +19,14 @@ import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
 import { GradingInbox } from '@/components/admin/GradingInbox';
+import { AttendanceManagement } from '@/components/admin/AttendanceManagement';
+import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
+import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
+import { StaffManagement } from '@/components/admin/StaffManagement';
 import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
-  MessageCircle, Newspaper, Globe, Sparkles,
+  MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
