@@ -80,6 +80,9 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ClipboardList className="h-4 w-4 mr-2" />Grade Book
                 </TabsTrigger>
+                <TabsTrigger value="attendance" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <CalendarCheck className="h-4 w-4 mr-2" />Attendance
+                </TabsTrigger>
                 <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileCheck className="h-4 w-4 mr-2" />Assessments
                 </TabsTrigger>
