@@ -280,6 +280,10 @@ const SchoolAdmin = () => {
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
+              <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
+              <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
+              <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
+              <TabsContent value="staff"><StaffManagement /></TabsContent>
             </div>
           </Tabs>
         </div>
