@@ -1,92 +1,75 @@
-# Add 4 EduCore-gap features
+# Add #7 Homework & Assignments + #12 Custom Report Card Designer
 
-Big scope, so here's the plan before I touch anything. All four ship in one build session, gated behind School Admin / Teacher roles.
+Two modules, one build session. Both gated behind School Admin / Teacher.
 
 ---
 
-## 1. Attendance
+## 1. Homework & Assignments
+
+Distinct from quizzes: due dates, file submissions, written feedback, late tracking.
 
 ### DB (one migration)
-- `attendance_records` — `student_id`, `section_id`, `date`, `period` (nullable, for period-based), `status` (`present` | `absent` | `late` | `excused`), `notes`, `marked_by`, `marked_at`. Unique on (student, date, period).
-- `attendance_settings` per school — `mode` (`daily` | `period`), `periods_per_day`.
-- RLS: students see own; parents see own children; teachers see their assigned sections; school admin sees their school.
+- `assignments` — `school_id`, `section_id`, `subject_id` (nullable), `created_by` (teacher), `title`, `description` (rich text), `due_date`, `total_points`, `attachment_urls` (text[]), `allow_late`, `late_penalty_pct`, `published`, `created_at`.
+- `assignment_submissions` — `assignment_id`, `student_id`, `submitted_at`, `content` (text), `attachment_urls` (text[]), `status` (`draft` | `submitted` | `late` | `graded`), `score`, `feedback`, `graded_by`, `graded_at`. Unique `(assignment_id, student_id)`.
+- Storage bucket `assignments` (private). RLS: students see/upload own; teachers see their section's; admin sees school's.
 
 ### UI
-- New tab under **Academics** → "Attendance".
-- `AttendanceMarker.tsx` — pick section + date, grid of students with P/A/L/E buttons, bulk "Mark all present".
-- `AttendanceReport.tsx` — per-student % attendance, monthly heatmap, absence list.
-- Surface attendance % on the student dashboard + parent monitoring page.
+- **Teacher view** — `AssignmentManagement.tsx` under Academics: create assignment (rich text + file upload + section picker + due date), list with submission counts, click into assignment → submission grid with inline grade + feedback.
+- **Student view** — `HomeworkList.tsx` already exists; extend it to show new `assignments`, with a submit modal (text + file upload).
+- **Parent view** — surface "Pending homework" + "Late assignments" on monitoring dashboard.
+- Notifications: row in `notifications` (already exists) on assign/grade.
 
 ---
 
-## 2. Official Report Cards
+## 2. Custom Report Card Designer
+
+Replace the fixed `jsPDF` template with a per-school configurable layout.
 
 ### DB
-- `report_cards` — `student_id`, `term` (`Term 1` | `Term 2` | `Term 3` | `Final`), `academic_year`, `generated_at`, `data` (jsonb snapshot of grades/attendance/comments), `pdf_url`, `published` bool, `principal_signature_url`.
-- `report_card_settings` per school — letterhead URL, principal name, school name/address, grading scale, term dates.
+- Extend `report_card_settings` (already exists) with:
+  - `layout_config` jsonb — sections array describing what to render
+  - `header_logo_url`, `footer_text`, `accent_color`, `font_family`
+  - `grading_scale` jsonb (already noted in plan, formalize: `[{min:90,letter:'A',gpa:4.0}, ...]`)
+- New `report_card_templates` — `school_id`, `name`, `is_default`, `layout_config` (so a school can save multiple templates, e.g. K-5 vs 6-12).
 
-### Edge function: `generate-report-card`
-- Pulls grades from `gradebook_entries` (weighted to 100), attendance % for the term, teacher comments, computes GPA + class rank.
-- Generates a PDF using `jspdf` client-side (matches the existing `PDFStudyPlanButton` pattern) — letterhead, student photo, subject table, attendance, comments, signature line.
+### Layout config schema
+```jsonc
+{
+  "sections": [
+    { "type": "header", "show_logo": true, "show_school_name": true, "show_term": true },
+    { "type": "student_info", "fields": ["name","grade","section","photo","student_id"] },
+    { "type": "subjects_table", "columns": ["subject","score","letter","comments"], "show_weighted": true },
+    { "type": "attendance", "show_breakdown": true },
+    { "type": "behavior", "enabled": false },
+    { "type": "comments", "label": "Principal's Remarks" },
+    { "type": "signature", "lines": ["Principal","Class Teacher","Parent"] }
+  ],
+  "style": { "accent": "#f97316", "font": "helvetica", "page_size": "a4" }
+}
+```
 
-### UI
-- `ReportCardManagement.tsx` under Academics — generate per-section, preview, publish to parents.
-- Parent/student sees published report card in their dashboard with download button.
+### UI — `ReportCardDesigner.tsx` (new tab under Academics → Report Cards)
+- Two-pane editor: left = section list (drag to reorder via `@dnd-kit/sortable`, toggle on/off, edit per-section options), right = live preview using a React-rendered version of the same layout.
+- Top bar: template selector, "Save as default", "New template", upload logo, accent color picker.
+- "Generate sample" button renders a dummy student to PDF for testing.
 
----
-
-## 3. Bulk Import / Export
-
-### Already exists
-- `BulkStudentImport.tsx` — keep, extend.
-
-### Add
-- `BulkTeacherImport.tsx` — CSV: name, email, subjects, sections.
-- `BulkGradeImport.tsx` — CSV: student_email, subject, assessment_name, score.
-- **Export buttons** on Students, Teachers, Gradebook, Attendance, Report Cards → CSV download.
-- Unified `ImportExportCenter.tsx` under Settings tab with downloadable CSV templates for each entity.
-- Migration helper note: "Coming from EduCore? Map your export columns to our template."
-
-### Tech
-- Use `papaparse` for CSV parsing (already common, will add if missing).
-- Server-side validation per row, return error report with row numbers.
-
----
-
-## 4. Role-Based Permissions (expanded)
-
-### Current
-- `user_role` enum: `teacher`, `parent`, `student` (+ school admin via `school_accounts.admin_user_id`).
-
-### Add
-- New enum values: `principal`, `vice_principal`, `registrar`, `accountant`.
-- `school_staff` table — `school_id`, `user_id`, `role`, `permissions` (jsonb override), `is_active`.
-- `has_school_role(_user_id, _school_id, _role)` security-definer function.
-- Permission matrix (default per role):
-  - **Principal** — everything except billing
-  - **Vice Principal** — academics + people, no billing/settings
-  - **Registrar** — students, sections, attendance, report cards (no grades edit)
-  - **Accountant** — billing + fees only
-  - **Teacher** — already scoped
-- `RoleGuard` component wraps tabs/buttons; `useSchoolPermissions()` hook.
-
-### UI
-- Under Settings → "Staff & Permissions" tab to invite staff with role.
-- Update `SchoolAdmin.tsx` to filter the group bar based on `useSchoolPermissions()`.
+### PDF generation update
+- Refactor existing `downloadPdf` / `downloadAllPdf` in `ReportCardManagement.tsx` into a shared `lib/reportCardPdf.ts` that takes `(card, settings, layout_config)` and walks the sections array.
+- Each section type has a renderer function. Unknown types skipped gracefully.
+- Same renderer used for live preview (HTML) and PDF (jsPDF) — keeps WYSIWYG honest.
 
 ---
 
 ## Execution order
-1. Migration (all 4 schema changes in one) → wait for approval.
-2. Attendance (DB done, build UI + edge nothing needed).
-3. Report Cards (edge function + UI).
-4. Bulk import/export (frontend + papaparse).
-5. RBAC wiring (hook + guards + staff invite UI).
+1. Migration for both (assignments + submissions tables, report_card_templates, extend report_card_settings) — wait for approval.
+2. Storage bucket `assignments` + RLS.
+3. Homework: teacher management UI + student submit flow + parent surfacing.
+4. Report Card Designer: shared renderer lib → designer UI → wire into existing generate/download.
 
-## Out of scope (call out now)
-- Timetable/scheduling — not in this batch.
-- Fees/finance module — accountant role exists but fee tables come later.
-- WhatsApp/SMS notifications — later.
-- The report card PDF will use the standard letterhead upload — no per-school custom layout editor in v1.
+## Out of scope
+- Plagiarism detection (call out as future).
+- Per-student custom report card overrides (school-level templates only in v1).
+- Drag-resize of sections — reorder + toggle only.
+- Rubric-based grading on assignments — single score + free-text feedback only.
 
 Ready to run the migration on approval.
