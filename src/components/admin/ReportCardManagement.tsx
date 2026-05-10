@@ -107,8 +107,7 @@ export const ReportCardManagement = () => {
     loadCards();
   };
 
-  const downloadPdf = (card: ReportCard & { name: string }) => {
-    const doc = new jsPDF();
+  const renderCardToDoc = (doc: jsPDF, card: ReportCard & { name: string }) => {
     const d = card.data || {};
     doc.setFontSize(18); doc.text(settings.school_name || 'School Report Card', 105, 20, { align: 'center' });
     doc.setFontSize(11);
@@ -122,7 +121,23 @@ export const ReportCardManagement = () => {
     y = Math.max(y + 20, 230);
     doc.text(`Principal: ${settings.principal_name || ''}`, 20, y);
     doc.text('_________________________', 130, y);
+  };
+
+  const downloadPdf = (card: ReportCard & { name: string }) => {
+    const doc = new jsPDF();
+    renderCardToDoc(doc, card);
     doc.save(`report-${card.name}-${card.term}.pdf`);
+  };
+
+  const downloadAllPdf = () => {
+    if (!cards.length) return;
+    const doc = new jsPDF();
+    cards.forEach((c, i) => {
+      if (i > 0) doc.addPage();
+      renderCardToDoc(doc, c);
+    });
+    doc.save(`report-cards-${term}-${year}.pdf`);
+    toast.success(`Downloaded ${cards.length} report cards`);
   };
 
   return (
