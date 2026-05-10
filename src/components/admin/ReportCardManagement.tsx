@@ -182,7 +182,7 @@ export const ReportCardManagement = () => {
       </Card>
 
       <Card>
-        <CardHeader><div className="flex justify-between items-center"><CardTitle>Report Cards ({term}, {year})</CardTitle><Button size="sm" onClick={publishAll} disabled={!cards.some(c => !c.published)}><CheckCircle2 className="h-4 w-4 mr-1" />Publish All</Button></div></CardHeader>
+        <CardHeader><div className="flex justify-between items-center gap-2 flex-wrap"><CardTitle>Report Cards ({term}, {year})</CardTitle><div className="flex gap-2"><Button size="sm" variant="outline" onClick={downloadAllPdf} disabled={!cards.length}><Download className="h-4 w-4 mr-1" />Download All</Button><Button size="sm" onClick={publishAll} disabled={!cards.some(c => !c.published)}><CheckCircle2 className="h-4 w-4 mr-1" />Publish All</Button></div></div></CardHeader>
         <CardContent>
           {cards.length === 0 ? <p className="text-sm text-muted-foreground">No report cards yet.</p> : (
             <div className="divide-y divide-border border border-border rounded-lg">
