@@ -243,8 +243,9 @@ export const StudentDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Homework */}
-        <div className="mb-8">
+        {/* Homework & Assignments */}
+        <div className="mb-8 space-y-4">
+          <AssignmentList />
           <HomeworkList />
         </div>
 
