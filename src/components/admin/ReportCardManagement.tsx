@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { FileText, Download, CheckCircle2 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
 
 interface Section { id: string; grade_level: string; section_name: string; }
 interface ReportCard { id: string; student_id: string; term: string; academic_year: string; data: any; published: boolean; }
