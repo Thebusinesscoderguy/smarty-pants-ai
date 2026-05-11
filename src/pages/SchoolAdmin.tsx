@@ -23,6 +23,8 @@ import { AttendanceManagement } from '@/components/admin/AttendanceManagement';
 import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
 import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
 import { StaffManagement } from '@/components/admin/StaffManagement';
+import { AssignmentManagement } from '@/components/admin/AssignmentManagement';
+import { ReportCardDesigner } from '@/components/admin/ReportCardDesigner';
 import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
