@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HomeworkList } from '@/components/student/HomeworkList';
+import { AssignmentList } from '@/components/student/AssignmentList';
 import { NewsFeed } from '@/components/news/NewsFeed';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
