@@ -58,6 +58,116 @@ export type Database = {
           },
         ]
       }
+      assignment_submissions: {
+        Row: {
+          assignment_id: string
+          attachment_urls: string[]
+          content: string | null
+          created_at: string
+          feedback: string | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          score: number | null
+          status: string
+          student_id: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          attachment_urls?: string[]
+          content?: string | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          score?: number | null
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          attachment_urls?: string[]
+          content?: string | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          score?: number | null
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          allow_late: boolean
+          attachment_urls: string[]
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          late_penalty_pct: number
+          published: boolean
+          school_id: string
+          section_id: string | null
+          subject_id: string | null
+          title: string
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          allow_late?: boolean
+          attachment_urls?: string[]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          late_penalty_pct?: number
+          published?: boolean
+          school_id: string
+          section_id?: string | null
+          subject_id?: string | null
+          title: string
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          allow_late?: boolean
+          attachment_urls?: string[]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          late_penalty_pct?: number
+          published?: boolean
+          school_id?: string
+          section_id?: string | null
+          subject_id?: string | null
+          title?: string
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance_records: {
         Row: {
           date: string
@@ -1883,7 +1993,12 @@ export type Database = {
       }
       report_card_settings: {
         Row: {
+          accent_color: string | null
+          font_family: string | null
+          footer_text: string | null
           grading_scale: Json | null
+          header_logo_url: string | null
+          layout_config: Json
           letterhead_url: string | null
           principal_name: string | null
           school_address: string | null
@@ -1893,7 +2008,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accent_color?: string | null
+          font_family?: string | null
+          footer_text?: string | null
           grading_scale?: Json | null
+          header_logo_url?: string | null
+          layout_config?: Json
           letterhead_url?: string | null
           principal_name?: string | null
           school_address?: string | null
@@ -1903,7 +2023,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accent_color?: string | null
+          font_family?: string | null
+          footer_text?: string | null
           grading_scale?: Json | null
+          header_logo_url?: string | null
+          layout_config?: Json
           letterhead_url?: string | null
           principal_name?: string | null
           school_address?: string | null
@@ -1921,6 +2046,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      report_card_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          layout_config: Json
+          name: string
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          layout_config?: Json
+          name: string
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          layout_config?: Json
+          name?: string
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       report_cards: {
         Row: {
@@ -3741,6 +3896,10 @@ export type Database = {
       initialize_user_quests: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      is_school_admin_of: {
+        Args: { _school_id: string; _user_id: string }
+        Returns: boolean
       }
       is_school_teacher: {
         Args: { _email: string }

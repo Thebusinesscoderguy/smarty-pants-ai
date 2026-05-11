@@ -23,6 +23,8 @@ import { AttendanceManagement } from '@/components/admin/AttendanceManagement';
 import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
 import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
 import { StaffManagement } from '@/components/admin/StaffManagement';
+import { AssignmentManagement } from '@/components/admin/AssignmentManagement';
+import { ReportCardDesigner } from '@/components/admin/ReportCardDesigner';
 import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
@@ -45,8 +47,8 @@ type TabValue =
   | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
   // Academics
   | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
-  | 'curriculum-align' | 'lesson-plans' | 'homework' | 'question-bank'
-  | 'attendance' | 'report-cards'
+  | 'curriculum-align' | 'lesson-plans' | 'homework' | 'assignments' | 'question-bank'
+  | 'attendance' | 'report-cards' | 'report-card-designer'
   // Communication
   | 'messages' | 'news'
   // Settings
@@ -116,6 +118,7 @@ const SchoolAdmin = () => {
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
+                <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
                 <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
                 <TabsContent value="news"><NewsManagement /></TabsContent>
@@ -153,6 +156,8 @@ const SchoolAdmin = () => {
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
         { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
         { value: 'report-cards', label: 'Report Cards', icon: FileText },
+        { value: 'report-card-designer', label: 'Report Card Designer', icon: SettingsIcon },
+        { value: 'assignments', label: 'Assignments', icon: ListChecks },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
@@ -287,6 +292,8 @@ const SchoolAdmin = () => {
               <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
               <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
               <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
+              <TabsContent value="report-card-designer"><ReportCardDesigner /></TabsContent>
+              <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
               <TabsContent value="staff"><StaffManagement /></TabsContent>
             </div>
           </Tabs>
