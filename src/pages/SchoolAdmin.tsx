@@ -155,6 +155,8 @@ const SchoolAdmin = () => {
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
         { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
         { value: 'report-cards', label: 'Report Cards', icon: FileText },
+        { value: 'report-card-designer', label: 'Report Card Designer', icon: SettingsIcon },
+        { value: 'assignments', label: 'Assignments', icon: ListChecks },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
