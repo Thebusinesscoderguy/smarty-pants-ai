@@ -291,6 +291,8 @@ const SchoolAdmin = () => {
               <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
               <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
               <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
+              <TabsContent value="report-card-designer"><ReportCardDesigner /></TabsContent>
+              <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
               <TabsContent value="staff"><StaffManagement /></TabsContent>
             </div>
           </Tabs>
