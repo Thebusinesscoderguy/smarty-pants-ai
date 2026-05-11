@@ -108,20 +108,12 @@ export const ReportCardManagement = () => {
     loadCards();
   };
 
+  const layout: ReportCardLayout = (settings?.layout_config && settings.layout_config.sections?.length) ? settings.layout_config : defaultLayoutConfig;
+
   const renderCardToDoc = (doc: jsPDF, card: ReportCard & { name: string }) => {
-    const d = card.data || {};
-    doc.setFontSize(18); doc.text(settings.school_name || 'School Report Card', 105, 20, { align: 'center' });
-    doc.setFontSize(11);
-    doc.text(`Student: ${card.name}`, 20, 40);
-    doc.text(`Term: ${card.term}    Year: ${card.academic_year}`, 20, 48);
-    doc.text(`Overall: ${d.overall ?? '-'}%    Attendance: ${d.attendance_rate ?? '-'}%`, 20, 56);
-    doc.setFontSize(13); doc.text('Subjects', 20, 72);
-    doc.setFontSize(11);
-    let y = 82;
-    (d.subjects || []).forEach((s: any) => { doc.text(`${s.subject}`, 25, y); doc.text(`${s.avg}%`, 170, y, { align: 'right' }); y += 8; });
-    y = Math.max(y + 20, 230);
-    doc.text(`Principal: ${settings.principal_name || ''}`, 20, y);
-    doc.text('_________________________', 130, y);
+    renderReportCardToPdf(doc, {
+      name: card.name, term: card.term, academic_year: card.academic_year, data: card.data || {},
+    }, settings, layout);
   };
 
   const downloadPdf = (card: ReportCard & { name: string }) => {
