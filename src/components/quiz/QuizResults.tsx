@@ -15,20 +15,25 @@ interface QuizResultsProps {
   onStartQuiz?: (quiz: Quiz) => void;
 }
 
+interface QuizAnswer {
+  id: string | null;
+  index: number;
+  question: string;
+  selected: string;
+  correct: string;
+  is_correct: boolean | null;
+  needs_review?: boolean;
+  teacher_score?: number | null;
+  teacher_feedback?: string | null;
+  points: number;
+  explanation?: string | null;
+}
+
 interface AttemptRow {
   id: string;
   score: number;
   total_possible: number;
-  answers: Array<{
-    id: string | null;
-    index: number;
-    question: string;
-    selected: string;
-    correct: string;
-    is_correct: boolean;
-    points: number;
-    explanation?: string | null;
-  }>
+  answers: Array<QuizAnswer>;
 }
 
 const ELI5Button = ({ text }: { text: string }) => {
@@ -109,7 +114,8 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
   }
 
   const answers = attempt.answers || [];
-  const missedAnswers = answers.filter((answer) => !answer.is_correct);
+  const pendingReview = answers.filter((a) => a.needs_review && (a.teacher_score == null)).length;
+  const missedAnswers = answers.filter((answer) => answer.is_correct === false);
 
   const startMistakesQuiz = async () => {
     if (!missedAnswers.length) {
@@ -183,10 +189,21 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <Badge variant="outline">Score</Badge>
               <div className="text-base font-medium">{attempt.score}/{attempt.total_possible} ({percent}%)</div>
+              {pendingReview > 0 && (
+                <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50 gap-1">
+                  <Loader2 className="h-3 w-3" />
+                  Awaiting teacher review · {pendingReview} {pendingReview === 1 ? 'question' : 'questions'}
+                </Badge>
+              )}
             </div>
+            {pendingReview > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Your auto-graded score is shown above. Open-ended answers will be reviewed by your teacher and added to your final score.
+              </p>
+            )}
             {onStartQuiz && quiz.id && (
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => onStartQuiz(quiz)} className="gap-2">
@@ -241,20 +258,34 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
                 }
               };
 
+              const isPending = a.needs_review && a.teacher_score == null;
               return (
                 <div key={i}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="font-medium">{a.question}</div>
-                    {a.is_correct ? (
-                      <Badge className="bg-green-100 text-green-800">Correct</Badge>
+                    {isPending ? (
+                      <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50">
+                        Awaiting teacher review
+                      </Badge>
+                    ) : a.is_correct ? (
+                      <Badge className="bg-green-100 text-green-800">
+                        Correct{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
+                      </Badge>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800">Incorrect</Badge>
+                      <Badge className="bg-red-100 text-red-800">
+                        Incorrect{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-2 text-sm opacity-90 space-y-1">
                     <div><span className="font-semibold">Your answer:</span> {String(selected)}</div>
-                    {!a.is_correct && (
+                    {!isPending && a.is_correct === false && (
                       <div><span className="font-semibold">Correct answer:</span> {String(correctOpt)}</div>
+                    )}
+                    {a.teacher_feedback && (
+                      <div className="bg-muted/40 rounded p-2 mt-1">
+                        <span className="font-semibold">Teacher feedback:</span> {a.teacher_feedback}
+                      </div>
                     )}
                     {typeof timeMs === 'number' && timeMs > 0 && (
                       <div><span className="font-semibold">Time spent:</span> {Math.round(timeMs / 1000)}s</div>
