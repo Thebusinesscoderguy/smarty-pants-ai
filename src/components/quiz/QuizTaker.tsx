@@ -183,7 +183,8 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
         return;
       }
 
-      toast({ title: t('quizTaker.quizSaved'), description: t('quizTaker.scoreResult').replace('{score}', score.toString()).replace('{total}', total.toString()) });
+      const reviewMsg = pendingReview > 0 ? ` (${pendingReview} open-ended awaiting teacher review)` : '';
+      toast({ title: t('quizTaker.quizSaved'), description: t('quizTaker.scoreResult').replace('{score}', score.toString()).replace('{total}', total.toString()) + reviewMsg });
       onComplete({ score, total, saved: true });
     } finally {
       setSubmitting(false);
