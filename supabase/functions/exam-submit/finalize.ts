@@ -46,51 +46,32 @@ export async function finalizeSession(opts: {
   let totalPoints = 0;
   const graded: any[] = [];
 
+  const OPEN_ENDED = new Set(['short_answer', 'essay', 'open_ended', 'long_answer']);
+
   for (const q of questions) {
     const points = q.points ?? 1;
     totalPoints += points;
     const selected = answerMap.get(q.id) ?? '';
-    let isCorrect = false;
-    let aiFeedback = '';
+    let isCorrect: boolean | null = false;
+    const isOpen = OPEN_ENDED.has(q.question_type);
 
-    if (q.question_type === 'short_answer' && selected.trim()) {
-      try {
-        const resp = await fetch(`${opts.supabaseUrl}/functions/v1/check-open-answer`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            apikey: opts.anonKey,
-            Authorization: opts.authHeader ?? `Bearer ${opts.anonKey}`,
-          },
-          body: JSON.stringify({ userAnswer: selected, correctAnswer: q.correct_answer, question: q.question }),
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data?.success) {
-            isCorrect = !!data.is_correct;
-            aiFeedback = data.feedback || '';
-          } else {
-            isCorrect = selected.trim().toLowerCase() === String(q.correct_answer).trim().toLowerCase();
-          }
-        } else {
-          isCorrect = selected.trim().toLowerCase() === String(q.correct_answer).trim().toLowerCase();
-        }
-      } catch {
-        isCorrect = selected.trim().toLowerCase() === String(q.correct_answer).trim().toLowerCase();
-      }
+    if (isOpen) {
+      // Open-ended: defer to teacher review. Do not auto-grade.
+      isCorrect = null;
     } else {
       isCorrect = String(selected).trim() === String(q.correct_answer).trim();
     }
 
-    if (isCorrect) score += points;
+    if (isCorrect === true) score += points;
     graded.push({
       id: q.id,
       question: q.question,
       selected,
       correct: q.correct_answer,
       is_correct: isCorrect,
+      needs_review: isOpen,
       points,
-      ai_feedback: aiFeedback,
+      ai_feedback: '',
     });
   }
 
