@@ -189,10 +189,21 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <Badge variant="outline">Score</Badge>
               <div className="text-base font-medium">{attempt.score}/{attempt.total_possible} ({percent}%)</div>
+              {pendingReview > 0 && (
+                <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50 gap-1">
+                  <Loader2 className="h-3 w-3" />
+                  Awaiting teacher review · {pendingReview} {pendingReview === 1 ? 'question' : 'questions'}
+                </Badge>
+              )}
             </div>
+            {pendingReview > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Your auto-graded score is shown above. Open-ended answers will be reviewed by your teacher and added to your final score.
+              </p>
+            )}
             {onStartQuiz && quiz.id && (
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => onStartQuiz(quiz)} className="gap-2">
