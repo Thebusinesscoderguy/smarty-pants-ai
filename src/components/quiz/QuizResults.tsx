@@ -258,20 +258,34 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
                 }
               };
 
+              const isPending = a.needs_review && a.teacher_score == null;
               return (
                 <div key={i}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="font-medium">{a.question}</div>
-                    {a.is_correct ? (
-                      <Badge className="bg-green-100 text-green-800">Correct</Badge>
+                    {isPending ? (
+                      <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50">
+                        Awaiting teacher review
+                      </Badge>
+                    ) : a.is_correct ? (
+                      <Badge className="bg-green-100 text-green-800">
+                        Correct{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
+                      </Badge>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800">Incorrect</Badge>
+                      <Badge className="bg-red-100 text-red-800">
+                        Incorrect{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-2 text-sm opacity-90 space-y-1">
                     <div><span className="font-semibold">Your answer:</span> {String(selected)}</div>
-                    {!a.is_correct && (
+                    {!isPending && a.is_correct === false && (
                       <div><span className="font-semibold">Correct answer:</span> {String(correctOpt)}</div>
+                    )}
+                    {a.teacher_feedback && (
+                      <div className="bg-muted/40 rounded p-2 mt-1">
+                        <span className="font-semibold">Teacher feedback:</span> {a.teacher_feedback}
+                      </div>
                     )}
                     {typeof timeMs === 'number' && timeMs > 0 && (
                       <div><span className="font-semibold">Time spent:</span> {Math.round(timeMs / 1000)}s</div>
