@@ -114,7 +114,8 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
   }
 
   const answers = attempt.answers || [];
-  const missedAnswers = answers.filter((answer) => !answer.is_correct);
+  const pendingReview = answers.filter((a) => a.needs_review && (a.teacher_score == null)).length;
+  const missedAnswers = answers.filter((answer) => answer.is_correct === false);
 
   const startMistakesQuiz = async () => {
     if (!missedAnswers.length) {
