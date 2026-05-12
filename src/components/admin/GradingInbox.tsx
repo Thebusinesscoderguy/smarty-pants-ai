@@ -12,10 +12,16 @@ import { toast } from '@/components/ui/use-toast';
 
 export const GradingInbox = () => {
   const { items, loading, approve, bulkApproveHighConfidence, refresh } = useGradingInbox();
+  const { items: quizItems, loading: quizLoading, grade: gradeQuiz, refresh: refreshQuiz } = useQuizReviewInbox();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editScore, setEditScore] = useState<string>('');
   const [editFeedback, setEditFeedback] = useState<string>('');
   const [running, setRunning] = useState(false);
+  const [quizDrafts, setQuizDrafts] = useState<Record<string, { score: string; feedback: string }>>({});
+
+  const quizKey = (q: QuizReviewItem) => `${q.attempt_id}-${q.question_index}`;
+  const setDraft = (k: string, patch: Partial<{ score: string; feedback: string }>) =>
+    setQuizDrafts((prev) => ({ ...prev, [k]: { score: '', feedback: '', ...prev[k], ...patch } }));
 
   const runNow = async () => {
     setRunning(true);
