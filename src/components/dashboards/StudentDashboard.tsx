@@ -248,6 +248,7 @@ export const StudentDashboard = () => {
         <div className="mb-8 space-y-4">
           <AssignmentList />
           <HomeworkList />
+          <RecentQuizAttempts />
         </div>
 
         {/* Upcoming Quizzes */}
