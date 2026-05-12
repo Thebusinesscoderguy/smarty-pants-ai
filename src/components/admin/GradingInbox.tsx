@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle2, Sparkles, RefreshCw, Inbox } from 'lucide-react';
+import { Loader2, CheckCircle2, Sparkles, RefreshCw, Inbox, FileQuestion } from 'lucide-react';
 import { useGradingInbox, type GradingItem } from '@/hooks/useGradingInbox';
+import { useQuizReviewInbox, type QuizReviewItem } from '@/hooks/useQuizReviewInbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
