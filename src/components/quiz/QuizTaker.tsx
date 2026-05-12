@@ -119,27 +119,27 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
       // Commit time for current question
       commitTimeForCurrent();
 
-      // Score - need to handle async for short answer questions
+      // Auto-grade objective questions (MCQ, true/false, matching) only.
+      // Open-ended questions (short_answer / essay) are routed to the teacher review queue.
+      const OPEN_ENDED = new Set(['short_answer', 'essay', 'open_ended', 'long_answer']);
       let score = 0;
-      const answerPayload = await Promise.all(questions.map(async (q: any, i: number) => {
+      let pendingReview = 0;
+      const answerPayload = questions.map((q: any, i: number) => {
         const qid = q.id ?? String(i);
         const selected = answers[qid] ?? '';
         const correct = q.correctAnswer ?? q.correct_answer;
-        
-        let correctBool = false;
-        let feedback = '';
-        
-        if (q.type === 'short_answer' && selected.trim() && correct) {
-          // Use semantic AI comparison for short answers
-          const result = await checkOpenAnswer(selected, correct, q.question);
-          correctBool = result.is_correct;
-          feedback = result.feedback;
+        const points = q.points ?? 1;
+        const isOpen = OPEN_ENDED.has(q.type);
+
+        let correctBool: boolean | null = false;
+        if (isOpen) {
+          correctBool = null; // pending teacher review
+          if (selected.trim()) pendingReview++;
         } else {
-          // Use sync comparison for multiple choice
           correctBool = isCorrectAnswerSync(selected, correct, q.type);
+          if (correctBool) score += points;
         }
-        
-        if (correctBool) score += q.points ?? 1;
+
         return {
           id: q.id ?? null,
           index: i,
@@ -147,12 +147,13 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
           selected,
           correct,
           is_correct: correctBool,
-          points: q.points ?? 1,
+          needs_review: isOpen,
+          points,
           explanation: q.explanation ?? null,
           time_taken_ms: perQuestionMsRef.current[qid] || 0,
-          ai_feedback: feedback,
+          ai_feedback: '',
         };
-      }));
+      });
 
       const total = totalPoints;
       const durationSec = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
@@ -182,7 +183,8 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
         return;
       }
 
-      toast({ title: t('quizTaker.quizSaved'), description: t('quizTaker.scoreResult').replace('{score}', score.toString()).replace('{total}', total.toString()) });
+      const reviewMsg = pendingReview > 0 ? ` (${pendingReview} open-ended awaiting teacher review)` : '';
+      toast({ title: t('quizTaker.quizSaved'), description: t('quizTaker.scoreResult').replace('{score}', score.toString()).replace('{total}', total.toString()) + reviewMsg });
       onComplete({ score, total, saved: true });
     } finally {
       setSubmitting(false);
