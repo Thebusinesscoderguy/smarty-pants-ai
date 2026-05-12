@@ -65,7 +65,7 @@ export const useQuizReviewInbox = () => {
     const { data: tAttempts } = await supabase
       .from('test_attempts')
       .select('id, student_id, answers, tests(title), profiles:student_id(display_name)')
-      .order('attempted_at', { ascending: false })
+      .order('completed_at', { ascending: false })
       .limit(200);
 
     for (const a of (tAttempts ?? []) as any[]) {
