@@ -98,7 +98,7 @@ export const useQuizReviewInbox = () => {
     const table = item.source === 'quiz' ? 'quiz_attempts' : 'test_attempts';
     const { data: row, error: fetchErr } = await supabase
       .from(table)
-      .select('answers, score, total_possible, total_points, percentage')
+      .select('answers, score, total_possible, total_points')
       .eq('id', item.attempt_id)
       .maybeSingle();
     if (fetchErr || !row) {
