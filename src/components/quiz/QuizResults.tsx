@@ -15,20 +15,25 @@ interface QuizResultsProps {
   onStartQuiz?: (quiz: Quiz) => void;
 }
 
+interface QuizAnswer {
+  id: string | null;
+  index: number;
+  question: string;
+  selected: string;
+  correct: string;
+  is_correct: boolean | null;
+  needs_review?: boolean;
+  teacher_score?: number | null;
+  teacher_feedback?: string | null;
+  points: number;
+  explanation?: string | null;
+}
+
 interface AttemptRow {
   id: string;
   score: number;
   total_possible: number;
-  answers: Array<{
-    id: string | null;
-    index: number;
-    question: string;
-    selected: string;
-    correct: string;
-    is_correct: boolean;
-    points: number;
-    explanation?: string | null;
-  }>
+  answers: Array<QuizAnswer>;
 }
 
 const ELI5Button = ({ text }: { text: string }) => {
