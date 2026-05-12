@@ -123,7 +123,7 @@ export const useQuizReviewInbox = () => {
     const totalKey = item.source === 'quiz' ? 'total_possible' : 'total_points';
     const total = (row as any)[totalKey] ?? 0;
     const update: any = { answers: updated, score: newScore };
-    if (total > 0) update.percentage = Math.round((newScore * 100) / total);
+    if (item.source === 'test' && total > 0) update.percentage = Math.round((newScore * 100) / total);
     const { error } = await supabase.from(table).update(update).eq('id', item.attempt_id);
     if (error) {
       toast({ title: 'Failed to save grade', description: error.message, variant: 'destructive' });
