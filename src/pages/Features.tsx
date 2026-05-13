@@ -24,6 +24,11 @@ const Features = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Features — Teachly.AI AI Tools for Schools"
+        description="Explore Teachly.AI features: AI tutor, adaptive quizzes, study plans, lesson generation, gradebook, parent messaging, and school analytics."
+        path="/features"
+      />
       <Header />
       
       <main className="px-4 py-12 md:px-6 lg:px-8">

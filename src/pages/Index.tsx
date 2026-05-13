@@ -172,6 +172,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
+      <SEO
+        title="Teachly.AI — AI-Powered School Management Platform"
+        description="Teachly.AI gives schools, teachers, parents, and students AI lesson plans, quizzes, tutoring, and analytics in one unified platform."
+        path="/"
+      />
       <Header />
 
       {/* HERO */}
