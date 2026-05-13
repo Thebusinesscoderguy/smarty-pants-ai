@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -171,6 +172,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
+      <SEO
+        title="Teachly.AI — AI-Powered School Management Platform"
+        description="Teachly.AI gives schools, teachers, parents, and students AI lesson plans, quizzes, tutoring, and analytics in one unified platform."
+        path="/"
+      />
       <Header />
 
       {/* HERO */}

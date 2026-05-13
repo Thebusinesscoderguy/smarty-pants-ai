@@ -1,6 +1,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import './index.css'
 import { ConnectionWarmup } from './utils/connectionWarmup'
@@ -10,6 +11,8 @@ ConnectionWarmup.warmupConnection().catch(console.warn);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
   </React.StrictMode>,
 )

@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { CheckCircle, Sparkles, School, ArrowRight, Gift } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { SEO } from '@/components/SEO';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const PublicPricing = () => {
@@ -81,6 +82,11 @@ const PublicPricing = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <SEO
+        title="Pricing — Teachly.AI Plans for Schools & Parents"
+        description="Simple, transparent pricing for Teachly.AI. Start free for up to 30 students, then scale with $25 base plus $5 per student. No credit card required."
+        path="/pricing"
+      />
       <Header />
       <main className="flex-1 flex flex-col items-center p-4 md:p-8">
         <div className="max-w-7xl mx-auto w-full">

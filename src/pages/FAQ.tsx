@@ -2,10 +2,16 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { MessageCircle } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 const FAQ = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="FAQ — Teachly.AI Questions, Answered"
+        description="Answers to common questions about Teachly.AI: school signup, pricing, AI tutoring, parent access, curricula support, privacy, and getting started."
+        path="/faq"
+      />
       <Header />
       
       {/* FAQ Section */}
