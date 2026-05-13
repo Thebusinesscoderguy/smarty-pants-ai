@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { SEO } from '@/components/SEO';
 import { 
   Brain, MessageSquare, BookOpen, Gamepad2, BarChart, Users, 
   Globe, Lightbulb, Target, CheckCircle, Star, Zap, Shield, 
