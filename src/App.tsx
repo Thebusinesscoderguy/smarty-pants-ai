@@ -33,6 +33,7 @@ import MadeByMe from './pages/MadeByMe';
 import Monitoring from './pages/Monitoring';
 import News from './pages/News';
 import Inbox from './pages/Inbox';
+import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
