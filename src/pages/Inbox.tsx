@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
+import { SEO } from '@/components/SEO';
 
 const InboxPage = () => {
   const { user } = useAuth();
