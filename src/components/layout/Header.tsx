@@ -108,16 +108,19 @@ export const Header = () => {
               {t('nav.teacherDashboard')}
             </Link>
           )}
-          {(isSchoolAdmin || isTeacher || isSchoolStudent) && (
-            <Link
-              to="/news"
-              onClick={() => mobile && setMobileOpen(false)}
-              className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-            >
-              <Newspaper className="w-4 h-4" />
-              {t('nav.news')}
-            </Link>
-          )}
+          <Link
+            to="/inbox"
+            onClick={() => mobile && setMobileOpen(false)}
+            className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+          >
+            <InboxIcon className="w-4 h-4" />
+            {language === 'ar' ? 'الوارد' : 'Inbox'}
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                {unreadCount}
+              </Badge>
+            )}
+          </Link>
           <Link
             to="/leaderboard"
             onClick={() => mobile && setMobileOpen(false)}
