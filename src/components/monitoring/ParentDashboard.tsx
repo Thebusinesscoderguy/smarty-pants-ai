@@ -200,6 +200,9 @@ export const ParentDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Attendance */}
+      <AttendanceSummaryCard studentId={studentData.student_id} studentName={studentData.student_name} />
+
       {/* Strengths and Weaknesses */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Strengths */}
