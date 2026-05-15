@@ -50,18 +50,8 @@ serve(async (req) => {
       .eq("admin_user_id", callerId)
       .maybeSingle();
 
-    let schoolId = school?.id;
-    let schoolName = school?.school_name;
-    if (!schoolId) {
-      // Maybe a teacher
-      const { data: teacher } = await admin
-        .from("school_teachers")
-        .select("school_id, school_accounts(id, school_name)")
-        .eq("user_id", callerId)
-        .maybeSingle();
-      schoolId = (teacher as any)?.school_id;
-      schoolName = (teacher as any)?.school_accounts?.school_name;
-    }
+    const schoolId = school?.id;
+    const schoolName = school?.school_name;
     if (!schoolId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
