@@ -80,7 +80,7 @@ const Invoices = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <SEO title="Invoices & Fees | Teachly.AI" description="View school invoices, balances, and pay fees online." />
+      <SEO title="Invoices & Fees | Teachly.AI" description="View school invoices, balances, and pay fees online." path="/invoices" />
       <Header />
       <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto space-y-6">
