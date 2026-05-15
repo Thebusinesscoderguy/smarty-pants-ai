@@ -50,6 +50,7 @@ const InboxPage = () => {
       <SEO
         title="Inbox — Teachly.AI"
         description="Unified inbox: school announcements, teacher messages, and notifications."
+        path="/inbox"
       />
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8 max-w-3xl">
