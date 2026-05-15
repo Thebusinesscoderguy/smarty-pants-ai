@@ -1165,6 +1165,50 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_payments: {
+        Row: {
+          amount_cents: number
+          card_brand: string | null
+          card_last4: string
+          cardholder_name: string
+          created_at: string
+          currency: string
+          id: string
+          invoice_id: string
+          paid_by: string
+        }
+        Insert: {
+          amount_cents: number
+          card_brand?: string | null
+          card_last4: string
+          cardholder_name: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id: string
+          paid_by: string
+        }
+        Update: {
+          amount_cents?: number
+          card_brand?: string | null
+          card_last4?: string
+          cardholder_name?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string
+          paid_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "school_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_analytics: {
         Row: {
           baseline_score: number | null
