@@ -53,7 +53,7 @@ type TabValue =
   // Communication
   | 'messages' | 'news'
   // Settings
-  | 'billing' | 'import-export' | 'staff';
+  | 'billing' | 'fees' | 'import-export' | 'staff';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
