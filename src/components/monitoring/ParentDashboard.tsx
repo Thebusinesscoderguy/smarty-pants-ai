@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, TrendingDown, Users, Brain } from 'lucide-react';
+import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -198,6 +199,9 @@ export const ParentDashboard = () => {
           </p>
         </CardContent>
       </Card>
+
+      {/* Attendance */}
+      <AttendanceSummaryCard studentId={studentData.student_id} studentName={studentData.student_name} />
 
       {/* Strengths and Weaknesses */}
       <div className="grid md:grid-cols-2 gap-6">

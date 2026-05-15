@@ -83,9 +83,30 @@ export const AttendanceManagement = () => {
       date, status: statuses[s.student_id] || 'present', marked_by: user?.id,
     }));
     const { error } = await supabase.from('attendance_records').upsert(rows, { onConflict: 'student_id,date,period' });
+    if (error) { setLoading(false); toast.error('Save failed: ' + error.message); return; }
+
+    // Notify parents of absent students
+    const absentIds = rows.filter(r => r.status === 'absent').map(r => r.student_id);
+    if (absentIds.length > 0) {
+      try {
+        const { data: notifyRes, error: notifyErr } = await supabase.functions.invoke(
+          'send-absence-notification',
+          { body: { absentStudentIds: absentIds, date } }
+        );
+        if (notifyErr) {
+          toast.warning('Saved, but parent notifications failed');
+        } else if (notifyRes?.sent > 0) {
+          toast.success(`Saved attendance · Notified ${notifyRes.sent} parent(s) of absences`);
+        } else {
+          toast.success(`Saved attendance for ${rows.length} students`);
+        }
+      } catch {
+        toast.success(`Saved attendance for ${rows.length} students`);
+      }
+    } else {
+      toast.success(`Saved attendance for ${rows.length} students`);
+    }
     setLoading(false);
-    if (error) { toast.error('Save failed: ' + error.message); return; }
-    toast.success(`Saved attendance for ${rows.length} students`);
   };
 
   const exportCsv = async () => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { HomeworkList } from '@/components/student/HomeworkList';
 import { AssignmentList } from '@/components/student/AssignmentList';
 import { RecentQuizAttempts } from '@/components/student/RecentQuizAttempts';
+import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { NewsFeed } from '@/components/news/NewsFeed';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -248,6 +249,7 @@ export const StudentDashboard = () => {
         <div className="mb-8 space-y-4">
           <AssignmentList />
           <HomeworkList />
+          {user?.id && <AttendanceSummaryCard studentId={user.id} />}
           <RecentQuizAttempts />
         </div>
 
