@@ -16,6 +16,7 @@ export const Header = () => {
   const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSchoolStudent, setIsSchoolStudent] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const isRTL = language === 'ar';
 
   useEffect(() => {
