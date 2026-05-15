@@ -38,6 +38,25 @@ export const Header = () => {
     return () => { cancelled = true; };
   }, [user, isSchoolAdmin, isTeacher]);
 
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return; }
+    let cancelled = false;
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from('parent_teacher_messages')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null)
+        .neq('sender_id', user.id);
+      if (!cancelled) setUnreadCount(count || 0);
+    };
+    fetchUnread();
+    const channel = supabase
+      .channel('inbox-unread')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_teacher_messages' }, fetchUnread)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user]);
+
   const handleSignOut = async () => {
     try {
       await signOut();
