@@ -249,6 +249,7 @@ export const StudentDashboard = () => {
         <div className="mb-8 space-y-4">
           <AssignmentList />
           <HomeworkList />
+          {user?.id && <AttendanceSummaryCard studentId={user.id} />}
           <RecentQuizAttempts />
         </div>
 
