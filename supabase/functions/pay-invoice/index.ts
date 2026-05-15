@@ -1,6 +1,22 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+const PAYPAL_BASE = 'https://api-m.sandbox.paypal.com';
+
+async function getPayPalAccessToken(clientId: string, secret: string) {
+  const resp = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${btoa(`${clientId}:${secret}`)}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  });
+  if (!resp.ok) throw new Error('Failed to get PayPal access token');
+  const data = await resp.json();
+  return data.access_token as string;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -44,7 +60,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Authorize: parent of the invoice, parent of the student, or the student
     let allowed = inv.parent_id === user.id || inv.student_id === user.id;
     if (!allowed) {
       const { data: rel } = await admin.from('parent_child_relationships')
@@ -63,48 +78,68 @@ Deno.serve(async (req) => {
       });
     }
 
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
+    const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID');
+    const paypalSecret = Deno.env.get('PAYPAL_SECRET_KEY');
+    if (!paypalClientId || !paypalSecret) {
       return new Response(JSON.stringify({
         message: 'Online payments are not yet enabled by your school. Please contact the school office to pay this invoice.',
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Stripe Checkout via REST
-    const origin = req.headers.get('origin') || 'https://teachlyai.com';
-    const params = new URLSearchParams();
-    params.append('mode', 'payment');
-    params.append('success_url', `${origin}/invoices?paid=${invoiceId}`);
-    params.append('cancel_url', `${origin}/invoices?cancelled=1`);
-    params.append('customer_email', user.email || '');
-    params.append('client_reference_id', invoiceId);
-    params.append('metadata[invoice_id]', invoiceId);
-    params.append('line_items[0][quantity]', '1');
-    params.append('line_items[0][price_data][currency]', inv.currency || 'usd');
-    params.append('line_items[0][price_data][unit_amount]', String(inv.amount_cents));
-    params.append('line_items[0][price_data][product_data][name]', inv.title);
-    if (inv.description) {
-      params.append('line_items[0][price_data][product_data][description]', String(inv.description).slice(0, 500));
-    }
+    const accessToken = await getPayPalAccessToken(paypalClientId, paypalSecret);
 
-    const resp = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    const origin = req.headers.get('origin') || 'https://teachlyai.com';
+    const currency = (inv.currency || 'usd').toUpperCase();
+    const amountValue = (Number(inv.amount_cents) / 100).toFixed(2);
+
+    const orderPayload = {
+      intent: 'CAPTURE',
+      purchase_units: [{
+        reference_id: invoiceId,
+        description: String(inv.title || 'School invoice').slice(0, 127),
+        custom_id: invoiceId,
+        amount: {
+          currency_code: currency,
+          value: amountValue,
+        },
+      }],
+      application_context: {
+        brand_name: 'Teachly',
+        user_action: 'PAY_NOW',
+        shipping_preference: 'NO_SHIPPING',
+        return_url: `${origin}/invoices?paid=${invoiceId}`,
+        cancel_url: `${origin}/invoices?cancelled=1`,
+      },
+    };
+
+    const orderResp = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${stripeKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'PayPal-Request-Id': `${invoiceId}-${Date.now()}`,
       },
-      body: params,
+      body: JSON.stringify(orderPayload),
     });
-    const session = await resp.json();
-    if (!resp.ok) {
-      return new Response(JSON.stringify({ error: session?.error?.message || 'Stripe error' }), {
+    const order = await orderResp.json();
+    if (!orderResp.ok) {
+      return new Response(JSON.stringify({ error: order?.message || 'PayPal error', details: order }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    await admin.from('school_invoices').update({ stripe_session_id: session.id }).eq('id', invoiceId);
+    const approvalUrl = order.links?.find((l: any) => l.rel === 'approve')?.href;
+    if (!approvalUrl) {
+      return new Response(JSON.stringify({ error: 'No PayPal approval URL returned' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    await admin.from('school_invoices')
+      .update({ stripe_session_id: order.id })
+      .eq('id', invoiceId);
+
+    return new Response(JSON.stringify({ url: approvalUrl }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
