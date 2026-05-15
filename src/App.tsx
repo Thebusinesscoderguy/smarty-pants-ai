@@ -87,6 +87,7 @@ function App() {
                     <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
                     <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                     <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
+                    <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
                     <Route path="/s/:token" element={<SharedArtifact />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/exam/:testId" element={<ExamRunner />} />
