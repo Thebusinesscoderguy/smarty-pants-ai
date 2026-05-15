@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, Newspaper } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
