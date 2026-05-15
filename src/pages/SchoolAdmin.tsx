@@ -185,6 +185,7 @@ const SchoolAdmin = () => {
       icon: SettingsIcon,
       items: [
         { value: 'staff', label: 'Staff & Roles', icon: Shield },
+        { value: 'fees', label: 'Fees & Invoicing', icon: DollarSign },
         { value: 'import-export', label: 'Import / Export', icon: FileSpreadsheet },
         { value: 'billing', label: t('schoolAdmin.tabs.billing'), icon: CreditCard },
       ],
