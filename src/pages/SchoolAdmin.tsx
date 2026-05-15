@@ -25,11 +25,12 @@ import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
 import { StaffManagement } from '@/components/admin/StaffManagement';
 import { AssignmentManagement } from '@/components/admin/AssignmentManagement';
 import { ReportCardDesigner } from '@/components/admin/ReportCardDesigner';
+import { InvoiceManagement } from '@/components/admin/InvoiceManagement';
 import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
-  LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown,
+  LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
@@ -52,7 +53,7 @@ type TabValue =
   // Communication
   | 'messages' | 'news'
   // Settings
-  | 'billing' | 'import-export' | 'staff';
+  | 'billing' | 'fees' | 'import-export' | 'staff';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
@@ -184,6 +185,7 @@ const SchoolAdmin = () => {
       icon: SettingsIcon,
       items: [
         { value: 'staff', label: 'Staff & Roles', icon: Shield },
+        { value: 'fees', label: 'Fees & Invoicing', icon: DollarSign },
         { value: 'import-export', label: 'Import / Export', icon: FileSpreadsheet },
         { value: 'billing', label: t('schoolAdmin.tabs.billing'), icon: CreditCard },
       ],
@@ -295,6 +297,7 @@ const SchoolAdmin = () => {
               <TabsContent value="report-card-designer"><ReportCardDesigner /></TabsContent>
               <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
               <TabsContent value="staff"><StaffManagement /></TabsContent>
+              <TabsContent value="fees"><InvoiceManagement /></TabsContent>
             </div>
           </Tabs>
         </div>
