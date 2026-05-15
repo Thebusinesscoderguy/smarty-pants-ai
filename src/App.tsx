@@ -32,6 +32,7 @@ import QuestsAchievements from './pages/QuestsAchievements';
 import MadeByMe from './pages/MadeByMe';
 import Monitoring from './pages/Monitoring';
 import News from './pages/News';
+import Inbox from './pages/Inbox';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
