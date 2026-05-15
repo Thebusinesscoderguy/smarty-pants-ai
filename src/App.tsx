@@ -32,6 +32,7 @@ import QuestsAchievements from './pages/QuestsAchievements';
 import MadeByMe from './pages/MadeByMe';
 import Monitoring from './pages/Monitoring';
 import News from './pages/News';
+import Inbox from './pages/Inbox';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -84,6 +85,7 @@ function App() {
                     <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
                     <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
                     <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+                    <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
                     <Route path="/s/:token" element={<SharedArtifact />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/exam/:testId" element={<ExamRunner />} />

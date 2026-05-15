@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, Newspaper } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -15,6 +16,7 @@ export const Header = () => {
   const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSchoolStudent, setIsSchoolStudent] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const isRTL = language === 'ar';
 
   useEffect(() => {
@@ -35,6 +37,25 @@ export const Header = () => {
     })();
     return () => { cancelled = true; };
   }, [user, isSchoolAdmin, isTeacher]);
+
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return; }
+    let cancelled = false;
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from('parent_teacher_messages')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null)
+        .neq('sender_id', user.id);
+      if (!cancelled) setUnreadCount(count || 0);
+    };
+    fetchUnread();
+    const channel = supabase
+      .channel('inbox-unread')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_teacher_messages' }, fetchUnread)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -87,16 +108,19 @@ export const Header = () => {
               {t('nav.teacherDashboard')}
             </Link>
           )}
-          {(isSchoolAdmin || isTeacher || isSchoolStudent) && (
-            <Link
-              to="/news"
-              onClick={() => mobile && setMobileOpen(false)}
-              className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-            >
-              <Newspaper className="w-4 h-4" />
-              {t('nav.news')}
-            </Link>
-          )}
+          <Link
+            to="/inbox"
+            onClick={() => mobile && setMobileOpen(false)}
+            className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+          >
+            <InboxIcon className="w-4 h-4" />
+            {language === 'ar' ? 'الوارد' : 'Inbox'}
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                {unreadCount}
+              </Badge>
+            )}
+          </Link>
           <Link
             to="/leaderboard"
             onClick={() => mobile && setMobileOpen(false)}
