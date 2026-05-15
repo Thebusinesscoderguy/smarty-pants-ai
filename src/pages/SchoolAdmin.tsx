@@ -30,7 +30,7 @@ import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
-  LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown,
+  LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
