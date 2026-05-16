@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, ClipboardCheck, Clock, Users, Trash2 } from 'lucide-react';
+import { Plus, ClipboardCheck, Clock, Users, Trash2, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { HomeworkSubmissionsDrawer } from './HomeworkSubmissionsDrawer';
 
 interface Assignment {
   id: string;
@@ -34,6 +35,8 @@ export const HomeworkManagement = () => {
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Record<string, any[]>>({});
+  const [sectionCounts, setSectionCounts] = useState<Record<string, number>>({});
+  const [drawerAssignment, setDrawerAssignment] = useState<Assignment | null>(null);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -81,16 +84,16 @@ export const HomeworkManagement = () => {
     if (sectionsRes.data) setSections(sectionsRes.data);
     if (assignmentsRes.data) {
       setAssignments(assignmentsRes.data);
-      // Fetch submissions for each
+      const counts: Record<string, number> = {};
       for (const a of assignmentsRes.data) {
-        const { data: subs } = await supabase
-          .from('homework_submissions')
-          .select('*')
-          .eq('assignment_id', a.id);
-        if (subs) {
-          setSubmissions(prev => ({ ...prev, [a.id]: subs }));
-        }
+        const [subsRes, ssRes] = await Promise.all([
+          supabase.from('homework_submissions').select('*').eq('assignment_id', a.id),
+          a.section_id ? supabase.from('section_students').select('student_id', { count: 'exact', head: true }).eq('section_id', a.section_id) : Promise.resolve({ count: 0 } as any),
+        ]);
+        if (subsRes.data) setSubmissions(prev => ({ ...prev, [a.id]: subsRes.data }));
+        counts[a.id] = (ssRes as any).count || 0;
       }
+      setSectionCounts(counts);
     }
   };
 
@@ -254,7 +257,8 @@ export const HomeworkManagement = () => {
                     <TableCell>
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {submissions[a.id]?.filter(s => s.status === 'submitted' || s.status === 'graded').length || 0}
+                        {submissions[a.id]?.filter(s => s.status === 'submitted' || s.status === 'graded' || s.status === 'ai_graded').length || 0}
+                        {sectionCounts[a.id] ? ` / ${sectionCounts[a.id]}` : ''}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -267,9 +271,14 @@ export const HomeworkManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteAssignment(a.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setDrawerAssignment(a)} title="View submissions">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteAssignment(a.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -278,6 +287,14 @@ export const HomeworkManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      <HomeworkSubmissionsDrawer
+        assignmentId={drawerAssignment?.id || null}
+        sectionId={drawerAssignment?.section_id || null}
+        title={drawerAssignment?.title || ''}
+        open={!!drawerAssignment}
+        onOpenChange={(v) => { if (!v) { setDrawerAssignment(null); fetchSchoolData(); } }}
+      />
     </div>
   );
 };

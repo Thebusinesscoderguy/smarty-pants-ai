@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ClipboardCheck, Clock, CheckCircle } from 'lucide-react';
+import { ClipboardCheck, Clock, CheckCircle, Paperclip, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,7 +29,10 @@ export const HomeworkList = () => {
   const isRTL = language === 'ar';
   const [homework, setHomework] = useState<HomeworkItem[]>([]);
   const [responses, setResponses] = useState<Record<string, string>>({});
+  const [attachments, setAttachments] = useState<Record<string, { path: string; name: string }[]>>({});
+  const [uploading, setUploading] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     fetchHomework();
@@ -73,7 +76,7 @@ export const HomeworkList = () => {
         student_id: user.id,
         status: 'submitted',
         submitted_at: new Date().toISOString(),
-        response_data: { text: responses[assignmentId] || '' },
+        response_data: { text: responses[assignmentId] || '', attachments: (attachments[assignmentId] || []).map(a => a.path) },
       }, { onConflict: 'assignment_id,student_id' });
       if (error) throw error;
       toast({ title: t('homework.success'), description: t('homework.successDesc') });
@@ -86,6 +89,38 @@ export const HomeworkList = () => {
   };
 
   const isOverdue = (date: string | null) => date ? new Date(date) < new Date() : false;
+
+  const dueChip = (date: string | null) => {
+    if (!date) return null;
+    const ms = new Date(date).getTime() - Date.now();
+    const days = Math.ceil(ms / 86400000);
+    if (ms < 0) return <Badge variant="destructive" className="text-xs">Overdue</Badge>;
+    if (days === 0) return <Badge className="text-xs bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30">Due today</Badge>;
+    if (days <= 2) return <Badge className="text-xs bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">Due in {days}d</Badge>;
+    return <Badge variant="outline" className="text-xs">Due in {days}d</Badge>;
+  };
+
+  const handleFile = async (assignmentId: string, files: FileList | null) => {
+    if (!user || !files || !files.length) return;
+    setUploading(assignmentId);
+    try {
+      const added: { path: string; name: string }[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 20 * 1024 * 1024) { toast({ title: 'File too large', description: `${file.name} exceeds 20MB`, variant: 'destructive' }); continue; }
+        const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const path = `${user.id}/${assignmentId}/${Date.now()}-${safe}`;
+        const { error } = await supabase.storage.from('assignments').upload(path, file, { upsert: false });
+        if (error) { toast({ title: 'Upload failed', description: error.message, variant: 'destructive' }); continue; }
+        added.push({ path, name: file.name });
+      }
+      setAttachments(prev => ({ ...prev, [assignmentId]: [...(prev[assignmentId] || []), ...added] }));
+    } finally { setUploading(null); }
+  };
+
+  const removeAttachment = async (assignmentId: string, path: string) => {
+    await supabase.storage.from('assignments').remove([path]);
+    setAttachments(prev => ({ ...prev, [assignmentId]: (prev[assignmentId] || []).filter(a => a.path !== path) }));
+  };
 
   if (homework.length === 0) return null;
 
@@ -120,9 +155,10 @@ export const HomeworkList = () => {
               </div>
             </div>
             {hw.due_date && (
-              <p className={`text-xs flex items-center gap-1 mb-3 ${isOverdue(hw.due_date) ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <p className={`text-xs flex items-center gap-2 mb-3 ${isOverdue(hw.due_date) ? 'text-destructive' : 'text-muted-foreground'}`}>
                 <Clock className="h-3 w-3" />
-                {t('homework.due')}: {new Date(hw.due_date).toLocaleDateString(isRTL ? 'ar-SA' : undefined)} {isOverdue(hw.due_date) && `(${t('homework.overdue')})`}
+                {t('homework.due')}: {new Date(hw.due_date).toLocaleDateString(isRTL ? 'ar-SA' : undefined)}
+                {dueChip(hw.due_date)}
               </p>
             )}
             {!hw.submission || hw.submission.status === 'pending' ? (
@@ -134,13 +170,45 @@ export const HomeworkList = () => {
                   onChange={e => setResponses(prev => ({ ...prev, [hw.id]: e.target.value }))}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
-                <Button
-                  size="sm"
-                  onClick={() => handleSubmit(hw.id)}
-                  disabled={submitting === hw.id}
-                >
-                  {submitting === hw.id ? t('homework.submitting') : t('homework.submit')}
-                </Button>
+                {(attachments[hw.id] || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {(attachments[hw.id] || []).map(a => (
+                      <Badge key={a.path} variant="outline" className="gap-1 pr-1">
+                        <Paperclip className="h-3 w-3" />
+                        <span className="truncate max-w-[140px]">{a.name}</span>
+                        <button onClick={() => removeAttachment(hw.id, a.path)} className="hover:bg-muted rounded p-0.5">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2 items-center">
+                  <input
+                    ref={el => (fileInputs.current[hw.id] = el)}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={e => handleFile(hw.id, e.target.files)}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    type="button"
+                    onClick={() => fileInputs.current[hw.id]?.click()}
+                    disabled={uploading === hw.id}
+                  >
+                    <Paperclip className="h-4 w-4 mr-1" />
+                    {uploading === hw.id ? 'Uploading…' : 'Attach files'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleSubmit(hw.id)}
+                    disabled={submitting === hw.id}
+                  >
+                    {submitting === hw.id ? t('homework.submitting') : t('homework.submit')}
+                  </Button>
+                </div>
               </div>
             ) : hw.submission.feedback ? (
               <p className="text-sm text-muted-foreground mt-2 p-2 bg-muted/50 rounded-lg">

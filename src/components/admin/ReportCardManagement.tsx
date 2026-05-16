@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { FileText, Download, CheckCircle2 } from 'lucide-react';
+import { FileText, Download, CheckCircle2, Pencil, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
+import { ReportCardEditDialog } from './ReportCardEditDialog';
 
 interface Section { id: string; grade_level: string; section_name: string; }
 interface ReportCard { id: string; student_id: string; term: string; academic_year: string; data: any; published: boolean; }
@@ -25,6 +26,8 @@ export const ReportCardManagement = () => {
   const [cards, setCards] = useState<(ReportCard & { name: string })[]>([]);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<any>({ school_name: '', principal_name: '' });
+  const [editing, setEditing] = useState<(ReportCard & { name: string }) | null>(null);
+  const [notifying, setNotifying] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -108,6 +111,18 @@ export const ReportCardManagement = () => {
     loadCards();
   };
 
+  const notifyParents = async () => {
+    if (!schoolId) return;
+    setNotifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-report-card-published', {
+        body: { school_id: schoolId, term, academic_year: year },
+      });
+      if (error) throw error;
+      toast.success(`Notified parents (${data?.sent ?? 0} emails sent)`);
+    } catch (e: any) { toast.error(e.message || 'Failed'); } finally { setNotifying(false); }
+  };
+
   const layout: ReportCardLayout = (settings?.layout_config && settings.layout_config.sections?.length) ? settings.layout_config : defaultLayoutConfig;
 
   const renderCardToDoc = (doc: jsPDF, card: ReportCard & { name: string }) => {
@@ -175,18 +190,30 @@ export const ReportCardManagement = () => {
       </Card>
 
       <Card>
-        <CardHeader><div className="flex justify-between items-center gap-2 flex-wrap"><CardTitle>Report Cards ({term}, {year})</CardTitle><div className="flex gap-2"><Button size="sm" variant="outline" onClick={downloadAllPdf} disabled={!cards.length}><Download className="h-4 w-4 mr-1" />Download All</Button><Button size="sm" onClick={publishAll} disabled={!cards.some(c => !c.published)}><CheckCircle2 className="h-4 w-4 mr-1" />Publish All</Button></div></div></CardHeader>
+        <CardHeader>
+          <div className="flex justify-between items-center gap-2 flex-wrap">
+            <CardTitle>Report Cards ({term}, {year})</CardTitle>
+            <div className="flex gap-2 flex-wrap">
+              <Button size="sm" variant="outline" onClick={downloadAllPdf} disabled={!cards.length}><Download className="h-4 w-4 mr-1" />Download All</Button>
+              <Button size="sm" variant="outline" onClick={notifyParents} disabled={notifying || !cards.some(c => c.published)}>
+                <Mail className="h-4 w-4 mr-1" />{notifying ? 'Sending…' : 'Notify Parents'}
+              </Button>
+              <Button size="sm" onClick={publishAll} disabled={!cards.some(c => !c.published)}><CheckCircle2 className="h-4 w-4 mr-1" />Publish All</Button>
+            </div>
+          </div>
+        </CardHeader>
         <CardContent>
           {cards.length === 0 ? <p className="text-sm text-muted-foreground">No report cards yet.</p> : (
             <div className="divide-y divide-border border border-border rounded-lg">
               {cards.map(c => (
-                <div key={c.id} className="flex items-center justify-between p-3">
-                  <div>
-                    <div className="font-medium">{c.name}</div>
+                <div key={c.id} className="flex items-center justify-between p-3 gap-2">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{c.name}</div>
                     <div className="text-xs text-muted-foreground">Overall: {c.data?.overall ?? '-'}% · Attendance: {c.data?.attendance_rate ?? '-'}%</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {c.published ? <Badge>Published</Badge> : <Badge variant="outline">Draft</Badge>}
+                    <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title="Edit"><Pencil className="h-4 w-4" /></Button>
                     <Button size="sm" variant="outline" onClick={() => downloadPdf(c)}><Download className="h-4 w-4 mr-1" />PDF</Button>
                   </div>
                 </div>
@@ -195,6 +222,13 @@ export const ReportCardManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      <ReportCardEditDialog
+        card={editing ? { ...editing, student_name: editing.name } : null}
+        open={!!editing}
+        onOpenChange={(v) => { if (!v) setEditing(null); }}
+        onSaved={loadCards}
+      />
     </div>
   );
 };
