@@ -29,7 +29,10 @@ export const HomeworkList = () => {
   const isRTL = language === 'ar';
   const [homework, setHomework] = useState<HomeworkItem[]>([]);
   const [responses, setResponses] = useState<Record<string, string>>({});
+  const [attachments, setAttachments] = useState<Record<string, { path: string; name: string }[]>>({});
+  const [uploading, setUploading] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     fetchHomework();
