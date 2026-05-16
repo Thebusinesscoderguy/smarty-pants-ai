@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { FileText, Download, CheckCircle2 } from 'lucide-react';
+import { FileText, Download, CheckCircle2, Pencil, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
+import { ReportCardEditDialog } from './ReportCardEditDialog';
 
 interface Section { id: string; grade_level: string; section_name: string; }
 interface ReportCard { id: string; student_id: string; term: string; academic_year: string; data: any; published: boolean; }
@@ -25,6 +26,8 @@ export const ReportCardManagement = () => {
   const [cards, setCards] = useState<(ReportCard & { name: string })[]>([]);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<any>({ school_name: '', principal_name: '' });
+  const [editing, setEditing] = useState<(ReportCard & { name: string }) | null>(null);
+  const [notifying, setNotifying] = useState(false);
 
   useEffect(() => {
     if (!user) return;
