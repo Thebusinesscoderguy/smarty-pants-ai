@@ -76,7 +76,7 @@ export const HomeworkList = () => {
         student_id: user.id,
         status: 'submitted',
         submitted_at: new Date().toISOString(),
-        response_data: { text: responses[assignmentId] || '' },
+        response_data: { text: responses[assignmentId] || '', attachments: (attachments[assignmentId] || []).map(a => a.path) },
       }, { onConflict: 'assignment_id,student_id' });
       if (error) throw error;
       toast({ title: t('homework.success'), description: t('homework.successDesc') });
@@ -89,6 +89,38 @@ export const HomeworkList = () => {
   };
 
   const isOverdue = (date: string | null) => date ? new Date(date) < new Date() : false;
+
+  const dueChip = (date: string | null) => {
+    if (!date) return null;
+    const ms = new Date(date).getTime() - Date.now();
+    const days = Math.ceil(ms / 86400000);
+    if (ms < 0) return <Badge variant="destructive" className="text-xs">Overdue</Badge>;
+    if (days === 0) return <Badge className="text-xs bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30">Due today</Badge>;
+    if (days <= 2) return <Badge className="text-xs bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">Due in {days}d</Badge>;
+    return <Badge variant="outline" className="text-xs">Due in {days}d</Badge>;
+  };
+
+  const handleFile = async (assignmentId: string, files: FileList | null) => {
+    if (!user || !files || !files.length) return;
+    setUploading(assignmentId);
+    try {
+      const added: { path: string; name: string }[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 20 * 1024 * 1024) { toast({ title: 'File too large', description: `${file.name} exceeds 20MB`, variant: 'destructive' }); continue; }
+        const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const path = `${user.id}/${assignmentId}/${Date.now()}-${safe}`;
+        const { error } = await supabase.storage.from('assignments').upload(path, file, { upsert: false });
+        if (error) { toast({ title: 'Upload failed', description: error.message, variant: 'destructive' }); continue; }
+        added.push({ path, name: file.name });
+      }
+      setAttachments(prev => ({ ...prev, [assignmentId]: [...(prev[assignmentId] || []), ...added] }));
+    } finally { setUploading(null); }
+  };
+
+  const removeAttachment = async (assignmentId: string, path: string) => {
+    await supabase.storage.from('assignments').remove([path]);
+    setAttachments(prev => ({ ...prev, [assignmentId]: (prev[assignmentId] || []).filter(a => a.path !== path) }));
+  };
 
   if (homework.length === 0) return null;
 
