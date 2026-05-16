@@ -298,6 +298,3 @@ export const HomeworkManagement = () => {
     </div>
   );
 };
-    </div>
-  );
-};
