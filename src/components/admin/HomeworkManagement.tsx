@@ -257,7 +257,8 @@ export const HomeworkManagement = () => {
                     <TableCell>
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {submissions[a.id]?.filter(s => s.status === 'submitted' || s.status === 'graded').length || 0}
+                        {submissions[a.id]?.filter(s => s.status === 'submitted' || s.status === 'graded' || s.status === 'ai_graded').length || 0}
+                        {sectionCounts[a.id] ? ` / ${sectionCounts[a.id]}` : ''}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -270,9 +271,14 @@ export const HomeworkManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteAssignment(a.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setDrawerAssignment(a)} title="View submissions">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteAssignment(a.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -281,6 +287,17 @@ export const HomeworkManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      <HomeworkSubmissionsDrawer
+        assignmentId={drawerAssignment?.id || null}
+        sectionId={drawerAssignment?.section_id || null}
+        title={drawerAssignment?.title || ''}
+        open={!!drawerAssignment}
+        onOpenChange={(v) => { if (!v) { setDrawerAssignment(null); fetchSchoolData(); } }}
+      />
+    </div>
+  );
+};
     </div>
   );
 };
