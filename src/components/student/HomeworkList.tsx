@@ -155,9 +155,10 @@ export const HomeworkList = () => {
               </div>
             </div>
             {hw.due_date && (
-              <p className={`text-xs flex items-center gap-1 mb-3 ${isOverdue(hw.due_date) ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <p className={`text-xs flex items-center gap-2 mb-3 ${isOverdue(hw.due_date) ? 'text-destructive' : 'text-muted-foreground'}`}>
                 <Clock className="h-3 w-3" />
-                {t('homework.due')}: {new Date(hw.due_date).toLocaleDateString(isRTL ? 'ar-SA' : undefined)} {isOverdue(hw.due_date) && `(${t('homework.overdue')})`}
+                {t('homework.due')}: {new Date(hw.due_date).toLocaleDateString(isRTL ? 'ar-SA' : undefined)}
+                {dueChip(hw.due_date)}
               </p>
             )}
             {!hw.submission || hw.submission.status === 'pending' ? (
@@ -169,13 +170,45 @@ export const HomeworkList = () => {
                   onChange={e => setResponses(prev => ({ ...prev, [hw.id]: e.target.value }))}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
-                <Button
-                  size="sm"
-                  onClick={() => handleSubmit(hw.id)}
-                  disabled={submitting === hw.id}
-                >
-                  {submitting === hw.id ? t('homework.submitting') : t('homework.submit')}
-                </Button>
+                {(attachments[hw.id] || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {(attachments[hw.id] || []).map(a => (
+                      <Badge key={a.path} variant="outline" className="gap-1 pr-1">
+                        <Paperclip className="h-3 w-3" />
+                        <span className="truncate max-w-[140px]">{a.name}</span>
+                        <button onClick={() => removeAttachment(hw.id, a.path)} className="hover:bg-muted rounded p-0.5">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2 items-center">
+                  <input
+                    ref={el => (fileInputs.current[hw.id] = el)}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={e => handleFile(hw.id, e.target.files)}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    type="button"
+                    onClick={() => fileInputs.current[hw.id]?.click()}
+                    disabled={uploading === hw.id}
+                  >
+                    <Paperclip className="h-4 w-4 mr-1" />
+                    {uploading === hw.id ? 'Uploading…' : 'Attach files'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleSubmit(hw.id)}
+                    disabled={submitting === hw.id}
+                  >
+                    {submitting === hw.id ? t('homework.submitting') : t('homework.submit')}
+                  </Button>
+                </div>
               </div>
             ) : hw.submission.feedback ? (
               <p className="text-sm text-muted-foreground mt-2 p-2 bg-muted/50 rounded-lg">
