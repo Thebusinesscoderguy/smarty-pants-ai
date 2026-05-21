@@ -4,6 +4,10 @@ import { Language } from '@/types/language';
 export const getStoredLanguage = (): Language | null => {
   try {
     const savedLanguage = localStorage.getItem('language') as Language;
+    if (savedLanguage && !isValidLanguage(savedLanguage)) {
+      localStorage.setItem('language', 'en');
+      return 'en';
+    }
     return savedLanguage;
   } catch (error) {
     console.warn('Failed to get stored language:', error);
@@ -20,6 +24,6 @@ export const storeLanguage = (language: Language): void => {
 };
 
 export const isValidLanguage = (lang: string): lang is Language => {
-  const validLanguages: Language[] = ['en', 'es', 'fr', 'de', 'zh', 'ja', 'pt', 'it', 'ru', 'ar'];
+  const validLanguages: Language[] = ['en', 'ar'];
   return validLanguages.includes(lang as Language);
 };

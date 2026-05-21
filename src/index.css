@@ -23,14 +23,31 @@ html.lang-ar .font-display {
 
 /* RTL-friendly tweaks */
 html[dir="rtl"] .lucide-arrow-right,
+html[dir="rtl"] .lucide-arrow-left,
+html[dir="rtl"] .lucide-chevron-right,
+html[dir="rtl"] .lucide-chevron-left,
+html[dir="rtl"] .lucide-send,
+html[dir="rtl"] .lucide-move-right,
+html[dir="rtl"] .lucide-move-left,
 html[dir="rtl"] .rtl-flip {
   transform: scaleX(-1);
 }
+
+/* Mirror leading icon spacing patterns commonly used with ml-/mr- */
+html[dir="rtl"] .ltr-only { display: none !important; }
+html:not([dir="rtl"]) .rtl-only { display: none !important; }
 
 /* Numerals stay readable */
 html.lang-ar {
   font-feature-settings: "kern", "liga", "calt";
 }
+
+/* Arabic numerals option (keep western digits by default for clarity) */
+html.lang-ar input,
+html.lang-ar textarea {
+  font-family: inherit;
+}
+
 
 @layer base {
   :root {
