@@ -20,6 +20,6 @@ export const storeLanguage = (language: Language): void => {
 };
 
 export const isValidLanguage = (lang: string): lang is Language => {
-  const validLanguages: Language[] = ['en', 'es', 'fr', 'de', 'zh', 'ja', 'pt', 'it', 'ru', 'ar'];
+  const validLanguages: Language[] = ['en', 'ar'];
   return validLanguages.includes(lang as Language);
 };
