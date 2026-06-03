@@ -110,7 +110,11 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
           Save Marks
         </Button>
+        <Button variant="outline" onClick={() => setIoOpen(true)}>
+          <FileSpreadsheet className="h-4 w-4 mr-2" /> Import / Export
+        </Button>
       </div>
+      <DataPortabilityDialog open={ioOpen} onOpenChange={setIoOpen} defaultEntityKey="semester_marks" />
 
       <div className="text-sm text-muted-foreground">
         <strong>Project:</strong> 0–10 • <strong>Literacy:</strong> 0–10 • <strong>Final Exam:</strong> 0–20
