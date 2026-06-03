@@ -90,12 +90,16 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
           Save Attendance
         </Button>
+        <Button variant="outline" onClick={() => setIoOpen(true)}>
+          <FileSpreadsheet className="h-4 w-4 mr-2" /> Import / Export
+        </Button>
         {isLoaded && (
           <span className="text-sm text-muted-foreground">
             Present: {Object.values(attendance).filter(Boolean).length} / {Object.keys(attendance).length}
           </span>
         )}
       </div>
+      <DataPortabilityDialog open={ioOpen} onOpenChange={setIoOpen} defaultEntityKey="attendance" />
 
       {!isLoaded ? (
         <Card className="bg-card border-border">
