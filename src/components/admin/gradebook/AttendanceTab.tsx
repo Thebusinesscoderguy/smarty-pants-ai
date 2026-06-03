@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Save, Loader2, CheckCircle, XCircle, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 
 interface StudentInfo {
   student_id: string;
@@ -28,6 +29,8 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [ioOpen, setIoOpen] = useState(false);
+
 
   const loadAttendance = async () => {
     const { data } = await supabase
