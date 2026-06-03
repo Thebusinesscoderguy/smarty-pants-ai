@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 
 interface StudentInfo {
   student_id: string;
@@ -28,6 +29,7 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
   const [marks, setMarks] = useState<Record<string, { project: string; literacy: string; finalExam: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [ioOpen, setIoOpen] = useState(false);
 
   useEffect(() => {
     loadMarks();
@@ -108,7 +110,11 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
           Save Marks
         </Button>
+        <Button variant="outline" onClick={() => setIoOpen(true)}>
+          <FileSpreadsheet className="h-4 w-4 mr-2" /> Import / Export
+        </Button>
       </div>
+      <DataPortabilityDialog open={ioOpen} onOpenChange={setIoOpen} defaultEntityKey="semester_marks" />
 
       <div className="text-sm text-muted-foreground">
         <strong>Project:</strong> 0–10 • <strong>Literacy:</strong> 0–10 • <strong>Final Exam:</strong> 0–20
