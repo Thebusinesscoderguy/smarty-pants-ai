@@ -29,6 +29,7 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
   const [marks, setMarks] = useState<Record<string, { project: string; literacy: string; finalExam: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [ioOpen, setIoOpen] = useState(false);
 
   useEffect(() => {
     loadMarks();
