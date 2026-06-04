@@ -3364,6 +3364,7 @@ export type Database = {
           subject: string | null
           teacher_id: string
           topic: string
+          updated_at: string
         }
         Insert: {
           content: string
@@ -3376,6 +3377,7 @@ export type Database = {
           subject?: string | null
           teacher_id: string
           topic: string
+          updated_at?: string
         }
         Update: {
           content?: string
@@ -3388,6 +3390,7 @@ export type Database = {
           subject?: string | null
           teacher_id?: string
           topic?: string
+          updated_at?: string
         }
         Relationships: [
           {
