@@ -4008,6 +4008,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_school_ids: { Args: { _user_id: string }; Returns: string[] }
       handle_expired_quests: { Args: never; Returns: undefined }
       has_role: {
         Args: {
