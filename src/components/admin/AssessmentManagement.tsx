@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2, Lock,
+  Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2, Lock, Link2, Check,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
