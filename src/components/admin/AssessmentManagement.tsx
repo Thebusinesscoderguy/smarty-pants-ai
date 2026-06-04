@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2, Lock,
+  Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2, Lock, Link2, Check,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +43,7 @@ interface AssessmentAssignment {
   assignment_type: string;
   due_date: string | null;
   is_active: boolean | null;
+  share_token: string | null;
 }
 
 interface QuizQuestion {
@@ -52,6 +53,35 @@ interface QuizQuestion {
   correct_answer: string;
   points: number;
 }
+
+const ShareLinkButton = ({ token, label }: { token: string; label?: string }) => {
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}/t/${token}`;
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast({ title: 'Link copied', description: 'Share this link with students to open the test directly.' });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Copy failed', description: 'Please copy the link manually.', variant: 'destructive' });
+    }
+  };
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={handleCopy}
+      className="h-7 px-2 gap-1 text-xs"
+      title={url}
+    >
+      {copied ? <Check className="h-3 w-3 text-primary" /> : <Link2 className="h-3 w-3" />}
+      {copied ? 'Copied' : (label ?? 'Copy link')}
+    </Button>
+  );
+};
 
 export const AssessmentManagement = () => {
   const { user } = useAuth();
@@ -171,6 +201,7 @@ export const AssessmentManagement = () => {
             assignment_type: a.assignment_type,
             due_date: a.due_date,
             is_active: a.is_active,
+            share_token: (a as any).share_token ?? null,
           })),
         });
       }
@@ -911,15 +942,25 @@ export const AssessmentManagement = () => {
                       {assessment.time_limit_minutes ? `${assessment.time_limit_minutes}m` : '—'}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-col gap-1.5">
                         {assessment.assignments.length === 0 ? (
                           <span className="text-xs text-muted-foreground">Not assigned</span>
                         ) : (
-                          assessment.assignments.map(a => (
-                            <Badge key={a.id} variant="outline" className="text-xs">
-                              {a.classification_tag || 'Individual'}
-                            </Badge>
-                          ))
+                          <>
+                            <div className="flex flex-wrap gap-1">
+                              {assessment.assignments.map(a => (
+                                <Badge key={a.id} variant="outline" className="text-xs">
+                                  {a.classification_tag || 'Individual'}
+                                </Badge>
+                              ))}
+                            </div>
+                            {assessment.assignments[0]?.share_token && (
+                              <ShareLinkButton
+                                token={assessment.assignments[0].share_token}
+                                label="Copy student link"
+                              />
+                            )}
+                          </>
                         )}
                       </div>
                     </TableCell>
