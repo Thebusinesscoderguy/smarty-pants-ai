@@ -211,10 +211,15 @@ export const TeacherLessonPlanGenerator = () => {
         {/* Generator Form */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Generate Lesson Plan
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Generate Lesson Plan
+              </CardTitle>
+              <Button variant="outline" size="sm" onClick={() => navigate('/lesson-plans')}>
+                Library
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
