@@ -96,6 +96,7 @@ function App() {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/exam/:testId" element={<ExamRunner />} />
                     <Route path="/t/:token" element={<TestShareRedirect />} />
+                    <Route path="/lesson-plans" element={<ProtectedRoute><LessonPlansLibrary /></ProtectedRoute>} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="*" element={<NotFound />} />
