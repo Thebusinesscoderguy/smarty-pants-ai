@@ -43,6 +43,7 @@ interface AssessmentAssignment {
   assignment_type: string;
   due_date: string | null;
   is_active: boolean | null;
+  share_token: string | null;
 }
 
 interface QuizQuestion {
