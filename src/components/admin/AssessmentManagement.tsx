@@ -172,6 +172,7 @@ export const AssessmentManagement = () => {
             assignment_type: a.assignment_type,
             due_date: a.due_date,
             is_active: a.is_active,
+            share_token: (a as any).share_token ?? null,
           })),
         });
       }
