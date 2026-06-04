@@ -54,6 +54,35 @@ interface QuizQuestion {
   points: number;
 }
 
+const ShareLinkButton = ({ token, label }: { token: string; label?: string }) => {
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}/t/${token}`;
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast({ title: 'Link copied', description: 'Share this link with students to open the test directly.' });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Copy failed', description: 'Please copy the link manually.', variant: 'destructive' });
+    }
+  };
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={handleCopy}
+      className="h-7 px-2 gap-1 text-xs"
+      title={url}
+    >
+      {copied ? <Check className="h-3 w-3 text-primary" /> : <Link2 className="h-3 w-3" />}
+      {copied ? 'Copied' : (label ?? 'Copy link')}
+    </Button>
+  );
+};
+
 export const AssessmentManagement = () => {
   const { user } = useAuth();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
