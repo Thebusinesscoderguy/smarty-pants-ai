@@ -43,6 +43,7 @@ import Leaderboard from './pages/Leaderboard';
 import SharedArtifact from './pages/SharedArtifact';
 import SchoolOnboarding from './pages/SchoolOnboarding';
 import ExamRunner from './pages/ExamRunner';
+import TestShareRedirect from './pages/TestShareRedirect';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
