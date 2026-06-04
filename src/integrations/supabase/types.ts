@@ -295,6 +295,7 @@ export type Database = {
           due_date: string | null
           id: string
           is_active: boolean | null
+          share_token: string
           target_id: string | null
         }
         Insert: {
@@ -307,6 +308,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           is_active?: boolean | null
+          share_token?: string
           target_id?: string | null
         }
         Update: {
@@ -319,6 +321,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           is_active?: boolean | null
+          share_token?: string
           target_id?: string | null
         }
         Relationships: []
@@ -4036,6 +4039,7 @@ export type Database = {
         Returns: boolean
       }
       mark_expired_daily_quests_as_failed: { Args: never; Returns: undefined }
+      resolve_test_share_token: { Args: { _token: string }; Returns: string }
       test_quest_system: {
         Args: { test_user_id?: string }
         Returns: {
