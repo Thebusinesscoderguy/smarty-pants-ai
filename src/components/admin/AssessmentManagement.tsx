@@ -942,15 +942,25 @@ export const AssessmentManagement = () => {
                       {assessment.time_limit_minutes ? `${assessment.time_limit_minutes}m` : '—'}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-col gap-1.5">
                         {assessment.assignments.length === 0 ? (
                           <span className="text-xs text-muted-foreground">Not assigned</span>
                         ) : (
-                          assessment.assignments.map(a => (
-                            <Badge key={a.id} variant="outline" className="text-xs">
-                              {a.classification_tag || 'Individual'}
-                            </Badge>
-                          ))
+                          <>
+                            <div className="flex flex-wrap gap-1">
+                              {assessment.assignments.map(a => (
+                                <Badge key={a.id} variant="outline" className="text-xs">
+                                  {a.classification_tag || 'Individual'}
+                                </Badge>
+                              ))}
+                            </div>
+                            {assessment.assignments[0]?.share_token && (
+                              <ShareLinkButton
+                                token={assessment.assignments[0].share_token}
+                                label="Copy student link"
+                              />
+                            )}
+                          </>
                         )}
                       </div>
                     </TableCell>
