@@ -4019,6 +4019,10 @@ export type Database = {
         Args: { _school_id: string; _user_id: string }
         Returns: boolean
       }
+      is_school_member: {
+        Args: { _school_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_school_teacher: {
         Args: { _email: string }
         Returns: {
