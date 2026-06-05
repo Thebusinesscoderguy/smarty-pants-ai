@@ -108,18 +108,15 @@ export default function ExamRunner() {
       if (t.assessment_mode !== 'exam') { setErrorMsg('This assessment is not in Exam Mode.'); setPhase('denied'); return; }
 
       const { data: qs, error: qErr } = await supabase
-        .from('test_questions')
-        .select('*')
-        .eq('test_id', testId)
-        .order('order_index', { ascending: true });
+        .rpc('get_exam_questions_for_student', { _test_id: testId });
       if (qErr || !qs) { setErrorMsg('Could not load exam questions.'); setPhase('denied'); return; }
 
-      const parsed: TestQuestion[] = qs.map((q: any) => ({
+      const parsed: TestQuestion[] = (qs as any[]).map((q: any) => ({
         id: q.id,
         question: q.question,
         question_type: q.question_type || 'multiple_choice',
         options: Array.isArray(q.options) ? q.options : (q.options ? Object.values(q.options) : null),
-        correct_answer: q.correct_answer,
+        correct_answer: '', // server-side only; never sent to client during exam
         points: q.points ?? 1,
         order_index: q.order_index ?? 0,
       }));

@@ -40,9 +40,30 @@ serve(async (req) => {
 
     if (inputType === 'file' && fileUrl) {
       console.log(`[generate-study-plan] Downloading file from URL, type: ${fileType}`);
-      
+
+      // SSRF guard: only allow URLs from this project's Supabase Storage host.
+      const ALLOWED_HOSTS = new Set([
+        'twfzlbockonxopuindaw.supabase.co',
+      ]);
+      let parsedUrl: URL;
       try {
-        const fileResponse = await fetch(fileUrl);
+        parsedUrl = new URL(fileUrl);
+      } catch {
+        return new Response(JSON.stringify({
+          error: 'Invalid file URL.',
+          errorCode: 'INVALID_URL',
+        }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      if (parsedUrl.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsedUrl.hostname)) {
+        console.error('[generate-study-plan] Blocked non-allowlisted fileUrl host:', parsedUrl.hostname);
+        return new Response(JSON.stringify({
+          error: 'Files must come from project storage.',
+          errorCode: 'INVALID_URL',
+        }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      try {
+        const fileResponse = await fetch(parsedUrl.toString());
         if (!fileResponse.ok) {
           console.error(`[generate-study-plan] Failed to download file: ${fileResponse.status}`);
           return new Response(JSON.stringify({ 
