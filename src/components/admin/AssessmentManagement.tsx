@@ -445,6 +445,25 @@ export const AssessmentManagement = () => {
     }
   };
 
+  // Enable shared-link access for an exam and copy a tokenized link to the clipboard.
+  // Students who open the link can take the exam without being individually assigned.
+  const copyExamLink = async (id: string) => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('tests')
+        .update({ link_sharing_enabled: true })
+        .eq('id', id)
+        .select('share_token')
+        .single();
+      if (error) throw error;
+      const url = `${window.location.origin}/exam/${id}?t=${data.share_token}`;
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Link copied', description: 'Anyone with this link can take the exam.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: 'Could not create exam link', variant: 'destructive' });
+    }
+  };
+
   const toggleSection = (tag: string) => {
     setAssignForm(prev => ({
       ...prev,
@@ -977,6 +996,16 @@ export const AssessmentManagement = () => {
                         >
                           <Send className="h-3 w-3" />
                         </Button>
+                        {assessment.assessment_mode === 'exam' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Copy shareable exam link"
+                            onClick={() => copyExamLink(assessment.id)}
+                          >
+                            <Link2 className="h-3 w-3" />
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"

@@ -288,8 +288,10 @@ export default function ExamRunner() {
   const handleStart = async () => {
     if (!test || !user) return;
     try {
+      // Shared-link access: a ?t=<share_token> param authorizes a non-assigned student.
+      const shareToken = new URLSearchParams(window.location.search).get('t') || undefined;
       const { data, error } = await supabase.functions.invoke('exam-start', {
-        body: { test_id: test.id, tab_id: tabIdRef.current },
+        body: { test_id: test.id, tab_id: tabIdRef.current, share_token: shareToken },
       });
       if (error) throw error;
       if (!data?.session_id) throw new Error(data?.error || 'Could not start exam');

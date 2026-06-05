@@ -24,27 +24,39 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     const body = await req.json().catch(() => ({}));
-    const { test_id, tab_id } = body ?? {};
+    const { test_id, tab_id, share_token } = body ?? {};
     if (!test_id || typeof test_id !== 'string') return json({ error: 'test_id required' }, 400);
     if (!tab_id || typeof tab_id !== 'string') return json({ error: 'tab_id required' }, 400);
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Re-verify assignment server-side
-    const { data: assigned, error: aErr } = await admin.rpc('is_test_assigned_to_student', {
-      _test_id: test_id, _student_id: userId,
-    });
-    if (aErr) return json({ error: aErr.message }, 500);
-    if (!assigned) return json({ error: 'You are not assigned to this exam.' }, 403);
-
-    // Load test
+    // Load test (incl. share-link settings) first so we can authorize either way.
+    // Select '*' so the function keeps working even if the share-link migration
+    // has not been applied yet (the share fields simply read as undefined).
     const { data: test, error: tErr } = await admin
       .from('tests')
-      .select('id, time_limit_minutes, assessment_mode')
+      .select('*')
       .eq('id', test_id)
       .maybeSingle();
     if (tErr || !test) return json({ error: 'Test not found' }, 404);
     if (test.assessment_mode !== 'exam') return json({ error: 'Not an exam' }, 400);
+
+    // Authorization: a student may take the exam if they are assigned to it, OR
+    // they arrived through a valid shared link (sharing enabled + matching token).
+    const { data: assigned, error: aErr } = await admin.rpc('is_test_assigned_to_student', {
+      _test_id: test_id, _student_id: userId,
+    });
+    if (aErr) return json({ error: aErr.message }, 500);
+
+    const viaShareLink =
+      test.link_sharing_enabled === true &&
+      typeof share_token === 'string' &&
+      share_token.length > 0 &&
+      share_token === test.share_token;
+
+    if (!assigned && !viaShareLink) {
+      return json({ error: 'You are not assigned to this exam.' }, 403);
+    }
 
     // Compute total points from questions
     const { data: qs } = await admin
