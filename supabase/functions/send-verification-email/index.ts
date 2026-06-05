@@ -14,9 +14,9 @@ serve(async (req) => {
   try {
     const { email, redirectTo, type } = await req.json();
 
-    if (!email || typeof email !== "string") {
+    if (!email || typeof email !== "string" || email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
-        JSON.stringify({ error: "Email is required" }),
+        JSON.stringify({ error: "Valid email is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -36,12 +36,62 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceRoleKey);
 
+    // Rate-limit: 1 email per (email,type) per 60s, max 5 per email per hour.
+    // Uses parent_verification_codes table as a generic rate ledger via a dedicated table would be cleaner,
+    // but we use a lightweight in-DB log table created on demand.
+    try {
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const sinceHour = new Date(Date.now() - 60 * 60_000).toISOString();
+      const { data: recent } = await admin
+        .from("auth_email_send_log")
+        .select("id, created_at")
+        .eq("email", email.toLowerCase())
+        .eq("link_type", linkType)
+        .gte("created_at", since)
+        .limit(1);
+      if (recent && recent.length > 0) {
+        return new Response(
+          JSON.stringify({ error: "Please wait a minute before requesting another email." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const { count } = await admin
+        .from("auth_email_send_log")
+        .select("id", { count: "exact", head: true })
+        .eq("email", email.toLowerCase())
+        .gte("created_at", sinceHour);
+      if ((count ?? 0) >= 5) {
+        return new Response(
+          JSON.stringify({ error: "Too many requests. Try again later." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch (rateErr) {
+      console.warn("rate-limit log read failed (continuing):", rateErr);
+    }
+
+    // Validate redirectTo against allowlist
+    const ALLOWED_REDIRECT_HOSTS = new Set([
+      "teachlyai.com",
+      "www.teachlyai.com",
+      "teachlyai-com.lovable.app",
+      "id-preview--5ad48171-e85b-42b0-8a0f-d2ee2f3e163c.lovable.app",
+      "localhost",
+    ]);
+    let safeRedirect: string | undefined = undefined;
+    if (redirectTo && typeof redirectTo === "string") {
+      try {
+        const u = new URL(redirectTo);
+        if (ALLOWED_REDIRECT_HOSTS.has(u.hostname)) safeRedirect = u.toString();
+      } catch (_) { /* ignore */ }
+    }
+
     // Generate the action link (signup confirmation or password recovery)
     const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
       type: linkType as any,
       email,
       options: {
-        redirectTo: redirectTo || undefined,
+        redirectTo: safeRedirect,
       },
     });
 
