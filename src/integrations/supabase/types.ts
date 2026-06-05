@@ -3996,6 +3996,18 @@ export type Database = {
         Args: { _test_id: string; _user_id: string }
         Returns: boolean
       }
+      get_exam_questions_for_student: {
+        Args: { _test_id: string }
+        Returns: {
+          id: string
+          options: Json
+          order_index: number
+          points: number
+          question: string
+          question_type: string
+          test_id: string
+        }[]
+      }
       get_school_staff_role: {
         Args: { _email: string; _user_id: string }
         Returns: {
