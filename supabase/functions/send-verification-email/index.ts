@@ -171,6 +171,14 @@ serve(async (req) => {
     }
 
     const data = await resp.json();
+    try {
+      await admin.from("auth_email_send_log").insert({
+        email: email.toLowerCase(),
+        link_type: linkType,
+      });
+    } catch (logErr) {
+      console.warn("rate-limit log insert failed:", logErr);
+    }
     return new Response(
       JSON.stringify({ success: true, emailId: data.id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
