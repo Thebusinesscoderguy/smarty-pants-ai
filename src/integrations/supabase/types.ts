@@ -251,6 +251,27 @@ export type Database = {
           },
         ]
       }
+      auth_email_send_log: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          link_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          link_type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          link_type?: string
+        }
+        Relationships: []
+      }
       children: {
         Row: {
           created_at: string
