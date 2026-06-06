@@ -231,15 +231,6 @@ export function Hero({ onCta }: { onCta?: () => void }) {
             </Magnetic>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 1.35 }}
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[hsl(245_16%_50%)] lg:justify-start"
-          >
-            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-violet-500" /> Free for 30 days</span>
-            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-violet-500" /> No credit card</span>
-          </motion.div>
         </div>
 
         {/* ---- right: mockup ---- */}
