@@ -10,6 +10,7 @@ import { ViewingModeProvider } from '@/contexts/ViewingModeContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 import Index from './pages/Index';
+import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import LearningModule from './pages/LearningModule';
 import FamilyHub from './pages/FamilyHub';
@@ -64,7 +65,8 @@ function App() {
                 <BrowserRouter>
                   
                   <Routes>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/home-old" element={<Index />} />
                     <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
                     <Route path="/family-hub" element={<FamilyHub />} />
                     <Route path="/parent-onboarding" element={<ParentOnboarding />} />
