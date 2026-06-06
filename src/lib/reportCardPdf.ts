@@ -53,7 +53,7 @@ export function renderReportCardToPdf(
   settings: any,
   layout: ReportCardLayout = defaultLayoutConfig
 ) {
-  const accent = hexToRgb(settings?.accent_color || '#f97316');
+  const accent = hexToRgb(settings?.accent_color || '#7C3AED');
   let y = 18;
   const left = 20;
   const right = 190;

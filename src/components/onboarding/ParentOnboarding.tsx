@@ -148,7 +148,7 @@ const ParentOnboarding = () => {
             </div>
           </div>
           
-          <div className="p-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl border border-yellow-500/30">
+          <div className="p-6 bg-gradient-to-r from-yellow-500/20 to-violet-500/20 rounded-xl border border-yellow-500/30">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Shield className="h-5 w-5 text-yellow-400" />
               <span className="font-semibold text-yellow-400">Safe & Secure</span>

@@ -357,14 +357,14 @@ const Progress = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-600/20 to-red-600/20 border-orange-500/30 rounded-2xl shadow-xl">
+          <Card className="bg-gradient-to-br from-violet-600/20 to-red-600/20 border-violet-500/30 rounded-2xl shadow-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-400 text-sm font-medium">{t('progress.tests.inProgress')}</p>
+                  <p className="text-violet-400 text-sm font-medium">{t('progress.tests.inProgress')}</p>
                   <p className="text-3xl font-bold text-white">1</p>
                 </div>
-                <Play className="h-10 w-10 text-orange-400" />
+                <Play className="h-10 w-10 text-violet-400" />
               </div>
             </CardContent>
           </Card>

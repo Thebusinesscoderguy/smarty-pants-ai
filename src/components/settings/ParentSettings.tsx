@@ -202,8 +202,8 @@ export const ParentSettings = () => {
             <div className="p-6 bg-muted/50 border border-border rounded-xl hover:bg-muted transition-all duration-200 group">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-orange-500/20 rounded-lg group-hover:scale-110 transition-transform duration-200">
-                    <AlertTriangle className="h-5 w-5 text-orange-400" />
+                  <div className="p-2 bg-violet-500/20 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    <AlertTriangle className="h-5 w-5 text-violet-400" />
                   </div>
                   <div>
                     <h3 className="text-foreground font-semibold">{t('settings.subscription.cancelSubscription')}</h3>
@@ -214,7 +214,7 @@ export const ParentSettings = () => {
                   onClick={handleCancelSubscription}
                   disabled={isLoading}
                   variant="outline" 
-                  className="bg-muted/50 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+                  className="bg-muted/50 border-violet-500/30 text-violet-400 hover:bg-violet-500/20"
                 >
                   {isLoading ? t('settings.subscription.processing') : t('settings.subscription.cancelPlan')}
                 </Button>
@@ -297,10 +297,10 @@ export const ParentSettings = () => {
       </Card>
 
       {/* Account Security */}
-      <Card className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border-red-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
+      <Card className="bg-gradient-to-br from-red-500/10 to-violet-500/10 border-red-500/30 backdrop-blur-sm rounded-3xl shadow-2xl">
         <CardHeader className="pb-6">
           <CardTitle className="text-foreground flex items-center text-2xl">
-            <div className="p-3 bg-gradient-to-r from-red-500 to-orange-600 rounded-xl mr-4">
+            <div className="p-3 bg-gradient-to-r from-red-500 to-violet-600 rounded-xl mr-4">
               <Shield className="h-6 w-6 text-white" />
             </div>
             {t('settings.security.title')}

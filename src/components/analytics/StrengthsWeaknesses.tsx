@@ -171,7 +171,7 @@ export const StrengthsWeaknesses = () => {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
-              <TrendingDown className="h-5 w-5 text-orange-600" />
+              <TrendingDown className="h-5 w-5 text-violet-600" />
               Areas for Improvement
             </CardTitle>
           </CardHeader>
@@ -186,7 +186,7 @@ export const StrengthsWeaknesses = () => {
                         <p className="text-sm text-muted-foreground">{weakness.subjects?.name}</p>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold text-orange-600">
+                        <div className="font-semibold text-violet-600">
                           {Math.round(weakness.strength_score * 100)}%
                         </div>
                       </div>

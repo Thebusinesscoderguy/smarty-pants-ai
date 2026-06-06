@@ -95,7 +95,7 @@ export const HomeworkList = () => {
     const ms = new Date(date).getTime() - Date.now();
     const days = Math.ceil(ms / 86400000);
     if (ms < 0) return <Badge variant="destructive" className="text-xs">Overdue</Badge>;
-    if (days === 0) return <Badge className="text-xs bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30">Due today</Badge>;
+    if (days === 0) return <Badge className="text-xs bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-500/30">Due today</Badge>;
     if (days <= 2) return <Badge className="text-xs bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/30">Due in {days}d</Badge>;
     return <Badge variant="outline" className="text-xs">Due in {days}d</Badge>;
   };

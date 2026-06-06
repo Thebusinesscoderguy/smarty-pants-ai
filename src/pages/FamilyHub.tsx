@@ -123,7 +123,7 @@ const FamilyHub = () => {
       title: 'Review Progress',
       description: 'Detailed analytics and insights',
       icon: TrendingUp,
-      color: 'from-orange-500 to-red-600',
+      color: 'from-violet-500 to-red-600',
       action: () => navigate('/progress')
     }
   ];
@@ -266,10 +266,10 @@ const FamilyHub = () => {
         </Card>
 
         {/* Growth Areas */}
-        <Card className="bg-gradient-to-br from-orange-600/20 to-red-600/20 border-orange-500/30 backdrop-blur-sm">
+        <Card className="bg-gradient-to-br from-violet-600/20 to-red-600/20 border-violet-500/30 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Target className="h-5 w-5 text-orange-400" />
+              <Target className="h-5 w-5 text-violet-400" />
               Growth Opportunities
             </CardTitle>
           </CardHeader>
@@ -284,7 +284,7 @@ const FamilyHub = () => {
                       <Button 
                         size="sm"
                         onClick={() => navigate('/quiz-generator', { state: { topic: area, tab: 'generate' } })}
-                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xs"
+                        className="bg-gradient-to-r from-violet-500 to-red-500 hover:from-violet-600 hover:to-red-600 text-white text-xs"
                       >
                         Practice
                       </Button>

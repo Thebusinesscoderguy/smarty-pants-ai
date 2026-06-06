@@ -72,7 +72,7 @@ export const ProgressBrief = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-orange-600" />
+            <Target className="h-4 w-4 text-violet-600" />
             <div>
               <p className="text-xs text-muted-foreground">Focus Areas</p>
               <p className="font-medium text-foreground">{weakAreas.length}</p>

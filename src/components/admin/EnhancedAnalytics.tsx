@@ -264,7 +264,7 @@ export const EnhancedAnalytics = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <TrendingUp className="h-5 w-5 text-violet-600" />
               <div>
                 <p className="text-sm text-muted-foreground">{t('adminAnalytics.achievements')}</p>
                 <p className="text-2xl font-bold text-foreground">

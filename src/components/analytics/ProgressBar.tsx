@@ -30,7 +30,7 @@ export const ProgressBar = ({
       case 'strength':
         return 'bg-gradient-to-r from-green-500 to-emerald-400';
       case 'weakness':
-        return 'bg-gradient-to-r from-red-500 to-orange-400';
+        return 'bg-gradient-to-r from-red-500 to-violet-400';
       case 'improvement':
         return 'bg-gradient-to-r from-blue-500 to-purple-400';
       default:

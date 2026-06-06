@@ -203,7 +203,7 @@ export const StudentDashboard = () => {
           </Card>
           <Card className="border-border">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-orange-500">{stats.studyStreak}</div>
+              <div className="text-2xl font-bold text-violet-500">{stats.studyStreak}</div>
               <div className="text-sm text-muted-foreground">{t('studentDashboard.dayStreak')}</div>
             </CardContent>
           </Card>
@@ -328,7 +328,7 @@ export const StudentDashboard = () => {
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-orange-500" />
+                <Target className="h-5 w-5 text-violet-500" />
                 {t('studentDashboard.activeQuests')}
               </CardTitle>
             </CardHeader>

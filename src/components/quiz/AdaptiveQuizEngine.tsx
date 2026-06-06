@@ -23,7 +23,7 @@ const DIFFICULTY_KEYS: { value: DifficultyLevel; color: string }[] = [
   { value: 'very_easy', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
   { value: 'easy', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
   { value: 'medium', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
-  { value: 'hard', color: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
+  { value: 'hard', color: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
   { value: 'very_hard', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
 ];
 

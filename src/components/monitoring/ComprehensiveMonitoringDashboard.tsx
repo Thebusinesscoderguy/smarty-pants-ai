@@ -131,7 +131,7 @@ export const ComprehensiveMonitoringDashboard = () => {
   const getPerformanceBadge = (percentage: number) => {
     if (percentage >= 80) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
     if (percentage >= 60) return <Badge className="bg-blue-100 text-blue-800">Good</Badge>;
-    return <Badge className="bg-orange-100 text-orange-800">Needs Attention</Badge>;
+    return <Badge className="bg-violet-100 text-violet-800">Needs Attention</Badge>;
   };
 
   if (loading) {
@@ -223,13 +223,13 @@ export const ComprehensiveMonitoringDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-orange-500/10 rounded-lg">
-                <Award className="h-6 w-6 text-orange-500" />
+              <div className="p-3 bg-violet-500/10 rounded-lg">
+                <Award className="h-6 w-6 text-violet-500" />
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Achievements</p>
                 <p className="text-2xl font-bold">{overviewStats.totalAchievements}</p>
-                <p className="text-xs text-orange-600">Earned total</p>
+                <p className="text-xs text-violet-600">Earned total</p>
               </div>
             </div>
           </CardContent>
@@ -401,13 +401,13 @@ export const ComprehensiveMonitoringDashboard = () => {
                                 </div>
                                 
                                 <div>
-                                  <h4 className="font-medium text-orange-600 mb-2 flex items-center gap-2">
+                                  <h4 className="font-medium text-violet-600 mb-2 flex items-center gap-2">
                                     <AlertTriangle className="h-4 w-4" />
                                     Focus Areas
                                   </h4>
                                   <div className="space-y-1">
                                     {student.weak_areas.slice(0, 3).map((area, index) => (
-                                      <Badge key={index} variant="outline" className="bg-orange-50 text-orange-700">
+                                      <Badge key={index} variant="outline" className="bg-violet-50 text-violet-700">
                                         {area}
                                       </Badge>
                                     ))}

@@ -650,7 +650,7 @@ Please generate 5 questions that test understanding of this topic.`;
               <Button 
                 onClick={handleStartPlan} 
                 disabled={starting}
-                className="flex-1 min-w-[140px] bg-orange-500 hover:bg-orange-600 text-white"
+                className="flex-1 min-w-[140px] bg-violet-500 hover:bg-violet-600 text-white"
               >
                 {starting ? (
                   <>
@@ -664,7 +664,7 @@ Please generate 5 questions that test understanding of this topic.`;
               <Button 
                 onClick={handleSavePlan}
                 disabled={saving}
-                className="flex-1 min-w-[140px] bg-orange-500 hover:bg-orange-600 text-white"
+                className="flex-1 min-w-[140px] bg-violet-500 hover:bg-violet-600 text-white"
               >
                 {saving ? (
                   <>
@@ -727,7 +727,7 @@ Please generate 5 questions that test understanding of this topic.`;
               <h4 className="font-medium mb-3">Daily Lessons</h4>
               <div className="space-y-3">
                 {generatedPlan.dailyLessons?.map((lesson, idx) => (
-                  <Card key={idx} className="border-l-4 border-orange-400">
+                  <Card key={idx} className="border-l-4 border-violet-400">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Badge variant="outline" className="font-medium">Day {lesson.day}</Badge>
@@ -749,14 +749,14 @@ Please generate 5 questions that test understanding of this topic.`;
                       <div className="flex gap-2">
                         <Button 
                           onClick={() => handleBeginLearning(lesson.day)}
-                          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+                          className="flex-1 bg-violet-500 hover:bg-violet-600 text-white rounded-full"
                         >
                           Begin Learning
                         </Button>
                         <Button 
                           onClick={() => handleTakeQuiz(lesson)}
                           disabled={creatingQuizDay === lesson.day || isGeneratingQuiz}
-                          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+                          className="flex-1 bg-violet-500 hover:bg-violet-600 text-white rounded-full"
                         >
                           <Brain className="mr-2 h-4 w-4" />
                           {creatingQuizDay === lesson.day ? 'Creating...' : 'Take Quiz'}

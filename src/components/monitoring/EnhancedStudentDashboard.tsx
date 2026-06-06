@@ -166,13 +166,13 @@ export const EnhancedStudentDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-orange-500/10 rounded-lg">
-                <Target className="h-6 w-6 text-orange-500" />
+              <div className="p-3 bg-violet-500/10 rounded-lg">
+                <Target className="h-6 w-6 text-violet-500" />
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Quests</p>
                 <p className="text-2xl font-bold">{overviewStats?.totalQuests || 0}</p>
-                <p className="text-xs text-orange-600">Active quests</p>
+                <p className="text-xs text-violet-600">Active quests</p>
               </div>
             </div>
           </CardContent>
@@ -341,15 +341,15 @@ export const EnhancedStudentDashboard = () => {
                           </Card>
                           
                           <Card className="p-4">
-                            <h4 className="font-medium text-orange-600 mb-3 flex items-center gap-2">
+                            <h4 className="font-medium text-violet-600 mb-3 flex items-center gap-2">
                               <AlertTriangle className="h-4 w-4" />
                               Improvement Areas
                             </h4>
                             <div className="space-y-2">
                               {student.weak_areas.slice(0, 5).map((area, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-orange-50 rounded">
+                                <div key={index} className="flex items-center justify-between p-2 bg-violet-50 rounded">
                                   <span className="text-sm">{area}</span>
-                                  <Badge variant="outline" className="bg-orange-100">Focus</Badge>
+                                  <Badge variant="outline" className="bg-violet-100">Focus</Badge>
                                 </div>
                               ))}
                             </div>
@@ -387,7 +387,7 @@ export const EnhancedStudentDashboard = () => {
                               {student.weak_areas.length > 0 ? (
                                 student.weak_areas.slice(0, 3).map((area, index) => (
                                   <li key={index} className="flex items-start gap-2">
-                                    <Zap className="h-3 w-3 text-orange-500 mt-1" />
+                                    <Zap className="h-3 w-3 text-violet-500 mt-1" />
                                     Focus on {area} with additional practice exercises
                                   </li>
                                 ))

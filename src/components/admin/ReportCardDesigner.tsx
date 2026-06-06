@@ -27,7 +27,7 @@ export const ReportCardDesigner = () => {
   const { user } = useAuth();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [layout, setLayout] = useState<ReportCardLayout>(defaultLayoutConfig);
-  const [settings, setSettings] = useState<any>({ school_name: '', principal_name: '', footer_text: '', accent_color: '#f97316', header_logo_url: '' });
+  const [settings, setSettings] = useState<any>({ school_name: '', principal_name: '', footer_text: '', accent_color: '#7C3AED', header_logo_url: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { if (user) load(); }, [user]);
@@ -42,7 +42,7 @@ export const ReportCardDesigner = () => {
         school_name: s.school_name || sch.school_name,
         principal_name: s.principal_name || '',
         footer_text: (s as any).footer_text || '',
-        accent_color: (s as any).accent_color || '#f97316',
+        accent_color: (s as any).accent_color || '#7C3AED',
         header_logo_url: (s as any).header_logo_url || '',
       });
       const lc = (s as any).layout_config;
@@ -180,7 +180,7 @@ export const ReportCardDesigner = () => {
 };
 
 const PreviewSection = ({ section, settings }: { section: SectionConfig; settings: any }) => {
-  const accent = settings.accent_color || '#f97316';
+  const accent = settings.accent_color || '#7C3AED';
   switch (section.type) {
     case 'header':
       return <div className="text-center border-b pb-2" style={{ borderColor: accent }}>

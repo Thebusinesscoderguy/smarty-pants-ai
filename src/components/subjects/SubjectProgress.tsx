@@ -217,10 +217,10 @@ export const SubjectProgress = () => {
                 {/* Areas for Improvement */}
                 {subject.needs_work && subject.needs_work.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-orange-400 mb-2">Areas for Improvement</h4>
+                    <h4 className="text-sm font-medium text-violet-400 mb-2">Areas for Improvement</h4>
                     <div className="flex flex-wrap gap-1">
                       {subject.needs_work.map((area, index) => (
-                        <Badge key={index} variant="outline" className="text-xs text-orange-300 border-orange-500/30">
+                        <Badge key={index} variant="outline" className="text-xs text-violet-300 border-violet-500/30">
                           {area}
                         </Badge>
                       ))}

@@ -94,14 +94,14 @@ export const QuizRecoveryWorkflow = () => {
       title: 'Practice & Learn',
       description: 'Your child follows the study plan with interactive lessons and exercises',
       icon: '✍️',
-      color: 'from-red-500/20 to-orange-500/20'
+      color: 'from-red-500/20 to-violet-500/20'
     },
     {
       id: 'track',
       title: 'Track Progress',
       description: 'Monitor improvement through detailed analytics and celebrate achievements',
       icon: '📊',
-      color: 'from-orange-500/20 to-yellow-500/20'
+      color: 'from-violet-500/20 to-yellow-500/20'
     }
   ];
 
@@ -183,14 +183,14 @@ export const FamilyLearningWorkflow = () => {
       title: 'Daily Learning',
       description: 'Children engage with AI tutor, voice sessions, and practice quizzes',
       icon: '🎓',
-      color: 'from-yellow-500/20 to-orange-500/20'
+      color: 'from-yellow-500/20 to-violet-500/20'
     },
     {
       id: 'celebrate',
       title: 'Track & Celebrate',
       description: 'Parents monitor progress and celebrate achievements together',
       icon: '🎉',
-      color: 'from-orange-500/20 to-red-500/20'
+      color: 'from-violet-500/20 to-red-500/20'
     }
   ];
 

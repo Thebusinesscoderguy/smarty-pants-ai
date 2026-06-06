@@ -134,7 +134,7 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId 
       A: 'bg-green-100 text-green-800 border-green-200',
       B: 'bg-blue-100 text-blue-800 border-blue-200',
       C: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      D: 'bg-orange-100 text-orange-800 border-orange-200',
+      D: 'bg-violet-100 text-violet-800 border-violet-200',
       F: '',
     };
     if (grade === 'F') return <Badge variant="destructive">F</Badge>;

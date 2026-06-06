@@ -80,7 +80,7 @@ const Leaderboard = () => {
                       </p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {entry.current_streak > 0 && (
-                          <span className="flex items-center gap-0.5 text-orange-400">
+                          <span className="flex items-center gap-0.5 text-violet-400">
                             <Flame className="h-3 w-3" /> {entry.current_streak}
                           </span>
                         )}

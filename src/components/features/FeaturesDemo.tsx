@@ -166,7 +166,7 @@ export const FeaturesDemo = () => {
     { id: 'learning', name: t('features.demo.learning'), color: 'bg-blue-500' },
     { id: 'gamification', name: t('features.demo.gamification'), color: 'bg-purple-500' },
     { id: 'tools', name: t('features.demo.tools'), color: 'bg-green-500' },
-    { id: 'monitoring', name: t('features.demo.monitoring'), color: 'bg-orange-500' }
+    { id: 'monitoring', name: t('features.demo.monitoring'), color: 'bg-violet-500' }
   ];
 
   const filteredFeatures = selectedCategory === 'all' 
@@ -191,7 +191,7 @@ export const FeaturesDemo = () => {
       case 'learning': return 'border-blue-200 bg-blue-50/50';
       case 'gamification': return 'border-purple-200 bg-purple-50/50';
       case 'tools': return 'border-green-200 bg-green-50/50';
-      case 'monitoring': return 'border-orange-200 bg-orange-50/50';
+      case 'monitoring': return 'border-violet-200 bg-violet-50/50';
       default: return 'border-gray-200 bg-gray-50/50';
     }
   };

@@ -37,7 +37,7 @@ const familyMessages: FamilyMessage[] = [
     title: 'Celebrate Every Small Win',
     message: 'Learning happens one step at a time. Celebrate completed lessons, improved quiz scores, and daily study streaks. Your encouragement fuels their motivation.',
     icon: Star,
-    color: 'from-yellow-500/20 to-orange-500/20',
+    color: 'from-yellow-500/20 to-violet-500/20',
     audience: 'parent',
     category: 'support'
   },
@@ -82,7 +82,7 @@ const familyMessages: FamilyMessage[] = [
     title: 'You\'re Building Their Future',
     message: 'Every moment you invest in your child\'s learning is an investment in their future success, confidence, and love of knowledge.',
     icon: Zap,
-    color: 'from-orange-500/20 to-red-500/20',
+    color: 'from-violet-500/20 to-red-500/20',
     audience: 'parent',
     category: 'motivation'
   }

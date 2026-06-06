@@ -248,7 +248,7 @@ export const ParentDashboard = () => {
         <Card className="bg-white/10 border-white/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
-              <TrendingDown className="h-5 w-5 text-orange-500" />
+              <TrendingDown className="h-5 w-5 text-violet-500" />
               Areas for Improvement
             </CardTitle>
           </CardHeader>
@@ -263,7 +263,7 @@ export const ParentDashboard = () => {
                         <p className="text-sm text-gray-400">{weakness.subject}</p>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold text-orange-400">
+                        <div className="font-semibold text-violet-400">
                           {weakness.score}%
                         </div>
                       </div>

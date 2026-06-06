@@ -51,7 +51,7 @@ html.lang-ar textarea {
 
 @layer base {
   :root {
-    --background: 30 30% 94%;
+    --background: 270 50% 98%;
     --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
@@ -60,24 +60,24 @@ html.lang-ar textarea {
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 20 100% 60%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 20% 90%;
+    --secondary: 270 32% 94%;
     --secondary-foreground: 0 0% 10%;
 
-    --muted: 30 20% 90%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 270 32% 94%;
+    --muted-foreground: 250 12% 45%;
 
-    --accent: 20 100% 60%;
+    --accent: 262 83% 58%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 20% 85%;
-    --input: 30 20% 90%;
-    --ring: 20 100% 60%;
+    --border: 270 28% 89%;
+    --input: 270 32% 94%;
+    --ring: 262 83% 58%;
 
     --radius: 1rem;
 
@@ -87,12 +87,12 @@ html.lang-ar textarea {
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 20 100% 60%;
+    --sidebar-primary: 262 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 20% 90%;
+    --sidebar-accent: 270 32% 94%;
     --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 30 20% 85%;
-    --sidebar-ring: 20 100% 60%;
+    --sidebar-border: 270 28% 89%;
+    --sidebar-ring: 262 83% 58%;
   }
 
   .dark {
@@ -105,7 +105,7 @@ html.lang-ar textarea {
     --popover: 0 0% 15%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 20 100% 60%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 20%;
@@ -114,7 +114,7 @@ html.lang-ar textarea {
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 20 100% 60%;
+    --accent: 262 83% 58%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
@@ -122,7 +122,7 @@ html.lang-ar textarea {
 
     --border: 0 0% 25%;
     --input: 0 0% 25%;
-    --ring: 20 100% 60%;
+    --ring: 262 83% 58%;
 
     --button-shadow: 0 4px 14px 0 hsla(var(--primary) / 0.4);
     --button-shadow-hover: 0 6px 20px 0 hsla(var(--primary) / 0.5);
@@ -130,12 +130,12 @@ html.lang-ar textarea {
 
     --sidebar-background: 0 0% 15%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 20 100% 60%;
+    --sidebar-primary: 262 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 20%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 20 100% 60%;
+    --sidebar-ring: 262 83% 58%;
   }
 }
 

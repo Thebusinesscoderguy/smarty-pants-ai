@@ -36,7 +36,7 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
         <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
           <p className="font-medium text-white">{label}</p>
           <p className="text-sm text-gray-300">
-            Past: <span className="text-orange-400">{data.past_score}%</span>
+            Past: <span className="text-violet-400">{data.past_score}%</span>
           </p>
           <p className="text-sm text-gray-300">
             Current: <span className="text-blue-400">{data.current_score}%</span>

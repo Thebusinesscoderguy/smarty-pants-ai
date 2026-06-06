@@ -146,7 +146,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
               <div className="flex gap-2 flex-wrap">
                 <Button 
                   onClick={() => handleStartDay(1)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  className="bg-violet-500 hover:bg-violet-600 text-white"
                 >
                   Start Plan
                 </Button>
@@ -163,7 +163,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                 />
                 <Button 
                   variant="outline"
-                  className="border-orange-500 text-orange-500 hover:bg-orange-50"
+                  className="border-violet-500 text-violet-500 hover:bg-violet-50"
                   onClick={onClose}
                 >
                   Save & Close
@@ -223,7 +223,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
             {dailyLessons.map((lesson) => (
               <div 
                 key={lesson.day} 
-                className="border-l-4 border-orange-400 bg-muted/30 rounded-r-lg p-4 hover:bg-muted/50 transition-colors"
+                className="border-l-4 border-violet-400 bg-muted/30 rounded-r-lg p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-2">
@@ -277,7 +277,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                 <div className="flex gap-2 mt-3">
                   <Button 
                     onClick={() => handleStartDay(lesson.day)}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+                    className="flex-1 bg-violet-500 hover:bg-violet-600 text-white rounded-full"
                   >
                     Begin Learning
                   </Button>
@@ -285,7 +285,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                     onClick={() => handleCreateQuiz(lesson)}
                     variant="outline"
                     disabled={creatingQuiz === lesson.day || isGenerating}
-                    className="flex-1 border-orange-400 text-orange-600 hover:bg-orange-50 rounded-full"
+                    className="flex-1 border-violet-400 text-violet-600 hover:bg-violet-50 rounded-full"
                   >
                     <Brain className="mr-2 h-4 w-4" />
                     {creatingQuiz === lesson.day ? 'Creating...' : 'Take Quiz'}

@@ -98,7 +98,7 @@ export const StudyPlanLibrary = () => {
       case 'completed':
         return 'bg-green-100 text-green-800';
       case 'paused':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-violet-100 text-violet-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
