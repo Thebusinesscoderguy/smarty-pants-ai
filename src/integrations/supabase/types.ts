@@ -3597,8 +3597,10 @@ export type Database = {
           exam_instructions: string | null
           id: string
           is_mandatory: boolean | null
+          link_sharing_enabled: boolean
           question_order_locked: boolean
           question_randomization: boolean
+          share_token: string
           subject: string | null
           time_limit_minutes: number | null
           title: string
@@ -3618,8 +3620,10 @@ export type Database = {
           exam_instructions?: string | null
           id?: string
           is_mandatory?: boolean | null
+          link_sharing_enabled?: boolean
           question_order_locked?: boolean
           question_randomization?: boolean
+          share_token?: string
           subject?: string | null
           time_limit_minutes?: number | null
           title: string
@@ -3639,8 +3643,10 @@ export type Database = {
           exam_instructions?: string | null
           id?: string
           is_mandatory?: boolean | null
+          link_sharing_enabled?: boolean
           question_order_locked?: boolean
           question_randomization?: boolean
+          share_token?: string
           subject?: string | null
           time_limit_minutes?: number | null
           title?: string
