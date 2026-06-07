@@ -112,7 +112,7 @@ export default function ExamRunner() {
         .eq('id', testId)
         .maybeSingle();
       if (error || !t) { setErrorMsg('Exam not found.'); setPhase('denied'); return; }
-      if (t.assessment_mode !== 'exam') { setErrorMsg('This assessment is not in Exam Mode.'); setPhase('denied'); return; }
+      // Allow both practice and exam modes; exam-specific UI is gated by t.assessment_mode below.
 
       const { data: qs, error: qErr } = await supabase
         .rpc('get_exam_questions_for_student', { _test_id: testId });
