@@ -129,15 +129,36 @@ export function Nav({ onCta }: { onCta?: () => void }) {
               </a>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 p-1">
-              <a
-                href="/auth"
-                className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
-              >
-                Sign in
-              </a>
-              <GradientButton className="w-full px-4 py-2.5 text-sm" onClick={onCta}>
-                Start free
-              </GradientButton>
+              {user ? (
+                <>
+                  <button
+                    onClick={() => { setOpen(false); handleDashboard(); }}
+                    className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
+                  >
+                    Dashboard
+                  </button>
+                  <GradientButton
+                    className="w-full px-4 py-2.5 text-sm"
+                    onClick={() => { setOpen(false); handleSignOut(); }}
+                    disabled={isSigningOut}
+                  >
+                    {isSigningOut ? 'Signing out…' : 'Sign out'}
+                  </GradientButton>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="/auth"
+                    className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
+                  >
+                    Sign in
+                  </a>
+                  <GradientButton className="w-full px-4 py-2.5 text-sm" onClick={onCta}>
+                    Start free
+                  </GradientButton>
+                </>
+              )}
+            </div>
             </div>
           </motion.div>
         )}
