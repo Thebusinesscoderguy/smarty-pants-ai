@@ -23,6 +23,9 @@ export function Nav({ onCta }: { onCta?: () => void }) {
   const handleDashboard = () => navigate('/');
   const handleSignOut = async () => { await signOut(); };
 
+  useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 24));
+
+
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
