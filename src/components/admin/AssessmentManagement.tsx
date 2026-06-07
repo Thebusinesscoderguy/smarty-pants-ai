@@ -119,7 +119,7 @@ export const AssessmentManagement = () => {
   const [examSettings, setExamSettings] = useState({
     mode: 'practice' as 'practice' | 'exam',
     randomization: false,
-    orderLocked: false,
+    orderLocked: true,
     allowBacktracking: true,
     violationThreshold: 3,
     violationAction: 'flag' as 'flag' | 'auto_submit',
