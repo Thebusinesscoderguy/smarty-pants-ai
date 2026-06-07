@@ -3,6 +3,8 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-
 import { GraduationCap, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GradientButton, EASE } from './primitives';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const LINKS = [
   { label: 'Features', href: '#features' },
@@ -15,8 +17,14 @@ export function Nav({ onCta }: { onCta?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { scrollY } = useScroll();
+  const { user, signOut, isSigningOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleDashboard = () => navigate('/');
+  const handleSignOut = async () => { await signOut(); };
 
   useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 24));
+
 
   return (
     <motion.header
@@ -58,15 +66,35 @@ export function Nav({ onCta }: { onCta?: () => void }) {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <a
-            href="/auth"
-            className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
-          >
-            Sign in
-          </a>
-          <GradientButton className="px-5 py-2.5 text-sm" onClick={onCta}>
-            Start free
-          </GradientButton>
+          {user ? (
+            <>
+              <button
+                onClick={handleDashboard}
+                className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
+              >
+                Dashboard
+              </button>
+              <GradientButton
+                className="px-5 py-2.5 text-sm"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+              >
+                {isSigningOut ? 'Signing out…' : 'Sign out'}
+              </GradientButton>
+            </>
+          ) : (
+            <>
+              <a
+                href="/auth"
+                className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
+              >
+                Sign in
+              </a>
+              <GradientButton className="px-5 py-2.5 text-sm" onClick={onCta}>
+                Start free
+              </GradientButton>
+            </>
+          )}
         </div>
 
         <button
@@ -101,15 +129,35 @@ export function Nav({ onCta }: { onCta?: () => void }) {
               </a>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 p-1">
-              <a
-                href="/auth"
-                className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
-              >
-                Sign in
-              </a>
-              <GradientButton className="w-full px-4 py-2.5 text-sm" onClick={onCta}>
-                Start free
-              </GradientButton>
+              {user ? (
+                <>
+                  <button
+                    onClick={() => { setOpen(false); handleDashboard(); }}
+                    className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
+                  >
+                    Dashboard
+                  </button>
+                  <GradientButton
+                    className="w-full px-4 py-2.5 text-sm"
+                    onClick={() => { setOpen(false); handleSignOut(); }}
+                    disabled={isSigningOut}
+                  >
+                    {isSigningOut ? 'Signing out…' : 'Sign out'}
+                  </GradientButton>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="/auth"
+                    className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
+                  >
+                    Sign in
+                  </a>
+                  <GradientButton className="w-full px-4 py-2.5 text-sm" onClick={onCta}>
+                    Start free
+                  </GradientButton>
+                </>
+              )}
             </div>
           </motion.div>
         )}
