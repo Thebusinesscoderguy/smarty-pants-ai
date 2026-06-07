@@ -3,6 +3,8 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-
 import { GraduationCap, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GradientButton, EASE } from './primitives';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const LINKS = [
   { label: 'Features', href: '#features' },
