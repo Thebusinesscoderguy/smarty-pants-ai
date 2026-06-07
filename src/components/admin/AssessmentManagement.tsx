@@ -525,11 +525,26 @@ export const AssessmentManagement = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <label className="flex items-center justify-between gap-2 text-sm">
                         <span>Randomize questions</span>
-                        <Switch checked={examSettings.randomization} onCheckedChange={(v) => setExamSettings(p => ({ ...p, randomization: v }))} />
+                        <Switch
+                          checked={examSettings.randomization}
+                          onCheckedChange={(v) => setExamSettings(p => ({
+                            ...p,
+                            randomization: v,
+                            // Randomization and a locked order are mutually exclusive.
+                            orderLocked: v ? false : p.orderLocked,
+                          }))}
+                        />
                       </label>
                       <label className="flex items-center justify-between gap-2 text-sm">
                         <span>Lock question order</span>
-                        <Switch checked={examSettings.orderLocked} onCheckedChange={(v) => setExamSettings(p => ({ ...p, orderLocked: v }))} />
+                        <Switch
+                          checked={examSettings.orderLocked}
+                          onCheckedChange={(v) => setExamSettings(p => ({
+                            ...p,
+                            orderLocked: v,
+                            randomization: v ? false : p.randomization,
+                          }))}
+                        />
                       </label>
                       <label className="flex items-center justify-between gap-2 text-sm">
                         <span>Allow backtracking</span>
