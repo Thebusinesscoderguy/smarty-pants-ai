@@ -23,7 +23,7 @@ const Progress = () => {
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('monitoring');
-  const [isCurriculumSelectorOpen, setIsCurriculumSelectorOpen] = useState(false);
+  
 
   useEffect(() => {
     if (!authLoading) {
@@ -124,27 +124,18 @@ const Progress = () => {
 
   const handleCreateCustomCurriculum = () => {
     navigate('/chat', { state: { message: 'I want to create a custom AI curriculum. Please help me get started.' } });
-    setIsCurriculumSelectorOpen(false);
   };
 
   const renderCurriculumsTab = () => {
     return (
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-3xl font-bold text-foreground mb-2">
-              {t('progress.curriculum.title')}
-            </h3>
-            <p className="text-muted-foreground text-lg">{t('progress.curriculum.subtitle')}</p>
-          </div>
-          <Button 
-            onClick={() => setIsCurriculumSelectorOpen(true)}
-            className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl font-semibold shadow-lg"
-          >
-            <BookOpen className="h-5 w-5 mr-2" />
-            {t('progress.curriculum.browse')}
-          </Button>
+        <div>
+          <h3 className="text-3xl font-bold text-foreground mb-2">
+            {t('progress.curriculum.title')}
+          </h3>
+          <p className="text-muted-foreground text-lg">{t('progress.curriculum.subtitle')}</p>
         </div>
+
         
         <div className="grid gap-8">
           <Card className="bg-primary/10 border-primary/30 hover:bg-primary/20 transition-all duration-300 cursor-pointer group rounded-2xl shadow-xl">
