@@ -69,8 +69,8 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
               transition={{ duration: 0.6, ease: EASE, delay: 0.4 }}
               className="mx-auto mt-5 max-w-xl text-lg text-violet-100"
             >
-              Set up your whole school in a single weekend. Free for 30 days,
-              white-glove onboarding included.
+              Set up your whole school in a single weekend, white-glove
+              onboarding included.
             </motion.p>
 
             <motion.div
@@ -86,9 +86,6 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
               <CtaButton variant="ghost">Book a demo</CtaButton>
             </motion.div>
 
-            <div className="mt-7 flex items-center justify-center gap-2 text-sm text-violet-100">
-              No credit card required · Cancel anytime
-            </div>
           </div>
         </div>
       </Reveal>
