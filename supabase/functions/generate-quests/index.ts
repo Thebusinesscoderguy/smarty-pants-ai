@@ -1,16 +1,21 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
+import { enforceIpRateLimit, rateLimitedResponse } from "../_shared/rateLimit.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // SECURITY (AI bill abuse): this endpoint is intentionally anonymous, so cap
+  // each client IP to 3 requests/hour before doing any AI work.
+  const { allowed } = await enforceIpRateLimit(req, 'generate-quests');
+  if (!allowed) return rateLimitedResponse(corsHeaders);
 
   try {
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
@@ -23,7 +28,9 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    console.log('[generate-quests] Received request body:', JSON.stringify(body));
+    // SECURITY (sensitive logging): don't dump the full request body to logs;
+    // it can contain user-supplied content/PII. Log only non-sensitive metadata.
+    console.log('[generate-quests] Received request with keys:', Object.keys(body ?? {}));
 
     // Normalize parameters - Admin UI sends "questType", singular function expects "type"
     const subject = body.subject || 'General';
@@ -123,22 +130,24 @@ Return ONLY valid JSON in this exact format:
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text();
       console.error('[generate-quests] OpenAI error:', openAIResponse.status, errorText);
-      
+      // SECURITY (info disclosure): do not forward the raw upstream provider
+      // response (`details: errorText`) to the client. Keep it in server logs
+      // only and return generic, non-revealing messages.
       if (openAIResponse.status === 401) {
         return new Response(
-          JSON.stringify({ error: 'OpenAI authentication failed - check API key', details: errorText }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'AI service is misconfigured. Please contact support.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (openAIResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'OpenAI rate limit exceeded - try again later', details: errorText }),
+          JSON.stringify({ error: 'Rate limit exceeded - please try again later.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
       return new Response(
-        JSON.stringify({ error: `OpenAI request failed: ${openAIResponse.status}`, details: errorText }),
+        JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

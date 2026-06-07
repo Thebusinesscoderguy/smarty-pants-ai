@@ -1,11 +1,9 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 // Nightly auto-grading of homework submissions using semantic AI grading.
 // Cron-invoked. Idempotent: skips submissions that already have ai_graded_at set.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 interface QuestionResponse {
   question: string;
@@ -54,6 +52,7 @@ Return ONLY a JSON object: {"score": <0-100>, "feedback": "<one-sentence feedbac
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const supabase = createClient(
@@ -71,7 +70,7 @@ Deno.serve(async (req) => {
 
   if (error) {
     console.error('fetch error', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }), { status: 500, headers: corsHeaders });
   }
 
   let processed = 0;

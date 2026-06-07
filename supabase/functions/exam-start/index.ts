@@ -1,11 +1,10 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
@@ -46,7 +45,7 @@ Deno.serve(async (req) => {
     const { data: assigned, error: aErr } = await admin.rpc('is_test_assigned_to_student', {
       _test_id: test_id, _student_id: userId,
     });
-    if (aErr) return json({ error: aErr.message }, 500);
+    if (aErr) return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
 
     const viaShareLink =
       test.link_sharing_enabled === true &&
@@ -89,7 +88,7 @@ Deno.serve(async (req) => {
         })
         .select('id, start_time, time_limit, status')
         .single();
-      if (cErr) return json({ error: cErr.message }, 500);
+      if (cErr) return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
       session = created;
     }
 
@@ -102,7 +101,7 @@ Deno.serve(async (req) => {
         tab_id,
         last_seen_at: new Date().toISOString(),
       }, { onConflict: 'session_id' });
-    if (lockErr) return json({ error: lockErr.message }, 500);
+    if (lockErr) return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
 
     return json({
       session_id: session.id,
@@ -111,7 +110,7 @@ Deno.serve(async (req) => {
       total_points: totalPoints,
     });
   } catch (e: any) {
-    return json({ error: e?.message || 'Server error' }, 500);
+    return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 });
 

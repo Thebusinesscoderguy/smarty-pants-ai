@@ -1,15 +1,14 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 const ALLOWED_TYPES = new Set([
   'tab_switch', 'window_blur', 'exit_fullscreen', 'inactivity', 'copy_paste', 'right_click',
 ]);
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
     const authHeader = req.headers.get('Authorization');
@@ -57,7 +56,7 @@ Deno.serve(async (req) => {
       type,
       details: details ?? {},
     });
-    if (vErr) return json({ error: vErr.message }, 500);
+    if (vErr) return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
 
     const newCount = (session.violation_count ?? 0) + 1;
     const flagged = newCount >= threshold;
@@ -74,7 +73,7 @@ Deno.serve(async (req) => {
       should_auto_submit: flagged && action === 'auto_submit',
     });
   } catch (e: any) {
-    return json({ error: e?.message || 'Server error' }, 500);
+    return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 });
 

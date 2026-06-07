@@ -1,15 +1,20 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
+import { enforceIpRateLimit, rateLimitedResponse } from "../_shared/rateLimit.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // SECURITY (AI bill abuse): this endpoint is intentionally anonymous, so cap
+  // each client IP to 3 requests/hour before doing any AI work.
+  const { allowed } = await enforceIpRateLimit(req, 'generate-study-plan');
+  if (!allowed) return rateLimitedResponse(corsHeaders);
 
   try {
     const { inputData, inputType, gradeLevel, region, days, maxDailyMinutes, language, fileUrl, fileType } = await req.json();
@@ -178,7 +183,7 @@ serve(async (req) => {
       } catch (fileError: any) {
         console.error('[generate-study-plan] File processing error:', fileError);
         return new Response(JSON.stringify({ 
-          error: `Failed to process file: ${fileError.message}`,
+          error: 'Could not process the uploaded file. Please try again.',
           errorCode: 'FILE_PROCESSING_ERROR'
         }), {
           status: 422,
@@ -454,10 +459,10 @@ MANDATORY REQUIREMENTS:
         });
       }
       
-      return new Response(JSON.stringify({ 
+      // SECURITY (info disclosure): removed `details: errorText` / upstream status
+      // from the client response; the raw provider error is logged above only.
+      return new Response(JSON.stringify({
         error: 'AI service temporarily unavailable. Please try again.',
-        details: errorText,
-        status: response.status 
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -598,7 +603,7 @@ MANDATORY REQUIREMENTS:
   } catch (error) {
     console.error('[generate-study-plan] Error:', error);
     return new Response(
-      JSON.stringify({ error: (error as Error).message }),
+      JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

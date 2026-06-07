@@ -1,12 +1,11 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -98,7 +97,7 @@ serve(async (req) => {
     if (linkError || !linkData?.properties?.action_link) {
       console.error("generateLink error:", linkError);
       return new Response(
-        JSON.stringify({ error: linkError?.message || "Failed to generate link" }),
+        JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -186,7 +185,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("send-verification-email error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

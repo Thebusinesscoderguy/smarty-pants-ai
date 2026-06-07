@@ -1,13 +1,12 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -80,12 +79,14 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('OpenAI API error:', response.status, errorText);
+        // SECURITY (info disclosure): previously returned the raw upstream
+        // provider response body (`details: errorText`) to the browser, which can
+        // leak internal/API details. Log it server-side only; send a generic msg.
         return new Response(
-          JSON.stringify({ 
-            error: `OpenAI API error: ${response.statusText}`,
-            details: errorText
+          JSON.stringify({
+            error: 'AI service temporarily unavailable. Please try again.',
           }),
-          { 
+          {
             status: response.status,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }

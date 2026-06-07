@@ -1,12 +1,11 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -132,8 +131,10 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Resend API error:', response.status, errorText);
+      // SECURITY (info disclosure): don't forward the raw email-provider response
+      // body to the client; keep it server-side only.
       return new Response(
-        JSON.stringify({ error: `Email service error: ${response.statusText}`, details: errorText }),
+        JSON.stringify({ error: 'Could not send the invitation email. Please try again.' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -162,7 +163,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in send-invitation-email:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ success: false, error: 'An unexpected error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

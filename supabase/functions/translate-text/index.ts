@@ -1,11 +1,9 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 // Use DeepL for reliable translation
 const DEEPL_API_KEY = Deno.env.get('DEEPL_API_KEY');
@@ -70,6 +68,7 @@ async function translateWithDeepL(text: string, sourceLang: string, targetLang: 
 
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -119,7 +118,7 @@ serve(async (req) => {
         originalText: text,
         targetLang,
         sourceLang,
-        error: `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: 'Translation failed. Returning original text.',
         fallback: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -129,7 +128,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Translation function error:', error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: 'An unexpected error occurred. Please try again.',
       translatedText: null 
     }), {
       status: 500,

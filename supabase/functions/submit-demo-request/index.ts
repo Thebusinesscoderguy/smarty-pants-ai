@@ -1,10 +1,8 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 // Public endpoint: accepts Book a Demo form, stores in DB, emails the team.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 const GATEWAY_URL = 'https://connector-gateway.lovable.dev/resend';
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')!;
@@ -16,6 +14,7 @@ function escapeHtml(s: string): string {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

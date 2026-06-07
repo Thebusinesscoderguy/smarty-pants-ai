@@ -1,11 +1,9 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 // Weekly digest email to school admins/principals. Cron-invoked Mondays.
 // Optional ?school_id=<uuid> for "send me a preview" calls.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 const GATEWAY_URL = 'https://connector-gateway.lovable.dev/resend';
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')!;
@@ -252,6 +250,7 @@ async function sendDigestForSchool(supabase: any, schoolId: string): Promise<boo
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const supabase = createClient(
