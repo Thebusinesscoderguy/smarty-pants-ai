@@ -45,8 +45,8 @@ type TabValue =
   // People
   | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
   // Academics
-  | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
-  | 'lesson-plans' | 'homework' | 'assignments' | 'question-bank'
+  | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects'
+  | 'lesson-plans' | 'homework' | 'assignments'
   | 'attendance' | 'report-cards' | 'report-card-designer'
   // Communication
   | 'messages' | 'news'
