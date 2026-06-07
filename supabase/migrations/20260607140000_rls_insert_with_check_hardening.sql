@@ -58,19 +58,33 @@ CREATE POLICY "rls_restrict_invoice_payments_insert_owner"
 --    (shared standard curriculum, school_id IS NULL) or belong to a school the
 --    user administers. Prevents logging usage against another school's custom
 --    curriculum.
+--    Guarded: the policy references public.curriculum_units, which has been
+--    removed on some environments. If that table is absent we skip creating the
+--    policy (the table keeps its existing INSERT policy) instead of failing the
+--    whole migration.
 DROP POLICY IF EXISTS "rls_restrict_curriculum_unit_usage_insert_school" ON public.curriculum_unit_usage;
-CREATE POLICY "rls_restrict_curriculum_unit_usage_insert_school"
-  ON public.curriculum_unit_usage AS RESTRICTIVE FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.curriculum_units cu
-      WHERE cu.id = curriculum_unit_usage.curriculum_unit_id
-        AND (
-          cu.school_id IS NULL
-          OR cu.school_id IN (
-            SELECT id FROM public.school_accounts WHERE admin_user_id = auth.uid()
+DO $$
+BEGIN
+  IF to_regclass('public.curriculum_units') IS NOT NULL
+     AND to_regclass('public.curriculum_unit_usage') IS NOT NULL THEN
+    EXECUTE $pol$
+      CREATE POLICY "rls_restrict_curriculum_unit_usage_insert_school"
+        ON public.curriculum_unit_usage AS RESTRICTIVE FOR INSERT
+        WITH CHECK (
+          EXISTS (
+            SELECT 1
+            FROM public.curriculum_units cu
+            WHERE cu.id = curriculum_unit_usage.curriculum_unit_id
+              AND (
+                cu.school_id IS NULL
+                OR cu.school_id IN (
+                  SELECT id FROM public.school_accounts WHERE admin_user_id = auth.uid()
+                )
+              )
           )
         )
-    )
-  );
+    $pol$;
+  ELSE
+    RAISE NOTICE 'Skipping curriculum_unit_usage insert policy: curriculum_units/curriculum_unit_usage not present';
+  END IF;
+END $$;
