@@ -17,8 +17,11 @@ export function Nav({ onCta }: { onCta?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { scrollY } = useScroll();
+  const { user, signOut, isSigningOut } = useAuth();
+  const navigate = useNavigate();
 
-  useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 24));
+  const handleDashboard = () => navigate('/');
+  const handleSignOut = async () => { await signOut(); };
 
   return (
     <motion.header
