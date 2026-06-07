@@ -6,7 +6,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Reveal, StaggerGroup, staggerItem, EASE } from './primitives';
 
-type FeatureKind = 'quiz' | 'attendance' | 'analytics' | 'messaging' | 'report';
+export type FeatureKind = 'quiz' | 'attendance' | 'analytics' | 'messaging' | 'report';
 
 type Feature = {
   icon: React.ElementType;
@@ -249,7 +249,7 @@ function ReportVisual() {
   );
 }
 
-function FeatureVisual({ kind }: { kind: FeatureKind }) {
+export function FeatureVisual({ kind }: { kind: FeatureKind }) {
   switch (kind) {
     case 'quiz': return <QuizVisual />;
     case 'attendance': return <AttendanceVisual />;

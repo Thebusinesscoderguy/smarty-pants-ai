@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { GraduationCap, Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { GradientButton, EASE } from './primitives';
 
 const LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'How it works', href: '#how' },
-  { label: 'Schools', href: '#proof' },
-  { label: 'Pricing', href: '#cta' },
+  { label: 'Features', to: '/features' },
+  { label: 'How it works', to: '/how-it-works' },
+  { label: 'Schools', to: '/schools' },
+  { label: 'Pricing', to: '/pricing' },
 ];
 
 export function Nav({ onCta }: { onCta?: () => void }) {
@@ -36,34 +37,34 @@ export function Nav({ onCta }: { onCta?: () => void }) {
         transition={{ duration: 0.5, ease: EASE }}
         className="flex items-center justify-between gap-4 rounded-2xl border border-white/70 px-4 py-2.5 backdrop-blur-xl sm:px-5"
       >
-        <a href="#top" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#7C3AED,#A855F7)] shadow-[0_8px_20px_-6px_rgba(124,58,237,0.6)]">
             <GraduationCap className="h-5 w-5 text-white" strokeWidth={2.4} />
           </span>
           <span className="font-display text-lg font-extrabold tracking-tight text-[hsl(250_47%_11%)]">
             Teachly<span className="lp-text-gradient">AI</span>
           </span>
-        </a>
+        </Link>
 
         <div className="hidden items-center gap-1 md:flex">
           {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
+            <Link
+              key={l.to}
+              to={l.to}
               className="relative rounded-lg px-3.5 py-2 text-sm font-medium text-[hsl(245_16%_40%)] transition-colors hover:text-violet-700"
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <a
-            href="/auth"
+          <Link
+            to="/auth"
             className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
           >
             Sign in
-          </a>
+          </Link>
           <GradientButton className="px-5 py-2.5 text-sm" onClick={onCta}>
             Start free
           </GradientButton>
@@ -91,22 +92,23 @@ export function Nav({ onCta }: { onCta?: () => void }) {
             )}
           >
             {LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
+              <Link
+                key={l.to}
+                to={l.to}
                 onClick={() => setOpen(false)}
                 className="block rounded-xl px-4 py-3 text-sm font-medium text-[hsl(245_16%_38%)] transition-colors hover:bg-violet-50 hover:text-violet-700"
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 p-1">
-              <a
-                href="/auth"
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
                 className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
               >
                 Sign in
-              </a>
+              </Link>
               <GradientButton className="w-full px-4 py-2.5 text-sm" onClick={onCta}>
                 Start free
               </GradientButton>

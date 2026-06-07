@@ -52,6 +52,24 @@ const seededShuffle = <T,>(arr: T[], seed: string): T[] => {
   return a;
 };
 
+// supabase.functions.invoke() collapses every non-2xx response into the generic
+// "Edge Function returned a non-2xx status code". The real reason (our JSON
+// { error } body plus the HTTP status) is on error.context, a Response. Pull it
+// out so the UI can show what actually went wrong instead of the opaque default.
+const extractFunctionError = async (error: any, fallback: string): Promise<string> => {
+  try {
+    const ctx = error?.context;
+    if (ctx && typeof ctx.json === 'function') {
+      const body = await ctx.clone().json().catch(() => null);
+      const status = ctx.status ? ` (${ctx.status})` : '';
+      if (body?.error) return `${body.error}${status}`;
+    }
+  } catch {
+    // fall through to the generic message
+  }
+  return error?.message || fallback;
+};
+
 const requestFullscreen = async () => {
   const el = document.documentElement as any;
   try {
@@ -305,7 +323,7 @@ export default function ExamRunner() {
       setPhase('in_progress');
       await requestFullscreen();
     } catch (e: any) {
-      const msg = e?.message || 'You may not be assigned to this exam.';
+      const msg = await extractFunctionError(e, 'You may not be assigned to this exam.');
       toast({ title: 'Cannot start exam', description: msg, variant: 'destructive' });
       setErrorMsg(msg);
       setPhase('denied');

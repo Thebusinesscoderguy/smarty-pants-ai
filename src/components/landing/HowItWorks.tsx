@@ -4,7 +4,7 @@ import { UploadCloud, Wand2, Rocket, Check, Sparkles, RefreshCw } from 'lucide-r
 import { cn } from '@/lib/utils';
 import { Reveal, EASE } from './primitives';
 
-type StepKind = 'import' | 'setup' | 'golive';
+export type StepKind = 'import' | 'setup' | 'golive';
 
 const STEPS: { icon: React.ElementType; n: string; title: string; body: string; kind: StepKind }[] = [
   {
@@ -36,7 +36,7 @@ function Bar({ w = 'w-full', tone = 'bg-violet-100' }: { w?: string; tone?: stri
 }
 
 /* decorative, abstract UI sketch that fills each step card */
-function StepSketch({ kind }: { kind: StepKind }) {
+export function StepSketch({ kind }: { kind: StepKind }) {
   if (kind === 'import') {
     return (
       <div className="rounded-2xl border border-violet-100 bg-white/80 p-3.5 shadow-[0_12px_40px_-26px_rgba(124,58,237,0.45)]">
