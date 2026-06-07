@@ -66,15 +66,35 @@ export function Nav({ onCta }: { onCta?: () => void }) {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <a
-            href="/auth"
-            className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
-          >
-            Sign in
-          </a>
-          <GradientButton className="px-5 py-2.5 text-sm" onClick={onCta}>
-            Start free
-          </GradientButton>
+          {user ? (
+            <>
+              <button
+                onClick={handleDashboard}
+                className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
+              >
+                Dashboard
+              </button>
+              <GradientButton
+                className="px-5 py-2.5 text-sm"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+              >
+                {isSigningOut ? 'Signing out…' : 'Sign out'}
+              </GradientButton>
+            </>
+          ) : (
+            <>
+              <a
+                href="/auth"
+                className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
+              >
+                Sign in
+              </a>
+              <GradientButton className="px-5 py-2.5 text-sm" onClick={onCta}>
+                Start free
+              </GradientButton>
+            </>
+          )}
         </div>
 
         <button
