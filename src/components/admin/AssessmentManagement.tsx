@@ -92,7 +92,7 @@ export const AssessmentManagement = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [createMode, setCreateMode] = useState<'ai' | 'manual'>('ai');
+  const [createMode, setCreateMode] = useState<'ai' | 'manual'>('manual');
 
   // AI generation form
   const [aiForm, setAiForm] = useState({
