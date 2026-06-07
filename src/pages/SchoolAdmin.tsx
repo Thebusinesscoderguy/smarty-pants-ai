@@ -99,9 +99,6 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ListChecks className="h-4 w-4 mr-2" />Homework
                 </TabsTrigger>
-                <TabsTrigger value="question-bank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <Database className="h-4 w-4 mr-2" />Question Bank
-                </TabsTrigger>
                 <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <MessageCircle className="h-4 w-4 mr-2" />Messages
                 </TabsTrigger>
