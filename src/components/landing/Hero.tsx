@@ -9,7 +9,7 @@ import {
 } from 'framer-motion';
 import {
   ArrowRight, Sparkles, CalendarCheck, GraduationCap,
-  MessageSquare, CheckCircle2,
+  MessageSquare,
 } from 'lucide-react';
 import {
   GradientOrbs, WordReveal, GradientButton, GhostButton, Magnetic, EASE,
