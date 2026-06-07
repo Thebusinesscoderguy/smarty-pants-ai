@@ -273,12 +273,10 @@ const SchoolAdmin = () => {
               <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
               <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
               <TabsContent value="grading"><GradingInbox /></TabsContent>
-              <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
               
               <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
-              <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
