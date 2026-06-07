@@ -4,6 +4,7 @@ import { SEO } from '@/components/SEO';
 import { Nav } from '@/components/landing/Nav';
 import { Hero } from '@/components/landing/Hero';
 import { LogoMarquee } from '@/components/landing/LogoMarquee';
+import { WhoItsFor } from '@/components/landing/WhoItsFor';
 import { BentoFeatures } from '@/components/landing/BentoFeatures';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { FinalCTA, Footer } from '@/components/landing/FinalCTA';
@@ -31,6 +32,7 @@ export default function Landing() {
       <main>
         <Hero onCta={goSignup} />
         <LogoMarquee />
+        <WhoItsFor />
         <BentoFeatures />
         <HowItWorks />
         <FinalCTA onCta={goSignup} />
