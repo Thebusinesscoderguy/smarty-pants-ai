@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import {
-  CalendarCheck, Brain, MessageSquare, BarChart3, ShieldCheck,
+  CalendarCheck, Brain, MessageSquare, BarChart3,
   Sparkles, FileText, Bell, ArrowUpRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,13 +51,6 @@ const FEATURES: Feature[] = [
     body: 'Auto-compiled, branded PDFs in a click.',
     className: 'md:col-span-1',
     accent: 'from-amber-500 to-orange-500',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'FERPA-grade security',
-    body: 'Row-level access control and full audit trails by default.',
-    className: 'md:col-span-1',
-    accent: 'from-violet-500 to-purple-500',
   },
 ];
 
