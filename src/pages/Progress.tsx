@@ -10,7 +10,7 @@ import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Link } from 'react-router-dom';
-import { CurriculumSelector } from '@/components/curriculum/CurriculumSelector';
+
 import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -191,24 +191,6 @@ const Progress = () => {
           </Card>
         </div>
 
-        {isCurriculumSelectorOpen && (
-          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setIsCurriculumSelectorOpen(false)}>
-            <div className="bg-card rounded-2xl border border-border max-w-3xl w-full p-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <CurriculumSelector
-                onSelectionChange={(sel) => {
-                  if (sel) {
-                    console.log('Selected curriculum:', sel);
-                    setIsCurriculumSelectorOpen(false);
-                  }
-                }}
-              />
-              <div className="mt-3 flex justify-end gap-2">
-                <Button variant="outline" onClick={handleCreateCustomCurriculum}>Create custom with AI</Button>
-                <Button variant="ghost" onClick={() => setIsCurriculumSelectorOpen(false)}>Close</Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   };

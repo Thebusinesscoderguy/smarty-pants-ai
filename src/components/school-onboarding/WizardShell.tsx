@@ -6,7 +6,6 @@ import { STEP_KEYS, StepKey } from '@/hooks/useSchoolOnboarding';
 
 const STEP_LABELS: Record<StepKey, string> = {
   welcome: 'Welcome',
-  framework: 'Curriculum',
   roster: 'Students',
   teachers: 'Teachers',
   gradebook: 'Gradebook',
