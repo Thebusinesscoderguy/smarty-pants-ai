@@ -1,6 +1,9 @@
-// Email parents that their child's report card is available.
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+
+// Email parents that their child's report card is available.
+// SECURITY (CORS): origin allowlist via shared helper (was wildcard '*').
+let corsHeaders = buildCorsHeaders();
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
@@ -11,6 +14,7 @@ interface Body {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY missing');
@@ -84,7 +88,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error('send-report-card-published error', e);
-    return new Response(JSON.stringify({ error: String((e as Error).message || e) }), {
+    return new Response(JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

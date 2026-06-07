@@ -1,12 +1,11 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { finalizeSession } from "./finalize.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -19,7 +18,7 @@ Deno.serve(async (req) => {
       .from('exam_sessions')
       .select('id, user_id, start_time, time_limit, answers')
       .eq('status', 'in_progress');
-    if (error) return json({ error: error.message }, 500);
+    if (error) return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
 
     const now = Date.now();
     let processed = 0;
@@ -48,13 +47,13 @@ Deno.serve(async (req) => {
         if (r.status !== 200) errors.push({ id: row.id, error: r.body });
         else processed++;
       } catch (e: any) {
-        errors.push({ id: row.id, error: e?.message });
+        errors.push({ id: row.id, error: 'An unexpected error occurred. Please try again.' });
       }
     }
 
     return json({ processed, errors });
   } catch (e: any) {
-    return json({ error: e?.message || 'Server error' }, 500);
+    return json({ error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 });
 

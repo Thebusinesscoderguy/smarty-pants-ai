@@ -1,5 +1,8 @@
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
+
+// SECURITY (CORS): origin allowlist via shared helper (was wildcard '*').
+let corsHeaders = buildCorsHeaders();
 
 const PAYPAL_BASE = 'https://api-m.sandbox.paypal.com';
 
@@ -18,6 +21,7 @@ async function getPayPalAccessToken(clientId: string, secret: string) {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -123,7 +127,10 @@ Deno.serve(async (req) => {
     });
     const order = await orderResp.json();
     if (!orderResp.ok) {
-      return new Response(JSON.stringify({ error: order?.message || 'PayPal error', details: order }), {
+      // SECURITY (info disclosure): log the raw PayPal order response server-side;
+      // never return it (`details: order`) to the client.
+      console.error('[pay-invoice] PayPal order error:', orderResp.status, order);
+      return new Response(JSON.stringify({ error: 'Payment could not be started. Please try again.' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -143,7 +150,7 @@ Deno.serve(async (req) => {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e?.message || 'Internal error' }), {
+    return new Response(JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

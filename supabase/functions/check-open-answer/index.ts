@@ -1,14 +1,20 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
+import { enforceIpRateLimit, rateLimitedResponse } from "../_shared/rateLimit.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+// SECURITY (CORS): origin allowlist via shared helper (was wildcard '*').
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+
+  // SECURITY (AI bill abuse): this endpoint is intentionally anonymous, so cap
+  // each client IP to 3 requests/hour before doing any AI work.
+  const { allowed } = await enforceIpRateLimit(req, 'check-open-answer')
+  if (!allowed) return rateLimitedResponse(corsHeaders)
 
   try {
     const { userAnswer, correctAnswer, question } = await req.json()
@@ -85,9 +91,10 @@ Be generous - if the student shows understanding of the core concept, mark it co
       }
     }
 
-    console.log('Open answer check result:', { userAnswer, correctAnswer, result })
+    // SECURITY (sensitive logging): removed logging of userAnswer/correctAnswer —
+    // it persisted the answer key and student responses (PII) in function logs.
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: true, 
       ...result
     }), {
@@ -96,11 +103,12 @@ Be generous - if the student shows understanding of the core concept, mark it co
 
   } catch (error) {
     console.error('Error checking open answer:', error)
-    return new Response(JSON.stringify({ 
-      success: false, 
+    // SECURITY (info disclosure): return a generic error; details stay in logs.
+    return new Response(JSON.stringify({
+      success: false,
       is_correct: false,
       score: 0,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: 'Could not grade the answer. Please try again.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -68,12 +68,13 @@ function App() {
                     <Route path="/" element={<Landing />} />
                     <Route path="/home-old" element={<Index />} />
                     <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
-                    <Route path="/family-hub" element={<FamilyHub />} />
+                    <Route path="/family-hub" element={<ProtectedRoute><FamilyHub /></ProtectedRoute>} />
                     <Route path="/parent-onboarding" element={<ParentOnboarding />} />
                     <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-                    <Route path="/modules" element={<LearningModule />} />
-                    <Route path="/progress" element={<Progress />} />
-                    <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
+                    <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
+                    <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
+                    {/* SECURITY: students must not reach the monitoring dashboard. */}
+                    <Route path="/monitoring" element={<ProtectedRoute allowedRoles={['parent', 'teacher', 'admin']}><Monitoring /></ProtectedRoute>} />
                     <Route path="/auth" element={<Auth />} />
 
                     <Route path="/features" element={<Features />} />
@@ -81,11 +82,12 @@ function App() {
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/pricing-checkout" element={<PricingCheckout />} />
                     <Route path="/onboarding" element={<Onboarding />} />
-                    <Route path="/school-admin" element={<ProtectedRoute><SchoolAdmin /></ProtectedRoute>} />
+                    {/* SECURITY: school-admin console is staff-only (admins/teachers). */}
+                    <Route path="/school-admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><SchoolAdmin /></ProtectedRoute>} />
                     <Route path="/school-onboarding" element={<ProtectedRoute><SchoolOnboarding /></ProtectedRoute>} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
-                    <Route path="/quiz-generator" element={<QuizGenerator />} />
+                    <Route path="/quiz-generator" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
                     <Route path="/demo" element={<Demo />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/quests" element={<ProtectedRoute><QuestsAchievements /></ProtectedRoute>} />
@@ -93,9 +95,10 @@ function App() {
                     <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                     <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
                     <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
-                    <Route path="/report-cards" element={<ProtectedRoute><ReportCards /></ProtectedRoute>} />
+                    {/* SECURITY: students must not reach report cards management. */}
+                    <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['parent', 'teacher', 'admin']}><ReportCards /></ProtectedRoute>} />
                     <Route path="/s/:token" element={<SharedArtifact />} />
-                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                     <Route path="/exam/:testId" element={<ExamRunner />} />
                     <Route path="/t/:token" element={<TestShareRedirect />} />
                     <Route path="/lesson-plans" element={<ProtectedRoute><LessonPlansLibrary /></ProtectedRoute>} />

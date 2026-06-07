@@ -1,11 +1,10 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+let corsHeaders = buildCorsHeaders();
 
 serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -101,7 +100,7 @@ TARGET LENGTH: Transform this into a comprehensive 3000-4000 word educational re
   } catch (error: any) {
     console.error('Error in expand-lesson-detail:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error' 
+      error: 'An unexpected error occurred. Please try again.' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

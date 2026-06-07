@@ -1,5 +1,7 @@
+import { buildCorsHeaders } from "../_shared/cors.ts";
 // Generate professional principal/teacher remarks for a student report card.
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+// SECURITY (CORS): origin allowlist via shared helper (was wildcard '*').
+let corsHeaders = buildCorsHeaders();
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
@@ -13,6 +15,7 @@ interface Body {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY missing');
@@ -50,7 +53,7 @@ Write 2-3 sentences in ${lang}. Be encouraging but honest. Mention one strength 
     });
   } catch (e) {
     console.error('generate-report-card-remarks error', e);
-    return new Response(JSON.stringify({ error: String((e as Error).message || e) }), {
+    return new Response(JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
