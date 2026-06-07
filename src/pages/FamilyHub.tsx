@@ -1,347 +1,495 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  BookOpen, 
-  Users, 
-  TrendingUp, 
-  Award, 
-  FileQuestion, 
-  Calendar,
-  Star,
-  Brain,
-  Target,
-  Zap,
-  Clock,
-  PlayCircle,
-  CheckCircle,
-  Heart,
-  Sparkles
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Users, FileText, ClipboardList, Receipt, Newspaper, ChevronRight,
+  Loader2, GraduationCap, Sparkles,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
+import { NewsFeed } from '@/components/news/NewsFeed';
+import { supabase } from '@/integrations/supabase/client';
 
-interface StudentOverview {
+/**
+ * Family Hub — the parent's home base.
+ *
+ * Every figure on this page is read live from the database and is strictly
+ * scoped (by RLS) to the signed-in parent's own children. There is NO mock or
+ * placeholder student data. When a parent has no children linked, or a child
+ * has no records yet, we render explicit empty states rather than inventing data.
+ */
+
+interface Child {
   id: string;
   name: string;
-  avatar?: string;
-  currentStreak: number;
-  weeklyGoal: number;
-  weeklyProgress: number;
-  recentAchievements: string[];
-  activeQuests: number;
-  completedLessons: number;
-  totalLessons: number;
-  strongSubjects: string[];
-  improvementAreas: string[];
+  avatarUrl: string | null;
 }
 
-interface QuickAction {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-  action: () => void;
-}
+const initials = (name: string) =>
+  name.split(' ').map((w) => w[0]).filter(Boolean).join('').slice(0, 2).toUpperCase() || '?';
 
 const FamilyHub = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const [students, setStudents] = useState<StudentOverview[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
 
-  // Demo data for now
+  const [children, setChildren] = useState<Child[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const demoStudents: StudentOverview[] = [
-      {
-        id: '1',
-        name: 'Emma',
-        currentStreak: 5,
-        weeklyGoal: 7,
-        weeklyProgress: 5,
-        recentAchievements: ['Math Champion', 'Reading Star'],
-        activeQuests: 3,
-        completedLessons: 12,
-        totalLessons: 20,
-        strongSubjects: ['Mathematics', 'Science'],
-        improvementAreas: ['Writing', 'History']
-      },
-      {
-        id: '2',
-        name: 'Alex',
-        currentStreak: 3,
-        weeklyGoal: 5,
-        weeklyProgress: 3,
-        recentAchievements: ['Science Explorer'],
-        activeQuests: 2,
-        completedLessons: 8,
-        totalLessons: 15,
-        strongSubjects: ['Science', 'Art'],
-        improvementAreas: ['Math', 'Reading']
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      // Children linked to this parent (RLS scopes to the parent's own links).
+      const { data: rels } = await supabase
+        .from('parent_child_relationships')
+        .select('child_id')
+        .eq('parent_id', user.id);
+
+      const childIds = (rels || []).map((r) => r.child_id).filter(Boolean);
+      if (childIds.length === 0) {
+        if (!cancelled) { setChildren([]); setSelectedId(null); setLoading(false); }
+        return;
       }
-    ];
-    setStudents(demoStudents);
-    setSelectedStudent(demoStudents[0]?.id || null);
-  }, []);
 
-  const currentStudent = students.find(s => s.id === selectedStudent) || students[0];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', childIds);
 
-  const quickActions: QuickAction[] = [
-    {
-      id: 'upload-quiz',
-      title: 'Upload Quiz Results',
-      description: 'Get personalized study plans from quiz mistakes',
-      icon: FileQuestion,
-      color: 'from-blue-500 to-purple-600',
-      action: () => navigate('/quiz-generator', { state: { tab: 'study-plan' } })
-    },
-    {
-      id: 'create-quiz',
-      title: 'Generate Practice Quiz',
-      description: 'AI creates quizzes based on weak areas',
-      icon: Brain,
-      color: 'from-green-500 to-emerald-600',
-      action: () => navigate('/quiz-generator', { state: { tab: 'generate' } })
-    },
-    {
-      id: 'voice-chat',
-      title: 'Voice Learning Session',
-      description: 'Interactive AI tutoring with voice',
-      icon: PlayCircle,
-      color: 'from-purple-500 to-pink-600',
-      action: () => navigate('/chat')
-    },
-    {
-      id: 'progress-review',
-      title: 'Review Progress',
-      description: 'Detailed analytics and insights',
-      icon: TrendingUp,
-      color: 'from-violet-500 to-red-600',
-      action: () => navigate('/progress')
+      const list: Child[] = (profiles || []).map((p) => ({
+        id: p.id,
+        name: p.display_name || 'Student',
+        avatarUrl: p.avatar_url,
+      }));
+      list.sort((a, b) => a.name.localeCompare(b.name));
+
+      if (!cancelled) {
+        setChildren(list);
+        setSelectedId(list[0]?.id ?? null);
+        setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const selectedChild = children.find((c) => c.id === selectedId) || null;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <Header />
+
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+        {/* Heading */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Users className="h-7 w-7 text-primary" />
+            Family Hub
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Track your {children.length === 1 ? "child's" : "children's"} attendance, grades,
+            report cards, invoices and school news — all in one place.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-24 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading your family hub…
+          </div>
+        ) : children.length === 0 ? (
+          <NoChildrenState />
+        ) : (
+          <div className="space-y-6">
+            {/* Child selector (only when more than one) */}
+            {children.length > 1 && (
+              <div className="flex flex-wrap gap-2">
+                {children.map((c) => {
+                  const active = c.id === selectedId;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setSelectedId(c.id)}
+                      className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                        active
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-card border-border hover:bg-muted'
+                      }`}
+                    >
+                      <Avatar className="h-6 w-6">
+                        {c.avatarUrl && <AvatarImage src={c.avatarUrl} alt={c.name} />}
+                        <AvatarFallback className="text-[10px]">{initials(c.name)}</AvatarFallback>
+                      </Avatar>
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedChild && <ChildOverview key={selectedChild.id} child={selectedChild} onNavigate={navigate} />}
+          </div>
+        )}
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/* Per-child overview                                                  */
+/* ------------------------------------------------------------------ */
+
+const ChildOverview = ({
+  child,
+  onNavigate,
+}: {
+  child: Child;
+  onNavigate: (path: string) => void;
+}) => {
+  return (
+    <div className="space-y-6">
+      {/* Child header */}
+      <Card className="bg-card border-border">
+        <CardContent className="p-5 flex items-center gap-4">
+          <Avatar className="h-14 w-14 border-2 border-primary/20">
+            {child.avatarUrl && <AvatarImage src={child.avatarUrl} alt={child.name} />}
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              {initials(child.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold truncate">{child.name}</h2>
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <GraduationCap className="h-4 w-4" /> Student overview
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Attendance (reuses the same component the parent dashboard uses) */}
+        <AttendanceSummaryCard studentId={child.id} studentName={child.name} />
+
+        {/* Recent grades */}
+        <RecentGradesCard studentId={child.id} />
+
+        {/* Report cards */}
+        <ReportCardsCard studentId={child.id} onOpen={() => onNavigate('/report-cards')} />
+
+        {/* Invoices */}
+        <InvoicesCard studentId={child.id} onOpen={() => onNavigate('/invoices')} />
+      </div>
+
+      {/* School news (RLS already scopes to this parent's children's schools) */}
+      <div>
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <Newspaper className="h-5 w-5 text-primary" /> School News
+        </h3>
+        <NewsFeed />
+      </div>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/* Recent grades                                                       */
+/* ------------------------------------------------------------------ */
+
+interface GradeRow {
+  id: string;
+  subject: string;
+  classwork: number | null;
+  homework: number | null;
+  date: string;
+}
+
+const RecentGradesCard = ({ studentId }: { studentId: string }) => {
+  const [rows, setRows] = useState<GradeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: grades } = await supabase
+      .from('student_daily_grades')
+      .select('id, subject_id, classwork_mark, homework_mark, grade_date')
+      .eq('student_id', studentId)
+      .order('grade_date', { ascending: false })
+      .limit(8);
+
+    const subjectIds = [...new Set((grades || []).map((g) => g.subject_id))];
+    const nameById: Record<string, string> = {};
+    if (subjectIds.length) {
+      const { data: subjects } = await supabase
+        .from('school_subjects')
+        .select('id, name')
+        .in('id', subjectIds);
+      (subjects || []).forEach((s) => { nameById[s.id] = s.name; });
     }
-  ];
 
-  const renderStudentSelector = () => (
-    <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-blue-500/30 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Family Learning Dashboard
+    setRows(
+      (grades || []).map((g) => ({
+        id: g.id,
+        subject: nameById[g.subject_id] || 'Subject',
+        classwork: g.classwork_mark,
+        homework: g.homework_mark,
+        date: g.grade_date,
+      })),
+    );
+    setLoading(false);
+  }, [studentId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-primary" /> Recent Grades
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-3 mb-4">
-          {students.map((student) => (
-            <Button
-              key={student.id}
-              variant={selectedStudent === student.id ? 'default' : 'outline'}
-              onClick={() => setSelectedStudent(student.id)}
-              className={`${
-                selectedStudent === student.id
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                  : 'border-white/20 text-white hover:bg-white/10'
-              } transition-all duration-200`}
-            >
-              {student.name}
-            </Button>
-          ))}
-        </div>
-        
-        {currentStudent && (
-          <div className="bg-white/10 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-white">{currentStudent.name}'s Learning Journey</h3>
-              <Badge className="bg-yellow-500/20 text-yellow-400">
-                🔥 {currentStudent.currentStreak} day streak
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-white/70 text-sm mb-1">Weekly Progress</p>
-                <Progress 
-                  value={(currentStudent.weeklyProgress / currentStudent.weeklyGoal) * 100} 
-                  className="h-2 mb-1"
-                />
-                <p className="text-white text-sm">{currentStudent.weeklyProgress}/{currentStudent.weeklyGoal} sessions</p>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : rows.length === 0 ? (
+          <EmptyHint icon={ClipboardList} text="No grades recorded yet. They'll appear here as teachers enter daily marks." />
+        ) : (
+          <div className="divide-y divide-border">
+            {rows.map((r) => (
+              <div key={r.id} className="flex items-center justify-between py-2">
+                <div className="min-w-0">
+                  <div className="font-medium text-sm truncate">{r.subject}</div>
+                  <div className="text-xs text-muted-foreground">{r.date}</div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Mark label="CW" value={r.classwork} />
+                  <Mark label="HW" value={r.homework} />
+                </div>
               </div>
-              <div>
-                <p className="text-white/70 text-sm mb-1">Course Progress</p>
-                <Progress 
-                  value={(currentStudent.completedLessons / currentStudent.totalLessons) * 100} 
-                  className="h-2 mb-1"
-                />
-                <p className="text-white text-sm">{currentStudent.completedLessons}/{currentStudent.totalLessons} lessons</p>
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </CardContent>
     </Card>
   );
+};
 
-  const renderQuickActions = () => (
-    <Card className="bg-white/5 border-white/20 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <Zap className="h-5 w-5 text-yellow-400" />
-          Quick Actions for Parents
+const Mark = ({ label, value }: { label: string; value: number | null }) => (
+  <div className="text-center">
+    <div className="text-[10px] text-muted-foreground">{label}</div>
+    <Badge variant={value == null ? 'outline' : 'secondary'} className="min-w-9 justify-center">
+      {value == null ? '—' : value}
+    </Badge>
+  </div>
+);
+
+/* ------------------------------------------------------------------ */
+/* Report cards                                                        */
+/* ------------------------------------------------------------------ */
+
+interface ReportCardRow {
+  id: string;
+  term: string;
+  academic_year: string;
+  published_at: string | null;
+  pdf_url: string | null;
+}
+
+const ReportCardsCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => void }) => {
+  const [rows, setRows] = useState<ReportCardRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('report_cards')
+        .select('id, term, academic_year, published_at, pdf_url')
+        .eq('student_id', studentId)
+        .eq('published', true)
+        .order('published_at', { ascending: false })
+        .limit(4);
+      if (!cancelled) { setRows((data as ReportCardRow[]) || []); setLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [studentId]);
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-base flex items-center gap-2">
+          <FileText className="h-4 w-4 text-primary" /> Report Cards
         </CardTitle>
+        {rows.length > 0 && (
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onOpen}>
+            Open <ChevronRight className="h-3 w-3 ml-0.5" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {quickActions.map((action) => {
-            const IconComponent = action.icon;
-            return (
-              <div
-                key={action.id}
-                onClick={action.action}
-                className="group cursor-pointer p-4 rounded-xl bg-gradient-to-r hover:from-white/10 hover:to-white/5 border border-white/10 hover:border-white/20 transition-all duration-200"
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : rows.length === 0 ? (
+          <EmptyHint icon={FileText} text="No report cards published yet. You'll be notified when one is available." />
+        ) : (
+          <div className="space-y-2">
+            {rows.map((r) => (
+              <button
+                key={r.id}
+                onClick={onOpen}
+                className="w-full flex items-center justify-between rounded-lg border border-border p-3 text-left hover:bg-muted transition-colors"
               >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform duration-200`}>
-                    <IconComponent className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white group-hover:text-blue-300 transition-colors">
-                      {action.title}
-                    </h3>
-                    <p className="text-white/70 text-sm mt-1">{action.description}</p>
-                  </div>
+                <div>
+                  <div className="font-medium text-sm">{r.term} · {r.academic_year}</div>
+                  {r.published_at && (
+                    <div className="text-xs text-muted-foreground">
+                      Published {new Date(r.published_at).toLocaleDateString()}
+                    </div>
+                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
+};
 
-  const renderStudentInsights = () => {
-    if (!currentStudent) return null;
+/* ------------------------------------------------------------------ */
+/* Invoices                                                            */
+/* ------------------------------------------------------------------ */
 
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Achievements & Strengths */}
-        <Card className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-green-500/30 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Award className="h-5 w-5 text-green-400" />
-              Celebrating Success
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-white font-medium mb-2">Recent Achievements</h4>
-                <div className="flex flex-wrap gap-2">
-                  {currentStudent.recentAchievements.map((achievement, index) => (
-                    <Badge key={index} className="bg-green-400/20 text-green-300">
-                      <Star className="h-3 w-3 mr-1" />
-                      {achievement}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-white font-medium mb-2">Strong Subjects</h4>
-                <div className="flex flex-wrap gap-2">
-                  {currentStudent.strongSubjects.map((subject, index) => (
-                    <Badge key={index} className="bg-blue-400/20 text-blue-300">
-                      {subject}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+interface InvoiceRow {
+  id: string;
+  title: string;
+  amount_cents: number;
+  currency: string;
+  status: string;
+  due_date: string | null;
+}
 
-        {/* Growth Areas */}
-        <Card className="bg-gradient-to-br from-violet-600/20 to-red-600/20 border-violet-500/30 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Target className="h-5 w-5 text-violet-400" />
-              Growth Opportunities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-white font-medium mb-2">Focus Areas</h4>
-                <div className="space-y-2">
-                  {currentStudent.improvementAreas.map((area, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                      <span className="text-white">{area}</span>
-                      <Button 
-                        size="sm"
-                        onClick={() => navigate('/quiz-generator', { state: { topic: area, tab: 'generate' } })}
-                        className="bg-gradient-to-r from-violet-500 to-red-500 hover:from-violet-600 hover:to-red-600 text-white text-xs"
-                      >
-                        Practice
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Heart className="h-4 w-4 text-pink-400" />
-                  <span className="text-white font-medium">Parent Tip</span>
-                </div>
-                <p className="text-white/80 text-sm">
-                  Upload completed quizzes to get personalized study plans that target these specific areas!
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
+const statusColor: Record<string, string> = {
+  issued: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+  paid: 'bg-green-500/15 text-green-600 border-green-500/30',
+  overdue: 'bg-red-500/15 text-red-600 border-red-500/30',
+  void: 'bg-muted text-muted-foreground',
+  draft: 'bg-muted text-muted-foreground',
+};
 
-  const renderWelcomeMessage = () => (
-    <div className="text-center mb-8">
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Sparkles className="h-8 w-8 text-yellow-400" />
-        <h1 className="text-4xl font-bold text-white">
-          Welcome to Your Family Learning Hub
-        </h1>
-        <Sparkles className="h-8 w-8 text-yellow-400" />
-      </div>
-      <p className="text-xl text-white/80 max-w-3xl mx-auto">
-        Support your children's learning journey with AI-powered insights, personalized study plans, and engaging activities. 
-        Track progress, celebrate achievements, and help them reach their full potential.
-      </p>
-    </div>
-  );
+const formatMoney = (cents: number, cur = 'usd') =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: (cur || 'usd').toUpperCase() }).format(cents / 100);
+
+const InvoicesCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => void }) => {
+  const [rows, setRows] = useState<InvoiceRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('school_invoices')
+        .select('id, title, amount_cents, currency, status, due_date')
+        .eq('student_id', studentId)
+        .order('issued_at', { ascending: false })
+        .limit(5);
+      if (!cancelled) { setRows((data as InvoiceRow[]) || []); setLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [studentId]);
+
+  const outstanding = rows.filter((r) => ['issued', 'overdue'].includes(r.status));
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {renderWelcomeMessage()}
-        
-        <div className="space-y-6">
-          {renderStudentSelector()}
-          {renderQuickActions()}
-          {renderStudentInsights()}
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Receipt className="h-4 w-4 text-primary" /> Invoices
+        </CardTitle>
+        {rows.length > 0 && (
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onOpen}>
+            Open <ChevronRight className="h-3 w-3 ml-0.5" />
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : rows.length === 0 ? (
+          <EmptyHint icon={Receipt} text="No invoices. Anything your school bills will show up here." />
+        ) : (
+          <div className="space-y-2">
+            {outstanding.length > 0 && (
+              <div className="text-xs text-muted-foreground">
+                {outstanding.length} outstanding ·{' '}
+                <span className="font-medium text-foreground">
+                  {formatMoney(outstanding.reduce((s, r) => s + r.amount_cents, 0), rows[0]?.currency)}
+                </span>{' '}
+                due
+              </div>
+            )}
+            {rows.map((r) => (
+              <button
+                key={r.id}
+                onClick={onOpen}
+                className="w-full flex items-center justify-between rounded-lg border border-border p-3 text-left hover:bg-muted transition-colors"
+              >
+                <div className="min-w-0">
+                  <div className="font-medium text-sm truncate">{r.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatMoney(r.amount_cents, r.currency)}
+                    {r.due_date ? ` · due ${new Date(r.due_date).toLocaleDateString()}` : ''}
+                  </div>
+                </div>
+                <Badge variant="outline" className={statusColor[r.status] || ''}>{r.status}</Badge>
+              </button>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
+
+/* ------------------------------------------------------------------ */
+/* Shared bits                                                         */
+/* ------------------------------------------------------------------ */
+
+const EmptyHint = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
+  <div className="flex items-start gap-2 text-sm text-muted-foreground py-2">
+    <Icon className="h-4 w-4 mt-0.5 shrink-0 opacity-60" />
+    <span>{text}</span>
+  </div>
+);
+
+const NoChildrenState = () => (
+  <Card className="bg-card border-border">
+    <CardContent className="p-10 text-center max-w-md mx-auto">
+      <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <Users className="h-7 w-7 text-primary" />
+      </div>
+      <h2 className="text-lg font-semibold mb-2">No children linked yet</h2>
+      <p className="text-sm text-muted-foreground mb-5">
+        Once your school connects a student to your account, their attendance, grades,
+        report cards and invoices will appear here automatically.
+      </p>
+      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+        <Sparkles className="h-3.5 w-3.5" />
+        Ask your school administrator to link your child, or accept a pending invitation.
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export default FamilyHub;
