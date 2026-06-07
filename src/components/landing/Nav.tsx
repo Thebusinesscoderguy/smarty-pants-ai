@@ -159,7 +159,6 @@ export function Nav({ onCta }: { onCta?: () => void }) {
                 </>
               )}
             </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
