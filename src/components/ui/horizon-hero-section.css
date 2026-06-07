@@ -1,0 +1,174 @@
+/* ============================================================
+   Horizon Hero Section — styles (authored to match the component
+   markup; scoped under .cosmos-style to avoid global clashes).
+   Dark space backdrop with TeachlyAI purple/lavender accents.
+   ============================================================ */
+
+.hero-container.cosmos-style {
+  position: relative;
+  width: 100%;
+  height: 300vh; /* scroll range that drives the camera fly-through */
+  background: #05030f;
+  color: #fff;
+  overflow: clip;
+}
+
+.cosmos-style .hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cosmos-style .hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* ---- main hero content ---- */
+.cosmos-style .hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 1.5rem;
+  pointer-events: none;
+}
+.cosmos-style .hero-content > * {
+  pointer-events: auto;
+}
+
+.cosmos-style .hero-title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.1rem, 6.2vw, 4.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  max-width: 20ch;
+  background: linear-gradient(180deg, #ffffff 0%, #d8c9ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 48px rgba(124, 58, 237, 0.35);
+}
+.cosmos-style .title-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.cosmos-style .hero-subtitle {
+  margin-top: 1.5rem;
+  max-width: 52ch;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.6;
+  color: rgba(226, 222, 245, 0.82);
+}
+.cosmos-style .subtitle-line {
+  margin: 0;
+}
+
+.cosmos-style .hero-cta {
+  margin-top: 2.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- floating stat cards ---- */
+.cosmos-style .hero-cards {
+  position: absolute;
+  right: max(2.5rem, 6vw);
+  bottom: 11vh;
+  z-index: 11;
+  display: none;
+  filter: drop-shadow(0 20px 50px rgba(91, 33, 182, 0.45));
+}
+@media (min-width: 1100px) {
+  .cosmos-style .hero-cards {
+    display: block;
+  }
+}
+
+/* ---- side menu ---- */
+.cosmos-style .side-menu {
+  position: absolute;
+  left: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+}
+.cosmos-style .menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cosmos-style .menu-icon span {
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.85);
+}
+.cosmos-style .vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.35em;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  color: rgba(216, 201, 255, 0.75);
+}
+@media (max-width: 768px) {
+  .cosmos-style .side-menu {
+    display: none;
+  }
+}
+
+/* ---- scroll progress ---- */
+.cosmos-style .scroll-progress {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(216, 201, 255, 0.7);
+}
+.cosmos-style .progress-track {
+  width: 120px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+.cosmos-style .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  transition: width 0.1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmos-style .title-char {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
