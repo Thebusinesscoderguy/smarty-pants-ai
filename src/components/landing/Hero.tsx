@@ -224,11 +224,6 @@ export function Hero({ onCta }: { onCta?: () => void }) {
                 Start free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </GradientButton>
             </Magnetic>
-            <Magnetic strength={0.4}>
-              <GhostButton>
-                <Play className="h-4 w-4 fill-[#EA580C] text-[#EA580C]" /> Watch 2-min demo
-              </GhostButton>
-            </Magnetic>
           </motion.div>
 
         </div>
