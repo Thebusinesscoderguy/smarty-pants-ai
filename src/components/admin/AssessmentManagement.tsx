@@ -119,7 +119,7 @@ export const AssessmentManagement = () => {
   const [examSettings, setExamSettings] = useState({
     mode: 'practice' as 'practice' | 'exam',
     randomization: false,
-    orderLocked: false,
+    orderLocked: true,
     allowBacktracking: true,
     violationThreshold: 3,
     violationAction: 'flag' as 'flag' | 'auto_submit',
@@ -530,19 +530,7 @@ export const AssessmentManagement = () => {
                           onCheckedChange={(v) => setExamSettings(p => ({
                             ...p,
                             randomization: v,
-                            // Randomization and a locked order are mutually exclusive.
-                            orderLocked: v ? false : p.orderLocked,
-                          }))}
-                        />
-                      </label>
-                      <label className="flex items-center justify-between gap-2 text-sm">
-                        <span>Lock question order</span>
-                        <Switch
-                          checked={examSettings.orderLocked}
-                          onCheckedChange={(v) => setExamSettings(p => ({
-                            ...p,
-                            orderLocked: v,
-                            randomization: v ? false : p.randomization,
+                            orderLocked: !v,
                           }))}
                         />
                       </label>
