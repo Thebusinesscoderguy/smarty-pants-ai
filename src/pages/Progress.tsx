@@ -10,7 +10,7 @@ import { StudentQuestDisplay } from '@/components/student/StudentQuestDisplay';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Link } from 'react-router-dom';
-import { CurriculumSelector } from '@/components/curriculum/CurriculumSelector';
+
 import { BarChart3, BookOpen, Target, TrendingUp, MessageSquare, Settings, Plus, Sparkles, User, Calendar, Clock, FileText, CheckCircle, XCircle, Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +23,7 @@ const Progress = () => {
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<'chat' | 'monitoring' | 'settings'>('monitoring');
-  const [isCurriculumSelectorOpen, setIsCurriculumSelectorOpen] = useState(false);
+  
 
   useEffect(() => {
     if (!authLoading) {
@@ -124,27 +124,18 @@ const Progress = () => {
 
   const handleCreateCustomCurriculum = () => {
     navigate('/chat', { state: { message: 'I want to create a custom AI curriculum. Please help me get started.' } });
-    setIsCurriculumSelectorOpen(false);
   };
 
   const renderCurriculumsTab = () => {
     return (
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-3xl font-bold text-foreground mb-2">
-              {t('progress.curriculum.title')}
-            </h3>
-            <p className="text-muted-foreground text-lg">{t('progress.curriculum.subtitle')}</p>
-          </div>
-          <Button 
-            onClick={() => setIsCurriculumSelectorOpen(true)}
-            className="bg-primary hover:bg-primary/90 px-6 py-3 rounded-xl font-semibold shadow-lg"
-          >
-            <BookOpen className="h-5 w-5 mr-2" />
-            {t('progress.curriculum.browse')}
-          </Button>
+        <div>
+          <h3 className="text-3xl font-bold text-foreground mb-2">
+            {t('progress.curriculum.title')}
+          </h3>
+          <p className="text-muted-foreground text-lg">{t('progress.curriculum.subtitle')}</p>
         </div>
+
         
         <div className="grid gap-8">
           <Card className="bg-primary/10 border-primary/30 hover:bg-primary/20 transition-all duration-300 cursor-pointer group rounded-2xl shadow-xl">
@@ -191,24 +182,6 @@ const Progress = () => {
           </Card>
         </div>
 
-        {isCurriculumSelectorOpen && (
-          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setIsCurriculumSelectorOpen(false)}>
-            <div className="bg-card rounded-2xl border border-border max-w-3xl w-full p-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <CurriculumSelector
-                onSelectionChange={(sel) => {
-                  if (sel) {
-                    console.log('Selected curriculum:', sel);
-                    setIsCurriculumSelectorOpen(false);
-                  }
-                }}
-              />
-              <div className="mt-3 flex justify-end gap-2">
-                <Button variant="outline" onClick={handleCreateCustomCurriculum}>Create custom with AI</Button>
-                <Button variant="ghost" onClick={() => setIsCurriculumSelectorOpen(false)}>Close</Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   };

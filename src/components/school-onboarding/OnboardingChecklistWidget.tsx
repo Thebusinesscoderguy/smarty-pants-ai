@@ -6,16 +6,15 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import {
   Sparkles, ArrowRight, CheckCircle2, Circle, ChevronDown, ChevronUp, X,
-  School, GraduationCap, Users, BookMarked, ClipboardList,
+  School, GraduationCap, Users, ClipboardList,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-// 5-step activation checklist (maps to backend step keys)
+// 4-step activation checklist (maps to backend step keys)
 const CHECKLIST: { key: StepKey; label: string; desc: string; icon: any }[] = [
   { key: 'welcome',   label: 'Name your school',      desc: 'Set school identity',       icon: School },
   { key: 'teachers',  label: 'Add your first teacher', desc: 'Invite a staff member',     icon: GraduationCap },
   { key: 'roster',    label: 'Add your first students', desc: 'Import or invite students', icon: Users },
-  { key: 'framework', label: 'Select curriculum',     desc: 'Pick your framework',       icon: BookMarked },
   { key: 'gradebook', label: 'Create first assignment', desc: 'Set up gradebook',         icon: ClipboardList },
 ];
 
