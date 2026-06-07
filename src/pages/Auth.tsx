@@ -27,6 +27,13 @@ const Auth = () => {
   const [signupSuccess, setSignupSuccess] = useState(false);
   
   const isSignup = searchParams.get('signup') === 'true';
+  // Where to send the user after auth (e.g. a shared quiz link). Only allow
+  // internal paths to avoid open-redirects, and never loop back to /auth.
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.startsWith('/auth')
+      ? rawRedirect
+      : null;
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
   const [onboardingStep, setOnboardingStep] = useState<'auth' | 'account-type' | 'add-children' | 'role-selector'>('auth');
   const [checkingChildren, setCheckingChildren] = useState(false);
@@ -40,9 +47,15 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && onboardingStep === 'auth') {
+      // Came here from a shared link (e.g. a quiz): skip onboarding routing
+      // and send them straight to where they were headed.
+      if (redirectTo) {
+        navigate(redirectTo, { replace: true });
+        return;
+      }
       checkExistingAccountType();
     }
-  }, [user, onboardingStep]);
+  }, [user, onboardingStep, redirectTo]);
 
   const checkExistingAccountType = async () => {
     if (!user) return;

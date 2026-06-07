@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -71,6 +71,7 @@ const exitFullscreen = async () => {
 export default function ExamRunner() {
   const { testId } = useParams<{ testId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useAuth();
 
   const [test, setTest] = useState<TestRow | null>(null);
@@ -95,7 +96,13 @@ export default function ExamRunner() {
   // Load test
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate('/auth'); return; }
+    if (!user) {
+      // Send them to log in, then straight back to this exam (preserving the
+      // share token in the query string).
+      const dest = `${location.pathname}${location.search}`;
+      navigate(`/auth?redirect=${encodeURIComponent(dest)}`, { replace: true });
+      return;
+    }
     if (!testId) return;
 
     const load = async () => {
