@@ -8,8 +8,8 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import {
-  ArrowRight, Play, Sparkles, CalendarCheck, GraduationCap,
-  MessageSquare, CheckCircle2,
+  ArrowRight, Sparkles, CalendarCheck, GraduationCap,
+  MessageSquare,
 } from 'lucide-react';
 import {
   GradientOrbs, WordReveal, GradientButton, GhostButton, Magnetic, EASE,
@@ -223,11 +223,6 @@ export function Hero({ onCta }: { onCta?: () => void }) {
               <GradientButton onClick={onCta}>
                 Start free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </GradientButton>
-            </Magnetic>
-            <Magnetic strength={0.4}>
-              <GhostButton>
-                <Play className="h-4 w-4 fill-[#EA580C] text-[#EA580C]" /> Watch 2-min demo
-              </GhostButton>
             </Magnetic>
           </motion.div>
 
