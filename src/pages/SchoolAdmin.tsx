@@ -157,11 +157,8 @@ const SchoolAdmin = () => {
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
         { value: 'subjects', label: 'Subjects', icon: Library },
-        { value: 'curriculum', label: t('schoolAdmin.tabs.curriculum'), icon: BookOpen },
-        
         { value: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
         { value: 'homework', label: 'Homework', icon: ListChecks },
-        { value: 'question-bank', label: 'Question Bank', icon: Database },
       ],
     },
     {
