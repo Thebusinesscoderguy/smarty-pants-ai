@@ -92,7 +92,7 @@ export const AssessmentManagement = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [createMode, setCreateMode] = useState<'ai' | 'manual'>('ai');
+  const [createMode, setCreateMode] = useState<'ai' | 'manual'>('manual');
 
   // AI generation form
   const [aiForm, setAiForm] = useState({
@@ -578,13 +578,13 @@ export const AssessmentManagement = () => {
 
             <Tabs value={createMode} onValueChange={(v: any) => setCreateMode(v)}>
               <TabsList className="grid w-full grid-cols-2 bg-muted">
+                <TabsTrigger value="manual">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Manually
+                </TabsTrigger>
                 <TabsTrigger value="ai">
                   <Wand2 className="h-4 w-4 mr-2" />
-                  AI Generated
-                </TabsTrigger>
-                <TabsTrigger value="manual">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Manual Create
+                  AI Assist (optional)
                 </TabsTrigger>
               </TabsList>
 

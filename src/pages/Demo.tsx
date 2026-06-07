@@ -54,7 +54,7 @@ const Demo = () => {
   // Monitoring hooks with demo data
   const { studentProgress, overviewStats } = useMonitoringData();
   const { tests, createTest, generateAITest, deleteTest } = useTestManagement();
-  const { curricula, createCurriculum, deleteCurriculum } = useCurriculumManagement();
+  
   const { quests, createQuest, deleteQuest } = useQuestManagement();
 
   const VOICE_OPTIONS = [

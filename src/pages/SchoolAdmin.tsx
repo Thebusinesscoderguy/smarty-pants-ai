@@ -4,7 +4,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { SchoolPulse } from '@/components/admin/SchoolPulse';
-import { CurriculumManagement } from '@/components/admin/CurriculumManagement';
 import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
@@ -15,7 +14,6 @@ import { SubjectManagement } from '@/components/admin/SubjectManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlanGenerator';
 import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
-import { QuestionBankBrowser } from '@/components/admin/QuestionBankBrowser';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
 import { GradingInbox } from '@/components/admin/GradingInbox';
@@ -47,8 +45,8 @@ type TabValue =
   // People
   | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
   // Academics
-  | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
-  | 'lesson-plans' | 'homework' | 'assignments' | 'question-bank'
+  | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects'
+  | 'lesson-plans' | 'homework' | 'assignments'
   | 'attendance' | 'report-cards' | 'report-card-designer'
   // Communication
   | 'messages' | 'news'
@@ -101,9 +99,6 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ListChecks className="h-4 w-4 mr-2" />Homework
                 </TabsTrigger>
-                <TabsTrigger value="question-bank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <Database className="h-4 w-4 mr-2" />Question Bank
-                </TabsTrigger>
                 <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <MessageCircle className="h-4 w-4 mr-2" />Messages
                 </TabsTrigger>
@@ -120,7 +115,6 @@ const SchoolAdmin = () => {
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
                 <TabsContent value="homework"><HomeworkManagement /></TabsContent>
                 <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
-                <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
                 <TabsContent value="news"><NewsManagement /></TabsContent>
               </div>
@@ -163,11 +157,8 @@ const SchoolAdmin = () => {
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
         { value: 'subjects', label: 'Subjects', icon: Library },
-        { value: 'curriculum', label: t('schoolAdmin.tabs.curriculum'), icon: BookOpen },
-        
         { value: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
         { value: 'homework', label: 'Homework', icon: ListChecks },
-        { value: 'question-bank', label: 'Question Bank', icon: Database },
       ],
     },
     {
@@ -282,12 +273,10 @@ const SchoolAdmin = () => {
               <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
               <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
               <TabsContent value="grading"><GradingInbox /></TabsContent>
-              <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
               
               <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
-              <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
