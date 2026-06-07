@@ -35,7 +35,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
 import { useAuth } from '@/contexts/AuthContext';
-import { CurriculumAdminPanel } from '@/components/curriculum/CurriculumAdminPanel';
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -48,7 +48,7 @@ type TabValue =
   | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
   // Academics
   | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects' | 'curriculum'
-  | 'curriculum-align' | 'lesson-plans' | 'homework' | 'assignments' | 'question-bank'
+  | 'lesson-plans' | 'homework' | 'assignments' | 'question-bank'
   | 'attendance' | 'report-cards' | 'report-card-designer'
   // Communication
   | 'messages' | 'news'
@@ -164,7 +164,7 @@ const SchoolAdmin = () => {
         { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
         { value: 'subjects', label: 'Subjects', icon: Library },
         { value: 'curriculum', label: t('schoolAdmin.tabs.curriculum'), icon: BookOpen },
-        { value: 'curriculum-align', label: 'Curriculum Alignment', icon: Globe },
+        
         { value: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
         { value: 'homework', label: 'Homework', icon: ListChecks },
         { value: 'question-bank', label: 'Question Bank', icon: Database },
@@ -284,7 +284,7 @@ const SchoolAdmin = () => {
               <TabsContent value="grading"><GradingInbox /></TabsContent>
               <TabsContent value="curriculum"><CurriculumManagement /></TabsContent>
               <TabsContent value="student-analytics"><StudentAnalyticsView /></TabsContent>
-              <TabsContent value="curriculum-align">{schoolId && <CurriculumAdminPanel schoolId={schoolId} />}</TabsContent>
+              
               <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
               <TabsContent value="question-bank"><QuestionBankBrowser /></TabsContent>

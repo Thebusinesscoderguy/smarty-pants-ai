@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSchoolOnboarding, STEP_KEYS } from '@/hooks/useSchoolOnboarding';
 import { WizardShell } from '@/components/school-onboarding/WizardShell';
 import { WelcomeStep } from '@/components/school-onboarding/steps/WelcomeStep';
-import { FrameworkStep } from '@/components/school-onboarding/steps/FrameworkStep';
+
 import { RosterStep } from '@/components/school-onboarding/steps/RosterStep';
 import { TeachersStep } from '@/components/school-onboarding/steps/TeachersStep';
 import { GradebookStep } from '@/components/school-onboarding/steps/GradebookStep';
