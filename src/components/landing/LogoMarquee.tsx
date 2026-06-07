@@ -1,18 +1,18 @@
 import { Reveal } from './primitives';
 
-/* Infinite-scroll social proof. The track is duplicated and translated
+/* Infinite-scroll capability strip. The track is duplicated and translated
    -50% via the `lp-marquee` keyframe, giving a seamless loop. CSS-driven
    (GPU transform) so it stays smooth; pauses on hover; reduced-motion safe. */
 
-const SCHOOLS = [
-  'Riverdale Academy',
-  'Northgate High',
-  'Cedar Valley Schools',
-  'Boston Prep',
-  'Al-Noor International',
-  'Westlake Elementary',
-  'Summit Charter',
-  'Greenfield District',
+const CAPABILITIES = [
+  'AI lesson planning',
+  'Smart quizzes',
+  'Attendance',
+  'Gradebook',
+  'Parent messaging',
+  'Progress analytics',
+  'Curriculum-aligned',
+  '15+ languages',
 ];
 
 function Row({ ariaHidden = false }: { ariaHidden?: boolean }) {
@@ -21,7 +21,7 @@ function Row({ ariaHidden = false }: { ariaHidden?: boolean }) {
       className="lp-marquee-track flex shrink-0 items-center gap-12 pr-12"
       aria-hidden={ariaHidden}
     >
-      {SCHOOLS.map((s, i) => (
+      {CAPABILITIES.map((s, i) => (
         <li
           key={`${s}-${i}`}
           className="flex items-center gap-2.5 whitespace-nowrap text-lg font-semibold text-[hsl(245_16%_55%)] transition-colors hover:text-violet-700"
@@ -41,10 +41,10 @@ export function LogoMarquee() {
     <section id="proof" className="relative py-16">
       <Reveal className="mx-auto mb-9 max-w-2xl px-4 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-500">
-          Trusted by forward-thinking schools
+          Built for the whole school
         </p>
         <p className="mt-2 text-2xl font-bold text-[hsl(250_47%_14%)]">
-          1,200+ schools · 480,000 students
+          Everything students, parents, teachers &amp; admins need — in one place
         </p>
       </Reveal>
 

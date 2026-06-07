@@ -22,7 +22,7 @@ export default function Landing() {
     <div className="teachly-lp min-h-dvh scroll-smooth antialiased">
       <SEO
         title="TeachlyAI — The AI operating system for modern K-12 schools"
-        description="TeachlyAI unifies attendance, grading, lesson planning, parent messaging and analytics with AI that handles the busywork. Trusted by 1,200+ schools."
+        description="TeachlyAI unifies attendance, grading, lesson planning, parent messaging and analytics with AI that handles the busywork. Built for modern K-12 schools."
         path="/"
       />
 

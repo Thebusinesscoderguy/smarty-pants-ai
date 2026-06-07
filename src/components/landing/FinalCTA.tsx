@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, GraduationCap, Star } from 'lucide-react';
+import { ArrowRight, GraduationCap } from 'lucide-react';
 import { Reveal, WordReveal, EASE } from './primitives';
 
 function CtaButton({ children, variant = 'light', onClick }: {
@@ -69,7 +69,7 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
               transition={{ duration: 0.6, ease: EASE, delay: 0.4 }}
               className="mx-auto mt-5 max-w-xl text-lg text-violet-100"
             >
-              Join 1,200+ schools running on TeachlyAI. Free for 30 days,
+              Set up your whole school in a single weekend. Free for 30 days,
               white-glove onboarding included.
             </motion.p>
 
@@ -87,12 +87,7 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
             </motion.div>
 
             <div className="mt-7 flex items-center justify-center gap-2 text-sm text-violet-100">
-              <span className="flex">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-300 text-amber-300" />
-                ))}
-              </span>
-              4.9/5 from 600+ school admins
+              No credit card required · Cancel anytime
             </div>
           </div>
         </div>
