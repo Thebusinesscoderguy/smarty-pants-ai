@@ -8,7 +8,7 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import {
-  ArrowRight, Play, Sparkles, CalendarCheck, GraduationCap,
+  ArrowRight, Sparkles, CalendarCheck, GraduationCap,
   MessageSquare, CheckCircle2,
 } from 'lucide-react';
 import {
