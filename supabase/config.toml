@@ -11,27 +11,16 @@ project_id = "twfzlbockonxopuindaw"
   additional_redirect_urls = ["https://lovable.dev"]
   enabled = true
   jwt_expiry = 3600
-  port = 54324
-  refresh_token_rotation_enabled = true
-  security_update_enabled = true
   site_url = "http://localhost:3000"
   [auth.email]
     double_confirm_changes = true
-    enabled = true
     max_frequency = "1s"
 
 [db]
   port = 54322
 
-[edge-runtime]
-  enabled = true
-  inspector_port = 8083
-  policy = "per_request"
-
 [functions]
   [functions.auth-email-hook]
-    verify_jwt = false
-  [functions.backfill-curriculum-units]
     verify_jwt = false
   [functions.check-open-answer]
     verify_jwt = false
@@ -42,8 +31,6 @@ project_id = "twfzlbockonxopuindaw"
   [functions.generate-quests]
     verify_jwt = false
   [functions.generate-study-plan]
-    verify_jwt = false
-  [functions.seed-curriculum]
     verify_jwt = false
   [functions.send-invitation-accepted-email]
     verify_jwt = false
@@ -58,17 +45,9 @@ project_id = "twfzlbockonxopuindaw"
   [functions.validate-student-invitation]
     verify_jwt = false
 
-[graphql]
-  enabled = true
-  extra_search_path = ["public", "extensions"]
-  max_rows = 1000
-  port = 54329
-  schemas = ["public", "graphql_public"]
-
 [storage]
   enabled = true
   file_size_limit = "100MiB"
-  port = 54325
 
 [studio]
   enabled = true

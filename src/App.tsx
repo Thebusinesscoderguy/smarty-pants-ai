@@ -9,7 +9,6 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ViewingModeProvider } from '@/contexts/ViewingModeContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-import Index from './pages/Index';
 import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import LearningModule from './pages/LearningModule';
@@ -66,10 +65,9 @@ function App() {
                   
                   <Routes>
                     <Route path="/" element={<Landing />} />
-                    <Route path="/home-old" element={<Index />} />
                     <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
                     <Route path="/family-hub" element={<ProtectedRoute><FamilyHub /></ProtectedRoute>} />
-                    <Route path="/parent-onboarding" element={<ParentOnboarding />} />
+                    <Route path="/parent-onboarding" element={<ProtectedRoute><ParentOnboarding /></ProtectedRoute>} />
                     <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
                     <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
                     <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
