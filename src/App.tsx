@@ -69,7 +69,7 @@ function App() {
                     <Route path="/home-old" element={<Index />} />
                     <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
                     <Route path="/family-hub" element={<ProtectedRoute><FamilyHub /></ProtectedRoute>} />
-                    <Route path="/parent-onboarding" element={<ParentOnboarding />} />
+                    <Route path="/parent-onboarding" element={<ProtectedRoute><ParentOnboarding /></ProtectedRoute>} />
                     <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
                     <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
                     <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
