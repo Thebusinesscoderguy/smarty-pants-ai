@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel, language } = await req.json();
+    const { topic, subject, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel, language } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -38,11 +38,14 @@ serve(async (req) => {
         .join('\n');
     }
 
-    const languageInstruction = targetLanguage 
+    const languageInstruction = targetLanguage
       ? `\n\n🔴 CRITICAL: Generate ALL quiz content (questions, options, answers, explanations) in ${targetLanguage}. Every single word must be in ${targetLanguage}.`
       : '';
 
-    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}" for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.${languageInstruction}
+    // Inject the teacher's subject when provided (some callers don't send it).
+    const subjectClause = subject ? ` in the subject "${subject}"` : '';
+
+    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}"${subjectClause} for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.${languageInstruction}
     ${context ? `Base the questions on this conversation context:\n${context}\n\n` : ''}
     Generate questions in this exact JSON format only (no markdown, no extra text):
     {

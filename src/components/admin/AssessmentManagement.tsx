@@ -228,7 +228,7 @@ export const AssessmentManagement = () => {
           topic: aiForm.topic,
           subject: aiForm.subject,
           gradeLevel,
-          numQuestions: aiForm.numQuestions,
+          questionCount: aiForm.numQuestions,
           difficulty: aiForm.difficulty,
         },
       });
