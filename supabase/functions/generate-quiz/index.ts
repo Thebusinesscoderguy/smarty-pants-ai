@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, subject, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel, language } = await req.json();
+    const { topic, subject, difficulty = 'medium', questionCount = 5, conversationHistory, gradeLevel, language, lessonContext } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -45,7 +45,16 @@ serve(async (req) => {
     // Inject the teacher's subject when provided (some callers don't send it).
     const subjectClause = subject ? ` in the subject "${subject}"` : '';
 
-    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}"${subjectClause} for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.${languageInstruction}
+    // Inject selected lesson content as grounding when provided (Phase 1 of the
+    // curriculum system). Capped to protect the model's context/token budget.
+    const trimmedLessonContext = typeof lessonContext === 'string'
+      ? lessonContext.slice(0, 12000)
+      : '';
+    const groundingInstruction = trimmedLessonContext
+      ? `\n\n🎯 GROUNDING (highest priority): Base the quiz STRICTLY on the following lesson content. Do NOT introduce facts, examples, or terminology that are not present in or directly implied by this material. If the requested number of questions cannot be supported by the content, generate fewer rather than inventing material.\n"""\n${trimmedLessonContext}\n"""`
+      : '';
+
+    const prompt = `Create a ${difficulty} difficulty quiz about "${topic}"${subjectClause} for grade level "${gradeLevel || 'general'}" with ${questionCount} questions.${languageInstruction}${groundingInstruction}
     ${context ? `Base the questions on this conversation context:\n${context}\n\n` : ''}
     Generate questions in this exact JSON format only (no markdown, no extra text):
     {

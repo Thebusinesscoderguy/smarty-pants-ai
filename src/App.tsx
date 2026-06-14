@@ -47,6 +47,7 @@ import TestShareRedirect from './pages/TestShareRedirect';
 import LessonPlansLibrary from './pages/LessonPlansLibrary';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import CurriculumQuizDemo from './pages/CurriculumQuizDemo';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 const queryClient = new QueryClient();
@@ -100,6 +101,7 @@ function App() {
                     <Route path="/exam/:testId" element={<ExamRunner />} />
                     <Route path="/t/:token" element={<TestShareRedirect />} />
                     <Route path="/lesson-plans" element={<ProtectedRoute><LessonPlansLibrary /></ProtectedRoute>} />
+                    <Route path="/curriculum-quiz-demo" element={<ProtectedRoute><CurriculumQuizDemo /></ProtectedRoute>} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="*" element={<NotFound />} />
