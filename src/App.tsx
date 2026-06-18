@@ -133,7 +133,7 @@ function App() {
           </ViewingModeProvider>
         </AuthProvider>
       </LanguageProvider>
- the </QueryClientProvider>
+ </QueryClientProvider>
   );
 }
 
