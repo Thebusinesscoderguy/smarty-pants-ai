@@ -3,8 +3,8 @@ import { ArrowRight, GraduationCap } from 'lucide-react';
 import { Reveal, WordReveal, EASE } from './primitives';
 
 // TODO(owner): point this at a real, monitored inbox, or swap for a Calendly/booking link.
-const CONTACT_EMAIL = 'hello@teachlyai.com';
-const DEMO_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('TeachlyAI — demo request')}`;
+export const CONTACT_EMAIL = 'hello@teachlyai.com';
+export const DEMO_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('TeachlyAI — demo request')}`;
 
 function CtaButton({ children, variant = 'light', onClick }: {
   children: React.ReactNode;
