@@ -58,6 +58,27 @@ export type Database = {
           },
         ]
       }
+      ai_rate_limits: {
+        Row: {
+          count: number
+          endpoint: string
+          ip: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          endpoint: string
+          ip: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          endpoint?: string
+          ip?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       assignment_submissions: {
         Row: {
           assignment_id: string
@@ -401,6 +422,229 @@ export type Database = {
           },
         ]
       }
+      curriculum_books: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          grade_level: string
+          id: string
+          school_id: string
+          status: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          grade_level: string
+          id?: string
+          school_id: string
+          status?: string
+          subject_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string
+          id?: string
+          school_id?: string
+          status?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_books_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_books_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          grade_level: string
+          id: string
+          mime_type: string | null
+          page_count: number | null
+          school_id: string
+          status: string
+          storage_path: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          grade_level: string
+          id?: string
+          mime_type?: string | null
+          page_count?: number | null
+          school_id: string
+          status?: string
+          storage_path: string
+          subject_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string
+          id?: string
+          mime_type?: string | null
+          page_count?: number | null
+          school_id?: string
+          status?: string
+          storage_path?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_documents_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_documents_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_lessons: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          order_index: number
+          school_id: string
+          source_pages: string | null
+          summary: string | null
+          title: string
+          unit_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          order_index?: number
+          school_id: string
+          source_pages?: string | null
+          summary?: string | null
+          title: string
+          unit_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          order_index?: number
+          school_id?: string
+          source_pages?: string | null
+          summary?: string | null
+          title?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_lessons_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lessons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_parse_jobs: {
+        Row: {
+          book_id: string | null
+          created_at: string
+          document_id: string
+          error: string | null
+          id: string
+          model: string | null
+          proposed_structure: Json | null
+          school_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          book_id?: string | null
+          created_at?: string
+          document_id: string
+          error?: string | null
+          id?: string
+          model?: string | null
+          proposed_structure?: Json | null
+          school_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string | null
+          created_at?: string
+          document_id?: string
+          error?: string | null
+          id?: string
+          model?: string | null
+          proposed_structure?: Json | null
+          school_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_parse_jobs_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_parse_jobs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_parse_jobs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_progress: {
         Row: {
           completed_sections: string[] | null
@@ -466,6 +710,51 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      curriculum_units: {
+        Row: {
+          book_id: string
+          created_at: string
+          id: string
+          order_index: number
+          school_id: string
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          school_id: string
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          school_id?: string
+          summary?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_units_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_units_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_challenges: {
         Row: {
@@ -3675,6 +3964,15 @@ export type Database = {
         Args: { _test_id: string; _user_id: string }
         Returns: boolean
       }
+      check_ai_rate_limit: {
+        Args: {
+          _endpoint: string
+          _ip: string
+          _limit?: number
+          _window_seconds?: number
+        }
+        Returns: boolean
+      }
       get_exam_questions_for_student: {
         Args: { _test_id: string }
         Returns: {
@@ -3685,6 +3983,35 @@ export type Database = {
           question: string
           question_type: string
           test_id: string
+        }[]
+      }
+      get_message_threads: {
+        Args: never
+        Returns: {
+          is_parent: boolean
+          is_teacher: boolean
+          last_message: string
+          last_message_at: string
+          parent_id: string
+          parent_name: string
+          school_id: string
+          student_id: string
+          student_name: string
+          teacher_id: string
+          teacher_name: string
+          thread_id: string
+          unread_count: number
+        }[]
+      }
+      get_messageable_contacts: {
+        Args: never
+        Returns: {
+          counterpart_id: string
+          counterpart_kind: string
+          counterpart_name: string
+          school_id: string
+          student_id: string
+          student_name: string
         }[]
       }
       get_school_staff_role: {
@@ -3735,6 +4062,10 @@ export type Database = {
       }
       mark_expired_daily_quests_as_failed: { Args: never; Returns: undefined }
       resolve_test_share_token: { Args: { _token: string }; Returns: string }
+      start_message_thread: {
+        Args: { p_student_id: string; p_teacher_id: string }
+        Returns: string
+      }
       test_quest_system: {
         Args: { test_user_id?: string }
         Returns: {
