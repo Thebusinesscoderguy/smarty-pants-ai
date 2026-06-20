@@ -2,6 +2,10 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, GraduationCap } from 'lucide-react';
 import { Reveal, WordReveal, EASE } from './primitives';
 
+// TODO(owner): point this at a real, monitored inbox, or swap for a Calendly/booking link.
+export const CONTACT_EMAIL = 'hello@teachlyai.com';
+export const DEMO_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('TeachlyAI — demo request')}`;
+
 function CtaButton({ children, variant = 'light', onClick }: {
   children: React.ReactNode;
   variant?: 'light' | 'ghost';
@@ -69,8 +73,8 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
               transition={{ duration: 0.6, ease: EASE, delay: 0.4 }}
               className="mx-auto mt-5 max-w-xl text-lg text-violet-100"
             >
-              Set up your whole school in a single weekend, white-glove
-              onboarding included.
+              Hands-on onboarding support to get your school set up — we
+              help with every step.
             </motion.p>
 
             <motion.div
@@ -83,7 +87,7 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
               <CtaButton variant="light" onClick={onCta}>
                 Start free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </CtaButton>
-              <CtaButton variant="ghost">Book a demo</CtaButton>
+              <CtaButton variant="ghost" onClick={() => { window.location.href = DEMO_MAILTO; }}>Book a demo</CtaButton>
             </motion.div>
 
           </div>
@@ -94,17 +98,29 @@ export function FinalCTA({ onCta }: { onCta?: () => void }) {
 }
 
 const FOOTER_COLS = [
-  { title: 'Product', links: ['Features', 'How it works', 'Pricing', 'Security', 'Roadmap'] },
-  { title: 'Company', links: ['About', 'Careers', 'Blog', 'Press', 'Contact'] },
-  { title: 'Resources', links: ['Help center', 'Guides', 'API docs', 'Status', 'Community'] },
-  { title: 'Legal', links: ['Privacy', 'Terms', 'FERPA', 'Cookies'] },
+  {
+    title: 'Product',
+    links: [
+      { label: 'Features', href: '/features' },
+      { label: 'How it works', href: '#how' },
+      { label: 'Pricing', href: '/pricing' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'Contact', href: DEMO_MAILTO },
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+    ],
+  },
 ];
 
 export function Footer() {
   return (
     <footer className="border-t border-violet-100/70 px-4 py-14">
       <div className="mx-auto max-w-6xl">
-        <div className="grid gap-10 md:grid-cols-[1.5fr_repeat(4,1fr)]">
+        <div className="grid gap-10 md:grid-cols-[1.5fr_repeat(2,1fr)]">
           <div>
             <a href="#top" className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#7C3AED,#A855F7)]">
@@ -125,9 +141,9 @@ export function Footer() {
               <h4 className="font-display text-sm font-bold text-[hsl(250_47%_15%)]">{col.title}</h4>
               <ul className="mt-3 space-y-2.5">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-sm text-[hsl(245_16%_50%)] transition-colors hover:text-violet-700">
-                      {l}
+                  <li key={l.label}>
+                    <a href={l.href} className="text-sm text-[hsl(245_16%_50%)] transition-colors hover:text-violet-700">
+                      {l.label}
                     </a>
                   </li>
                 ))}

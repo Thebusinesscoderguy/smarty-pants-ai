@@ -4,7 +4,7 @@ import { GraduationCap, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GradientButton, EASE } from './primitives';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const LINKS = [
   { label: 'Features', href: '#features' },
@@ -19,6 +19,10 @@ export function Nav({ onCta }: { onCta?: () => void }) {
   const { scrollY } = useScroll();
   const { user, signOut, isSigningOut } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  // On the landing page, section links stay same-page (smooth scroll); on any
+  // other route they point back to the landing's sections.
+  const hrefFor = (h: string) => (pathname === '/' ? h : `/${h}`);
 
   const handleDashboard = () => navigate('/');
   const handleSignOut = async () => { await signOut(); };
@@ -57,7 +61,7 @@ export function Nav({ onCta }: { onCta?: () => void }) {
           {LINKS.map((l) => (
             <a
               key={l.href}
-              href={l.href}
+              href={hrefFor(l.href)}
               className="relative rounded-lg px-3.5 py-2 text-sm font-medium text-[hsl(245_16%_40%)] transition-colors hover:text-violet-700"
             >
               {l.label}
@@ -121,7 +125,7 @@ export function Nav({ onCta }: { onCta?: () => void }) {
             {LINKS.map((l) => (
               <a
                 key={l.href}
-                href={l.href}
+                href={hrefFor(l.href)}
                 onClick={() => setOpen(false)}
                 className="block rounded-xl px-4 py-3 text-sm font-medium text-[hsl(245_16%_38%)] transition-colors hover:bg-violet-50 hover:text-violet-700"
               >

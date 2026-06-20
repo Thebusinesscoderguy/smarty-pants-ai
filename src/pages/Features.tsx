@@ -1,362 +1,189 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { SEO } from '@/components/SEO';
-import { 
-  Brain, MessageSquare, BookOpen, Gamepad2, BarChart, Users, 
-  Globe, Lightbulb, Target, CheckCircle, Star, Zap, Shield, 
-  Clock, Mic, Upload, Camera, PlayCircle, Trophy, TrendingUp,
-  FileText, Settings, Monitor, Smartphone, Tablet, Headphones,
-  PenTool, Calculator, Languages, GraduationCap, Award,
-  ChevronRight, ArrowRight, Play
-} from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
+import {
+  CalendarCheck, GraduationCap, ClipboardList, ListChecks, FileText,
+  Wallet, MessageSquare, BarChart3, Upload, Brain, BookOpen, Library,
+  CheckCircle2, Mic, Sparkles, Gamepad2, LineChart, ArrowRight, Layers,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { SEO } from '@/components/SEO';
+import { Nav } from '@/components/landing/Nav';
+import { FinalCTA, Footer, DEMO_MAILTO } from '@/components/landing/FinalCTA';
+import {
+  GradientOrbs, WordReveal, GradientButton, GhostButton, Magnetic,
+  Reveal, StaggerGroup, staggerItem,
+} from '@/components/landing/primitives';
 
-const Features = () => {
-  const { t } = useLanguage();
+/* ============================================================
+   TeachlyAI — Features page.
+   Aligned with the landing: management-first, then AI, then the
+   student learning companion (demoted). Shares the landing's
+   purple/lavender system + motion primitives. English, no i18n
+   (matches the current landing).
+   ============================================================ */
+
+type Feat = { icon: React.ElementType; title: string; body: string; accent: string };
+
+const MANAGEMENT: Feat[] = [
+  { icon: CalendarCheck, title: 'Smart attendance', body: 'One-tap roll call with automatic absence alerts sent to parents.', accent: 'from-violet-500 to-indigo-500' },
+  { icon: GraduationCap, title: 'Living gradebook', body: 'Marks, weightings and term grades across every class, always up to date.', accent: 'from-emerald-500 to-teal-500' },
+  { icon: ClipboardList, title: 'Exams & assessments', body: 'Build, schedule and run exams with live monitoring and auto-submission when time runs out.', accent: 'from-fuchsia-500 to-pink-500' },
+  { icon: ListChecks, title: 'Homework & assignments', body: 'Set, collect and grade work in one queue — every submission lands in a single inbox.', accent: 'from-sky-500 to-indigo-500' },
+  { icon: FileText, title: 'Report cards', body: 'Auto-compiled, school-branded report-card PDFs in a click.', accent: 'from-amber-500 to-orange-500' },
+  { icon: Wallet, title: 'Invoicing & fees', body: 'Issue invoices, track fee payments and follow up on balances — no spreadsheet required.', accent: 'from-violet-500 to-fuchsia-500' },
+  { icon: MessageSquare, title: 'Parent–teacher messaging', body: 'One secure inbox for parents, teachers and admin, with messages translated automatically.', accent: 'from-sky-500 to-violet-500' },
+  { icon: BarChart3, title: 'At-risk analytics', body: 'School-wide dashboards that surface struggling students early — before grades slip.', accent: 'from-rose-500 to-pink-500' },
+  { icon: Upload, title: 'Roster & bulk import', body: 'Bring your whole school — students, classes and timetable — and map it in minutes.', accent: 'from-indigo-500 to-violet-500' },
+];
+
+const AI: Feat[] = [
+  { icon: Brain, title: 'AI lesson & quiz builder', body: 'Generate standards-aligned lessons, worksheets and quizzes in seconds. Teachers edit — never start from a blank page.', accent: 'from-violet-500 to-indigo-500' },
+  { icon: BookOpen, title: 'Curriculum-grounded quizzes', body: 'Quizzes built from your own curriculum — tied to the exact books, units and lessons you teach.', accent: 'from-fuchsia-500 to-violet-500' },
+  { icon: Library, title: 'Lesson-plan library', body: 'Save, organise and reuse every AI lesson plan your teachers create.', accent: 'from-sky-500 to-indigo-500' },
+  { icon: CheckCircle2, title: 'Instant auto-grading', body: 'Quizzes grade themselves the moment students submit, with results flowing straight into the gradebook.', accent: 'from-emerald-500 to-teal-500' },
+];
+
+const STUDENTS: Feat[] = [
+  { icon: Mic, title: 'AI tutor with voice', body: 'A Socratic AI tutor students can talk to by voice or text, in 15+ languages.', accent: 'from-violet-500 to-indigo-500' },
+  { icon: Sparkles, title: 'Adaptive practice', body: 'Quizzes and lessons that adjust to each student’s level as they go.', accent: 'from-fuchsia-500 to-pink-500' },
+  { icon: Gamepad2, title: 'Quests & achievements', body: 'Optional streaks, levels and a class leaderboard to keep students motivated.', accent: 'from-amber-500 to-orange-500' },
+  { icon: LineChart, title: 'Live progress', body: 'Students and parents follow grades and progress as they happen.', accent: 'from-sky-500 to-indigo-500' },
+];
+
+function FeatureCard({ f }: { f: Feat }) {
+  const reduce = useReducedMotion();
+  const Icon = f.icon;
+  return (
+    <motion.article
+      variants={staggerItem}
+      whileHover={reduce ? undefined : { y: -6 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+      className="lp-gradient-border group relative flex flex-col overflow-hidden rounded-3xl p-6 shadow-[0_18px_50px_-30px_rgba(91,33,182,0.35)] backdrop-blur"
+    >
+      <div className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(124,58,237,0.07),transparent_55%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="relative z-10 flex h-full flex-col">
+        <span className={cn('mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg', f.accent)}>
+          <Icon className="h-6 w-6" strokeWidth={2.2} />
+        </span>
+        <h3 className="font-display text-lg font-bold tracking-tight text-[hsl(250_47%_13%)]">{f.title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-[hsl(245_16%_46%)]">{f.body}</p>
+      </div>
+    </motion.article>
+  );
+}
+
+function SectionHead({
+  badge, icon: Icon, title, accent, subtitle,
+}: { badge: string; icon: React.ElementType; title: string; accent: string; subtitle: string }) {
+  return (
+    <Reveal className="mx-auto max-w-2xl text-center">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50/70 px-3.5 py-1 text-sm font-medium text-violet-600">
+        <Icon className="h-3.5 w-3.5" /> {badge}
+      </span>
+      <h2 className="font-display mt-5 text-4xl font-extrabold tracking-tight text-[hsl(250_47%_11%)] sm:text-5xl">
+        {title} <span className="lp-text-gradient">{accent}</span>
+      </h2>
+      <p className="mt-4 text-lg text-[hsl(245_16%_46%)]">{subtitle}</p>
+    </Reveal>
+  );
+}
+
+export default function Features() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const goSignup = useCallback(() => navigate('/auth'), [navigate]);
+  const bookDemo = useCallback(() => { window.location.href = DEMO_MAILTO; }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="teachly-lp min-h-dvh scroll-smooth antialiased">
       <SEO
-        title="Features — Teachly.AI AI Tools for Schools"
-        description="Explore Teachly.AI features: AI tutor, adaptive quizzes, study plans, lesson generation, gradebook, parent messaging, and school analytics."
+        title="Features — TeachlyAI: the AI operating system for K-12 schools"
+        description="Run attendance, grading, exams, report cards, fees and parent messaging in one place — with AI that builds lessons and quizzes from your own curriculum, plus an AI tutor for students."
         path="/features"
       />
-      <Header />
-      
-      <main className="px-4 py-12 md:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
-              {t('features.title')}
+
+      <Nav onCta={goSignup} />
+
+      <main>
+        {/* ---- hero ---- */}
+        <section id="top" className="relative overflow-hidden px-4 pb-16 pt-32 sm:pt-36">
+          <GradientOrbs />
+          <div className="relative mx-auto max-w-3xl text-center">
+            <Reveal>
+              <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-100 bg-white/70 px-4 py-1.5 text-sm font-medium text-violet-700 backdrop-blur">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7C3AED,#A855F7)]">
+                  <Sparkles className="h-3 w-3 text-white" />
+                </span>
+                One platform for the whole school
+              </span>
+            </Reveal>
+
+            <h1 className="font-display text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-[hsl(250_47%_11%)] sm:text-5xl lg:text-[3.5rem]">
+              <WordReveal text="Everything it takes to" />{' '}
+              <WordReveal text="run a modern school" delay={0.4} highlight={[2, 3]} />
             </h1>
-            <p className="text-xl text-muted-foreground max-w-4xl mx-auto mb-8 leading-relaxed">
-              {t('features.subtitle')}
+
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[hsl(245_16%_46%)] sm:text-xl">
+              Attendance, grading, exams, fees and parent messaging in one calm system —
+              with AI that handles the busywork and a tutor that helps students learn.
             </p>
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg"
-              onClick={() => navigate('/quiz-generator')}
-            >
-              {t('features.startToday')}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
 
-          {/* Feature Categories */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-muted border border-border mb-12">
-              <TabsTrigger value="overview" className="text-xs md:text-sm">{t('features.tab.overview')}</TabsTrigger>
-              <TabsTrigger value="ai-tutoring" className="text-xs md:text-sm">{t('features.tab.aiTutoring')}</TabsTrigger>
-              <TabsTrigger value="tools" className="text-xs md:text-sm">{t('features.tab.tools')}</TabsTrigger>
-              <TabsTrigger value="analytics" className="text-xs md:text-sm">{t('features.tab.analytics')}</TabsTrigger>
-            </TabsList>
-
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="mt-8">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <Card className="bg-card border border-border hover:shadow-lg transition-all duration-300">
-                  <CardHeader>
-                    <Brain className="h-12 w-12 text-primary mb-4" />
-                    <CardTitle>{t('features.aiTutor.title')}</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      {t('features.aiTutor.desc')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.aiTutor.natural')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.aiTutor.multilang')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.aiTutor.socratic')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border border-border hover:shadow-lg transition-all duration-300">
-                  <CardHeader>
-                    <BookOpen className="h-12 w-12 text-primary mb-4" />
-                    <CardTitle>{t('features.studyTools.title')}</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      {t('features.studyTools.desc')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.studyTools.quizzes')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.studyTools.plans')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.studyTools.modules')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border border-border hover:shadow-lg transition-all duration-300">
-                  <CardHeader>
-                    <Languages className="h-12 w-12 text-primary mb-4" />
-                    <CardTitle>{t('features.language.title')}</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      {t('features.language.desc')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.language.responses')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.language.materials')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2" />
-                        {t('features.language.cultural')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* AI Tutoring Tab */}
-            <TabsContent value="ai-tutoring" className="mt-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <Languages className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.multilang.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      {t('features.multilang.desc')}
-                    </p>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <Badge variant="outline">{t('features.lang.english')}</Badge>
-                      <Badge variant="outline">{t('features.lang.spanish')}</Badge>
-                      <Badge variant="outline">{t('features.lang.french')}</Badge>
-                      <Badge variant="outline">{t('features.lang.german')}</Badge>
-                      <Badge variant="outline">{t('features.lang.italian')}</Badge>
-                      <Badge variant="outline">{t('features.lang.japanese')}</Badge>
-                      <Badge variant="outline">{t('features.lang.korean')}</Badge>
-                      <Badge variant="outline">{t('features.lang.chinese')}</Badge>
-                      <Badge variant="outline">{t('features.lang.russian')}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <Brain className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.intelligence.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      {t('features.intelligence.desc')}
-                    </p>
-                    <div className="space-y-2">
-                      <Badge variant="outline" className="mr-2">{t('features.method.socratic')}</Badge>
-                      <Badge variant="outline" className="mr-2">{t('features.method.adaptive')}</Badge>
-                      <Badge variant="outline">{t('features.method.feedback')}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Study Tools Tab */}
-            <TabsContent value="tools" className="mt-8">
-              <div className="grid lg:grid-cols-3 gap-8">
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <FileText className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.quizGen.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-sm mb-4">
-                      {t('features.quizGen.desc')}
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.quizGen.multilang')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.quizGen.difficulty')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.quizGen.grading')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <Mic className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.voice.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-sm mb-4">
-                      {t('features.voice.desc')}
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.voice.support')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.voice.accent')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.voice.audio')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <BookOpen className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.localizedPlans.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-sm mb-4">
-                      {t('features.localizedPlans.desc')}
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.localizedPlans.curriculum')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.localizedPlans.cultural')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.localizedPlans.native')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Analytics Tab */}
-            <TabsContent value="analytics" className="mt-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <BarChart className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.analytics.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      {t('features.analytics.desc')}
-                    </p>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-2 bg-primary rounded-full"></div>
-                        <span className="text-sm text-foreground">{t('features.analytics.mathMastery')}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-2 bg-primary/60 rounded-full"></div>
-                        <span className="text-sm text-foreground">{t('features.analytics.scienceProgress')}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border border-border">
-                  <CardHeader>
-                    <Users className="h-8 w-8 text-primary mb-2" />
-                    <CardTitle>{t('features.multiUser.title')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      {t('features.multiUser.desc')}
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.multiUser.dashboard')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.multiUser.reports')}
-                      </div>
-                      <div className="flex items-center text-sm text-foreground">
-                        <CheckCircle className="h-3 w-3 text-primary mr-2" />
-                        {t('features.multiUser.preferences')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Call to Action */}
-          <div className="text-center mt-16 p-8 bg-card border border-border rounded-2xl shadow-lg">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">{t('features.cta.title')}</h2>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              {t('features.cta.subtitle')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg"
-                onClick={() => navigate('/quiz-generator')}
-              >
-                {t('features.cta.startTrial')}
-                <Play className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => navigate('/quiz-generator')}
-                className="rounded-full border-2 border-border bg-background hover:bg-muted"
-              >
-                {t('features.cta.tryDemo')}
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Magnetic strength={0.45}>
+                <GradientButton onClick={goSignup}>
+                  Start free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </GradientButton>
+              </Magnetic>
+              <GhostButton onClick={bookDemo}>Book a demo</GhostButton>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* ---- TIER 1: management ---- */}
+        <section id="features" className="relative px-4 py-20 sm:py-24">
+          <SectionHead
+            badge="The school operating system"
+            icon={Layers}
+            title="Run the whole school,"
+            accent="in one place"
+            subtitle="Replace a dozen disconnected tools with a single system your staff actually enjoy using."
+          />
+          <StaggerGroup className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {MANAGEMENT.map((f) => <FeatureCard key={f.title} f={f} />)}
+          </StaggerGroup>
+        </section>
+
+        {/* ---- TIER 2: AI ---- */}
+        <section className="relative px-4 py-20 sm:py-24">
+          <SectionHead
+            badge="AI that does the busywork"
+            icon={Brain}
+            title="Built on"
+            accent="your curriculum"
+            subtitle="Not generic AI bolted on — it works from the books, units and lessons your school actually teaches."
+          />
+          <StaggerGroup className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+            {AI.map((f) => <FeatureCard key={f.title} f={f} />)}
+          </StaggerGroup>
+        </section>
+
+        {/* ---- TIER 3: students (demoted) ---- */}
+        <section className="relative px-4 py-20 sm:py-24">
+          <SectionHead
+            badge="For students"
+            icon={Gamepad2}
+            title="And a learning companion"
+            accent="they'll actually use"
+            subtitle="Once your school is running, students get an AI tutor and adaptive practice — included, not extra."
+          />
+          <StaggerGroup className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+            {STUDENTS.map((f) => <FeatureCard key={f.title} f={f} />)}
+          </StaggerGroup>
+        </section>
       </main>
-      
+
+      <FinalCTA onCta={goSignup} />
       <Footer />
     </div>
   );
-};
-
-export default Features;
+}

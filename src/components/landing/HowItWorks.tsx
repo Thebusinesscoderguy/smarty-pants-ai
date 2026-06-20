@@ -155,7 +155,7 @@ export function HowItWorks() {
           Live in <span className="lp-text-gradient">three steps</span>
         </h2>
         <p className="mt-4 text-lg text-[hsl(245_16%_46%)]">
-          Most schools are fully onboarded over a single weekend.
+          A guided, step-by-step setup — from importing your data to going live.
         </p>
       </Reveal>
 
