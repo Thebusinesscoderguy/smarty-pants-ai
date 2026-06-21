@@ -14,6 +14,7 @@ import {
 import {
   GradientOrbs, WordReveal, GradientButton, GhostButton, Magnetic, EASE,
 } from './primitives';
+import { HeroArt } from './HeroArt';
 import { cn } from '@/lib/utils';
 
 /* ============================================================
@@ -23,8 +24,6 @@ import { cn } from '@/lib/utils';
           mouse-parallax 3D tilt, purple glow, floating stat cards
    ui-ux-pro-max: white + lavender, #7C3AED / #A78BFA / #4F46E5
    ============================================================ */
-
-const DASHBOARD_IMG = '/teachly-dashboard.png';
 
 /* ---- one floating glass stat card: parallax depth + idle float + spring entrance ---- */
 function FloatingStat({
@@ -103,31 +102,9 @@ function HeroMockup({ mx, my }: { mx: MotionValue<number>; my: MotionValue<numbe
         transition={{ duration: 1, ease: EASE, delay: 0.45 }}
         className="relative will-change-transform"
       >
-        {/* browser window frame */}
+        {/* glass card framing the abstract brand art (replaces the screenshot) */}
         <div className="lp-glass overflow-hidden rounded-[1.5rem] p-2 shadow-[0_44px_120px_-32px_rgba(91,33,182,0.5)]">
-          <div className="overflow-hidden rounded-[1.15rem] bg-white">
-            {/* chrome bar */}
-            <div className="flex items-center gap-2 border-b border-violet-50 bg-white/80 px-4 py-3">
-              <span className="h-3 w-3 rounded-full bg-rose-300" />
-              <span className="h-3 w-3 rounded-full bg-amber-300" />
-              <span className="h-3 w-3 rounded-full bg-emerald-300" />
-              <div className="ml-3 flex flex-1 items-center justify-center">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-violet-50/70 px-3 py-1 text-xs font-medium text-violet-600">
-                  <span className="h-2.5 w-2.5 rounded-full border border-violet-300" />
-                  app.teachlyai.com/dashboard
-                </div>
-              </div>
-            </div>
-            {/* the real dashboard screenshot */}
-            <img
-              src={DASHBOARD_IMG}
-              alt="TeachlyAI school administration dashboard"
-              width={1877}
-              height={1030}
-              loading="eager"
-              className="block w-full"
-            />
-          </div>
+          <HeroArt />
         </div>
 
         {/* floating stat cards */}
