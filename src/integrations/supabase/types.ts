@@ -475,43 +475,49 @@ export type Database = {
       }
       curriculum_documents: {
         Row: {
+          char_count: number | null
           created_at: string
           created_by: string | null
+          extracted_text: string | null
           grade_level: string
           id: string
           mime_type: string | null
           page_count: number | null
           school_id: string
           status: string
-          storage_path: string
+          storage_path: string | null
           subject_id: string
           title: string
           updated_at: string
         }
         Insert: {
+          char_count?: number | null
           created_at?: string
           created_by?: string | null
+          extracted_text?: string | null
           grade_level: string
           id?: string
           mime_type?: string | null
           page_count?: number | null
           school_id: string
           status?: string
-          storage_path: string
+          storage_path?: string | null
           subject_id: string
           title: string
           updated_at?: string
         }
         Update: {
+          char_count?: number | null
           created_at?: string
           created_by?: string | null
+          extracted_text?: string | null
           grade_level?: string
           id?: string
           mime_type?: string | null
           page_count?: number | null
           school_id?: string
           status?: string
-          storage_path?: string
+          storage_path?: string | null
           subject_id?: string
           title?: string
           updated_at?: string
@@ -533,36 +539,116 @@ export type Database = {
           },
         ]
       }
+      curriculum_lesson_images: {
+        Row: {
+          book_id: string
+          created_at: string
+          document_id: string | null
+          height: number | null
+          id: string
+          lesson_id: string
+          order_index: number
+          page_number: number | null
+          school_id: string
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          document_id?: string | null
+          height?: number | null
+          id?: string
+          lesson_id: string
+          order_index?: number
+          page_number?: number | null
+          school_id: string
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          document_id?: string | null
+          height?: number | null
+          id?: string
+          lesson_id?: string
+          order_index?: number
+          page_number?: number | null
+          school_id?: string
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_lesson_images_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lesson_images_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lesson_images_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lesson_images_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_lessons: {
         Row: {
+          confidence: string | null
           content: string | null
           created_at: string
+          end_page: number | null
           id: string
           order_index: number
           school_id: string
           source_pages: string | null
+          start_page: number | null
           summary: string | null
           title: string
           unit_id: string
         }
         Insert: {
+          confidence?: string | null
           content?: string | null
           created_at?: string
+          end_page?: number | null
           id?: string
           order_index?: number
           school_id: string
           source_pages?: string | null
+          start_page?: number | null
           summary?: string | null
           title: string
           unit_id: string
         }
         Update: {
+          confidence?: string | null
           content?: string | null
           created_at?: string
+          end_page?: number | null
           id?: string
           order_index?: number
           school_id?: string
           source_pages?: string | null
+          start_page?: number | null
           summary?: string | null
           title?: string
           unit_id?: string
@@ -714,28 +800,37 @@ export type Database = {
       curriculum_units: {
         Row: {
           book_id: string
+          confidence: string | null
           created_at: string
+          end_page: number | null
           id: string
           order_index: number
           school_id: string
+          start_page: number | null
           summary: string | null
           title: string
         }
         Insert: {
           book_id: string
+          confidence?: string | null
           created_at?: string
+          end_page?: number | null
           id?: string
           order_index?: number
           school_id: string
+          start_page?: number | null
           summary?: string | null
           title: string
         }
         Update: {
           book_id?: string
+          confidence?: string | null
           created_at?: string
+          end_page?: number | null
           id?: string
           order_index?: number
           school_id?: string
+          start_page?: number | null
           summary?: string | null
           title?: string
         }
@@ -4061,6 +4156,7 @@ export type Database = {
         Returns: boolean
       }
       mark_expired_daily_quests_as_failed: { Args: never; Returns: undefined }
+      materialize_curriculum: { Args: { p: Json }; Returns: string }
       resolve_test_share_token: { Args: { _token: string }; Returns: string }
       start_message_thread: {
         Args: { p_student_id: string; p_teacher_id: string }

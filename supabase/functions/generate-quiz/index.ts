@@ -45,10 +45,12 @@ serve(async (req) => {
     // Inject the teacher's subject when provided (some callers don't send it).
     const subjectClause = subject ? ` in the subject "${subject}"` : '';
 
-    // Inject selected lesson content as grounding when provided (Phase 1 of the
-    // curriculum system). Capped to protect the model's context/token budget.
+    // Inject selected lesson content as grounding when provided (curriculum
+    // system). Published lesson.content can be a full chapter, so the cap is
+    // generous (50k chars ≈ a long lesson) and we do NOT summarize — the model
+    // sees the real material so quizzes stay strictly grounded.
     const trimmedLessonContext = typeof lessonContext === 'string'
-      ? lessonContext.slice(0, 12000)
+      ? lessonContext.slice(0, 50000)
       : '';
     const groundingInstruction = trimmedLessonContext
       ? `\n\n🎯 GROUNDING (highest priority): Base the quiz STRICTLY on the following lesson content. Do NOT introduce facts, examples, or terminology that are not present in or directly implied by this material. If the requested number of questions cannot be supported by the content, generate fewer rather than inventing material.\n"""\n${trimmedLessonContext}\n"""`

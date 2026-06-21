@@ -9,6 +9,7 @@ import { WelcomeStep } from '@/components/school-onboarding/steps/WelcomeStep';
 import { RosterStep } from '@/components/school-onboarding/steps/RosterStep';
 import { TeachersStep } from '@/components/school-onboarding/steps/TeachersStep';
 import { GradebookStep } from '@/components/school-onboarding/steps/GradebookStep';
+import { CurriculumStep } from '@/components/school-onboarding/steps/CurriculumStep';
 import { LiveStep } from '@/components/school-onboarding/steps/LiveStep';
 
 const STEP_TITLES: Record<typeof STEP_KEYS[number], { title: string; subtitle?: string }> = {
@@ -16,6 +17,7 @@ const STEP_TITLES: Record<typeof STEP_KEYS[number], { title: string; subtitle?: 
   roster: { title: 'Import your students', subtitle: "Upload a CSV and we'll send invitations automatically." },
   teachers: { title: 'Invite your teachers', subtitle: 'They get access to grading, assessments, and messaging.' },
   gradebook: { title: 'Set up the gradebook', subtitle: 'Bring in legacy grades or start fresh.' },
+  curriculum: { title: 'Add your curriculum', subtitle: 'Upload a textbook — we detect chapters and lessons for you.' },
   live: { title: '', subtitle: '' },
 };
 
@@ -85,6 +87,11 @@ const SchoolOnboarding = () => {
       content = <GradebookStep onChoice={(s) => updateProgress({ gradebook_status: s })} />;
       nextDisabled = progress.gradebook_status === 'pending';
       onSkip = async () => { await updateProgress({ gradebook_status: 'fresh' }); await markStepComplete('gradebook'); goNext(); };
+      break;
+    case 'curriculum':
+      content = <CurriculumStep onComplete={async () => { await markStepComplete('curriculum'); goNext(); }} />;
+      // Optional step — admins can publish a book now or skip and add one later.
+      onSkip = async () => { await markStepComplete('curriculum'); goNext(); };
       break;
     case 'live':
       content = (
