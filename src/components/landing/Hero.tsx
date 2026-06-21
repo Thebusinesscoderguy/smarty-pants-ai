@@ -14,7 +14,7 @@ import {
 import {
   GradientOrbs, WordReveal, GradientButton, GhostButton, Magnetic, EASE,
 } from './primitives';
-import { HeroArt } from './HeroArt';
+import { DashboardMockup } from './DashboardMockup';
 import { cn } from '@/lib/utils';
 
 /* ============================================================
@@ -102,9 +102,24 @@ function HeroMockup({ mx, my }: { mx: MotionValue<number>; my: MotionValue<numbe
         transition={{ duration: 1, ease: EASE, delay: 0.45 }}
         className="relative will-change-transform"
       >
-        {/* glass card framing the abstract brand art (replaces the screenshot) */}
+        {/* glass browser frame around the designed dashboard mockup */}
         <div className="lp-glass overflow-hidden rounded-[1.5rem] p-2 shadow-[0_44px_120px_-32px_rgba(91,33,182,0.5)]">
-          <HeroArt />
+          <div className="overflow-hidden rounded-[1.15rem] bg-white">
+            {/* chrome bar */}
+            <div className="flex items-center gap-2 border-b border-violet-50 bg-white/80 px-4 py-3">
+              <span className="h-3 w-3 rounded-full bg-rose-300" />
+              <span className="h-3 w-3 rounded-full bg-amber-300" />
+              <span className="h-3 w-3 rounded-full bg-emerald-300" />
+              <div className="ml-3 flex flex-1 items-center justify-center">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-violet-50/70 px-3 py-1 text-xs font-medium text-violet-600">
+                  <span className="h-2.5 w-2.5 rounded-full border border-violet-300" />
+                  app.teachlyai.com/dashboard
+                </div>
+              </div>
+            </div>
+            {/* the designed (decorative) dashboard */}
+            <DashboardMockup />
+          </div>
         </div>
 
         {/* floating stat cards */}
