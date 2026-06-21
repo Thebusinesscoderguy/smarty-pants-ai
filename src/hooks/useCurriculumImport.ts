@@ -1,15 +1,25 @@
 // Orchestrates the production curriculum upload pipeline (Option 3+):
-//   upload nothing big → extract text + embedded images in the browser →
-//   detect TOC (existing edge fn) → build an editable book→units→lessons tree →
-//   on approve, materialize atomically via the materialize_curriculum RPC.
+//   upload nothing big → extract text in the browser → detect TOC (existing edge fn)
+//   → build an editable book→units→lessons tree → on approve, materialize atomically
+//   via the materialize_curriculum RPC.
 //
-// The raw PDF is NEVER sent to storage — only small per-image PNGs and DB rows.
-// That is what permanently removes the Supabase file-size blocker.
+// Upload stores TEXT + CHAPTER STRUCTURE ONLY — no image extraction/upload at upload
+// time. Images move to an on-demand path (fetched lazily when a teacher opens a lesson
+// that needs them); the extraction code is retained behind EXTRACT_IMAGES_AT_UPLOAD.
+// The raw PDF is NEVER sent to storage — only extracted text + DB rows. That keeps
+// upload instant and permanently removes both the file-size blocker and the image slog.
 
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { extractPdfAllText } from '@/utils/pdfExtractText';
 import { extractPdfImages } from '@/utils/pdfExtractImages';
+
+// Upfront embedded-image extraction/upload is OFF in production: curriculum upload
+// stores text + chapter structure only, which makes it instant. The image pipeline
+// (extractPdfImages) is kept wired-but-gated so the planned on-demand path — fetch a
+// lesson's figures when a teacher actually opens it — can reuse it. Flip to true to
+// restore upfront extraction. Typed as boolean so the gated block still type-checks.
+const EXTRACT_IMAGES_AT_UPLOAD: boolean = false;
 
 // ---- editable tree types (page ranges + structure; content is sliced at approve) ----
 export interface LessonNode {
@@ -186,41 +196,45 @@ export function useCurriculumImport() {
       const docId = doc.id as string;
       setDocumentId(docId);
 
-      // 3. embedded images → upload each (small) PNG individually
-      setPhase('extracting-images'); setStatus('Extracting embedded images…');
-      const extracted = await extractPdfImages(file, {
-        onProgress: (done, total, kept) =>
-          setStatus(`Extracting images… page ${done}/${total} (${kept} found)`),
-      });
+      // 3. embedded images — DEFERRED to the on-demand path (see EXTRACT_IMAGES_AT_UPLOAD).
+      // Production upload skips this entirely; the block below is preserved verbatim so
+      // re-enabling it (or lifting it into the on-demand fetch) is a one-line flag change.
+      if (EXTRACT_IMAGES_AT_UPLOAD) {
+        setPhase('extracting-images'); setStatus('Extracting embedded images…');
+        const extracted = await extractPdfImages(file, {
+          onProgress: (done, total, kept) =>
+            setStatus(`Extracting images… page ${done}/${total} (${kept} found)`),
+        });
 
-      // Upload in parallel batches instead of one-at-a-time. Filtering, dedupe and
-      // the 500 cap already happened upstream in extractPdfImages — `extracted` is final.
-      setPhase('uploading-images');
-      const UPLOAD_CONCURRENCY = 15;
-      const uploaded: ImageMeta[] = [];
-      let done = 0;
-      for (let start = 0; start < extracted.length; start += UPLOAD_CONCURRENCY) {
-        const batch = extracted.slice(start, start + UPLOAD_CONCURRENCY);
-        const results = await Promise.all(batch.map(async (img) => {
-          const path = `${schoolId}/${docId}/images/${img.page}-${img.index}.png`;
-          const { error: upErr } = await supabase.storage
-            .from('curriculum-docs')
-            .upload(path, img.blob, { contentType: 'image/png', upsert: true });
-          done++;
-          setStatus(`Uploaded ${done}/${extracted.length} images…`);
-          if (upErr) {
-            // One bad image shouldn't sink the whole import — skip and continue.
-            console.warn('Image upload failed, skipping:', path, upErr.message);
-            return null;
-          }
-          return {
-            page: img.page, storage_path: path, width: img.width, height: img.height,
-            previewUrl: URL.createObjectURL(img.blob),
-          } as ImageMeta;
-        }));
-        for (const r of results) if (r) uploaded.push(r);
+        // Upload in parallel batches instead of one-at-a-time. Filtering, dedupe and
+        // the 500 cap already happened upstream in extractPdfImages — `extracted` is final.
+        setPhase('uploading-images');
+        const UPLOAD_CONCURRENCY = 15;
+        const uploaded: ImageMeta[] = [];
+        let done = 0;
+        for (let start = 0; start < extracted.length; start += UPLOAD_CONCURRENCY) {
+          const batch = extracted.slice(start, start + UPLOAD_CONCURRENCY);
+          const results = await Promise.all(batch.map(async (img) => {
+            const path = `${schoolId}/${docId}/images/${img.page}-${img.index}.png`;
+            const { error: upErr } = await supabase.storage
+              .from('curriculum-docs')
+              .upload(path, img.blob, { contentType: 'image/png', upsert: true });
+            done++;
+            setStatus(`Uploaded ${done}/${extracted.length} images…`);
+            if (upErr) {
+              // One bad image shouldn't sink the whole import — skip and continue.
+              console.warn('Image upload failed, skipping:', path, upErr.message);
+              return null;
+            }
+            return {
+              page: img.page, storage_path: path, width: img.width, height: img.height,
+              previewUrl: URL.createObjectURL(img.blob),
+            } as ImageMeta;
+          }));
+          for (const r of results) if (r) uploaded.push(r);
+        }
+        setImages(uploaded);
       }
-      setImages(uploaded);
 
       // 4. detect TOC + offset solve (existing edge function, unchanged)
       setPhase('detecting'); setStatus('Detecting table of contents & mapping pages…');
