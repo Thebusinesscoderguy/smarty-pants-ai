@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { SEO } from '@/components/SEO';
 import { Nav } from '@/components/landing/Nav';
 import { Hero } from '@/components/landing/Hero';
@@ -17,7 +18,17 @@ import { FinalCTA, Footer } from '@/components/landing/FinalCTA';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, loading, isSchoolAdmin, isTeacher } = useAuth();
   const goSignup = useCallback(() => navigate('/auth'), [navigate]);
+
+  // A signed-in school (admin/teacher) has no reason to sit on the marketing
+  // page — drop them straight into the school console. The role flags resolve
+  // asynchronously after auth, so this effect re-fires once they settle.
+  useEffect(() => {
+    if (!loading && user && (isSchoolAdmin || isTeacher)) {
+      navigate('/school-admin', { replace: true });
+    }
+  }, [loading, user, isSchoolAdmin, isTeacher, navigate]);
 
   return (
     <div className="teachly-lp min-h-dvh scroll-smooth antialiased">

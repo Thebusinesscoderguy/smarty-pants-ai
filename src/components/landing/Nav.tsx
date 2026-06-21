@@ -17,14 +17,17 @@ export function Nav({ onCta }: { onCta?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { scrollY } = useScroll();
-  const { user, signOut, isSigningOut } = useAuth();
+  const { user, signOut, isSigningOut, isSchoolAdmin, isTeacher } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   // On the landing page, section links stay same-page (smooth scroll); on any
   // other route they point back to the landing's sections.
   const hrefFor = (h: string) => (pathname === '/' ? h : `/${h}`);
 
-  const handleDashboard = () => navigate('/');
+  // School staff (admins/teachers) belong in the school console; everyone else
+  // (parents/students) in the student dashboard.
+  const dashboardPath = isSchoolAdmin || isTeacher ? '/school-admin' : '/dashboard';
+  const handleDashboard = () => navigate(dashboardPath);
   const handleSignOut = async () => { await signOut(); };
 
   useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 24));
