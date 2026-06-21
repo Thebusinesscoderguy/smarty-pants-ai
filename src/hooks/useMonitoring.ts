@@ -499,18 +499,16 @@ Last Activity: ${data.last_activity ? new Date(data.last_activity).toLocaleDateS
 
     try {
       // Find student by email (this would need to be implemented based on your auth setup)
-      // For now, we'll assume you have the student ID
-      const relationshipTable = userRole === 'parent' 
-        ? 'parent_child_relationships' 
-        : 'teacher_student_relationships';
-      
-      const relationshipData = userRole === 'parent'
-        ? { parent_id: user.id, child_id: studentEmail } // This should be student ID
-        : { teacher_id: user.id, student_id: studentEmail }; // This should be student ID
-
-      const { error } = await supabase
-        .from(relationshipTable)
-        .insert(relationshipData);
+      // For now, we'll assume you have the student ID (studentEmail stands in for the student ID).
+      // Branch so each table + payload pair is concrete — a union table name with a union
+      // payload can't be reconciled by the typed Supabase client.
+      const { error } = userRole === 'parent'
+        ? await supabase
+            .from('parent_child_relationships')
+            .insert({ parent_id: user.id, child_id: studentEmail })
+        : await supabase
+            .from('teacher_student_relationships')
+            .insert({ teacher_id: user.id, student_id: studentEmail });
 
       if (error) throw error;
 
