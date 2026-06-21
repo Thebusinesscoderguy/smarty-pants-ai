@@ -7,81 +7,21 @@ import {
   useMotionValue,
   type MotionValue,
 } from 'framer-motion';
-import {
-  ArrowRight, Sparkles, CalendarCheck, GraduationCap,
-  MessageSquare,
-} from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import {
   GradientOrbs, WordReveal, GradientButton, GhostButton, Magnetic, EASE,
 } from './primitives';
 import { DashboardMockup } from './DashboardMockup';
-import { cn } from '@/lib/utils';
 
 /* ============================================================
    TeachlyAI — Hero (light, split layout)
    Left: headline word-reveal + subtitle + magnetic CTAs
-   Right: floating browser mockup of the real dashboard with
-          mouse-parallax 3D tilt, purple glow, floating stat cards
+   Right: browser mockup of the designed dashboard with
+          mouse-parallax 3D tilt and a soft purple glow
    ui-ux-pro-max: white + lavender, #7C3AED / #A78BFA / #4F46E5
    ============================================================ */
 
-/* ---- one floating glass stat card: parallax depth + idle float + spring entrance ---- */
-function FloatingStat({
-  mx, my, depth, drift, delay, className,
-  icon: Icon, value, label, iconClass, accentDot = false,
-}: {
-  mx: MotionValue<number>;
-  my: MotionValue<number>;
-  depth: number;
-  drift: number;
-  delay: number;
-  className?: string;
-  icon: typeof CalendarCheck;
-  value: string;
-  label: string;
-  iconClass: string;
-  accentDot?: boolean;
-}) {
-  const reduce = useReducedMotion();
-  const px = useSpring(useTransform(mx, [-0.5, 0.5], [-depth, depth]), {
-    stiffness: 90, damping: 16, mass: 0.5,
-  });
-  const py = useSpring(useTransform(my, [-0.5, 0.5], [-depth, depth]), {
-    stiffness: 90, damping: 16, mass: 0.5,
-  });
-
-  return (
-    <motion.div
-      style={reduce ? undefined : { x: px, y: py }}
-      initial={{ opacity: 0, scale: 0.7, y: 24 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 210, damping: 17, delay }}
-      className={cn('absolute z-20', className)}
-    >
-      <motion.div
-        animate={reduce ? undefined : { y: [0, -drift, 0] }}
-        transition={{ duration: 5 + depth * 0.05, repeat: Infinity, ease: 'easeInOut', delay }}
-        className="lp-glass relative flex items-center gap-3 rounded-2xl px-4 py-3"
-      >
-        {accentDot && (
-          <span className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#EA580C] opacity-60" />
-            <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-[#EA580C] ring-2 ring-white" />
-          </span>
-        )}
-        <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', iconClass)}>
-          <Icon className="h-5 w-5" />
-        </span>
-        <div className="leading-tight">
-          <p className="text-lg font-bold text-[hsl(250_47%_11%)]">{value}</p>
-          <p className="text-xs text-[hsl(245_16%_46%)]">{label}</p>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* ---- floating browser mockup: purple glow + cursor 3D tilt + the dashboard image ---- */
+/* ---- floating browser mockup: purple glow + cursor 3D tilt + the dashboard ---- */
 function HeroMockup({ mx, my }: { mx: MotionValue<number>; my: MotionValue<number> }) {
   const reduce = useReducedMotion();
   const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]), { stiffness: 100, damping: 16 });
@@ -121,26 +61,6 @@ function HeroMockup({ mx, my }: { mx: MotionValue<number>; my: MotionValue<numbe
             <DashboardMockup />
           </div>
         </div>
-
-        {/* floating stat cards */}
-        <FloatingStat
-          mx={mx} my={my} depth={40} drift={12} delay={0.9}
-          className="-left-6 top-10"
-          icon={CalendarCheck} value="98%" label="Attendance"
-          iconClass="bg-violet-50 text-violet-600"
-        />
-        <FloatingStat
-          mx={mx} my={my} depth={56} drift={10} delay={1.05}
-          className="-left-8 bottom-16"
-          icon={GraduationCap} value="142" label="Grades submitted"
-          iconClass="bg-emerald-50 text-emerald-600"
-        />
-        <FloatingStat
-          mx={mx} my={my} depth={30} drift={14} delay={1.2}
-          className="-right-6 bottom-24"
-          icon={MessageSquare} value="24" label="Parent messages"
-          iconClass="bg-[#FFF1E8] text-[#EA580C]" accentDot
-        />
       </motion.div>
     </div>
   );
