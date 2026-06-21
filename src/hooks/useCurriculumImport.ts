@@ -193,24 +193,32 @@ export function useCurriculumImport() {
           setStatus(`Extracting images… page ${done}/${total} (${kept} found)`),
       });
 
+      // Upload in parallel batches instead of one-at-a-time. Filtering, dedupe and
+      // the 500 cap already happened upstream in extractPdfImages — `extracted` is final.
       setPhase('uploading-images');
+      const UPLOAD_CONCURRENCY = 15;
       const uploaded: ImageMeta[] = [];
-      for (let i = 0; i < extracted.length; i++) {
-        const img = extracted[i];
-        const path = `${schoolId}/${docId}/images/${img.page}-${img.index}.png`;
-        setStatus(`Uploading image ${i + 1}/${extracted.length}…`);
-        const { error: upErr } = await supabase.storage
-          .from('curriculum-docs')
-          .upload(path, img.blob, { contentType: 'image/png', upsert: true });
-        if (upErr) {
-          // One bad image shouldn't sink the whole import — skip and continue.
-          console.warn('Image upload failed, skipping:', path, upErr.message);
-          continue;
-        }
-        uploaded.push({
-          page: img.page, storage_path: path, width: img.width, height: img.height,
-          previewUrl: URL.createObjectURL(img.blob),
-        });
+      let done = 0;
+      for (let start = 0; start < extracted.length; start += UPLOAD_CONCURRENCY) {
+        const batch = extracted.slice(start, start + UPLOAD_CONCURRENCY);
+        const results = await Promise.all(batch.map(async (img) => {
+          const path = `${schoolId}/${docId}/images/${img.page}-${img.index}.png`;
+          const { error: upErr } = await supabase.storage
+            .from('curriculum-docs')
+            .upload(path, img.blob, { contentType: 'image/png', upsert: true });
+          done++;
+          setStatus(`Uploaded ${done}/${extracted.length} images…`);
+          if (upErr) {
+            // One bad image shouldn't sink the whole import — skip and continue.
+            console.warn('Image upload failed, skipping:', path, upErr.message);
+            return null;
+          }
+          return {
+            page: img.page, storage_path: path, width: img.width, height: img.height,
+            previewUrl: URL.createObjectURL(img.blob),
+          } as ImageMeta;
+        }));
+        for (const r of results) if (r) uploaded.push(r);
       }
       setImages(uploaded);
 
