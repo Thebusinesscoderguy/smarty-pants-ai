@@ -7,9 +7,12 @@
 //
 // Tradeoffs (chosen deliberately — see plan): this pulls real embedded photos but
 // NOT vector/SVG diagrams, and raw PDFs often contain decorative fragments, rules,
-// and duplicates. We therefore filter by a minimum pixel area and de-duplicate by
-// a cheap content signature, and cap the total so a 500-page book can't explode
-// into thousands of uploads.
+// and duplicates. The duplicates (header logos, watermarks, page borders repeated
+// per page) are where most of the volume comes from, so the primary defense is a
+// LOSSLESS full-content hash that collapses pixel-identical repeats to a single
+// upload. The size floor is kept deliberately tiny (only true bullets/rules) so
+// small-but-real figures — equations, chemical structures, small graphs — survive.
+// A hard cap still protects against pathological books.
 
 export interface ExtractedImage {
   page: number;        // 1-based PDF page the image appears on
@@ -17,11 +20,12 @@ export interface ExtractedImage {
   blob: Blob;          // image/png
   width: number;
   height: number;
-  hash: string;        // signature used for de-duplication
+  hash: string;        // full-content hash used for de-duplication
 }
 
 export interface ExtractImagesOptions {
-  /** Minimum width*height (in px) to keep — filters out rules, bullets, tiny decorations. */
+  /** Minimum width*height (in px) to keep. Kept very low (32x32) so only true bullets/
+   *  rules are dropped — small but real figures (equations, diagrams) must survive. */
   minPixels?: number;
   /** Hard cap on number of images returned (protects against huge books). */
   maxImages?: number;
@@ -29,17 +33,22 @@ export interface ExtractImagesOptions {
   onProgress?: (pagesDone: number, pageCount: number, imagesKept: number) => void;
 }
 
-// Cheap signature: dimensions + a sparse sample of the RGBA bytes. Identical
-// repeated assets (headers, watermarks) collapse to the same key without the cost
-// of hashing megabytes per image.
-function signature(width: number, height: number, data: Uint8ClampedArray | Uint8Array): string {
-  let acc = 0x811c9dc5;
-  const step = Math.max(1, Math.floor(data.length / 512)); // ~512 samples
-  for (let i = 0; i < data.length; i += step) {
-    acc ^= data[i];
-    acc = Math.imul(acc, 0x01000193);
+// Full-content hash over EVERY decoded RGBA byte, so only pixel-identical images
+// collapse. This is what makes the dedupe lossless: a logo/watermark/border repeated
+// across pages hashes identically and is uploaded once, while two distinct figures —
+// even tiny ones — never get folded together. We run two independent FNV-1a
+// accumulators and concatenate them into one ~64-bit key, making accidental
+// collisions between real content vanishingly unlikely. Dimensions prefix the key as
+// a cheap first-line discriminator.
+function contentHash(width: number, height: number, data: Uint8ClampedArray | Uint8Array): string {
+  let h1 = 0x811c9dc5;
+  let h2 = (0x811c9dc5 ^ 0x9e3779b9) >>> 0;
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i];
+    h1 = Math.imul(h1 ^ b, 0x01000193);
+    h2 = Math.imul(h2 ^ b, 0x85ebca6b);
   }
-  return `${width}x${height}:${(acc >>> 0).toString(16)}`;
+  return `${width}x${height}:${(h1 >>> 0).toString(16)}${(h2 >>> 0).toString(16)}`;
 }
 
 // Resolve a pdfjs image object to { width, height, rgba } regardless of which
@@ -108,7 +117,8 @@ export async function extractPdfImages(
   pdfFile: File,
   opts: ExtractImagesOptions = {},
 ): Promise<ExtractedImage[]> {
-  const { minPixels = 5000, maxImages = 500, onProgress } = opts;
+  // 32x32 = 1024 px floor: drops only true bullets/rules, never real small figures.
+  const { minPixels = 1024, maxImages = 500, onProgress } = opts;
 
   const arrayBuffer = await pdfFile.arrayBuffer();
   // Same legacy build + worker wiring as pdfExtractText.ts / pdfFirstPageToImage.ts.
@@ -163,7 +173,7 @@ export async function extractPdfImages(
       const { canvas, data } = rendered;
       if (canvas.width * canvas.height < minPixels) continue;
 
-      const hash = signature(canvas.width, canvas.height, data);
+      const hash = contentHash(canvas.width, canvas.height, data);
       if (seen.has(hash)) continue;
       seen.add(hash);
 
