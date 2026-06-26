@@ -11,6 +11,7 @@ import { Plus, Trash2, UserCog, Mail, BookOpen, FolderTree, Loader2 } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Teacher {
   id: string;
@@ -54,6 +55,7 @@ export const TeacherManagement = () => {
   const [selectedAssignments, setSelectedAssignments] = useState<{ subject_id: string; section_id: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => { fetchAll(); }, [user]);
 
@@ -86,16 +88,16 @@ export const TeacherManagement = () => {
       const subjectMap: Record<string, string> = {};
       for (const s of subjectRes.data || []) subjectMap[s.id] = s.name;
       const sectionMap: Record<string, string> = {};
-      for (const s of sectionRes.data || []) sectionMap[s.id] = `Grade ${s.grade_level} ${s.section_name}`;
+      for (const s of sectionRes.data || []) sectionMap[s.id] = `${t('gradebook.gradePrefix')} ${s.grade_level} ${s.section_name}`;
 
-      const teachersWithAssignments: Teacher[] = teacherList.map(t => ({
-        ...t,
+      const teachersWithAssignments: Teacher[] = teacherList.map(tch => ({
+        ...tch,
         assignments: assignments
-          .filter(a => a.teacher_id === t.id)
+          .filter(a => a.teacher_id === tch.id)
           .map(a => ({
             ...a,
-            subject_name: subjectMap[a.subject_id] || 'Unknown',
-            section_label: sectionMap[a.section_id] || 'Unknown',
+            subject_name: subjectMap[a.subject_id] || t('teacherMgmt.unknown'),
+            section_label: sectionMap[a.section_id] || t('teacherMgmt.unknown'),
           })),
       }));
 
@@ -111,7 +113,7 @@ export const TeacherManagement = () => {
 
   const addTeacher = async () => {
     if (!newTeacher.email.trim()) {
-      toast({ title: 'Email is required', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.emailRequired'), variant: 'destructive' });
       return;
     }
     setIsSaving(true);
@@ -131,22 +133,22 @@ export const TeacherManagement = () => {
       if (error && !res?.error) throw error;
       if (res?.code === 'email_exists') {
         toast({
-          title: 'Already has an account',
-          description: 'This email already has a Teachly account. Ask them to log in at /auth.',
+          title: t('teacherMgmt.alreadyAccount'),
+          description: t('teacherMgmt.alreadyAccountDesc'),
           variant: 'destructive',
         });
         return;
       }
       if (!res?.ok) {
-        toast({ title: 'Could not invite teacher', description: res?.error || 'Please try again.', variant: 'destructive' });
+        toast({ title: t('teacherMgmt.couldNotInvite'), description: res?.error || t('teacherMgmt.tryAgain'), variant: 'destructive' });
         return;
       }
-      toast({ title: 'Invitation sent', description: `A set-password link was emailed to ${newTeacher.email}.` });
+      toast({ title: t('teacherMgmt.invitationSent'), description: `${t('teacherMgmt.invitationSentDescPre')} ${newTeacher.email}.` });
       setNewTeacher({ email: '', first_name: '', last_name: '' });
       setIsAddOpen(false);
       fetchAll();
     } catch (e: any) {
-      toast({ title: 'Error', description: e.message || 'Failed to invite teacher', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.error'), description: e.message || t('teacherMgmt.failedInvite'), variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -155,9 +157,9 @@ export const TeacherManagement = () => {
   const removeTeacher = async (id: string) => {
     const { error } = await supabase.from('school_teachers').delete().eq('id', id);
     if (error) {
-      toast({ title: 'Error', description: 'Failed to remove teacher', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.error'), description: t('teacherMgmt.failedRemove'), variant: 'destructive' });
     } else {
-      toast({ title: 'Teacher removed' });
+      toast({ title: t('teacherMgmt.removed') });
       fetchAll();
     }
   };
@@ -196,49 +198,49 @@ export const TeacherManagement = () => {
         );
         if (error) throw error;
       }
-      toast({ title: 'Assignments saved', description: `${selectedAssignments.length} subject-section pairs assigned.` });
+      toast({ title: t('teacherMgmt.assignmentsSaved'), description: `${selectedAssignments.length} ${t('teacherMgmt.assignmentsSavedDescSuffix')}` });
       setIsAssignOpen(false);
       fetchAll();
     } catch (e: any) {
-      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+      toast({ title: t('teacherMgmt.error'), description: e.message, variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isLoading) return <div className="animate-pulse text-muted-foreground">Loading teachers...</div>;
+  if (isLoading) return <div className="animate-pulse text-muted-foreground">{t('teacherMgmt.loading')}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Teacher Management</h2>
-          <p className="text-sm text-muted-foreground">Invite teachers by email — they get a single-use link to set their password. Assign them to subjects &amp; sections for Grade Book and Assessments access.</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('teacherMgmt.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('teacherMgmt.subtitle')}</p>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Invite Teacher</Button>
+            <Button><Plus className="h-4 w-4 mr-2" />{t('teacherMgmt.invite')}</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Invite New Teacher</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t('teacherMgmt.inviteNew')}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Email *</Label>
-                <Input type="email" placeholder="teacher@example.com" value={newTeacher.email} onChange={e => setNewTeacher(p => ({ ...p, email: e.target.value }))} />
+                <Label>{t('teacherMgmt.emailReq')}</Label>
+                <Input type="email" placeholder={t('teacherMgmt.emailPlaceholder')} value={newTeacher.email} onChange={e => setNewTeacher(p => ({ ...p, email: e.target.value }))} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>First Name</Label>
-                  <Input placeholder="John" value={newTeacher.first_name} onChange={e => setNewTeacher(p => ({ ...p, first_name: e.target.value }))} />
+                  <Label>{t('teacherMgmt.firstName')}</Label>
+                  <Input placeholder={t('teacherMgmt.firstNamePlaceholder')} value={newTeacher.first_name} onChange={e => setNewTeacher(p => ({ ...p, first_name: e.target.value }))} />
                 </div>
                 <div>
-                  <Label>Last Name</Label>
-                  <Input placeholder="Doe" value={newTeacher.last_name} onChange={e => setNewTeacher(p => ({ ...p, last_name: e.target.value }))} />
+                  <Label>{t('teacherMgmt.lastName')}</Label>
+                  <Input placeholder={t('teacherMgmt.lastNamePlaceholder')} value={newTeacher.last_name} onChange={e => setNewTeacher(p => ({ ...p, last_name: e.target.value }))} />
                 </div>
               </div>
               <Button onClick={addTeacher} disabled={isSaving} className="w-full">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
-                Send Invitation
+                {t('teacherMgmt.sendInvitation')}
               </Button>
             </div>
           </DialogContent>
@@ -249,8 +251,8 @@ export const TeacherManagement = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center text-muted-foreground">
             <Mail className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No teachers added yet</p>
-            <p className="text-sm mt-1">Add teachers by their email address to give them access to Grade Book &amp; Assessments.</p>
+            <p className="font-medium">{t('teacherMgmt.emptyTitle')}</p>
+            <p className="text-sm mt-1">{t('teacherMgmt.emptySubtitle')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -258,10 +260,10 @@ export const TeacherManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Teacher</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Assignments</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('teacherMgmt.colTeacher')}</TableHead>
+                <TableHead>{t('teacherMgmt.colEmail')}</TableHead>
+                <TableHead>{t('teacherMgmt.colAssignments')}</TableHead>
+                <TableHead className="text-right">{t('teacherMgmt.colActions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -274,7 +276,7 @@ export const TeacherManagement = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {teacher.assignments.length === 0 ? (
-                        <span className="text-sm text-muted-foreground">None</span>
+                        <span className="text-sm text-muted-foreground">{t('teacherMgmt.none')}</span>
                       ) : (
                         teacher.assignments.map(a => (
                           <Badge key={a.id} variant="secondary" className="text-xs">
@@ -287,7 +289,7 @@ export const TeacherManagement = () => {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button size="sm" variant="outline" onClick={() => openAssignDialog(teacher)}>
-                        <UserCog className="h-4 w-4 mr-1" />Assign
+                        <UserCog className="h-4 w-4 mr-1" />{t('teacherMgmt.assign')}
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => removeTeacher(teacher.id)}>
                         <Trash2 className="h-4 w-4" />
@@ -306,15 +308,15 @@ export const TeacherManagement = () => {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Assign Subjects &amp; Sections — {selectedTeacher?.first_name || selectedTeacher?.email}
+              {t('teacherMgmt.assignTitlePre')} {selectedTeacher?.first_name || selectedTeacher?.email}
             </DialogTitle>
           </DialogHeader>
           {subjects.length === 0 || sections.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Please create subjects and sections first.</p>
+            <p className="text-muted-foreground text-sm">{t('teacherMgmt.createFirst')}</p>
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Select which subject + section combinations this teacher manages.
+                {t('teacherMgmt.assignHint')}
               </p>
               {subjects.map(sub => (
                 <div key={sub.id} className="space-y-2">
@@ -324,7 +326,7 @@ export const TeacherManagement = () => {
                   </div>
                   <div className="ml-6 space-y-1">
                     {sections.map(sec => {
-                      const label = `Grade ${sec.grade_level} ${sec.section_name}`;
+                      const label = `${t('gradebook.gradePrefix')} ${sec.grade_level} ${sec.section_name}`;
                       return (
                         <label key={sec.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-2 py-1">
                           <Checkbox
@@ -341,7 +343,7 @@ export const TeacherManagement = () => {
               ))}
               <Button onClick={saveAssignments} disabled={isSaving} className="w-full">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Save Assignments ({selectedAssignments.length})
+                {t('teacherMgmt.saveAssignments')} ({selectedAssignments.length})
               </Button>
             </div>
           )}
