@@ -269,6 +269,14 @@ export const ParentTeacherMessaging = () => {
     return `${t.parent_name || 'Parent'} ⇄ ${t.teacher_name || 'Teacher'}`; // admin observer
   };
 
+  // Label a compose contact by its relationship to the student so a teacher sees
+  // e.g. "Mr Aldawood (parent of Ali Aldawood)" rather than a bare "Parent · re: …".
+  // Direction-aware so a parent picking a teacher reads naturally too.
+  const contactLabel = (c: Contact) =>
+    c.counterpart_kind === 'parent'
+      ? `${c.counterpart_name} (parent of ${c.student_name})`
+      : `${c.counterpart_name} (${c.student_name}'s teacher)`;
+
   const filteredThreads = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return threads;
@@ -318,7 +326,7 @@ export const ParentTeacherMessaging = () => {
                   <SelectContent className="bg-popover max-h-72">
                     {contacts.map((c) => (
                       <SelectItem key={`${c.student_id}::${c.counterpart_id}`} value={`${c.student_id}::${c.counterpart_id}`}>
-                        {c.counterpart_name} · re: {c.student_name}
+                        {contactLabel(c)}
                       </SelectItem>
                     ))}
                   </SelectContent>
