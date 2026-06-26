@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Lock, ShieldCheck, PlayCircle, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AssignedExam {
   id: string;
@@ -18,6 +19,7 @@ interface AssignedExam {
 
 export const AssignedExamsList = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [exams, setExams] = useState<AssignedExam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,7 @@ export const AssignedExamsList = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Lock className="h-4 w-4 text-primary" /> Assigned Exams
+          <Lock className="h-4 w-4 text-primary" /> {t('ael.assignedExams')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -89,26 +91,26 @@ export const AssignedExamsList = () => {
               <div className="min-w-0">
                 <div className="font-medium truncate">{e.title}</div>
                 <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                  <Clock className="h-3 w-3" /> {e.time_limit_minutes} min
-                  {e.due_date && <span>• Due {new Date(e.due_date).toLocaleDateString()}</span>}
+                  <Clock className="h-3 w-3" /> {e.time_limit_minutes} {t('ael.min')}
+                  {e.due_date && <span>• {t('ael.duePrefix')} {new Date(e.due_date).toLocaleDateString()}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {e.attempt_status === 'not_started' && (
-                  <Badge variant="outline" className="gap-1"><Circle className="h-3 w-3" /> Not started</Badge>
+                  <Badge variant="outline" className="gap-1"><Circle className="h-3 w-3" /> {t('ael.notStarted')}</Badge>
                 )}
                 {e.attempt_status === 'in_progress' && (
-                  <Badge variant="secondary" className="gap-1"><PlayCircle className="h-3 w-3" /> In progress</Badge>
+                  <Badge variant="secondary" className="gap-1"><PlayCircle className="h-3 w-3" /> {t('ael.inProgress')}</Badge>
                 )}
                 {e.attempt_status === 'submitted' && (
-                  <Badge className="gap-1"><ShieldCheck className="h-3 w-3" /> Submitted</Badge>
+                  <Badge className="gap-1"><ShieldCheck className="h-3 w-3" /> {t('ael.submitted')}</Badge>
                 )}
                 {e.attempt_status === 'auto_submitted' && (
-                  <Badge variant="outline" className="gap-1"><ShieldCheck className="h-3 w-3" /> Auto-submitted</Badge>
+                  <Badge variant="outline" className="gap-1"><ShieldCheck className="h-3 w-3" /> {t('ael.autoSubmitted')}</Badge>
                 )}
                 {!done && (
                   <Button size="sm" onClick={() => navigate(`/exam/${e.id}`)}>
-                    {e.attempt_status === 'in_progress' ? 'Resume' : 'Start exam'}
+                    {e.attempt_status === 'in_progress' ? t('ael.resume') : t('ael.startExam')}
                   </Button>
                 )}
               </div>

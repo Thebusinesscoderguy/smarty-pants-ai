@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TopicData {
   topic: string;
@@ -17,6 +18,7 @@ interface StrengthsWeaknessesChartProps {
 }
 
 export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: StrengthsWeaknessesChartProps) => {
+  const { t } = useLanguage();
   const getBarColor = (current: number, past: number) => {
     if (current > past) return '#10b981'; // green for improvement
     if (current < past) return '#ef4444'; // red for decline
@@ -36,13 +38,13 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
         <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-lg">
           <p className="font-medium text-white">{label}</p>
           <p className="text-sm text-gray-300">
-            Past: <span className="text-violet-400">{data.past_score}%</span>
+            {t('swc.past')} <span className="text-violet-400">{data.past_score}%</span>
           </p>
           <p className="text-sm text-gray-300">
-            Current: <span className="text-blue-400">{data.current_score}%</span>
+            {t('swc.current')} <span className="text-blue-400">{data.current_score}%</span>
           </p>
           <p className="text-sm">
-            Change: <span className={data.improvement >= 0 ? 'text-green-400' : 'text-red-400'}>
+            {t('swc.change')} <span className={data.improvement >= 0 ? 'text-green-400' : 'text-red-400'}>
               {data.improvement > 0 ? '+' : ''}{data.improvement}%
             </span>
           </p>
@@ -57,7 +59,7 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <TrendingUp className="h-5 w-5" />
-          {studentName} - Strengths & Weaknesses Progress
+          {studentName} - {t('swc.titleSuffix')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -79,8 +81,8 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
                 domain={[0, 100]}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="past_score" fill="#f59e0b" name="Past Performance" opacity={0.6} />
-              <Bar dataKey="current_score" name="Current Performance">
+              <Bar dataKey="past_score" fill="#f59e0b" name={t('swc.pastPerformance')} opacity={0.6} />
+              <Bar dataKey="current_score" name={t('swc.currentPerformance')}>
                 {data.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
@@ -93,7 +95,7 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
         </div>
         
         <div className="mt-6 space-y-3">
-          <h3 className="text-lg font-medium text-foreground mb-3">Topic Progress Details</h3>
+          <h3 className="text-lg font-medium text-foreground mb-3">{t('swc.topicDetails')}</h3>
           {data.map((topic, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
@@ -101,7 +103,7 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
                 <div>
                   <p className="font-medium text-foreground">{topic.topic}</p>
                   <p className="text-sm text-muted-foreground">
-                    Was {topic.past_score}% → Now {topic.current_score}%
+                    {t('swc.was')} {topic.past_score}% → {t('swc.now')} {topic.current_score}%
                   </p>
                 </div>
               </div>
@@ -109,7 +111,7 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
                 <p className={`font-bold ${topic.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {topic.improvement > 0 ? '+' : ''}{topic.improvement}%
                 </p>
-                <p className="text-xs text-muted-foreground">change</p>
+                <p className="text-xs text-muted-foreground">{t('swc.changeWord')}</p>
               </div>
             </div>
           ))}
@@ -119,22 +121,22 @@ export const StrengthsWeaknessesChart = ({ studentId, studentName, data }: Stren
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-600" />
             <div>
-              <p className="text-sm text-muted-foreground">Most Improved</p>
+              <p className="text-sm text-muted-foreground">{t('swc.mostImproved')}</p>
               <p className="font-medium text-foreground">
-                {data.length > 0 ? data.reduce((prev, current) => 
+                {data.length > 0 ? data.reduce((prev, current) =>
                   prev.improvement > current.improvement ? prev : current
-                ).topic : 'No data'}
+                ).topic : t('swc.noData')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <TrendingDown className="h-4 w-4 text-red-600" />
             <div>
-              <p className="text-sm text-muted-foreground">Needs Focus</p>
+              <p className="text-sm text-muted-foreground">{t('swc.needsFocus')}</p>
               <p className="font-medium text-foreground">
-                {data.length > 0 ? data.reduce((prev, current) => 
+                {data.length > 0 ? data.reduce((prev, current) =>
                   prev.improvement < current.improvement ? prev : current
-                ).topic : 'No data'}
+                ).topic : t('swc.noData')}
               </p>
             </div>
           </div>

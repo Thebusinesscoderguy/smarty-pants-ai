@@ -3696,6 +3696,44 @@ export const translations: TranslationData = {
     'sab.copied': 'Copied',
     'sab.copy': 'Copy',
 
+    // ===== Assigned Exams List =====
+    'ael.assignedExams': 'Assigned Exams',
+    'ael.min': 'min',
+    'ael.duePrefix': 'Due',
+    'ael.notStarted': 'Not started',
+    'ael.inProgress': 'In progress',
+    'ael.submitted': 'Submitted',
+    'ael.autoSubmitted': 'Auto-submitted',
+    'ael.resume': 'Resume',
+    'ael.startExam': 'Start exam',
+
+    // ===== Attendance Summary Card =====
+    'asc.attendance': 'Attendance',
+    'asc.last': 'Last',
+    'asc.daysWord': 'days',
+    'asc.loading': 'Loading…',
+    'asc.noRecords': 'No attendance records yet.',
+    'asc.rate': 'attendance rate',
+    'asc.present': 'Present',
+    'asc.late': 'Late',
+    'asc.absent': 'Absent',
+    'asc.excused': 'Excused',
+
+    // ===== Strengths & Weaknesses Chart =====
+    'swc.titleSuffix': 'Strengths & Weaknesses Progress',
+    'swc.past': 'Past:',
+    'swc.current': 'Current:',
+    'swc.change': 'Change:',
+    'swc.pastPerformance': 'Past Performance',
+    'swc.currentPerformance': 'Current Performance',
+    'swc.topicDetails': 'Topic Progress Details',
+    'swc.was': 'Was',
+    'swc.now': 'Now',
+    'swc.changeWord': 'change',
+    'swc.mostImproved': 'Most Improved',
+    'swc.needsFocus': 'Needs Focus',
+    'swc.noData': 'No data',
+
   },
   ar: {
     // ===== Navigation =====
@@ -6441,5 +6479,43 @@ export const translations: TranslationData = {
     'sab.creatingLink': 'جارٍ إنشاء الرابط…',
     'sab.copied': 'تم النسخ',
     'sab.copy': 'نسخ',
+
+    // ===== Assigned Exams List =====
+    'ael.assignedExams': 'الاختبارات المُسندة',
+    'ael.min': 'دقيقة',
+    'ael.duePrefix': 'الاستحقاق',
+    'ael.notStarted': 'لم يبدأ',
+    'ael.inProgress': 'قيد التقدّم',
+    'ael.submitted': 'تم التسليم',
+    'ael.autoSubmitted': 'تسليم تلقائي',
+    'ael.resume': 'استئناف',
+    'ael.startExam': 'بدء الاختبار',
+
+    // ===== Attendance Summary Card =====
+    'asc.attendance': 'الحضور',
+    'asc.last': 'آخر',
+    'asc.daysWord': 'يوم',
+    'asc.loading': 'جارٍ التحميل…',
+    'asc.noRecords': 'لا توجد سجلات حضور بعد.',
+    'asc.rate': 'نسبة الحضور',
+    'asc.present': 'حاضر',
+    'asc.late': 'متأخر',
+    'asc.absent': 'غائب',
+    'asc.excused': 'بعذر',
+
+    // ===== Strengths & Weaknesses Chart =====
+    'swc.titleSuffix': 'تقدّم نقاط القوة والضعف',
+    'swc.past': 'السابق:',
+    'swc.current': 'الحالي:',
+    'swc.change': 'التغيير:',
+    'swc.pastPerformance': 'الأداء السابق',
+    'swc.currentPerformance': 'الأداء الحالي',
+    'swc.topicDetails': 'تفاصيل تقدّم المواضيع',
+    'swc.was': 'كان',
+    'swc.now': 'الآن',
+    'swc.changeWord': 'التغيير',
+    'swc.mostImproved': 'الأكثر تحسّنًا',
+    'swc.needsFocus': 'يحتاج إلى تركيز',
+    'swc.noData': 'لا توجد بيانات',
   },
 };
