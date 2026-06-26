@@ -7,13 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useQuestManagement } from '@/hooks/useQuestManagement';
 import { ArrowLeft, Trash2, Plus } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const MBM_DIFF_KEY: Record<string, string> = { easy: 'mbm.diffEasy', medium: 'mbm.diffMedium', hard: 'mbm.diffHard' };
+const MBM_TYPE_KEY: Record<string, string> = { daily: 'quest.daily', weekly: 'quest.weekly' };
 
 const MadeByMe = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { quests, loading, deleteQuest } = useQuestManagement();
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this quest?')) {
+    if (window.confirm(t('mbm.confirmDelete'))) {
       await deleteQuest(id);
     }
   };
@@ -40,34 +45,34 @@ const MadeByMe = () => {
               className="text-foreground hover:bg-muted"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Quests
+              {t('mbm.backToQuests')}
             </Button>
-            
+
             <Button
               onClick={() => navigate('/quests?create=new')}
               className="bg-primary hover:bg-primary/90"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Create Quest
+              {t('mbm.createQuest')}
             </Button>
           </div>
 
           <Card className="bg-card border-border backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="text-foreground">My Created Quests</CardTitle>
+              <CardTitle className="text-foreground">{t('mbm.myCreatedQuests')}</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-muted-foreground">Loading...</p>
+                <p className="text-muted-foreground">{t('mbm.loading')}</p>
               ) : quests.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">No quests created yet</p>
+                  <p className="text-muted-foreground mb-4">{t('mbm.noQuests')}</p>
                   <Button
                     onClick={() => navigate('/quests?create=new')}
                     className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Your First Quest
+                    {t('mbm.createFirst')}
                   </Button>
                 </div>
               ) : (
@@ -82,17 +87,17 @@ const MadeByMe = () => {
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-foreground font-semibold">{quest.title}</h3>
                             <Badge className={getDifficultyColor(quest.difficulty)}>
-                              {quest.difficulty}
+                              {MBM_DIFF_KEY[quest.difficulty] ? t(MBM_DIFF_KEY[quest.difficulty]) : quest.difficulty}
                             </Badge>
                             <Badge variant="outline" className="border-border text-foreground">
-                              {quest.type}
+                              {MBM_TYPE_KEY[quest.type] ? t(MBM_TYPE_KEY[quest.type]) : quest.type}
                             </Badge>
                           </div>
                           <p className="text-muted-foreground text-sm mb-2">{quest.description}</p>
                           <p className="text-muted-foreground text-xs">
-                            Target: {quest.target_value} | 
-                            Rewards: {quest.rewards?.xp || 0} XP
-                            {quest.expires_at && ` | Expires: ${new Date(quest.expires_at).toLocaleDateString()}`}
+                            {t('mbm.targetPrefix')} {quest.target_value} |
+                            {t('mbm.rewardsPrefix')} {quest.rewards?.xp || 0} {t('mbm.xp')}
+                            {quest.expires_at && ` | ${t('mbm.expiresPrefix')} ${new Date(quest.expires_at).toLocaleDateString()}`}
                           </p>
                         </div>
                         <Button

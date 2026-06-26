@@ -2962,6 +2962,31 @@ export const translations: TranslationData = {
     'pulse.digestToggleDesc': 'A 1-minute read with the same numbers above.',
     'pulse.lastSent': 'Last sent:',
 
+    // ===== Leaderboard =====
+    'lb.title': 'Leaderboard',
+    'lb.subtitle': 'Top learners ranked by XP',
+    'lb.yourRank': 'Your rank:',
+    'lb.empty': 'No entries yet. Start learning to appear on the leaderboard!',
+    'lb.anonymous': 'Anonymous',
+    'lb.you': '(you)',
+    'lb.xp': 'XP',
+
+    // ===== Made by Me (my quests) =====
+    'mbm.confirmDelete': 'Are you sure you want to delete this quest?',
+    'mbm.backToQuests': 'Back to Quests',
+    'mbm.createQuest': 'Create Quest',
+    'mbm.myCreatedQuests': 'My Created Quests',
+    'mbm.loading': 'Loading...',
+    'mbm.noQuests': 'No quests created yet',
+    'mbm.createFirst': 'Create Your First Quest',
+    'mbm.targetPrefix': 'Target:',
+    'mbm.rewardsPrefix': 'Rewards:',
+    'mbm.xp': 'XP',
+    'mbm.expiresPrefix': 'Expires:',
+    'mbm.diffEasy': 'Easy',
+    'mbm.diffMedium': 'Medium',
+    'mbm.diffHard': 'Hard',
+
   },
   ar: {
     // ===== Navigation =====
@@ -4973,5 +4998,30 @@ export const translations: TranslationData = {
     'pulse.digestToggle': 'أرسل لي نبض المدرسة كل اثنين',
     'pulse.digestToggleDesc': 'قراءة بدقيقة واحدة بنفس الأرقام أعلاه.',
     'pulse.lastSent': 'آخر إرسال:',
+
+    // ===== Leaderboard =====
+    'lb.title': 'لوحة الصدارة',
+    'lb.subtitle': 'أفضل المتعلمين مرتبون حسب نقاط الخبرة',
+    'lb.yourRank': 'ترتيبك:',
+    'lb.empty': 'لا توجد إدخالات بعد. ابدأ التعلّم لتظهر على لوحة الصدارة!',
+    'lb.anonymous': 'مجهول',
+    'lb.you': '(أنت)',
+    'lb.xp': 'نقطة خبرة',
+
+    // ===== Made by Me (my quests) =====
+    'mbm.confirmDelete': 'هل أنت متأكد أنك تريد حذف هذه المهمة؟',
+    'mbm.backToQuests': 'العودة إلى المهام',
+    'mbm.createQuest': 'إنشاء مهمة',
+    'mbm.myCreatedQuests': 'المهام التي أنشأتها',
+    'mbm.loading': 'جارٍ التحميل...',
+    'mbm.noQuests': 'لا توجد مهام منشأة بعد',
+    'mbm.createFirst': 'أنشئ أول مهمة لك',
+    'mbm.targetPrefix': 'الهدف:',
+    'mbm.rewardsPrefix': 'المكافآت:',
+    'mbm.xp': 'نقطة خبرة',
+    'mbm.expiresPrefix': 'تنتهي:',
+    'mbm.diffEasy': 'سهل',
+    'mbm.diffMedium': 'متوسط',
+    'mbm.diffHard': 'صعب',
   },
 };

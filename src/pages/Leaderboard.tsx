@@ -6,6 +6,7 @@ import { Trophy, Flame, Medal, Crown, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import { Loader2 } from 'lucide-react';
 
@@ -19,6 +20,7 @@ const getRankIcon = (rank: number) => {
 const Leaderboard = () => {
   const { entries, loading, userRank } = useLeaderboard();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,14 +29,14 @@ const Leaderboard = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Trophy className="h-8 w-8 text-yellow-400" />
-            <h1 className="text-3xl font-bold text-foreground">Leaderboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('lb.title')}</h1>
           </div>
-          <p className="text-muted-foreground">Top learners ranked by XP</p>
+          <p className="text-muted-foreground">{t('lb.subtitle')}</p>
         </div>
 
         {user && userRank && (
           <p className="text-center text-sm text-muted-foreground mb-6">
-            Your rank: <span className="font-bold text-foreground">#{userRank}</span>
+            {t('lb.yourRank')} <span className="font-bold text-foreground">#{userRank}</span>
           </p>
         )}
 
@@ -46,7 +48,7 @@ const Leaderboard = () => {
           <Card>
             <CardContent className="py-12 text-center">
               <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No entries yet. Start learning to appear on the leaderboard!</p>
+              <p className="text-muted-foreground">{t('lb.empty')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -75,8 +77,8 @@ const Leaderboard = () => {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-foreground truncate">
-                        {entry.display_name || 'Anonymous'}
-                        {isCurrentUser && <span className="text-primary ml-1">(you)</span>}
+                        {entry.display_name || t('lb.anonymous')}
+                        {isCurrentUser && <span className="text-primary ml-1">{t('lb.you')}</span>}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {entry.current_streak > 0 && (
@@ -87,7 +89,7 @@ const Leaderboard = () => {
                       </div>
                     </div>
                     <Badge variant="secondary" className="font-bold">
-                      {entry.total_xp} XP
+                      {entry.total_xp} {t('lb.xp')}
                     </Badge>
                   </CardContent>
                 </Card>
