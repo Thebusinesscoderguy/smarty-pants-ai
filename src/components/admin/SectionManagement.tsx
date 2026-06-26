@@ -9,6 +9,7 @@ import { FolderTree, Plus, X, Users, ChevronRight, GraduationCap } from 'lucide-
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Section {
   id: string;
@@ -28,6 +29,7 @@ const GRADE_LEVELS = Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`);
 
 export const SectionManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [sections, setSections] = useState<Section[]>([]);
   const [students, setStudents] = useState<SchoolStudent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,9 +123,9 @@ export const SectionManagement = () => {
       section_name: label
     });
     if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('section.error'), description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Section Created', description: label ? `${newGrade} - ${label}` : newGrade });
+      toast({ title: t('section.created'), description: label ? `${newGrade} - ${label}` : newGrade });
       setNewSectionName('');
       fetchData();
     }
@@ -132,9 +134,9 @@ export const SectionManagement = () => {
   const deleteSection = async (id: string) => {
     const { error } = await supabase.from('school_sections').delete().eq('id', id);
     if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('section.error'), description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Section Deleted' });
+      toast({ title: t('section.deleted') });
       fetchData();
     }
   };
@@ -146,12 +148,12 @@ export const SectionManagement = () => {
     });
     if (error) {
       if (error.code === '23505') {
-        toast({ title: 'Already assigned', variant: 'default' });
+        toast({ title: t('section.alreadyAssigned'), variant: 'default' });
       } else {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        toast({ title: t('section.error'), description: error.message, variant: 'destructive' });
       }
     } else {
-      toast({ title: 'Student Assigned' });
+      toast({ title: t('section.studentAssigned') });
       fetchData();
     }
   };
@@ -159,7 +161,7 @@ export const SectionManagement = () => {
   const removeStudent = async (assignmentId: string) => {
     const { error } = await supabase.from('section_students').delete().eq('id', assignmentId);
     if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('section.error'), description: error.message, variant: 'destructive' });
     } else {
       fetchData();
     }
@@ -178,7 +180,7 @@ export const SectionManagement = () => {
   };
 
   if (loading) {
-    return <div className="animate-pulse text-muted-foreground">Loading sections...</div>;
+    return <div className="animate-pulse text-muted-foreground">{t('section.loading')}</div>;
   }
 
   return (
@@ -188,14 +190,14 @@ export const SectionManagement = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FolderTree className="h-5 w-5" />
-            Create Grade Section
+            {t('section.createTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-3">
             <Select value={newGrade} onValueChange={setNewGrade}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Select grade" />
+                <SelectValue placeholder={t('section.selectGrade')} />
               </SelectTrigger>
               <SelectContent>
                 {GRADE_LEVELS.map(g => (
@@ -204,14 +206,14 @@ export const SectionManagement = () => {
               </SelectContent>
             </Select>
             <Input
-              placeholder="Section name (optional, e.g. A, B, C)"
+              placeholder={t('section.sectionNamePlaceholder')}
               value={newSectionName}
               onChange={e => setNewSectionName(e.target.value)}
               className="w-full sm:w-48"
             />
             <Button onClick={createSection} disabled={!newGrade}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Section
+              {t('section.add')}
             </Button>
           </div>
         </CardContent>
@@ -221,10 +223,10 @@ export const SectionManagement = () => {
       <div className="flex items-center gap-3">
         <Select value={selectedGrade} onValueChange={setSelectedGrade}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="All grades" />
+            <SelectValue placeholder={t('section.allGradesPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Grades</SelectItem>
+            <SelectItem value="all">{t('section.allGrades')}</SelectItem>
             {allGradesInUse.map(g => (
               <SelectItem key={g} value={g}>{g}</SelectItem>
             ))}
@@ -232,7 +234,7 @@ export const SectionManagement = () => {
         </Select>
         {selectedGrade && selectedGrade !== 'all' && (
           <Button variant="ghost" size="sm" onClick={() => setSelectedGrade('')}>
-            Clear filter
+            {t('section.clearFilter')}
           </Button>
         )}
       </div>
@@ -248,7 +250,7 @@ export const SectionManagement = () => {
               <GraduationCap className="h-5 w-5 text-primary" />
               {grade}
               <Badge variant="secondary" className="ml-2">
-                {sections.filter(s => s.grade_level === grade).length} sections
+                {sections.filter(s => s.grade_level === grade).length} {t('section.sectionsCount')}
               </Badge>
               <ChevronRight className={`h-4 w-4 ml-auto transition-transform ${expandedGrade === grade ? 'rotate-90' : ''}`} />
             </CardTitle>
@@ -274,16 +276,16 @@ export const SectionManagement = () => {
                           }}>
                           <DialogTrigger asChild>
                             <Button size="sm" variant="outline">
-                              <Plus className="h-3 w-3 mr-1" /> Add Student
+                              <Plus className="h-3 w-3 mr-1" /> {t('section.addStudent')}
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Add Student to {grade}{section.section_name ? ` ${section.section_name}` : ''}</DialogTitle>
+                              <DialogTitle>{t('section.addStudentToPrefix')} {grade}{section.section_name ? ` ${section.section_name}` : ''}</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-2 max-h-64 overflow-y-auto">
                               {getUnassignedStudents(section.id).length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No unassigned students available.</p>
+                                <p className="text-sm text-muted-foreground">{t('section.noUnassigned')}</p>
                               ) : (
                                 getUnassignedStudents(section.id).map(student => (
                                   <div key={student.student_id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
@@ -293,7 +295,7 @@ export const SectionManagement = () => {
                                         assignStudent(section.id, student.student_id);
                                         setAssignDialogOpen(false);
                                       }}>
-                                      Add
+                                      {t('section.add2')}
                                     </Button>
                                   </div>
                                 ))
@@ -318,7 +320,7 @@ export const SectionManagement = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No students assigned yet.</p>
+                      <p className="text-sm text-muted-foreground">{t('section.noStudentsAssigned')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -332,8 +334,8 @@ export const SectionManagement = () => {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <FolderTree className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">No sections created yet</p>
-            <p className="text-sm">Create grade sections above to organize your students.</p>
+            <p className="text-lg font-medium">{t('section.emptyTitle')}</p>
+            <p className="text-sm">{t('section.emptySubtitle')}</p>
           </CardContent>
         </Card>
       )}
