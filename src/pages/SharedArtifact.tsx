@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Loader2, AlertCircle, ArrowRight, FileQuestion, Calendar, Presentation } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type ArtifactType = 'quiz' | 'study_plan' | 'presentation';
 
@@ -18,6 +19,7 @@ interface SharedArtifactRow {
 }
 
 const SharedArtifact = () => {
+  const { t } = useLanguage();
   const { token } = useParams<{ token: string }>();
   const [artifact, setArtifact] = useState<SharedArtifactRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ const SharedArtifact = () => {
 
         if (error) throw error;
         if (!data) {
-          setError('This share link is no longer active or does not exist.');
+          setError(t('shart.linkInactive'));
         } else {
           setArtifact(data as unknown as SharedArtifactRow);
           // Fire-and-forget view counter
@@ -45,7 +47,7 @@ const SharedArtifact = () => {
           document.title = `${(data as { title: string }).title} · Shared on Teachly`;
         }
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Failed to load shared content');
+        setError(e instanceof Error ? e.message : t('shart.failedLoad'));
       } finally {
         setLoading(false);
       }
@@ -58,7 +60,7 @@ const SharedArtifact = () => {
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
-          Loading shared content…
+          {t('shart.loading')}
         </div>
       </div>
     );
@@ -68,12 +70,12 @@ const SharedArtifact = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-6">
         <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Link unavailable</h1>
+        <h1 className="text-2xl font-bold mb-2">{t('shart.linkUnavailable')}</h1>
         <p className="text-muted-foreground mb-6 text-center max-w-md">
-          {error ?? 'This shared content could not be found.'}
+          {error ?? t('shart.notFound')}
         </p>
         <Button asChild>
-          <Link to="/">Go to Teachly</Link>
+          <Link to="/">{t('shart.goToTeachly')}</Link>
         </Button>
       </div>
     );
@@ -90,7 +92,7 @@ const SharedArtifact = () => {
           </Link>
           <Button asChild size="sm" className="rounded-full">
             <Link to="/auth">
-              Try Teachly free <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
+              {t('shart.tryFree')} <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
             </Link>
           </Button>
         </div>
@@ -99,7 +101,7 @@ const SharedArtifact = () => {
       <main className="flex-1 container mx-auto px-4 md:px-6 py-8 max-w-4xl">
         <div className="mb-6 flex items-center gap-3 flex-wrap">
           <ArtifactBadge type={artifact.artifact_type} />
-          <span className="text-xs text-muted-foreground">{artifact.view_count + 1} views</span>
+          <span className="text-xs text-muted-foreground">{artifact.view_count + 1} {t('shart.viewsSuffix')}</span>
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-6">{artifact.title}</h1>
@@ -113,15 +115,15 @@ const SharedArtifact = () => {
           <CardContent className="py-8 text-center space-y-3">
             <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
               <GraduationCap className="w-4 h-4" />
-              Made with Teachly
+              {t('shart.madeWith')}
             </div>
-            <h2 className="text-2xl font-bold">Create your own AI-powered {artifactLabel(artifact.artifact_type)}</h2>
+            <h2 className="text-2xl font-bold">{t('shart.createOwnPre')} {t(artifactLabelKey(artifact.artifact_type))} {t('shart.createOwnPost')}</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Generate quizzes, study plans, and presentations aligned to your curriculum — in English or Arabic.
+              {t('shart.createOwnDesc')}
             </p>
             <Button asChild size="lg" className="rounded-full mt-2">
               <Link to="/quiz-generator">
-                Try Teachly free <ArrowRight className="ml-2 w-4 h-4" />
+                {t('shart.tryFree')} <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
           </CardContent>
@@ -131,26 +133,27 @@ const SharedArtifact = () => {
       <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">teachlyai.com</Link>
         <span className="mx-2">·</span>
-        <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+        <Link to="/pricing" className="hover:text-foreground">{t('shart.pricing')}</Link>
       </footer>
     </div>
   );
 };
 
-const artifactLabel = (t: ArtifactType) =>
-  t === 'quiz' ? 'quizzes' : t === 'study_plan' ? 'study plans' : 'presentations';
+const artifactLabelKey = (type: ArtifactType) =>
+  type === 'quiz' ? 'shart.labelQuizzes' : type === 'study_plan' ? 'shart.labelStudyPlans' : 'shart.labelPresentations';
 
 const ArtifactBadge = ({ type }: { type: ArtifactType }) => {
+  const { t } = useLanguage();
   const config = {
-    quiz: { icon: FileQuestion, label: 'Quiz' },
-    study_plan: { icon: Calendar, label: 'Study Plan' },
-    presentation: { icon: Presentation, label: 'Presentation' },
+    quiz: { icon: FileQuestion, labelKey: 'shart.badgeQuiz' },
+    study_plan: { icon: Calendar, labelKey: 'shart.badgeStudyPlan' },
+    presentation: { icon: Presentation, labelKey: 'shart.badgePresentation' },
   }[type];
   const Icon = config.icon;
   return (
     <Badge variant="secondary" className="gap-1.5">
       <Icon className="w-3.5 h-3.5" />
-      {config.label}
+      {t(config.labelKey)}
     </Badge>
   );
 };
@@ -165,8 +168,9 @@ interface QuizQuestion {
 }
 
 const QuizView = ({ content }: { content: Record<string, unknown> & { items?: unknown[] } }) => {
+  const { t } = useLanguage();
   const questions = (content.items ?? content.questions ?? []) as QuizQuestion[];
-  if (!questions.length) return <p className="text-muted-foreground">No questions in this quiz.</p>;
+  if (!questions.length) return <p className="text-muted-foreground">{t('shart.noQuestions')}</p>;
 
   return (
     <div className="space-y-4">
@@ -174,7 +178,7 @@ const QuizView = ({ content }: { content: Record<string, unknown> & { items?: un
         <Card key={i}>
           <CardHeader>
             <CardTitle className="text-base flex items-start gap-2">
-              <span className="text-muted-foreground font-normal">Q{i + 1}.</span>
+              <span className="text-muted-foreground font-normal">{t('shart.qPrefix')}{i + 1}.</span>
               <span>{q.question}</span>
             </CardTitle>
           </CardHeader>
@@ -193,7 +197,7 @@ const QuizView = ({ content }: { content: Record<string, unknown> & { items?: un
                       }`}
                     >
                       {String.fromCharCode(65 + oi)}. {opt}
-                      {isCorrect && <span className="ml-2 text-xs text-primary">✓ Correct</span>}
+                      {isCorrect && <span className="ml-2 text-xs text-primary">{t('shart.correct')}</span>}
                     </li>
                   );
                 })}
@@ -201,12 +205,12 @@ const QuizView = ({ content }: { content: Record<string, unknown> & { items?: un
             )}
             {!q.options && q.correct_answer && (
               <div className="text-sm">
-                <span className="font-semibold">Answer:</span> {q.correct_answer}
+                <span className="font-semibold">{t('shart.answer')}</span> {q.correct_answer}
               </div>
             )}
             {q.explanation && (
               <div className="text-sm text-muted-foreground border-t border-border pt-2">
-                <span className="font-semibold text-foreground">Explanation:</span> {q.explanation}
+                <span className="font-semibold text-foreground">{t('shart.explanation')}</span> {q.explanation}
               </div>
             )}
           </CardContent>
@@ -226,9 +230,10 @@ interface DailyLesson {
 }
 
 const StudyPlanView = ({ content }: { content: Record<string, unknown> }) => {
+  const { t } = useLanguage();
   const lessons = (content.daily_lessons ?? content.items ?? []) as DailyLesson[];
   const description = content.description as string | undefined;
-  if (!lessons.length) return <p className="text-muted-foreground">This study plan has no daily lessons.</p>;
+  if (!lessons.length) return <p className="text-muted-foreground">{t('shart.noLessons')}</p>;
 
   return (
     <div className="space-y-4">
@@ -237,9 +242,9 @@ const StudyPlanView = ({ content }: { content: Record<string, unknown> }) => {
         <Card key={lesson.day} className="border-l-4 border-l-primary/60">
           <CardHeader>
             <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="outline">Day {lesson.day}</Badge>
+              <Badge variant="outline">{t('shart.dayPrefix')} {lesson.day}</Badge>
               {lesson.estimatedTime && (
-                <span className="text-xs text-muted-foreground">{lesson.estimatedTime} min</span>
+                <span className="text-xs text-muted-foreground">{lesson.estimatedTime} {t('shart.minSuffix')}</span>
               )}
             </div>
             <CardTitle className="text-lg mt-2">{lesson.topic}</CardTitle>
@@ -268,8 +273,9 @@ interface Slide {
 }
 
 const PresentationView = ({ content }: { content: Record<string, unknown> & { items?: unknown[] } }) => {
+  const { t } = useLanguage();
   const slides = (content.items ?? content.slides ?? []) as Slide[];
-  if (!slides.length) return <p className="text-muted-foreground">This presentation has no slides.</p>;
+  if (!slides.length) return <p className="text-muted-foreground">{t('shart.noSlides')}</p>;
 
   return (
     <div className="space-y-4">
@@ -278,7 +284,7 @@ const PresentationView = ({ content }: { content: Record<string, unknown> & { it
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="text-lg">{slide.title}</CardTitle>
-              <Badge variant="outline" className="text-xs">Slide {i + 1}</Badge>
+              <Badge variant="outline" className="text-xs">{t('shart.slidePrefix')} {i + 1}</Badge>
             </div>
           </CardHeader>
           {slide.bullets && slide.bullets.length > 0 && (
