@@ -15,6 +15,9 @@ import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummary
 import { NewsFeed } from '@/components/news/NewsFeed';
 import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const FH_STATUS_KEY: Record<string, string> = { issued: 'inv.statusIssued', paid: 'inv.statusPaid', overdue: 'inv.statusOverdue', void: 'inv.statusVoid', draft: 'inv.statusDraft' };
 
 /**
  * Family Hub — the parent's home base.
@@ -36,6 +39,7 @@ const initials = (name: string) =>
 
 const FamilyHub = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [children, setChildren] = useState<Child[]>([]);
@@ -67,7 +71,7 @@ const FamilyHub = () => {
 
       const list: Child[] = (profiles || []).map((p) => ({
         id: p.id,
-        name: p.display_name || 'Student',
+        name: p.display_name || t('fh.studentFallback'),
         avatarUrl: p.avatar_url,
       }));
       list.sort((a, b) => a.name.localeCompare(b.name));
@@ -93,17 +97,16 @@ const FamilyHub = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Users className="h-7 w-7 text-primary" />
-            Family Hub
+            {t('fh.title')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Track your {children.length === 1 ? "child's" : "children's"} attendance, grades,
-            report cards, invoices and school news — all in one place.
+            {children.length === 1 ? t('fh.subtitleOne') : t('fh.subtitleMany')}
           </p>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-24 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading your family hub…
+            <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('fh.loading')}
           </div>
         ) : children.length === 0 ? (
           <NoChildrenState />
@@ -156,6 +159,7 @@ const ChildOverview = ({
   child: Child;
   onNavigate: (path: string) => void;
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="space-y-6">
       {/* Child header */}
@@ -170,7 +174,7 @@ const ChildOverview = ({
           <div className="min-w-0">
             <h2 className="text-xl font-bold truncate">{child.name}</h2>
             <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <GraduationCap className="h-4 w-4" /> Student overview
+              <GraduationCap className="h-4 w-4" /> {t('fh.studentOverview')}
             </p>
           </div>
         </CardContent>
@@ -196,14 +200,14 @@ const ChildOverview = ({
       {/* School news (RLS already scopes to this parent's children's schools) */}
       <div>
         <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <Newspaper className="h-5 w-5 text-primary" /> School News
+          <Newspaper className="h-5 w-5 text-primary" /> {t('fh.schoolNews')}
         </h3>
         <NewsFeed />
       </div>
 
       {/* School calendar — read-only; RLS scopes to this parent's school */}
       <div>
-        <h3 className="text-lg font-semibold mb-3">School Calendar</h3>
+        <h3 className="text-lg font-semibold mb-3">{t('fh.schoolCalendar')}</h3>
         <SchoolCalendarView />
       </div>
     </div>
@@ -223,6 +227,7 @@ interface GradeRow {
 }
 
 const RecentGradesCard = ({ studentId }: { studentId: string }) => {
+  const { t } = useLanguage();
   const [rows, setRows] = useState<GradeRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -248,7 +253,7 @@ const RecentGradesCard = ({ studentId }: { studentId: string }) => {
     setRows(
       (grades || []).map((g) => ({
         id: g.id,
-        subject: nameById[g.subject_id] || 'Subject',
+        subject: nameById[g.subject_id] || t('fh.subjectFallback'),
         classwork: g.classwork_mark,
         homework: g.homework_mark,
         date: g.grade_date,
@@ -263,14 +268,14 @@ const RecentGradesCard = ({ studentId }: { studentId: string }) => {
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <ClipboardList className="h-4 w-4 text-primary" /> Recent Grades
+          <ClipboardList className="h-4 w-4 text-primary" /> {t('fh.recentGrades')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t('fh.loadingShort')}</p>
         ) : rows.length === 0 ? (
-          <EmptyHint icon={ClipboardList} text="No grades recorded yet. They'll appear here as teachers enter daily marks." />
+          <EmptyHint icon={ClipboardList} text={t('fh.noGrades')} />
         ) : (
           <div className="divide-y divide-border">
             {rows.map((r) => (
@@ -315,6 +320,7 @@ interface BehaviorRow {
 }
 
 const BehaviorCard = ({ studentId }: { studentId: string }) => {
+  const { t } = useLanguage();
   const [rows, setRows] = useState<BehaviorRow[]>([]);
   const [net, setNet] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -343,7 +349,7 @@ const BehaviorCard = ({ studentId }: { studentId: string }) => {
       points: i.points,
       description: i.description,
       date: i.incident_date,
-      category: (i.category_id && nameById[i.category_id]) || 'Incident',
+      category: (i.category_id && nameById[i.category_id]) || t('fh.incidentFallback'),
     }));
     setNet(all.reduce((sum, r) => sum + (r.valence === 'positive' ? r.points : -r.points), 0));
     setRows(all.slice(0, 8));
@@ -356,17 +362,17 @@ const BehaviorCard = ({ studentId }: { studentId: string }) => {
     <Card className="bg-card border-border">
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-base flex items-center gap-2">
-          <Shield className="h-4 w-4 text-primary" /> Behavior
+          <Shield className="h-4 w-4 text-primary" /> {t('fh.behavior')}
         </CardTitle>
         {!loading && rows.length > 0 && (
-          <Badge variant={net >= 0 ? 'secondary' : 'destructive'}>Net: {net}</Badge>
+          <Badge variant={net >= 0 ? 'secondary' : 'destructive'}>{t('fh.netPrefix')} {net}</Badge>
         )}
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t('fh.loadingShort')}</p>
         ) : rows.length === 0 ? (
-          <EmptyHint icon={Shield} text="No behavior records yet." />
+          <EmptyHint icon={Shield} text={t('fh.noBehavior')} />
         ) : (
           <div className="divide-y divide-border">
             {rows.map((r) => (
@@ -404,6 +410,7 @@ interface ReportCardRow {
 }
 
 const ReportCardsCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => void }) => {
+  const { t } = useLanguage();
   const [rows, setRows] = useState<ReportCardRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -427,19 +434,19 @@ const ReportCardsCard = ({ studentId, onOpen }: { studentId: string; onOpen: () 
     <Card className="bg-card border-border">
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-base flex items-center gap-2">
-          <FileText className="h-4 w-4 text-primary" /> Report Cards
+          <FileText className="h-4 w-4 text-primary" /> {t('fh.reportCards')}
         </CardTitle>
         {rows.length > 0 && (
           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onOpen}>
-            Open <ChevronRight className="h-3 w-3 ml-0.5" />
+            {t('fh.open')} <ChevronRight className="h-3 w-3 ml-0.5" />
           </Button>
         )}
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t('fh.loadingShort')}</p>
         ) : rows.length === 0 ? (
-          <EmptyHint icon={FileText} text="No report cards published yet. You'll be notified when one is available." />
+          <EmptyHint icon={FileText} text={t('fh.noReportCards')} />
         ) : (
           <div className="space-y-2">
             {rows.map((r) => (
@@ -452,7 +459,7 @@ const ReportCardsCard = ({ studentId, onOpen }: { studentId: string; onOpen: () 
                   <div className="font-medium text-sm">{r.term} · {r.academic_year}</div>
                   {r.published_at && (
                     <div className="text-xs text-muted-foreground">
-                      Published {new Date(r.published_at).toLocaleDateString()}
+                      {t('fh.publishedPrefix')} {new Date(r.published_at).toLocaleDateString()}
                     </div>
                   )}
                 </div>
@@ -491,6 +498,7 @@ const formatMoney = (cents: number, cur = 'usd') =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: (cur || 'usd').toUpperCase() }).format(cents / 100);
 
 const InvoicesCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => void }) => {
+  const { t } = useLanguage();
   const [rows, setRows] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -515,28 +523,28 @@ const InvoicesCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => 
     <Card className="bg-card border-border">
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-base flex items-center gap-2">
-          <Receipt className="h-4 w-4 text-primary" /> Invoices
+          <Receipt className="h-4 w-4 text-primary" /> {t('fh.invoices')}
         </CardTitle>
         {rows.length > 0 && (
           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onOpen}>
-            Open <ChevronRight className="h-3 w-3 ml-0.5" />
+            {t('fh.open')} <ChevronRight className="h-3 w-3 ml-0.5" />
           </Button>
         )}
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t('fh.loadingShort')}</p>
         ) : rows.length === 0 ? (
-          <EmptyHint icon={Receipt} text="No invoices. Anything your school bills will show up here." />
+          <EmptyHint icon={Receipt} text={t('fh.noInvoices')} />
         ) : (
           <div className="space-y-2">
             {outstanding.length > 0 && (
               <div className="text-xs text-muted-foreground">
-                {outstanding.length} outstanding ·{' '}
+                {outstanding.length} {t('fh.outstandingWord')} ·{' '}
                 <span className="font-medium text-foreground">
                   {formatMoney(outstanding.reduce((s, r) => s + r.amount_cents, 0), rows[0]?.currency)}
                 </span>{' '}
-                due
+                {t('fh.dueWord')}
               </div>
             )}
             {rows.map((r) => (
@@ -549,10 +557,10 @@ const InvoicesCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => 
                   <div className="font-medium text-sm truncate">{r.title}</div>
                   <div className="text-xs text-muted-foreground">
                     {formatMoney(r.amount_cents, r.currency)}
-                    {r.due_date ? ` · due ${new Date(r.due_date).toLocaleDateString()}` : ''}
+                    {r.due_date ? ` · ${t('fh.dueWord')} ${new Date(r.due_date).toLocaleDateString()}` : ''}
                   </div>
                 </div>
-                <Badge variant="outline" className={statusColor[r.status] || ''}>{r.status}</Badge>
+                <Badge variant="outline" className={statusColor[r.status] || ''}>{FH_STATUS_KEY[r.status] ? t(FH_STATUS_KEY[r.status]) : r.status}</Badge>
               </button>
             ))}
           </div>
@@ -573,23 +581,25 @@ const EmptyHint = ({ icon: Icon, text }: { icon: React.ElementType; text: string
   </div>
 );
 
-const NoChildrenState = () => (
+const NoChildrenState = () => {
+  const { t } = useLanguage();
+  return (
   <Card className="bg-card border-border">
     <CardContent className="p-10 text-center max-w-md mx-auto">
       <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
         <Users className="h-7 w-7 text-primary" />
       </div>
-      <h2 className="text-lg font-semibold mb-2">No children linked yet</h2>
+      <h2 className="text-lg font-semibold mb-2">{t('fh.noChildrenTitle')}</h2>
       <p className="text-sm text-muted-foreground mb-5">
-        Once your school connects a student to your account, their attendance, grades,
-        report cards and invoices will appear here automatically.
+        {t('fh.noChildrenDesc')}
       </p>
       <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <Sparkles className="h-3.5 w-3.5" />
-        Ask your school administrator to link your child, or accept a pending invitation.
+        {t('fh.askAdmin')}
       </div>
     </CardContent>
   </Card>
-);
+  );
+};
 
 export default FamilyHub;
