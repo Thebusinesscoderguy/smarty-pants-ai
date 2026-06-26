@@ -9,8 +9,14 @@ import { domTranslator } from '@/lib/domTranslator';
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
-  const [isInitialized, setIsInitialized] = useState(false);
+  // Initialize from storage synchronously so the very first paint is already in
+  // the saved language — avoids the brief English flash + the runtime translator
+  // having to swap statically-translated (t()) strings after mount.
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = getStoredLanguage();
+    return saved && isValidLanguage(saved) ? saved : 'en';
+  });
+  const [isInitialized] = useState(true);
   const { autoTranslationCache, autoTranslate } = useTranslation();
 
   // Apply RTL/LTR + Arabic font on <html> whenever language changes
@@ -27,16 +33,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Drive the whole-app runtime translator (covers strings not wired to t()).
     domTranslator.setLanguage(language);
   }, [language]);
-
-  useEffect(() => {
-    const savedLanguage = getStoredLanguage();
-    if (savedLanguage && isValidLanguage(savedLanguage)) {
-      setLanguage(savedLanguage);
-    }
-    
-    setIsInitialized(true);
-    console.log('LanguageProvider initialized with language:', savedLanguage || 'en');
-  }, []);
 
   const changeLanguage = (lang: Language) => {
     console.log('Changing language to:', lang);

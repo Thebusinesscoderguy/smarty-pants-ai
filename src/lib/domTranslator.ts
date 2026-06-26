@@ -18,7 +18,11 @@ const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAR
 const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
 const BATCH = 40;
 const DEBOUNCE_MS = 250;
-const hasLetter = /\p{L}/u;
+// Source of truth is English, so only translate text that contains a Latin letter.
+// This skips strings already rendered in Arabic by the static i18n dictionary
+// (t()) — preventing wasted API calls and avoiding re-"translating" correct
+// Arabic back through an English→Arabic pass (which garbles it / causes flips).
+const hasLetter = /[A-Za-z]/;
 
 type Cache = Map<string, string>; // source(trimmed) -> translated
 
