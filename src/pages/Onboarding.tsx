@@ -11,8 +11,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Onboarding = () => {
+  const { t } = useLanguage();
   const [guardianEmail, setGuardianEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState<'student' | 'parent' | 'teacher' | null>(null);
@@ -84,7 +86,7 @@ const Onboarding = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
+        <div className="animate-pulse">{t('onb.loading')}</div>
       </div>
     );
   }
@@ -98,14 +100,14 @@ const Onboarding = () => {
           <Card className="w-full max-w-md bg-card border-border">
             <CardHeader className="text-center">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <CardTitle className="text-foreground">Setup Complete!</CardTitle>
+              <CardTitle className="text-foreground">{t('onb.setupComplete')}</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-muted-foreground mb-6">
-                Your account setup is complete. You can now start using the platform.
+                {t('onb.setupCompleteDesc')}
               </p>
               <Button onClick={() => navigate('/progress')} className="w-full">
-                Go to Dashboard
+                {t('onb.goToDashboard')}
               </Button>
             </CardContent>
           </Card>
@@ -123,17 +125,17 @@ const Onboarding = () => {
         <Card className="w-full max-w-md bg-card border-border">
           <CardHeader className="text-center">
             <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
-            <CardTitle className="text-foreground">Parent Guardian Contact</CardTitle>
+            <CardTitle className="text-foreground">{t('onb.guardianTitle')}</CardTitle>
             <p className="text-muted-foreground">
-              As a parent account, please provide your email address for account verification and child progress updates.
+              {t('onb.guardianDesc')}
             </p>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmitEmail} className="space-y-4">
               <div>
                 <Label htmlFor="guardianEmail" className="text-foreground">
-                  Parent/Guardian Email Address
+                  {t('onb.emailLabel')}
                 </Label>
                 <Input
                   id="guardianEmail"
@@ -152,16 +154,16 @@ const Onboarding = () => {
                   disabled={isSubmitting || !guardianEmail.trim()}
                   className="w-full"
                 >
-                  {isSubmitting ? 'Saving...' : 'Continue'}
+                  {isSubmitting ? t('onb.saving') : t('onb.continue')}
                 </Button>
-                
-                <Button 
+
+                <Button
                   type="button"
                   variant="ghost"
                   onClick={handleSkip}
                   className="w-full text-muted-foreground hover:text-foreground"
                 >
-                  Skip for now
+                  {t('onb.skip')}
                 </Button>
               </div>
             </form>

@@ -3094,6 +3094,35 @@ export const translations: TranslationData = {
     'rcv.attendancePrefix': 'Attendance',
     'rcv.pdf': 'PDF',
 
+    // ===== Invoices (parent view) =====
+    'invv.studentFallback': 'Student',
+    'invv.paymentUnavailable': 'Payment unavailable',
+    'invv.couldNotStart': 'Could not start payment',
+    'invv.title': 'Invoices & Fees',
+    'invv.subtitle': 'View and pay your school invoices.',
+    'invv.outstanding': 'Outstanding balance',
+    'invv.paidToDate': 'Paid to date',
+    'invv.yourInvoices': 'Your invoices',
+    'invv.loading': 'Loading…',
+    'invv.empty': 'No invoices on file.',
+    'invv.duePrefix': 'Due',
+    'invv.noDueDate': 'No due date',
+    'invv.paidPrefix': 'Paid',
+    'invv.starting': 'Starting…',
+    'invv.payNow': 'Pay now',
+
+    // ===== Onboarding (parent guardian) =====
+    'onb.loading': 'Loading...',
+    'onb.setupComplete': 'Setup Complete!',
+    'onb.setupCompleteDesc': 'Your account setup is complete. You can now start using the platform.',
+    'onb.goToDashboard': 'Go to Dashboard',
+    'onb.guardianTitle': 'Parent Guardian Contact',
+    'onb.guardianDesc': 'As a parent account, please provide your email address for account verification and child progress updates.',
+    'onb.emailLabel': 'Parent/Guardian Email Address',
+    'onb.saving': 'Saving...',
+    'onb.continue': 'Continue',
+    'onb.skip': 'Skip for now',
+
   },
   ar: {
     // ===== Navigation =====
@@ -5237,5 +5266,34 @@ export const translations: TranslationData = {
     'rcv.overallPrefix': 'الإجمالي',
     'rcv.attendancePrefix': 'الحضور',
     'rcv.pdf': 'PDF',
+
+    // ===== Invoices (parent view) =====
+    'invv.studentFallback': 'طالب',
+    'invv.paymentUnavailable': 'الدفع غير متاح',
+    'invv.couldNotStart': 'تعذّر بدء الدفع',
+    'invv.title': 'الفواتير والرسوم',
+    'invv.subtitle': 'اعرض فواتير مدرستك وادفعها.',
+    'invv.outstanding': 'الرصيد المستحق',
+    'invv.paidToDate': 'المدفوع حتى الآن',
+    'invv.yourInvoices': 'فواتيرك',
+    'invv.loading': 'جارٍ التحميل…',
+    'invv.empty': 'لا توجد فواتير مسجّلة.',
+    'invv.duePrefix': 'يُستحق',
+    'invv.noDueDate': 'لا يوجد تاريخ استحقاق',
+    'invv.paidPrefix': 'مدفوعة',
+    'invv.starting': 'جارٍ البدء…',
+    'invv.payNow': 'ادفع الآن',
+
+    // ===== Onboarding (parent guardian) =====
+    'onb.loading': 'جارٍ التحميل...',
+    'onb.setupComplete': 'اكتمل الإعداد!',
+    'onb.setupCompleteDesc': 'اكتمل إعداد حسابك. يمكنك الآن البدء باستخدام المنصة.',
+    'onb.goToDashboard': 'الذهاب إلى لوحة التحكم',
+    'onb.guardianTitle': 'بيانات ولي الأمر',
+    'onb.guardianDesc': 'بصفتك حساب ولي أمر، يرجى تقديم بريدك الإلكتروني للتحقق من الحساب وتحديثات تقدّم الابن.',
+    'onb.emailLabel': 'البريد الإلكتروني لولي الأمر',
+    'onb.saving': 'جارٍ الحفظ...',
+    'onb.continue': 'متابعة',
+    'onb.skip': 'تخطٍّ الآن',
   },
 };
