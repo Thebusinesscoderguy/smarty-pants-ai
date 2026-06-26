@@ -9,6 +9,7 @@ import {
 import { Loader2, UploadCloud, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useCurriculumImport } from '@/hooks/useCurriculumImport';
 import { CurriculumReviewTree } from './CurriculumReviewTree';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SubjectRow { id: string; name: string }
 
@@ -17,13 +18,15 @@ interface Props {
   onComplete?: (bookId: string) => void;
 }
 
-const GRADES = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+const GRADE_NUMS = [1,2,3,4,5,6,7,8,9,10,11,12];
 
 export function CurriculumImporter({ onComplete }: Props) {
+  const { t } = useLanguage();
   const {
     schoolId, phase, status, error,
     tree, setTree, images, run, approve, reset, getContent,
   } = useCurriculumImport();
+  const GRADES = GRADE_NUMS.map((n) => ({ value: `Grade ${n}`, label: `${t('ci2.gradeWord')} ${n}` }));
 
   const [subjects, setSubjects] = useState<SubjectRow[]>([]);
   const [subjectId, setSubjectId] = useState('');
@@ -52,8 +55,8 @@ export function CurriculumImporter({ onComplete }: Props) {
     return (
       <div className="rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-green-600" />
-        <p className="mt-2 text-lg font-semibold text-green-800">{status || 'Curriculum saved.'}</p>
-        <Button variant="outline" className="mt-4" onClick={reset}>Import another book</Button>
+        <p className="mt-2 text-lg font-semibold text-green-800">{status || t('ci2.curriculumSaved')}</p>
+        <Button variant="outline" className="mt-4" onClick={reset}>{t('ci2.importAnother')}</Button>
       </div>
     );
   }
@@ -63,33 +66,33 @@ export function CurriculumImporter({ onComplete }: Props) {
       {/* form */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>Subject</Label>
+          <Label>{t('ci2.subject')}</Label>
           <Select value={subjectId} onValueChange={setSubjectId} disabled={busy}>
-            <SelectTrigger><SelectValue placeholder={subjects.length ? 'Select a subject' : 'No subjects yet — add one first'} /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={subjects.length ? t('ci2.selectSubject') : t('ci2.noSubjectsYet')} /></SelectTrigger>
             <SelectContent>
               {subjects.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Grade level</Label>
+          <Label>{t('ci2.gradeLevel')}</Label>
           <Select value={gradeLevel} onValueChange={setGradeLevel} disabled={busy}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {GRADES.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+              {GRADES.map((g) => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>Book title</Label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Biology — Grade 9" disabled={busy} />
+          <Label>{t('ci2.bookTitle')}</Label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('ci2.bookTitlePlaceholder')} disabled={busy} />
         </div>
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>Textbook PDF</Label>
+          <Label>{t('ci2.textbookPdf')}</Label>
           <Input type="file" accept="application/pdf" disabled={busy}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           <p className="text-xs text-muted-foreground">
-            The PDF is processed entirely in your browser — only the extracted text, structure, and figures are stored. The file itself is never uploaded.
+            {t('ci2.pdfNote')}
           </p>
         </div>
       </div>
@@ -97,7 +100,7 @@ export function CurriculumImporter({ onComplete }: Props) {
       {phase !== 'ready' && (
         <Button onClick={() => run({ file: file!, subjectId, gradeLevel, title })} disabled={!canStart} className="w-full sm:w-auto">
           {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-          {busy ? 'Processing…' : 'Extract & detect structure'}
+          {busy ? t('ci2.processing') : t('ci2.extractDetect')}
         </Button>
       )}
 
@@ -119,14 +122,14 @@ export function CurriculumImporter({ onComplete }: Props) {
       {phase === 'ready' && tree && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">Review detected structure</h3>
-            <span className="text-xs text-muted-foreground">{images.length} figures found</span>
+            <h3 className="text-base font-semibold">{t('ci2.reviewStructure')}</h3>
+            <span className="text-xs text-muted-foreground">{images.length} {t('ci2.figuresFound')}</span>
           </div>
           <CurriculumReviewTree tree={tree} setTree={setTree} images={images} getContent={getContent} />
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => handlePublish(true)}>Approve &amp; publish</Button>
-            <Button variant="outline" onClick={() => handlePublish(false)}>Save as draft</Button>
-            <Button variant="ghost" onClick={reset}>Cancel</Button>
+            <Button onClick={() => handlePublish(true)}>{t('ci2.approvePublish')}</Button>
+            <Button variant="outline" onClick={() => handlePublish(false)}>{t('ci2.saveDraft')}</Button>
+            <Button variant="ghost" onClick={reset}>{t('ci2.cancel')}</Button>
           </div>
         </div>
       )}

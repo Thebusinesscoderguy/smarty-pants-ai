@@ -3785,6 +3785,26 @@ export const translations: TranslationData = {
     'sp2.byParent': 'parent',
     'sp2.bySelf': 'self',
 
+    // ===== Curriculum Importer =====
+    'ci2.curriculumSaved': 'Curriculum saved.',
+    'ci2.importAnother': 'Import another book',
+    'ci2.subject': 'Subject',
+    'ci2.selectSubject': 'Select a subject',
+    'ci2.noSubjectsYet': 'No subjects yet — add one first',
+    'ci2.gradeLevel': 'Grade level',
+    'ci2.gradeWord': 'Grade',
+    'ci2.bookTitle': 'Book title',
+    'ci2.bookTitlePlaceholder': 'e.g. Biology — Grade 9',
+    'ci2.textbookPdf': 'Textbook PDF',
+    'ci2.pdfNote': 'The PDF is processed entirely in your browser — only the extracted text, structure, and figures are stored. The file itself is never uploaded.',
+    'ci2.processing': 'Processing…',
+    'ci2.extractDetect': 'Extract & detect structure',
+    'ci2.reviewStructure': 'Review detected structure',
+    'ci2.figuresFound': 'figures found',
+    'ci2.approvePublish': 'Approve & publish',
+    'ci2.saveDraft': 'Save as draft',
+    'ci2.cancel': 'Cancel',
+
   },
   ar: {
     // ===== Navigation =====
@@ -6619,5 +6639,25 @@ export const translations: TranslationData = {
     'sp2.bySchool': 'المدرسة',
     'sp2.byParent': 'ولي الأمر',
     'sp2.bySelf': 'ذاتي',
+
+    // ===== Curriculum Importer =====
+    'ci2.curriculumSaved': 'تم حفظ المنهج.',
+    'ci2.importAnother': 'استيراد كتاب آخر',
+    'ci2.subject': 'المادة',
+    'ci2.selectSubject': 'اختر مادة',
+    'ci2.noSubjectsYet': 'لا توجد مواد بعد — أضف واحدة أولًا',
+    'ci2.gradeLevel': 'الصف',
+    'ci2.gradeWord': 'الصف',
+    'ci2.bookTitle': 'عنوان الكتاب',
+    'ci2.bookTitlePlaceholder': 'مثال: الأحياء — الصف التاسع',
+    'ci2.textbookPdf': 'ملف PDF للكتاب',
+    'ci2.pdfNote': 'تتم معالجة ملف PDF بالكامل في متصفحك — يُخزَّن فقط النص المستخرج والبنية والأشكال. الملف نفسه لا يُرفع أبدًا.',
+    'ci2.processing': 'جارٍ المعالجة…',
+    'ci2.extractDetect': 'استخراج واكتشاف البنية',
+    'ci2.reviewStructure': 'مراجعة البنية المكتشفة',
+    'ci2.figuresFound': 'شكل تم العثور عليه',
+    'ci2.approvePublish': 'الموافقة والنشر',
+    'ci2.saveDraft': 'الحفظ كمسودة',
+    'ci2.cancel': 'إلغاء',
   },
 };
