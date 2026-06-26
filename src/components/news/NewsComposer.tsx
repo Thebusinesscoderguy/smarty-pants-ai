@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, ImagePlus, Link2, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Audience = 'all' | 'teachers' | 'parents' | 'students' | 'class';
 
@@ -34,6 +35,7 @@ interface SectionOption {
 }
 
 export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps) => {
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -90,25 +92,25 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Send className="h-5 w-5 text-primary" />
-          Post an Announcement
+          {t('nc2.postAnnouncement')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <Label htmlFor="news-title" className="text-xs text-muted-foreground">Title</Label>
+          <Label htmlFor="news-title" className="text-xs text-muted-foreground">{t('nc2.title')}</Label>
           <Input
             id="news-title"
-            placeholder="e.g. Math test next Monday!"
+            placeholder={t('nc2.titlePlaceholder')}
             value={title}
             onChange={e => setTitle(e.target.value)}
             maxLength={200}
           />
         </div>
         <div>
-          <Label htmlFor="news-content" className="text-xs text-muted-foreground">Message</Label>
+          <Label htmlFor="news-content" className="text-xs text-muted-foreground">{t('nc2.message')}</Label>
           <Textarea
             id="news-content"
-            placeholder="Write your announcement here..."
+            placeholder={t('nc2.messagePlaceholder')}
             value={content}
             onChange={e => setContent(e.target.value)}
             rows={3}
@@ -118,23 +120,23 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <Label className="text-xs text-muted-foreground">Audience</Label>
+            <Label className="text-xs text-muted-foreground">{t('nc2.audience')}</Label>
             <Select value={audience} onValueChange={(v) => setAudience(v as Audience)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Everyone</SelectItem>
-                <SelectItem value="teachers">Teachers</SelectItem>
-                <SelectItem value="parents">Parents</SelectItem>
-                <SelectItem value="students">Students</SelectItem>
-                <SelectItem value="class">A specific class</SelectItem>
+                <SelectItem value="all">{t('nc2.everyone')}</SelectItem>
+                <SelectItem value="teachers">{t('nc2.teachers')}</SelectItem>
+                <SelectItem value="parents">{t('nc2.parents')}</SelectItem>
+                <SelectItem value="students">{t('nc2.students')}</SelectItem>
+                <SelectItem value="class">{t('nc2.specificClass')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {audience === 'class' && (
             <div>
-              <Label className="text-xs text-muted-foreground">Class</Label>
+              <Label className="text-xs text-muted-foreground">{t('nc2.classLabel')}</Label>
               <Select value={sectionId} onValueChange={setSectionId}>
-                <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('nc2.selectClass')} /></SelectTrigger>
                 <SelectContent>
                   {sections.map(s => (
                     <SelectItem key={s.id} value={s.id}>
@@ -150,9 +152,9 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
         {showImage && (
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <Label className="text-xs text-muted-foreground">Image URL</Label>
+              <Label className="text-xs text-muted-foreground">{t('nc2.imageUrl')}</Label>
               <Input
-                placeholder="https://example.com/image.jpg"
+                placeholder={t('nc2.imageUrlPlaceholder')}
                 value={imageUrl}
                 onChange={e => setImageUrl(e.target.value)}
               />
@@ -167,9 +169,9 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
           <div className="space-y-2">
             <div className="flex gap-2 items-end">
               <div className="flex-1">
-                <Label className="text-xs text-muted-foreground">Link URL</Label>
+                <Label className="text-xs text-muted-foreground">{t('nc2.linkUrl')}</Label>
                 <Input
-                  placeholder="https://example.com"
+                  placeholder={t('nc2.linkUrlPlaceholder')}
                   value={linkUrl}
                   onChange={e => setLinkUrl(e.target.value)}
                 />
@@ -179,9 +181,9 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
               </Button>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Link Label (optional)</Label>
+              <Label className="text-xs text-muted-foreground">{t('nc2.linkLabel')}</Label>
               <Input
-                placeholder="Click here to view"
+                placeholder={t('nc2.linkLabelPlaceholder')}
                 value={linkTitle}
                 onChange={e => setLinkTitle(e.target.value)}
               />
@@ -197,7 +199,7 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
               onClick={() => setShowImage(!showImage)}
               className="text-muted-foreground hover:text-primary"
             >
-              <ImagePlus className="h-4 w-4 mr-1" /> Image
+              <ImagePlus className="h-4 w-4 mr-1" /> {t('nc2.image')}
             </Button>
             <Button
               variant="ghost"
@@ -205,7 +207,7 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
               onClick={() => setShowLink(!showLink)}
               className="text-muted-foreground hover:text-primary"
             >
-              <Link2 className="h-4 w-4 mr-1" /> Link
+              <Link2 className="h-4 w-4 mr-1" /> {t('nc2.link')}
             </Button>
           </div>
           <Button
@@ -214,7 +216,7 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
             size="sm"
             className="rounded-full px-6"
           >
-            {posting ? 'Posting...' : 'Post'}
+            {posting ? t('nc2.posting') : t('nc2.post')}
           </Button>
         </div>
       </CardContent>
