@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Plus, Wand2, Upload, Send, FileText, Users, Clock, Trash2, Eye, Loader2, Lock, Link2, Check,
+  ImagePlus, X, Image as ImageIcon,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,13 +48,38 @@ interface AssessmentAssignment {
   share_token: string | null;
 }
 
+type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer' | 'matching';
+
 interface QuizQuestion {
   question: string;
-  question_type: 'multiple_choice' | 'true_false' | 'short_answer';
+  question_type: QuestionType;
   options: string[];
+  option_images: (string | null)[]; // parallel to options (MCQ); null = no image
+  image_url: string | null;          // question image
+  left: string[];                    // matching: column A items
+  right: string[];                   // matching: column B items (pair i = left[i]↔right[i])
   correct_answer: string;
   points: number;
 }
+
+const QTYPE_KEY: Record<QuestionType, string> = {
+  multiple_choice: 'assess.multipleChoice',
+  true_false: 'assess.trueFalse',
+  short_answer: 'assess.shortAnswer',
+  matching: 'assess.matching',
+};
+
+const emptyQuestion = (): QuizQuestion => ({
+  question: '',
+  question_type: 'multiple_choice',
+  options: ['', '', '', ''],
+  option_images: [null, null, null, null],
+  image_url: null,
+  left: ['', ''],
+  right: ['', ''],
+  correct_answer: '',
+  points: 1,
+});
 
 const ShareLinkButton = ({ token, label }: { token: string; label?: string }) => {
   const { t } = useLanguage();
@@ -129,13 +155,9 @@ export const AssessmentManagement = () => {
     instructions: '',
   });
 
-  const [newQuestion, setNewQuestion] = useState<QuizQuestion>({
-    question: '',
-    question_type: 'multiple_choice',
-    options: ['', '', '', ''],
-    correct_answer: '',
-    points: 1,
-  });
+  const [newQuestion, setNewQuestion] = useState<QuizQuestion>(emptyQuestion());
+  // Tracks which image slot is currently uploading: 'question' | `opt-<i>` | null
+  const [uploadingImage, setUploadingImage] = useState<string | null>(null);
 
   // Assignment form
   const [assignForm, setAssignForm] = useState({
@@ -340,17 +362,47 @@ export const AssessmentManagement = () => {
 
       if (testError) throw testError;
 
-      const questionsToInsert = manualForm.questions.map((q, i) => ({
-        test_id: test.id,
-        question: q.question,
-        question_type: q.question_type,
-        options: q.options.filter(o => o.trim()),
-        correct_answer: q.correct_answer,
-        points: q.points,
-        order_index: i,
-      }));
+      const questionsToInsert = manualForm.questions.map((q, i) => {
+        const base: Record<string, any> = {
+          test_id: test.id,
+          question: q.question,
+          question_type: q.question_type,
+          points: q.points,
+          order_index: i,
+          image_url: q.image_url || null,
+        };
+        if (q.question_type === 'matching') {
+          // Keep only fully-filled pairs; pair i = left[i] ↔ right[i].
+          const pairs = q.left
+            .map((l, idx) => [l.trim(), (q.right[idx] ?? '').trim()] as const)
+            .filter(([l, r]) => l && r);
+          return {
+            ...base,
+            options: { left: pairs.map(p => p[0]), right: pairs.map(p => p[1]) },
+            correct_answer: JSON.stringify(pairs.map(p => p[1])),
+          };
+        }
+        if (q.question_type === 'multiple_choice') {
+          // Keep options that have text OR an image; preserve image alignment.
+          const kept = q.options
+            .map((o, idx) => ({ o, img: q.option_images[idx] ?? null }))
+            .filter(x => x.o.trim() || x.img);
+          return {
+            ...base,
+            options: kept.map(x => x.o),
+            option_images: kept.some(x => x.img) ? kept.map(x => x.img) : null,
+            correct_answer: q.correct_answer,
+          };
+        }
+        // true_false / short_answer
+        return {
+          ...base,
+          options: q.options.filter(o => o.trim()),
+          correct_answer: q.correct_answer,
+        };
+      });
 
-      const { error: qError } = await supabase.from('test_questions').insert(questionsToInsert);
+      const { error: qError } = await supabase.from('test_questions').insert(questionsToInsert as any);
       if (qError) throw qError;
 
       // Auto-assign to selected sections
@@ -378,20 +430,75 @@ export const AssessmentManagement = () => {
     }
   };
 
+  // Upload an image to the public `assessment-images` bucket and return its URL.
+  // Path is foldered by user id to satisfy the storage RLS policy.
+  const uploadImage = async (file: File, slot: string): Promise<string | null> => {
+    if (!user) return null;
+    setUploadingImage(slot);
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('assessment-images').upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('assessment-images').getPublicUrl(path);
+      return data.publicUrl;
+    } catch (e: any) {
+      toast({ title: t('assess.imageUploadFailed'), description: e?.message || t('assess.failedCreate'), variant: 'destructive' });
+      return null;
+    } finally {
+      setUploadingImage(null);
+    }
+  };
+
+  const handleQuestionImage = async (file: File | undefined) => {
+    if (!file) return;
+    const url = await uploadImage(file, 'question');
+    if (url) setNewQuestion(p => ({ ...p, image_url: url }));
+  };
+
+  const handleOptionImage = async (file: File | undefined, idx: number) => {
+    if (!file) return;
+    const url = await uploadImage(file, `opt-${idx}`);
+    if (url) setNewQuestion(p => {
+      const imgs = [...p.option_images];
+      imgs[idx] = url;
+      return { ...p, option_images: imgs };
+    });
+  };
+
+  // Validate the in-progress question depending on its type.
+  const questionIsValid = (q: QuizQuestion): boolean => {
+    if (!q.question.trim()) return false;
+    if (q.question_type === 'matching') {
+      const pairs = q.left.filter((l, i) => l.trim() && (q.right[i] ?? '').trim());
+      return pairs.length >= 2;
+    }
+    return !!q.correct_answer.trim();
+  };
+
   const addQuestion = () => {
-    if (!newQuestion.question.trim() || !newQuestion.correct_answer.trim()) return;
+    if (!questionIsValid(newQuestion)) return;
     setManualForm(prev => ({
       ...prev,
       questions: [...prev.questions, { ...newQuestion }],
     }));
-    setNewQuestion({
-      question: '',
-      question_type: 'multiple_choice',
-      options: ['', '', '', ''],
-      correct_answer: '',
-      points: 1,
+    setNewQuestion(emptyQuestion());
+  };
+
+  // Matching pair editor helpers (operate on newQuestion).
+  const setPair = (idx: number, side: 'left' | 'right', value: string) => {
+    setNewQuestion(p => {
+      const arr = [...p[side]];
+      arr[idx] = value;
+      return { ...p, [side]: arr };
     });
   };
+  const addPair = () => setNewQuestion(p => ({ ...p, left: [...p.left, ''], right: [...p.right, ''] }));
+  const removePair = (idx: number) => setNewQuestion(p => ({
+    ...p,
+    left: p.left.filter((_, i) => i !== idx),
+    right: p.right.filter((_, i) => i !== idx),
+  }));
 
   const removeQuestion = (index: number) => {
     setManualForm(prev => ({
@@ -705,44 +812,61 @@ export const AssessmentManagement = () => {
 
               {/* Manual Creation */}
               <TabsContent value="manual" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>{t('assess.titleReq')}</Label>
-                    <Input
-                      value={manualForm.title}
-                      onChange={e => setManualForm(p => ({ ...p, title: e.target.value }))}
-                      placeholder={t('assess.titlePlaceholderManual')}
-                    />
-                  </div>
-                  <div>
-                    <Label>{t('assess.subject')}</Label>
-                    <Input
-                      value={manualForm.subject}
-                      onChange={e => setManualForm(p => ({ ...p, subject: e.target.value }))}
-                      placeholder={t('assess.subjectPlaceholderSci')}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label>{t('assess.description')}</Label>
-                  <Textarea
-                    value={manualForm.description}
-                    onChange={e => setManualForm(p => ({ ...p, description: e.target.value }))}
-                    placeholder={t('assess.descriptionPlaceholder')}
-                    rows={2}
-                  />
-                </div>
-                <div>
-                  <Label>{t('assess.timeLimit')}</Label>
-                  <Input
-                    type="number"
-                    value={manualForm.timeLimitMinutes}
-                    onChange={e => setManualForm(p => ({ ...p, timeLimitMinutes: Number(e.target.value) }))}
-                  />
-                </div>
-                <div>
-                  <Label>{t('assess.sections')}</Label>
-                  <div className="flex flex-wrap gap-2 mt-1 p-2 border border-input rounded-md min-h-[40px]">
+                {/* Details */}
+                <Card className="bg-muted/40 border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" /> {t('assess.detailsSection')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>{t('assess.titleReq')}</Label>
+                        <Input
+                          value={manualForm.title}
+                          onChange={e => setManualForm(p => ({ ...p, title: e.target.value }))}
+                          placeholder={t('assess.titlePlaceholderManual')}
+                        />
+                      </div>
+                      <div>
+                        <Label>{t('assess.subject')}</Label>
+                        <Input
+                          value={manualForm.subject}
+                          onChange={e => setManualForm(p => ({ ...p, subject: e.target.value }))}
+                          placeholder={t('assess.subjectPlaceholderSci')}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>{t('assess.description')}</Label>
+                      <Textarea
+                        value={manualForm.description}
+                        onChange={e => setManualForm(p => ({ ...p, description: e.target.value }))}
+                        placeholder={t('assess.descriptionPlaceholder')}
+                        rows={2}
+                      />
+                    </div>
+                    <div>
+                      <Label>{t('assess.timeLimit')}</Label>
+                      <Input
+                        type="number"
+                        value={manualForm.timeLimitMinutes}
+                        onChange={e => setManualForm(p => ({ ...p, timeLimitMinutes: Number(e.target.value) }))}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Assign to sections */}
+                <Card className="bg-muted/40 border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Send className="h-4 w-4 text-primary" /> {t('assess.sections')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                  <div className="flex flex-wrap gap-2 p-2 border border-input rounded-md min-h-[40px]">
                     {schoolSections.length === 0 ? (
                       <span className="text-sm text-muted-foreground">{t('assess.noSectionsYet')}</span>
                     ) : (
@@ -763,15 +887,19 @@ export const AssessmentManagement = () => {
                       ))
                     )}
                   </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* Question Builder */}
-                <Card className="bg-muted/50 border-border">
+                <Card className="bg-muted/40 border-border">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm text-foreground">{t('assess.addQuestion')}</CardTitle>
+                    <CardTitle className="text-sm text-foreground flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-primary" /> {t('assess.addQuestion')}
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
+                  <CardContent className="space-y-4">
+                    {/* Question text + optional image */}
+                    <div className="space-y-2">
                       <Label>{t('assess.questionReq')}</Label>
                       <Textarea
                         value={newQuestion.question}
@@ -779,7 +907,30 @@ export const AssessmentManagement = () => {
                         placeholder={t('assess.questionPlaceholder')}
                         rows={2}
                       />
+                      {newQuestion.image_url ? (
+                        <div className="relative inline-block">
+                          <img src={newQuestion.image_url} alt="" className="max-h-32 rounded border border-border object-contain" />
+                          <Button
+                            type="button" variant="secondary" size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                            onClick={() => setNewQuestion(p => ({ ...p, image_url: null }))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <label className="inline-flex w-fit items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground border border-dashed border-input rounded-md px-3 py-2">
+                          {uploadingImage === 'question' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                          {t('assess.addImage')}
+                          <input
+                            type="file" accept="image/*" className="hidden"
+                            onChange={e => { handleQuestionImage(e.target.files?.[0]); e.currentTarget.value = ''; }}
+                          />
+                        </label>
+                      )}
                     </div>
+
+                    {/* Type + points */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>{t('assess.type')}</Label>
@@ -792,6 +943,7 @@ export const AssessmentManagement = () => {
                             <SelectItem value="multiple_choice">{t('assess.multipleChoice')}</SelectItem>
                             <SelectItem value="true_false">{t('assess.trueFalse')}</SelectItem>
                             <SelectItem value="short_answer">{t('assess.shortAnswer')}</SelectItem>
+                            <SelectItem value="matching">{t('assess.matching')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -805,32 +957,97 @@ export const AssessmentManagement = () => {
                         />
                       </div>
                     </div>
+
+                    {/* MCQ options (with optional per-option image) */}
                     {newQuestion.question_type === 'multiple_choice' && (
                       <div className="space-y-2">
                         <Label>{t('assess.options')}</Label>
                         {newQuestion.options.map((opt, i) => (
-                          <Input
-                            key={i}
-                            value={opt}
-                            onChange={e => {
-                              const opts = [...newQuestion.options];
-                              opts[i] = e.target.value;
-                              setNewQuestion(p => ({ ...p, options: opts }));
-                            }}
-                            placeholder={`${t('assess.optionPrefix')} ${String.fromCharCode(65 + i)}`}
-                          />
+                          <div key={i} className="flex items-center gap-2">
+                            <Input
+                              className="flex-1"
+                              value={opt}
+                              onChange={e => {
+                                const opts = [...newQuestion.options];
+                                opts[i] = e.target.value;
+                                setNewQuestion(p => ({ ...p, options: opts }));
+                              }}
+                              placeholder={`${t('assess.optionPrefix')} ${String.fromCharCode(65 + i)}`}
+                            />
+                            {newQuestion.option_images[i] ? (
+                              <div className="relative shrink-0">
+                                <img src={newQuestion.option_images[i] as string} alt="" className="h-9 w-9 rounded border border-border object-cover" />
+                                <button
+                                  type="button"
+                                  className="absolute -top-1.5 -right-1.5 bg-secondary rounded-full p-0.5 border border-border"
+                                  onClick={() => setNewQuestion(p => {
+                                    const imgs = [...p.option_images]; imgs[i] = null; return { ...p, option_images: imgs };
+                                  })}
+                                >
+                                  <X className="h-2.5 w-2.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <label
+                                title={t('assess.optionImage')}
+                                className="shrink-0 inline-flex h-9 w-9 items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground border border-dashed border-input rounded-md"
+                              >
+                                {uploadingImage === `opt-${i}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                                <input
+                                  type="file" accept="image/*" className="hidden"
+                                  onChange={e => { handleOptionImage(e.target.files?.[0], i); e.currentTarget.value = ''; }}
+                                />
+                              </label>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
-                    <div>
-                      <Label>{t('assess.correctAnswerReq')}</Label>
-                      <Input
-                        value={newQuestion.correct_answer}
-                        onChange={e => setNewQuestion(p => ({ ...p, correct_answer: e.target.value }))}
-                        placeholder={newQuestion.question_type === 'true_false' ? t('assess.trueOrFalse') : t('assess.correctAnswerPlaceholder')}
-                      />
-                    </div>
-                    <Button variant="outline" onClick={addQuestion} className="w-full">
+
+                    {/* Correct answer (all types except matching) */}
+                    {newQuestion.question_type !== 'matching' && (
+                      <div>
+                        <Label>{t('assess.correctAnswerReq')}</Label>
+                        <Input
+                          value={newQuestion.correct_answer}
+                          onChange={e => setNewQuestion(p => ({ ...p, correct_answer: e.target.value }))}
+                          placeholder={newQuestion.question_type === 'true_false' ? t('assess.trueOrFalse') : t('assess.correctAnswerPlaceholder')}
+                        />
+                      </div>
+                    )}
+
+                    {/* Matching pairs editor */}
+                    {newQuestion.question_type === 'matching' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>{t('assess.matchingPairs')}</Label>
+                          <span className="text-xs text-muted-foreground">{t('assess.matchingHint')}</span>
+                        </div>
+                        <div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-xs font-medium text-muted-foreground">
+                          <span>{t('assess.columnA')}</span>
+                          <span>{t('assess.columnB')}</span>
+                          <span className="w-8" />
+                        </div>
+                        {newQuestion.left.map((l, i) => (
+                          <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                            <Input value={l} onChange={e => setPair(i, 'left', e.target.value)} placeholder={t('assess.leftPlaceholder')} />
+                            <Input value={newQuestion.right[i] ?? ''} onChange={e => setPair(i, 'right', e.target.value)} placeholder={t('assess.rightPlaceholder')} />
+                            <Button
+                              type="button" variant="ghost" size="icon" className="h-8 w-8"
+                              disabled={newQuestion.left.length <= 2}
+                              onClick={() => removePair(i)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button type="button" variant="outline" size="sm" onClick={addPair}>
+                          <Plus className="h-3 w-3 mr-1" /> {t('assess.addPair')}
+                        </Button>
+                      </div>
+                    )}
+
+                    <Button variant="outline" onClick={addQuestion} disabled={!questionIsValid(newQuestion)} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
                       {t('assess.addQuestion')}
                     </Button>
@@ -843,10 +1060,12 @@ export const AssessmentManagement = () => {
                     <Label>{manualForm.questions.length} {t('assess.questionsAddedSuffix')}</Label>
                     {manualForm.questions.map((q, i) => (
                       <div key={i} className="flex items-center justify-between p-2 rounded bg-muted/50 border border-border">
-                        <span className="text-sm text-foreground truncate flex-1">
-                          {i + 1}. {q.question}
-                        </span>
-                        <div className="flex items-center gap-2 ml-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {q.image_url && <ImageIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                          <span className="text-sm text-foreground truncate">{i + 1}. {q.question}</span>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2 shrink-0">
+                          <Badge variant="outline" className="text-xs">{t(QTYPE_KEY[q.question_type])}</Badge>
                           <Badge variant="secondary" className="text-xs">{q.points} {t('assess.ptSuffix')}</Badge>
                           <Button variant="ghost" size="sm" onClick={() => removeQuestion(i)}>
                             <Trash2 className="h-3 w-3" />

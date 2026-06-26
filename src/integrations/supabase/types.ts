@@ -4202,6 +4202,8 @@ export type Database = {
           correct_answer: string
           created_at: string | null
           id: string
+          image_url: string | null
+          option_images: Json | null
           options: Json | null
           order_index: number | null
           points: number | null
@@ -4213,6 +4215,8 @@ export type Database = {
           correct_answer: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
+          option_images?: Json | null
           options?: Json | null
           order_index?: number | null
           points?: number | null
@@ -4224,6 +4228,8 @@ export type Database = {
           correct_answer?: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
+          option_images?: Json | null
           options?: Json | null
           order_index?: number | null
           points?: number | null
@@ -4691,6 +4697,8 @@ export type Database = {
         Args: { _test_id: string }
         Returns: {
           id: string
+          image_url: string
+          option_images: Json
           options: Json
           order_index: number
           points: number

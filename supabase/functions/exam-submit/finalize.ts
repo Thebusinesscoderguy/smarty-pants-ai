@@ -3,6 +3,20 @@
 
 interface SubmittedAnswer { question_id: string; answer: string; }
 
+// Matching grade: parse the student's JSON array of selected right-values and the
+// canonical right[] from correct_answer; correct only if every pair matches.
+function matchingIsCorrect(selected: string, correct: string): boolean {
+  try {
+    const got = JSON.parse(selected || '[]');
+    const want = JSON.parse(correct || '[]');
+    if (!Array.isArray(got) || !Array.isArray(want)) return false;
+    if (got.length !== want.length || want.length === 0) return false;
+    return want.every((w: unknown, i: number) => String(got[i] ?? '').trim() === String(w ?? '').trim());
+  } catch {
+    return false;
+  }
+}
+
 export async function finalizeSession(opts: {
   admin: any;
   userId: string | null;
@@ -58,6 +72,11 @@ export async function finalizeSession(opts: {
     if (isOpen) {
       // Open-ended: defer to teacher review. Do not auto-grade.
       isCorrect = null;
+    } else if (q.question_type === 'matching') {
+      // Matching: correct_answer is the canonical right[] (JSON array); the student
+      // answer is JSON.stringify(selectedRightValue[]) aligned to the left[] order.
+      // All-or-nothing: every pair must match.
+      isCorrect = matchingIsCorrect(selected, q.correct_answer);
     } else {
       isCorrect = String(selected).trim() === String(q.correct_answer).trim();
     }

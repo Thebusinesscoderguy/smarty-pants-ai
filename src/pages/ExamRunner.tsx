@@ -17,11 +17,17 @@ import { toast } from '@/hooks/use-toast';
 import { AlertTriangle, Clock, Loader2, Lock, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+interface MatchingData { left: string[]; right: string[] }
+
 interface TestQuestion {
   id: string;
   question: string;
-  question_type: 'multiple_choice' | 'true_false' | 'short_answer';
+  question_type: 'multiple_choice' | 'true_false' | 'short_answer' | 'matching';
   options: string[] | null;
+  option_images: (string | null)[] | null;
+  image_url: string | null;
+  matching: MatchingData | null;
+  rightDisplay: string[] | null; // shuffled right column for matching (stable per question)
   correct_answer: string;
   points: number;
   order_index: number;
@@ -138,15 +144,31 @@ export default function ExamRunner() {
         .rpc('get_exam_questions_for_student', { _test_id: testId });
       if (qErr || !qs) { setErrorMsg('Could not load exam questions.'); setPhase('denied'); return; }
 
-      const parsed: TestQuestion[] = (qs as any[]).map((q: any) => ({
-        id: q.id,
-        question: q.question,
-        question_type: q.question_type || 'multiple_choice',
-        options: Array.isArray(q.options) ? q.options : (q.options ? Object.values(q.options) : null),
-        correct_answer: '', // server-side only; never sent to client during exam
-        points: q.points ?? 1,
-        order_index: q.order_index ?? 0,
-      }));
+      const parsed: TestQuestion[] = (qs as any[]).map((q: any) => {
+        const qtype = q.question_type || 'multiple_choice';
+        const isMatching = qtype === 'matching';
+        const matching: MatchingData | null = isMatching && q.options && !Array.isArray(q.options)
+          ? {
+              left: Array.isArray(q.options.left) ? q.options.left.map(String) : [],
+              right: Array.isArray(q.options.right) ? q.options.right.map(String) : [],
+            }
+          : null;
+        return {
+          id: q.id,
+          question: q.question,
+          question_type: qtype,
+          // MCQ options (string array). Matching keeps its data in `matching` instead.
+          options: !isMatching && Array.isArray(q.options) ? q.options.map(String) : null,
+          option_images: Array.isArray(q.option_images) ? q.option_images : null,
+          image_url: q.image_url ?? null,
+          matching,
+          // Stable shuffled copy of the right column so position can't reveal the answer.
+          rightDisplay: matching ? seededShuffle(matching.right, `${q.id}-r`) : null,
+          correct_answer: '', // server-side only; never sent to client during exam
+          points: q.points ?? 1,
+          order_index: q.order_index ?? 0,
+        };
+      });
 
       setTest(t as TestRow);
       const ordered = t.question_randomization && !t.question_order_locked
@@ -519,7 +541,14 @@ export default function ExamRunner() {
             <CardHeader>
               <CardTitle className="text-base font-medium leading-relaxed">{q.question}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {q.image_url && (
+                <img
+                  src={q.image_url}
+                  alt=""
+                  className="max-h-72 w-auto rounded-md border border-border object-contain"
+                />
+              )}
               {q.question_type === 'short_answer' ? (
                 <div className="space-y-2">
                   <Label htmlFor="ans">{t('ex.yourAnswer')}</Label>
@@ -531,6 +560,35 @@ export default function ExamRunner() {
                     autoComplete="off"
                   />
                 </div>
+              ) : q.question_type === 'matching' && q.matching ? (
+                <div className="space-y-2">
+                  {(() => {
+                    let sel: string[] = [];
+                    try { const a = JSON.parse(answers[q.id] || '[]'); if (Array.isArray(a)) sel = a.map(String); } catch { /* none yet */ }
+                    const left = q.matching!.left;
+                    const setPair = (i: number, val: string) => {
+                      const next = left.map((_, idx) => sel[idx] ?? '');
+                      next[i] = val;
+                      setAnswers((p) => ({ ...p, [q.id]: JSON.stringify(next) }));
+                    };
+                    return left.map((leftItem, i) => (
+                      <div key={i} className="flex items-center gap-2 p-2 rounded border border-border">
+                        <span className="flex-1 text-sm">{leftItem}</span>
+                        <span className="text-muted-foreground shrink-0">↔</span>
+                        <select
+                          className="flex-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
+                          value={sel[i] ?? ''}
+                          onChange={(e) => setPair(i, e.target.value)}
+                        >
+                          <option value="">{t('ex.matchSelect')}</option>
+                          {q.rightDisplay!.map((r, ri) => (
+                            <option key={ri} value={r}>{r}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ));
+                  })()}
+                </div>
               ) : (
                 <RadioGroup
                   value={answers[q.id] ?? ''}
@@ -540,7 +598,12 @@ export default function ExamRunner() {
                   {(q.options ?? (q.question_type === 'true_false' ? ['true', 'false'] : [])).map((opt, i) => (
                     <div key={i} className="flex items-center gap-2 p-2 rounded border border-border hover:bg-muted/50">
                       <RadioGroupItem id={`o-${i}`} value={String(opt)} />
-                      <Label htmlFor={`o-${i}`} className="cursor-pointer flex-1">{String(opt)}</Label>
+                      <Label htmlFor={`o-${i}`} className="cursor-pointer flex-1 flex items-center gap-3">
+                        {q.option_images?.[i] && (
+                          <img src={q.option_images[i] as string} alt="" className="h-14 w-14 rounded border border-border object-cover shrink-0" />
+                        )}
+                        <span>{String(opt)}</span>
+                      </Label>
                     </div>
                   ))}
                 </RadioGroup>
