@@ -28,9 +28,15 @@ export const GrowthGoals = () => {
   const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
   const [ready, setReady] = useState(false);
 
-  // Create form
+  // Create form. Teachers can only set goals for students; only school admins
+  // (staff) may set a goal for themselves.
   const [forWhom, setForWhom] = useState<'self' | 'student'>('self');
   const [studentId, setStudentId] = useState('');
+
+  // Force student-only target for non-admin teachers once role resolves.
+  useEffect(() => {
+    if (!isSchoolAdmin) setForWhom('student');
+  }, [isSchoolAdmin]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [targetDate, setTargetDate] = useState('');
@@ -67,11 +73,13 @@ export const GrowthGoals = () => {
 
   const createGoal = async () => {
     if (!user || !title.trim()) return;
-    if (forWhom === 'student' && !studentId) return;
+    // Only school admins (staff) may target themselves; teachers are student-only.
+    const effectiveFor = isSchoolAdmin ? forWhom : 'student';
+    if (effectiveFor === 'student' && !studentId) return;
     const { error } = await supabase.from('growth_goals').insert({
       school_id: schoolId,
-      owner_id: forWhom === 'self' ? user.id : studentId,
-      owner_type: forWhom === 'self' ? 'teacher' : 'student',
+      owner_id: effectiveFor === 'self' ? user.id : studentId,
+      owner_type: effectiveFor === 'self' ? 'teacher' : 'student',
       title: title.trim(), description: description.trim() || null,
       target_date: targetDate || null, status: 'not_started', progress: 0, created_by: user.id,
     });
@@ -100,17 +108,19 @@ export const GrowthGoals = () => {
         <CardHeader><CardTitle className="text-base">New goal</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Goal for</Label>
-              <Select value={forWhom} onValueChange={(v) => setForWhom(v as 'self' | 'student')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="self">Myself{isSchoolAdmin ? ' (staff)' : ' (teacher)'}</SelectItem>
-                  <SelectItem value="student">A student</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {forWhom === 'student' && (
+            {isSchoolAdmin && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Goal for</Label>
+                <Select value={forWhom} onValueChange={(v) => setForWhom(v as 'self' | 'student')}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="self">Myself (staff)</SelectItem>
+                    <SelectItem value="student">A student</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {(!isSchoolAdmin || forWhom === 'student') && (
               <div>
                 <Label className="text-xs text-muted-foreground">Student</Label>
                 <Select value={studentId} onValueChange={setStudentId}>
