@@ -12,6 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Switch } from '@/components/ui/switch';
 import { Plus, FileUp, Trash2, Eye, ClipboardList, Download, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const ASGN_STATUS_KEY: Record<string, string> = {
+  submitted: 'asgn.statusSubmitted', graded: 'asgn.statusGraded',
+  late: 'asgn.statusLate', not_submitted: 'asgn.statusNotSubmitted',
+};
 
 interface Assignment {
   id: string; school_id: string; section_id: string | null; subject_id: string | null;
@@ -27,6 +33,7 @@ interface Submission {
 
 export const AssignmentManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
@@ -90,7 +97,7 @@ export const AssignmentManagement = () => {
       const { error } = await supabase.storage.from('assignments').upload(path, file);
       if (error) throw error;
       setAttachments(prev => [...prev, path]);
-      toast.success('File uploaded');
+      toast.success(t('asgn.fileUploaded'));
     } catch (e: any) { toast.error(e.message); } finally { setUploading(false); }
   };
 
@@ -100,7 +107,7 @@ export const AssignmentManagement = () => {
   };
 
   const create = async (publish: boolean) => {
-    if (!user || !schoolId || !title.trim()) { toast.error('Title required'); return; }
+    if (!user || !schoolId || !title.trim()) { toast.error(t('asgn.titleRequired')); return; }
     const { error } = await supabase.from('assignments' as any).insert({
       school_id: schoolId, section_id: sectionId || null, subject_id: subjectId || null,
       created_by: user.id, title, description: description || null,
@@ -109,7 +116,7 @@ export const AssignmentManagement = () => {
       allow_late: allowLate, late_penalty_pct: latePenalty, published: publish,
     } as any);
     if (error) { toast.error(error.message); return; }
-    toast.success(publish ? 'Assignment published' : 'Draft saved');
+    toast.success(publish ? t('asgn.published') : t('asgn.draftSaved'));
     setDialogOpen(false); reset(); loadList();
   };
 
@@ -118,7 +125,7 @@ export const AssignmentManagement = () => {
     loadList();
   };
   const remove = async (id: string) => {
-    if (!confirm('Delete this assignment?')) return;
+    if (!confirm(t('asgn.confirmDelete'))) return;
     await supabase.from('assignments' as any).delete().eq('id', id);
     loadList();
   };
@@ -130,7 +137,7 @@ export const AssignmentManagement = () => {
     setSubs(list);
     if (list.length) {
       const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', list.map(s => s.student_id));
-      setStudentNames(Object.fromEntries((profs || []).map(p => [p.id, p.display_name || 'Student'])));
+      setStudentNames(Object.fromEntries((profs || []).map(p => [p.id, p.display_name || t('asgn.studentFallback')])));
     }
   };
 
@@ -140,7 +147,7 @@ export const AssignmentManagement = () => {
       score, feedback, status: 'graded', graded_by: user.id, graded_at: new Date().toISOString(),
     } as any).eq('id', sub.id);
     if (error) { toast.error(error.message); return; }
-    toast.success('Graded');
+    toast.success(t('asgn.graded'));
     if (graderFor) openGrader(graderFor);
   };
 
@@ -153,38 +160,38 @@ export const AssignmentManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-2">
         <div>
-          <h2 className="text-2xl font-bold">Assignments</h2>
-          <p className="text-muted-foreground">Create homework with files, deadlines, and grading.</p>
+          <h2 className="text-2xl font-bold">{t('asgn.title')}</h2>
+          <p className="text-muted-foreground">{t('asgn.subtitle')}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />New Assignment</Button></DialogTrigger>
+          <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />{t('asgn.newAssignment')}</Button></DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Create Assignment</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t('asgn.createAssignment')}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <div><Label>Title *</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
-              <div><Label>Instructions</Label><Textarea rows={4} value={description} onChange={e => setDescription(e.target.value)} /></div>
+              <div><Label>{t('asgn.titleLabel')}</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
+              <div><Label>{t('asgn.instructions')}</Label><Textarea rows={4} value={description} onChange={e => setDescription(e.target.value)} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Subject</Label>
+                <div><Label>{t('asgn.subject')}</Label>
                   <Select value={subjectId} onValueChange={setSubjectId}>
-                    <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t('asgn.optional')} /></SelectTrigger>
                     <SelectContent className="bg-popover">{subjects.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div><Label>Section</Label>
+                <div><Label>{t('asgn.section')}</Label>
                   <Select value={sectionId} onValueChange={setSectionId}>
-                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t('asgn.select')} /></SelectTrigger>
                     <SelectContent className="bg-popover">{sections.map(s => <SelectItem key={s.id} value={s.id}>{s.grade_level} - {s.section_name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div><Label>Due Date</Label><Input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} /></div>
-                <div><Label>Total Points</Label><Input type="number" value={totalPoints} onChange={e => setTotalPoints(Number(e.target.value))} /></div>
+                <div><Label>{t('asgn.dueDate')}</Label><Input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} /></div>
+                <div><Label>{t('asgn.totalPoints')}</Label><Input type="number" value={totalPoints} onChange={e => setTotalPoints(Number(e.target.value))} /></div>
               </div>
               <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2"><Switch checked={allowLate} onCheckedChange={setAllowLate} /><Label>Allow late submissions</Label></div>
-                {allowLate && <div className="flex items-center gap-2"><Label>Late penalty %</Label><Input className="w-20" type="number" value={latePenalty} onChange={e => setLatePenalty(Number(e.target.value))} /></div>}
+                <div className="flex items-center gap-2"><Switch checked={allowLate} onCheckedChange={setAllowLate} /><Label>{t('asgn.allowLate')}</Label></div>
+                {allowLate && <div className="flex items-center gap-2"><Label>{t('asgn.latePenalty')}</Label><Input className="w-20" type="number" value={latePenalty} onChange={e => setLatePenalty(Number(e.target.value))} /></div>}
               </div>
               <div>
-                <Label>Attachments</Label>
+                <Label>{t('asgn.attachments')}</Label>
                 <div className="flex items-center gap-2">
                   <Input type="file" onChange={e => e.target.files?.[0] && upload(e.target.files[0])} disabled={uploading} />
                 </div>
@@ -201,15 +208,15 @@ export const AssignmentManagement = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => create(false)}>Save Draft</Button>
-              <Button onClick={() => create(true)}><Send className="h-4 w-4 mr-1" />Publish</Button>
+              <Button variant="outline" onClick={() => create(false)}>{t('asgn.saveDraft')}</Button>
+              <Button onClick={() => create(true)}><Send className="h-4 w-4 mr-1" />{t('asgn.publish')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       {items.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground"><ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-30" /><p>No assignments yet.</p></CardContent></Card>
+        <Card><CardContent className="py-12 text-center text-muted-foreground"><ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-30" /><p>{t('asgn.empty')}</p></CardContent></Card>
       ) : (
         <div className="grid gap-3">
           {items.map(a => {
@@ -222,20 +229,20 @@ export const AssignmentManagement = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold truncate">{a.title}</h3>
-                      {a.published ? <Badge>Published</Badge> : <Badge variant="outline">Draft</Badge>}
-                      {overdue && <Badge variant="destructive">Past Due</Badge>}
+                      {a.published ? <Badge>{t('asgn.badgePublished')}</Badge> : <Badge variant="outline">{t('asgn.badgeDraft')}</Badge>}
+                      {overdue && <Badge variant="destructive">{t('asgn.badgePastDue')}</Badge>}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-3">
                       {subj && <span>{subj.name}</span>}
                       {sec && <span>{sec.grade_level} {sec.section_name}</span>}
-                      {a.due_date && <span>Due {new Date(a.due_date).toLocaleString()}</span>}
-                      <span>{a.total_points} pts</span>
-                      <span>{counts[a.id] || 0} submissions</span>
+                      {a.due_date && <span>{t('asgn.duePrefix')} {new Date(a.due_date).toLocaleString()}</span>}
+                      <span>{a.total_points} {t('asgn.ptsSuffix')}</span>
+                      <span>{counts[a.id] || 0} {t('asgn.submissionsSuffix')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button size="sm" variant="outline" onClick={() => openGrader(a)}><Eye className="h-4 w-4 mr-1" />Submissions</Button>
-                    <Button size="sm" variant="ghost" onClick={() => togglePublish(a)}>{a.published ? 'Unpublish' : 'Publish'}</Button>
+                    <Button size="sm" variant="outline" onClick={() => openGrader(a)}><Eye className="h-4 w-4 mr-1" />{t('asgn.submissions')}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => togglePublish(a)}>{a.published ? t('asgn.unpublish') : t('asgn.publish')}</Button>
                     <Button size="sm" variant="ghost" onClick={() => remove(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 </CardContent>
@@ -247,10 +254,10 @@ export const AssignmentManagement = () => {
 
       <Dialog open={!!graderFor} onOpenChange={(o) => !o && setGraderFor(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Submissions — {graderFor?.title}</DialogTitle></DialogHeader>
-          {subs.length === 0 ? <p className="text-sm text-muted-foreground">No submissions yet.</p> : (
+          <DialogHeader><DialogTitle>{t('asgn.submissionsForPrefix')} {graderFor?.title}</DialogTitle></DialogHeader>
+          {subs.length === 0 ? <p className="text-sm text-muted-foreground">{t('asgn.noSubmissions')}</p> : (
             <div className="space-y-3">
-              {subs.map(s => <SubmissionRow key={s.id} sub={s} studentName={studentNames[s.student_id] || 'Student'} maxPoints={graderFor?.total_points || 100} onGrade={grade} onDownload={downloadAttachment} />)}
+              {subs.map(s => <SubmissionRow key={s.id} sub={s} studentName={studentNames[s.student_id] || t('asgn.studentFallback')} maxPoints={graderFor?.total_points || 100} onGrade={grade} onDownload={downloadAttachment} />)}
             </div>
           )}
         </DialogContent>
@@ -264,6 +271,7 @@ const SubmissionRow = ({ sub, studentName, maxPoints, onGrade, onDownload }: {
   onGrade: (sub: Submission, score: number, feedback: string) => void;
   onDownload: (path: string) => void;
 }) => {
+  const { t } = useLanguage();
   const [score, setScore] = useState<number>(sub.score ?? 0);
   const [feedback, setFeedback] = useState(sub.feedback ?? '');
   return (
@@ -271,7 +279,7 @@ const SubmissionRow = ({ sub, studentName, maxPoints, onGrade, onDownload }: {
       <CardContent className="p-3 space-y-2">
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div><span className="font-medium">{studentName}</span>
-            <Badge variant="outline" className="ml-2">{sub.status}</Badge>
+            <Badge variant="outline" className="ml-2">{ASGN_STATUS_KEY[sub.status] ? t(ASGN_STATUS_KEY[sub.status]) : sub.status}</Badge>
             {sub.submitted_at && <span className="text-xs text-muted-foreground ml-2">{new Date(sub.submitted_at).toLocaleString()}</span>}
           </div>
         </div>
@@ -284,9 +292,9 @@ const SubmissionRow = ({ sub, studentName, maxPoints, onGrade, onDownload }: {
           </div>
         )}
         <div className="flex items-end gap-2 flex-wrap">
-          <div><Label className="text-xs">Score / {maxPoints}</Label><Input className="w-24" type="number" value={score} onChange={e => setScore(Number(e.target.value))} /></div>
-          <div className="flex-1 min-w-[200px]"><Label className="text-xs">Feedback</Label><Input value={feedback} onChange={e => setFeedback(e.target.value)} /></div>
-          <Button size="sm" onClick={() => onGrade(sub, score, feedback)}>Save Grade</Button>
+          <div><Label className="text-xs">{t('asgn.score')} / {maxPoints}</Label><Input className="w-24" type="number" value={score} onChange={e => setScore(Number(e.target.value))} /></div>
+          <div className="flex-1 min-w-[200px]"><Label className="text-xs">{t('asgn.feedback')}</Label><Input value={feedback} onChange={e => setFeedback(e.target.value)} /></div>
+          <Button size="sm" onClick={() => onGrade(sub, score, feedback)}>{t('asgn.saveGrade')}</Button>
         </div>
       </CardContent>
     </Card>
