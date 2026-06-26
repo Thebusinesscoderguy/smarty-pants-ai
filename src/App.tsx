@@ -114,8 +114,9 @@ function App() {
                       <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                       <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
                       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
-                      {/* SECURITY: students must not reach report cards management. */}
-                      <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['parent', 'teacher', 'admin']}><ReportCards /></ProtectedRoute>} />
+                      {/* Students may view their OWN published report cards; RLS (report_cards
+                          "Students view own published report cards") scopes them to themselves. */}
+                      <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['student', 'parent', 'teacher', 'admin']}><ReportCards /></ProtectedRoute>} />
                       <Route path="/s/:token" element={<SharedArtifact />} />
                       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                       <Route path="/exam/:testId" element={<ExamRunner />} />
