@@ -214,8 +214,8 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
                         {COMPONENTS.map(c => (
                           <TableCell key={c.key} className="text-center">
                             <Input
-                              type="number" min={0} max={c.max} placeholder="—"
-                              className="w-16 mx-auto text-center h-8"
+                              type="number" min={0} max={c.max}
+                              className="w-16 mx-auto text-center h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               value={row[c.key]}
                               onChange={e => setCell(s.student_id, c.key, c.max, e.target.value)}
                             />
