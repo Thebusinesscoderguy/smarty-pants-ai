@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, TrendingDown, Minus, Users, AlertTriangle, Trophy, Target, FileCheck, ClipboardList, Mail, Loader2, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 interface PulseData {
@@ -23,6 +24,7 @@ interface PulseData {
 
 export const SchoolPulse = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [data, setData] = useState<PulseData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,7 +112,7 @@ export const SchoolPulse = () => {
       const valid = (secAttempts ?? []).filter((a: any) => a.total_possible > 0);
       if (valid.length === 0) continue;
       const avg = Math.round(valid.reduce((sum: number, a: any) => sum + (a.score / a.total_possible) * 100, 0) / valid.length);
-      stats.push({ name: `Grade ${s.grade_level}${s.section_name ? ' ' + s.section_name : ''}`, avg });
+      stats.push({ name: `${t('gradebook.gradePrefix')} ${s.grade_level}${s.section_name ? ' ' + s.section_name : ''}`, avg });
     }
     stats.sort((a, b) => b.avg - a.avg);
 
@@ -126,7 +128,7 @@ export const SchoolPulse = () => {
     if (!schoolId) return;
     setDigestEnabled(enabled);
     await supabase.from('school_email_preferences').upsert({ school_id: schoolId, weekly_digest_enabled: enabled }, { onConflict: 'school_id' });
-    toast.success(enabled ? 'Weekly digest enabled' : 'Weekly digest disabled');
+    toast.success(enabled ? t('pulse.digestEnabled') : t('pulse.digestDisabled'));
   };
 
   const sendPreview = async () => {
@@ -136,13 +138,13 @@ export const SchoolPulse = () => {
       const url = `https://twfzlbockonxopuindaw.supabase.co/functions/v1/send-principal-weekly-digest?school_id=${schoolId}`;
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
       if (res.ok) {
-        toast.success('Preview email sent — check your inbox');
+        toast.success(t('pulse.previewSent'));
         await loadPrefs(schoolId);
       } else {
-        toast.error('Could not send preview');
+        toast.error(t('pulse.couldNotSend'));
       }
     } catch (e: any) {
-      toast.error(e.message || 'Failed');
+      toast.error(e.message || t('pulse.failed'));
     } finally {
       setSendingPreview(false);
     }
@@ -165,64 +167,64 @@ export const SchoolPulse = () => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-primary" />School Pulse</h2>
-          <p className="text-sm text-muted-foreground">Weekly snapshot of school health · last 7 days</p>
+          <h2 className="text-2xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-primary" />{t('pulse.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('pulse.subtitle')}</p>
         </div>
         <Button variant="outline" size="sm" onClick={sendPreview} disabled={sendingPreview}>
-          {sendingPreview ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : <><Mail className="w-4 h-4 mr-2" />Send me a preview</>}
+          {sendingPreview ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('pulse.sending')}</> : <><Mail className="w-4 h-4 mr-2" />{t('pulse.sendPreview')}</>}
         </Button>
       </div>
 
       {/* KPI grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" />Active students</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" />{t('pulse.activeStudents')}</CardTitle></CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{data.weeklyActiveStudents}<span className="text-base font-normal text-muted-foreground"> / {data.totalStudents}</span></div>
-            <p className="text-xs text-muted-foreground mt-1">{activePct}% engaged this week</p>
+            <p className="text-xs text-muted-foreground mt-1">{activePct}% {t('pulse.engagedThisWeek')}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><TrendIcon className={`w-4 h-4 ${trendColor}`} />Avg grade</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><TrendIcon className={`w-4 h-4 ${trendColor}`} />{t('pulse.avgGrade')}</CardTitle></CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{data.avgGrade}%</div>
             <p className={`text-xs mt-1 ${trendColor}`}>
-              {data.gradeTrend === 0 ? 'No change vs last week' : `${data.gradeTrend > 0 ? '+' : ''}${data.gradeTrend.toFixed(1)} pts vs last week`}
+              {data.gradeTrend === 0 ? t('pulse.noChange') : `${data.gradeTrend > 0 ? '+' : ''}${data.gradeTrend.toFixed(1)} ${t('pulse.ptsVsLastWeek')}`}
             </p>
           </CardContent>
         </Card>
 
         <Card className={data.atRiskCount > 0 ? 'border-destructive/50' : ''}>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><AlertTriangle className="w-4 h-4" />At-risk students</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><AlertTriangle className="w-4 h-4" />{t('pulse.atRisk')}</CardTitle></CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${data.atRiskCount > 0 ? 'text-destructive' : 'text-green-600'}`}>{data.atRiskCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Avg mastery below 50%</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('pulse.avgMasteryBelow')}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><FileCheck className="w-4 h-4" />Homework submitted</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><FileCheck className="w-4 h-4" />{t('pulse.homeworkSubmitted')}</CardTitle></CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{data.homeworkSubmissions}</div>
-            <p className="text-xs text-muted-foreground mt-1">This week</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('pulse.thisWeek')}</p>
           </CardContent>
         </Card>
 
         <Card className={data.gradingPending > 10 ? 'border-amber-500/50' : ''}>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><ClipboardList className="w-4 h-4" />Awaiting grading</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><ClipboardList className="w-4 h-4" />{t('pulse.awaitingGrading')}</CardTitle></CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${data.gradingPending > 10 ? 'text-amber-600' : ''}`}>{data.gradingPending}</div>
-            <p className="text-xs text-muted-foreground mt-1">Submissions need a grade</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('pulse.needsGrade')}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><Trophy className="w-4 h-4" />Class leaderboard</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2 text-muted-foreground"><Trophy className="w-4 h-4" />{t('pulse.leaderboard')}</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {data.topSection ? (
               <div className="flex justify-between text-sm"><span className="flex items-center gap-1">🏆 {data.topSection.name}</span><span className="font-semibold text-green-600">{data.topSection.avg}%</span></div>
-            ) : <p className="text-xs text-muted-foreground">No quiz data yet</p>}
+            ) : <p className="text-xs text-muted-foreground">{t('pulse.noQuizData')}</p>}
             {data.bottomSection && (
               <div className="flex justify-between text-sm"><span className="flex items-center gap-1"><Target className="w-3 h-3" /> {data.bottomSection.name}</span><span className="font-semibold text-amber-600">{data.bottomSection.avg}%</span></div>
             )}
@@ -233,18 +235,18 @@ export const SchoolPulse = () => {
       {/* Digest settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Mail className="w-5 h-5" />Weekly email digest</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Mail className="w-5 h-5" />{t('pulse.digestTitle')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="digest-toggle" className="font-medium">Send me School Pulse every Monday</Label>
-              <p className="text-sm text-muted-foreground">A 1-minute read with the same numbers above.</p>
+              <Label htmlFor="digest-toggle" className="font-medium">{t('pulse.digestToggle')}</Label>
+              <p className="text-sm text-muted-foreground">{t('pulse.digestToggleDesc')}</p>
             </div>
             <Switch id="digest-toggle" checked={digestEnabled} onCheckedChange={toggleDigest} />
           </div>
           {lastSent && (
-            <p className="text-xs text-muted-foreground">Last sent: {new Date(lastSent).toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">{t('pulse.lastSent')} {new Date(lastSent).toLocaleString()}</p>
           )}
         </CardContent>
       </Card>
