@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { School, Users, ArrowRight, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RoleSelectionProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface RoleSelectionProps {
 export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }: RoleSelectionProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [selectedRole, setSelectedRole] = useState<'school' | 'parent' | null>(null);
 
   // Only show role selection for demo users or during signup (when no user is logged in)
@@ -42,10 +44,8 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
     onClose();
   };
 
-  const title = mode === 'demo' ? 'Choose Demo Experience' : 'Choose Your Role';
-  const description = mode === 'demo' 
-    ? 'Select which perspective you\'d like to explore in our interactive demo'
-    : 'Select how you\'ll be using TeachlyAI to get started with the right features';
+  const title = mode === 'demo' ? t('rs.demoTitle') : t('rs.signupTitle');
+  const description = mode === 'demo' ? t('rs.demoDesc') : t('rs.signupDesc');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -68,17 +68,17 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
               <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-fit group-hover:bg-primary/30 transition-colors">
                 <School className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-foreground">School / Institution</CardTitle>
+              <CardTitle className="text-foreground">{t('rs.school')}</CardTitle>
               <CardDescription className="text-muted-foreground">
-                {mode === 'demo' ? 'See the admin dashboard and teacher tools' : 'For teachers, administrators, and educational institutions'}
+                {mode === 'demo' ? t('rs.schoolDemoDesc') : t('rs.schoolSignupDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• Manage multiple students</li>
-                <li>• Create custom curricula</li>
-                <li>• Advanced analytics & reporting</li>
-                <li>• School-wide administration</li>
+                <li>• {t('rs.schoolL1')}</li>
+                <li>• {t('rs.schoolL2')}</li>
+                <li>• {t('rs.schoolL3')}</li>
+                <li>• {t('rs.schoolL4')}</li>
               </ul>
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 border-0"
@@ -90,11 +90,11 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
                 {mode === 'demo' ? (
                   <>
                     <Play className="mr-2 h-4 w-4" />
-                    Try School Demo
+                    {t('rs.trySchoolDemo')}
                   </>
                 ) : (
                   <>
-                    Get Started as School
+                    {t('rs.getStartedSchool')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -110,17 +110,17 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
               <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-fit group-hover:bg-primary/30 transition-colors">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-foreground">Parent / Student</CardTitle>
+              <CardTitle className="text-foreground">{t('rs.parent')}</CardTitle>
               <CardDescription className="text-muted-foreground">
-                {mode === 'demo' ? 'Experience the student learning journey' : 'For parents and individual students'}
+                {mode === 'demo' ? t('rs.parentDemoDesc') : t('rs.parentSignupDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">
-                <li>• Personal learning journey</li>
-                <li>• Progress tracking</li>
-                <li>• Gamified learning experience</li>
-                <li>• Parent monitoring dashboard</li>
+                <li>• {t('rs.parentL1')}</li>
+                <li>• {t('rs.parentL2')}</li>
+                <li>• {t('rs.parentL3')}</li>
+                <li>• {t('rs.parentL4')}</li>
               </ul>
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 border-0"
@@ -132,11 +132,11 @@ export const RoleSelection = ({ isOpen, onClose, mode = 'signup', onRoleSelect }
                 {mode === 'demo' ? (
                   <>
                     <Play className="mr-2 h-4 w-4" />
-                    Try Student Demo
+                    {t('rs.tryStudentDemo')}
                   </>
                 ) : (
                   <>
-                    Get Started as Parent
+                    {t('rs.getStartedParent')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
