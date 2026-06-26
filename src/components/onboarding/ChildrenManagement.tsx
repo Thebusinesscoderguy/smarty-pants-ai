@@ -7,6 +7,7 @@ import { Plus, Users, UserCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Child {
   id: string;
@@ -22,6 +23,7 @@ interface ChildrenManagementProps {
 
 export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [children, setChildren] = useState<Child[]>([]);
   const [newChild, setNewChild] = useState({ 
     firstName: '', 
@@ -31,9 +33,20 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   const [loading, setLoading] = useState(false);
 
   const gradeOptions = [
-    'Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade',
-    '5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade',
-    '11th Grade', '12th Grade'
+    { value: 'Pre-K', label: t('cm.grPreK') },
+    { value: 'Kindergarten', label: t('cm.grKinder') },
+    { value: '1st Grade', label: t('cm.gr1') },
+    { value: '2nd Grade', label: t('cm.gr2') },
+    { value: '3rd Grade', label: t('cm.gr3') },
+    { value: '4th Grade', label: t('cm.gr4') },
+    { value: '5th Grade', label: t('cm.gr5') },
+    { value: '6th Grade', label: t('cm.gr6') },
+    { value: '7th Grade', label: t('cm.gr7') },
+    { value: '8th Grade', label: t('cm.gr8') },
+    { value: '9th Grade', label: t('cm.gr9') },
+    { value: '10th Grade', label: t('cm.gr10') },
+    { value: '11th Grade', label: t('cm.gr11') },
+    { value: '12th Grade', label: t('cm.gr12') },
   ];
 
   useEffect(() => {
@@ -68,8 +81,8 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
   const addChild = async () => {
     if (!user || !newChild.firstName || !newChild.lastName || !newChild.gradeLevel) {
       toast({
-        title: "Error",
-        description: "Please fill in name and grade level",
+        title: t('cm.error'),
+        description: t('cm.fillNameGrade'),
         variant: "destructive"
       });
       return;
@@ -95,14 +108,14 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
       setNewChild({ firstName: '', lastName: '', gradeLevel: '' });
       fetchChildren();
       toast({
-        title: "Child Added",
-        description: `${newChild.firstName} has been added to your family account.`
+        title: t('cm.childAdded'),
+        description: `${newChild.firstName} ${t('cm.childAddedDesc')}`
       });
     } catch (error: any) {
       console.error('Error adding child:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to add child",
+        title: t('cm.error'),
+        description: error.message || t('cm.failedAdd'),
         variant: "destructive"
       });
     } finally {
@@ -115,10 +128,10 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-4">
-            Manage Your Children
+            {t('cm.manageTitle')}
           </h1>
           <p className="text-muted-foreground">
-            Add children to your family account to monitor their progress
+            {t('cm.manageSub')}
           </p>
         </div>
 
@@ -128,41 +141,41 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
                 <Plus className="h-5 w-5" />
-                Add New Child
+                {t('cm.addNew')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="firstName" className="text-foreground">First Name</Label>
+                <Label htmlFor="firstName" className="text-foreground">{t('cm.firstName')}</Label>
                 <Input
                   id="firstName"
                   value={newChild.firstName}
                   onChange={(e) => setNewChild(prev => ({ ...prev, firstName: e.target.value }))}
                   className="bg-background border-input"
-                  placeholder="Enter first name"
+                  placeholder={t('cm.enterFirst')}
                 />
               </div>
               <div>
-                <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
+                <Label htmlFor="lastName" className="text-foreground">{t('cm.lastName')}</Label>
                 <Input
                   id="lastName"
                   value={newChild.lastName}
                   onChange={(e) => setNewChild(prev => ({ ...prev, lastName: e.target.value }))}
                   className="bg-background border-input"
-                  placeholder="Enter last name"
+                  placeholder={t('cm.enterLast')}
                 />
               </div>
               <div>
-                <Label htmlFor="gradeLevel" className="text-foreground">Grade Level</Label>
+                <Label htmlFor="gradeLevel" className="text-foreground">{t('cm.gradeLevel')}</Label>
                 <select
                   id="gradeLevel"
                   value={newChild.gradeLevel}
                   onChange={(e) => setNewChild(prev => ({ ...prev, gradeLevel: e.target.value }))}
                   className="w-full p-2 bg-background border border-input text-foreground rounded-md"
                 >
-                  <option value="">Select grade level</option>
+                  <option value="">{t('cm.selectGrade')}</option>
                   {gradeOptions.map(grade => (
-                    <option key={grade} value={grade}>{grade}</option>
+                    <option key={grade.value} value={grade.value}>{grade.label}</option>
                   ))}
                 </select>
               </div>
@@ -171,7 +184,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                 disabled={loading}
                 className="w-full bg-primary hover:bg-primary/90"
               >
-                {loading ? 'Adding...' : 'Add Child'}
+                {loading ? t('cm.adding') : t('cm.addChild')}
               </Button>
             </CardContent>
           </Card>
@@ -181,15 +194,15 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Your Children ({children.length})
+                {t('cm.yourChildren')} ({children.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {children.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
                   <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No children added yet</p>
-                  <p className="text-sm">Add your first child to get started</p>
+                  <p>{t('cm.noChildren')}</p>
+                  <p className="text-sm">{t('cm.addFirst')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -207,7 +220,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
                             {child.first_name} {child.last_name}
                           </p>
                           <p className="text-muted-foreground text-sm">
-                            {child.grade_level && `Grade: ${child.grade_level}`}
+                            {child.grade_level && `${t('cm.gradePrefix')} ${child.grade_level}`}
                           </p>
                         </div>
                       </div>
@@ -224,7 +237,7 @@ export const ChildrenManagement = ({ onComplete }: ChildrenManagementProps) => {
             onClick={onComplete}
             className="bg-primary hover:bg-primary/90 px-8"
           >
-            Continue to Dashboard
+            {t('cm.continueDashboard')}
           </Button>
         </div>
       </div>
