@@ -7,6 +7,7 @@ import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummary
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockParentDashboard } from '@/utils/mockData';
 
@@ -19,6 +20,7 @@ interface StudentData {
 }
 
 export const ParentDashboard = () => {
+  const { t } = useLanguage();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -85,7 +87,7 @@ export const ParentDashboard = () => {
         .map(item => ({
           topic: item.topic_name,
           score: Math.round(item.strength_score * 100),
-          subject: item.subjects?.name || 'Unknown'
+          subject: item.subjects?.name || t('pd2.unknown')
         }))
         .slice(0, 5);
 
@@ -94,13 +96,13 @@ export const ParentDashboard = () => {
         .map(item => ({
           topic: item.topic_name,
           score: Math.round(item.strength_score * 100),
-          subject: item.subjects?.name || 'Unknown'
+          subject: item.subjects?.name || t('pd2.unknown')
         }))
         .slice(0, 5);
 
       // Generate improvement paragraph
       const improvementParagraph = generateImprovementParagraph(
-        profile?.display_name || 'Your child',
+        profile?.display_name || t('pd2.yourChild'),
         strengths,
         weaknesses
       );
@@ -116,8 +118,8 @@ export const ParentDashboard = () => {
     } catch (error: any) {
       console.error('Error fetching child data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your child's progress",
+        title: t('pd2.error'),
+        description: t('pd2.failedLoad'),
         variant: "destructive"
       });
     } finally {
@@ -130,33 +132,33 @@ export const ParentDashboard = () => {
     strengths: Array<{ topic: string; score: number; subject: string }>,
     weaknesses: Array<{ topic: string; score: number; subject: string }>
   ): string => {
-    let paragraph = `${studentName} is making good progress in their learning journey. `;
+    let paragraph = `${studentName} ${t('pd2.paraProgress')} `;
 
     if (strengths.length > 0) {
       const topStrength = strengths[0];
-      paragraph += `They show excellent understanding in ${topStrength.topic} with ${topStrength.score}% mastery. `;
-      
+      paragraph += `${t('pd2.paraStrongPre')} ${topStrength.topic} ${t('pd2.paraStrongMid')} ${topStrength.score}${t('pd2.paraStrongPost')} `;
+
       if (strengths.length > 1) {
-        paragraph += `Other strong areas include ${strengths.slice(1, 3).map(s => s.topic).join(' and ')}. `;
+        paragraph += `${t('pd2.paraOtherPre')} ${strengths.slice(1, 3).map(s => s.topic).join(` ${t('pd2.andWord')} `)}. `;
       }
     }
 
     if (weaknesses.length > 0) {
       const topWeakness = weaknesses[0];
-      paragraph += `For continued growth, focus on ${topWeakness.topic} where additional practice would be beneficial. `;
-      
+      paragraph += `${t('pd2.paraWeakPre')} ${topWeakness.topic} ${t('pd2.paraWeakPost')} `;
+
       if (weaknesses.length > 1) {
-        paragraph += `Also consider reviewing ${weaknesses.slice(1, 2).map(w => w.topic).join(' and ')}. `;
+        paragraph += `${t('pd2.paraReviewPre')} ${weaknesses.slice(1, 2).map(w => w.topic).join(` ${t('pd2.andWord')} `)}. `;
       }
     }
 
-    paragraph += `Regular practice and consistent engagement with the learning materials will help strengthen these areas and build confidence.`;
+    paragraph += t('pd2.paraOutro');
 
     return paragraph;
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-white">Loading your child's progress...</div>;
+    return <div className="animate-pulse text-white">{t('pd2.loading')}</div>;
   }
 
   if (!studentData) {
@@ -164,12 +166,9 @@ export const ParentDashboard = () => {
       <Card className="bg-white/10 border-white/20">
         <CardContent className="p-6 text-center">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2 text-white">No Child Connected</h3>
+          <h3 className="text-lg font-semibold mb-2 text-white">{t('pd2.noChildTitle')}</h3>
           <p className="text-gray-300">
-            {isMockDataEnabled() ? 
-              "This is mock data for demonstration purposes." :
-              "No child account is connected to your parent account. Please contact your school administrator to set up the connection."
-            }
+            {isMockDataEnabled() ? t('pd2.mockNote') : t('pd2.noChildDesc')}
           </p>
         </CardContent>
       </Card>
@@ -179,9 +178,9 @@ export const ParentDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Parent Dashboard</h1>
+        <h1 className="text-2xl font-bold text-white">{t('pd2.title')}</h1>
         <p className="text-gray-400">
-          Monitor {studentData.student_name}'s learning progress and performance
+          {t('pd2.monitorPre')} {studentData.student_name}{t('pd2.monitorPost')}
         </p>
       </div>
 
@@ -190,7 +189,7 @@ export const ParentDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Brain className="h-5 w-5" />
-            Learning Progress Summary
+            {t('pd2.summary')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -210,7 +209,7 @@ export const ParentDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <TrendingUp className="h-5 w-5 text-green-500" />
-              Strengths
+              {t('pd2.strengths')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -238,7 +237,7 @@ export const ParentDashboard = () => {
               </div>
             ) : (
               <p className="text-gray-400 text-center py-4">
-                Keep practicing to develop strong areas!
+                {t('pd2.keepPracticing')}
               </p>
             )}
           </CardContent>
@@ -249,7 +248,7 @@ export const ParentDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <TrendingDown className="h-5 w-5 text-violet-500" />
-              Areas for Improvement
+              {t('pd2.areasImprovement')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -277,7 +276,7 @@ export const ParentDashboard = () => {
               </div>
             ) : (
               <p className="text-gray-400 text-center py-4">
-                Great job! No major areas needing improvement.
+                {t('pd2.greatJob')}
               </p>
             )}
           </CardContent>
