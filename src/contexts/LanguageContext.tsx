@@ -4,6 +4,7 @@ import { Language, LanguageContextType } from '@/types/language';
 import { translations } from '@/data/translations';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getStoredLanguage, storeLanguage, isValidLanguage } from '@/utils/languageUtils';
+import { domTranslator } from '@/lib/domTranslator';
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -23,6 +24,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } else {
       html.classList.remove('lang-ar');
     }
+    // Drive the whole-app runtime translator (covers strings not wired to t()).
+    domTranslator.setLanguage(language);
   }, [language]);
 
   useEffect(() => {

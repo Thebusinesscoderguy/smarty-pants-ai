@@ -157,6 +157,64 @@ class TranslationService {
     return mapping[langCode] || langCode;
   }
 
+  /**
+   * Translate a persisted message/announcement. Passes `messageId` to the
+   * edge function so the result is cached server-side in `message_translations`
+   * (shared across users/devices) in addition to the local cache. Falls back to
+   * the original text on any failure.
+   */
+  async translateMessage(
+    messageId: string,
+    text: string,
+    targetLang: string,
+    sourceLang: string = 'en'
+  ): Promise<string> {
+    if (!text || text.trim() === '' || sourceLang === targetLang) {
+      return text;
+    }
+
+    const cleanText = text.trim();
+    const cacheKey = this.getCacheKey(cleanText, sourceLang);
+    if (this.cache[cacheKey]?.[targetLang]) {
+      return this.cache[cacheKey][targetLang];
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-text', {
+        body: {
+          messageId,
+          text: cleanText,
+          targetLang: this.getLibreTranslateCode(targetLang),
+          sourceLang: this.getLibreTranslateCode(sourceLang),
+        },
+      });
+
+      if (error) {
+        console.error('Message translation error:', error);
+        return text;
+      }
+
+      const translatedText = data?.translatedText;
+      const isSuccess =
+        translatedText &&
+        translatedText !== cleanText &&
+        translatedText.trim() !== '' &&
+        !data?.fallback;
+
+      if (isSuccess) {
+        if (!this.cache[cacheKey]) this.cache[cacheKey] = {};
+        this.cache[cacheKey][targetLang] = translatedText;
+        this.saveCache();
+        return translatedText;
+      }
+
+      return text;
+    } catch (error) {
+      console.error('Message translation error:', error);
+      return text;
+    }
+  }
+
   // Clear cache method for debugging
   clearCache() {
     this.cache = {};

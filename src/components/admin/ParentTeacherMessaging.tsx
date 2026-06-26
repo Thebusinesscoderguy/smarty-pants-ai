@@ -17,7 +17,9 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translationService } from '@/services/translationService';
 import { toast } from 'sonner';
+import { Languages } from 'lucide-react';
 
 interface Thread {
   thread_id: string;
@@ -81,6 +83,9 @@ export const ParentTeacherMessaging = () => {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState('');
+  const [msgSearch, setMsgSearch] = useState(''); // keyword search within the open thread
+  // Viewer's preferred language for auto-translation; falls back to the UI language.
+  const [viewerLang, setViewerLang] = useState<string>(language);
 
   const [composeOpen, setComposeOpen] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -113,6 +118,13 @@ export const ParentTeacherMessaging = () => {
     if (!user) return;
     fetchThreads();
   }, [user, fetchThreads]);
+
+  // Load the viewer's preferred language (set in profile); default to UI language.
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('preferred_language').eq('id', user.id).maybeSingle()
+      .then(({ data }) => { if (data?.preferred_language) setViewerLang(data.preferred_language); });
+  }, [user]);
 
   // Realtime: any new/updated message refreshes the thread list (previews, unread, order)
   useEffect(() => {
@@ -268,6 +280,13 @@ export const ParentTeacherMessaging = () => {
 
   const canSend = selectedThread && (selectedThread.is_parent || selectedThread.is_teacher);
 
+  // In-thread history search by keyword.
+  const shownMessages = useMemo(() => {
+    const q = msgSearch.trim().toLowerCase();
+    if (!q) return messages;
+    return messages.filter((m) => m.message.toLowerCase().includes(q));
+  }, [messages, msgSearch]);
+
   /* ---------------- render ---------------- */
   return (
     <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -408,11 +427,20 @@ export const ParentTeacherMessaging = () => {
                       {initials(otherName(selectedThread))}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="font-semibold text-sm truncate">{otherName(selectedThread)}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       Re: {selectedThread.student_name || 'student'}
                     </div>
+                  </div>
+                  <div className="relative w-40 shrink-0">
+                    <Search className={`absolute top-2.5 h-3.5 w-3.5 text-muted-foreground ${isRTL ? 'right-2.5' : 'left-2.5'}`} />
+                    <Input
+                      value={msgSearch}
+                      onChange={(e) => setMsgSearch(e.target.value)}
+                      placeholder="Search history"
+                      className={`h-8 text-xs ${isRTL ? 'pr-7' : 'pl-7'}`}
+                    />
                   </div>
                 </div>
 
@@ -420,30 +448,22 @@ export const ParentTeacherMessaging = () => {
                 <ScrollArea className="flex-1 p-4">
                   {loadingMsgs ? (
                     <p className="text-sm text-muted-foreground text-center py-6">Loading…</p>
-                  ) : messages.length === 0 ? (
+                  ) : shownMessages.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6">
-                      No messages yet. Say hello 👋
+                      {msgSearch ? 'No messages match your search.' : 'No messages yet. Say hello 👋'}
                     </p>
                   ) : (
                     <div className="space-y-2.5">
-                      {messages.map((m) => {
-                        const mine = m.sender_id === user?.id;
-                        return (
-                          <div key={m.id} className={`flex ${mine ? (isRTL ? 'justify-start' : 'justify-end') : (isRTL ? 'justify-end' : 'justify-start')}`}>
-                            <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
-                              mine ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                            }`}>
-                              <div className="whitespace-pre-wrap break-words">{m.message}</div>
-                              <div className={`flex items-center gap-1 mt-0.5 text-[10px] ${mine ? 'opacity-70 justify-end' : 'opacity-60'}`}>
-                                {new Date(m.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-                                {mine && (m.read_at
-                                  ? <CheckCheck className="h-3 w-3" />
-                                  : <Check className="h-3 w-3" />)}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {shownMessages.map((m) => (
+                        <MessageBubble
+                          key={m.id}
+                          msg={m}
+                          mine={m.sender_id === user?.id}
+                          isRTL={isRTL}
+                          locale={locale}
+                          viewerLang={viewerLang}
+                        />
+                      ))}
                       <div ref={bottomRef} />
                     </div>
                   )}
@@ -478,6 +498,46 @@ export const ParentTeacherMessaging = () => {
             )}
           </CardContent>
         </Card>
+      </div>
+    </div>
+  );
+};
+
+/* ---------------- message bubble with auto-translation ---------------- */
+const MessageBubble = ({ msg, mine, isRTL, locale, viewerLang }: {
+  msg: Msg; mine: boolean; isRTL: boolean; locale?: string; viewerLang: string;
+}) => {
+  const [translated, setTranslated] = useState<string | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!viewerLang || viewerLang === 'en') { setTranslated(null); return; }
+    translationService.translateMessage(msg.id, msg.message, viewerLang).then((res) => {
+      if (active && res && res !== msg.message) setTranslated(res);
+    });
+    return () => { active = false; };
+  }, [msg.id, msg.message, viewerLang]);
+
+  const body = translated && !showOriginal ? translated : msg.message;
+
+  return (
+    <div className={`flex ${mine ? (isRTL ? 'justify-start' : 'justify-end') : (isRTL ? 'justify-end' : 'justify-start')}`}>
+      <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${mine ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+        <div className="whitespace-pre-wrap break-words">{body}</div>
+        {translated && (
+          <button
+            onClick={() => setShowOriginal((v) => !v)}
+            className={`flex items-center gap-1 mt-1 text-[10px] underline-offset-2 hover:underline ${mine ? 'opacity-80' : 'opacity-70'}`}
+          >
+            <Languages className="h-3 w-3" />
+            {showOriginal ? 'Show translation' : 'Show original'}
+          </button>
+        )}
+        <div className={`flex items-center gap-1 mt-0.5 text-[10px] ${mine ? 'opacity-70 justify-end' : 'opacity-60'}`}>
+          {new Date(msg.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+          {mine && (msg.read_at ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />)}
+        </div>
       </div>
     </div>
   );
