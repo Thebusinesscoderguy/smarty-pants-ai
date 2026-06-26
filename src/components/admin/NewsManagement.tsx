@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Pin, Trash2, Newspaper } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 
 export const NewsManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -59,15 +61,16 @@ export const NewsManagement = () => {
     init();
   }, [user]);
 
-  if (!ready) return <div className="animate-pulse text-muted-foreground">Loading...</div>;
+  if (!ready) return <div className="animate-pulse text-muted-foreground">{t('news.loading')}</div>;
   if (!schoolId) return (
-    <Card><CardContent className="p-8 text-center text-muted-foreground">No school found for your account.</CardContent></Card>
+    <Card><CardContent className="p-8 text-center text-muted-foreground">{t('news.noSchool')}</CardContent></Card>
   );
 
   return <NewsManagementInner schoolId={schoolId} teacherId={teacherId} />;
 };
 
 const NewsManagementInner = ({ schoolId, teacherId }: { schoolId: string; teacherId: string | null }) => {
+  const { t } = useLanguage();
   const { posts, loading, createPost, deletePost, togglePin } = useSchoolNews(schoolId);
 
   return (
@@ -75,8 +78,8 @@ const NewsManagementInner = ({ schoolId, teacherId }: { schoolId: string; teache
       <div className="flex items-center gap-3">
         <Newspaper className="h-6 w-6 text-primary" />
         <div>
-          <h2 className="text-xl font-bold text-foreground">News & Announcements</h2>
-          <p className="text-sm text-muted-foreground">Post updates that students and parents will see in their news feed</p>
+          <h2 className="text-xl font-bold text-foreground">{t('news.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('news.subtitle')}</p>
         </div>
       </div>
 
@@ -89,11 +92,11 @@ const NewsManagementInner = ({ schoolId, teacherId }: { schoolId: string; teache
       )}
 
       {loading ? (
-        <div className="animate-pulse text-muted-foreground">Loading posts...</div>
+        <div className="animate-pulse text-muted-foreground">{t('news.loadingPosts')}</div>
       ) : posts.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            No announcements yet. Create your first post above!
+            {t('news.noAnnouncements')}
           </CardContent>
         </Card>
       ) : (
@@ -107,19 +110,19 @@ const NewsManagementInner = ({ schoolId, teacherId }: { schoolId: string; teache
                       <h3 className="font-semibold text-foreground">{post.title}</h3>
                       {post.is_pinned && (
                         <Badge variant="secondary" className="text-[10px]">
-                          <Pin className="h-3 w-3 mr-1 fill-current" /> Pinned
+                          <Pin className="h-3 w-3 mr-1 fill-current" /> {t('news.pinned')}
                         </Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{post.content}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                       <span>
-                        By {post.teacher ? `${post.teacher.first_name || ''} ${post.teacher.last_name || ''}`.trim() || post.teacher.email : 'Unknown'}
+                        {t('news.byPrefix')} {post.teacher ? `${post.teacher.first_name || ''} ${post.teacher.last_name || ''}`.trim() || post.teacher.email : t('news.unknown')}
                       </span>
                       <span>·</span>
                       <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                      {post.image_url && <Badge variant="outline" className="text-[10px]">📷 Image</Badge>}
-                      {post.link_url && <Badge variant="outline" className="text-[10px]">🔗 Link</Badge>}
+                      {post.image_url && <Badge variant="outline" className="text-[10px]">📷 {t('news.imageBadge')}</Badge>}
+                      {post.link_url && <Badge variant="outline" className="text-[10px]">🔗 {t('news.linkBadge')}</Badge>}
                     </div>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
@@ -128,7 +131,7 @@ const NewsManagementInner = ({ schoolId, teacherId }: { schoolId: string; teache
                       size="icon"
                       onClick={() => togglePin(post.id, post.is_pinned)}
                       className="h-8 w-8"
-                      title={post.is_pinned ? 'Unpin' : 'Pin'}
+                      title={post.is_pinned ? t('news.unpin') : t('news.pin')}
                     >
                       <Pin className={`h-4 w-4 ${post.is_pinned ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
                     </Button>

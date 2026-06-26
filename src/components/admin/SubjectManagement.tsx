@@ -7,6 +7,7 @@ import { Plus, Trash2, BookOpen, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SchoolSubject {
   id: string;
@@ -20,6 +21,7 @@ export const SubjectManagement = () => {
   const [newSubjectName, setNewSubjectName] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchSubjects();
@@ -65,39 +67,39 @@ export const SubjectManagement = () => {
         .from('school_subjects')
         .insert({ school_id: schoolId, name: newSubjectName.trim() });
       if (error) throw error;
-      toast({ title: 'Subject added', description: `${newSubjectName.trim()} has been added.` });
+      toast({ title: t('subj.added'), description: `${newSubjectName.trim()} ${t('subj.addedDescSuffix')}` });
       setNewSubjectName('');
       fetchSubjects();
     } catch (error: any) {
       console.error('Error adding subject:', error);
-      toast({ title: 'Error', description: 'Failed to add subject', variant: 'destructive' });
+      toast({ title: t('subj.error'), description: t('subj.failedAdd'), variant: 'destructive' });
     } finally {
       setIsAdding(false);
     }
   };
 
   const deleteSubject = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"? This will also remove all related daily grades.`)) return;
+    if (!confirm(`${t('subj.confirmDelete1')}"${name}"${t('subj.confirmDelete2')}`)) return;
     try {
       const { error } = await supabase.from('school_subjects').delete().eq('id', id);
       if (error) throw error;
-      toast({ title: 'Subject deleted', description: `${name} has been removed.` });
+      toast({ title: t('subj.deleted'), description: `${name} ${t('subj.deletedDescSuffix')}` });
       fetchSubjects();
     } catch (error) {
       console.error('Error deleting subject:', error);
-      toast({ title: 'Error', description: 'Failed to delete subject', variant: 'destructive' });
+      toast({ title: t('subj.error'), description: t('subj.failedDelete'), variant: 'destructive' });
     }
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-muted-foreground">Loading subjects...</div>;
+    return <div className="animate-pulse text-muted-foreground">{t('subj.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Subjects</h2>
-        <p className="text-muted-foreground">Create and manage your school's subjects. These subjects are used in the Grade Book.</p>
+        <h2 className="text-2xl font-bold text-foreground">{t('subj.title')}</h2>
+        <p className="text-muted-foreground">{t('subj.subtitle')}</p>
       </div>
 
       {/* Add Subject */}
@@ -105,7 +107,7 @@ export const SubjectManagement = () => {
         <CardContent className="p-4">
           <div className="flex gap-3">
             <Input
-              placeholder="Subject name (e.g. Mathematics, Science, English)"
+              placeholder={t('subj.namePlaceholder')}
               value={newSubjectName}
               onChange={(e) => setNewSubjectName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addSubject()}
@@ -113,7 +115,7 @@ export const SubjectManagement = () => {
             />
             <Button onClick={addSubject} disabled={isAdding || !newSubjectName.trim()}>
               {isAdding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              Add Subject
+              {t('subj.add')}
             </Button>
           </div>
         </CardContent>
@@ -142,14 +144,14 @@ export const SubjectManagement = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center text-muted-foreground">
             <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p>No subjects created yet. Add your first subject above.</p>
+            <p>{t('subj.emptyTitle')}</p>
           </CardContent>
         </Card>
       )}
 
       {subjects.length > 0 && (
         <p className="text-sm text-muted-foreground">
-          <Badge variant="secondary">{subjects.length}</Badge> subject{subjects.length !== 1 ? 's' : ''} created. These will appear as tabs in the Grade Book.
+          <Badge variant="secondary">{subjects.length}</Badge> {t('subj.footerSuffix')}
         </p>
       )}
     </div>
