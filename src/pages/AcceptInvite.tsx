@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserPlus, AlertCircle, GraduationCap, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Invite acceptance / "set your password" page for TEACHER and PARENT invites.
 // Distinct from the legacy student-code page at /accept-invitation.
@@ -24,6 +25,7 @@ type ValidState =
   | { status: 'invalid' | 'used' | 'expired' | 'revoked' | 'missing' };
 
 const AcceptInvite = () => {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = (searchParams.get('token') || '').trim();
@@ -50,7 +52,7 @@ const AcceptInvite = () => {
           status: 'valid',
           email: res.email,
           role: res.role as 'teacher' | 'parent',
-          school_name: res.school_name || 'your school',
+          school_name: res.school_name || t('ainv.yourSchool'),
         });
       } else {
         const errStatuses = ['used', 'expired', 'revoked'] as const;
@@ -71,14 +73,14 @@ const AcceptInvite = () => {
     if (state.status !== 'valid') return;
     if (password.length < MIN_PASSWORD_LEN) {
       toast({
-        title: 'Password too short',
-        description: `Use at least ${MIN_PASSWORD_LEN} characters.`,
+        title: t('ainv.passwordTooShort'),
+        description: `${t('ainv.useAtLeast')} ${MIN_PASSWORD_LEN} ${t('ainv.charactersWord')}.`,
         variant: 'destructive',
       });
       return;
     }
     if (password !== confirmPassword) {
-      toast({ title: 'Passwords do not match', variant: 'destructive' });
+      toast({ title: t('ainv.passwordsNoMatch'), variant: 'destructive' });
       return;
     }
 
@@ -97,8 +99,8 @@ const AcceptInvite = () => {
           return;
         }
         toast({
-          title: 'Could not finish setup',
-          description: res?.error || 'Please try again.',
+          title: t('ainv.couldNotFinish'),
+          description: res?.error || t('ainv.tryAgain'),
           variant: 'destructive',
         });
         return;
@@ -112,18 +114,18 @@ const AcceptInvite = () => {
       if (signInError) {
         // Account exists but sign-in failed — send them to login.
         toast({
-          title: 'Account ready',
-          description: 'Please log in with your new password.',
+          title: t('ainv.accountReady'),
+          description: t('ainv.accountReadyDesc'),
         });
         navigate('/auth');
         return;
       }
 
-      toast({ title: 'Welcome to Teachly!', description: 'Your account is ready.' });
+      toast({ title: t('ainv.welcome'), description: t('ainv.welcomeDesc') });
       navigate(state.role === 'teacher' ? '/school-admin' : '/monitoring');
     } catch (e) {
       console.error('accept-invite failed:', e);
-      toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' });
+      toast({ title: t('ainv.somethingWrong'), description: t('ainv.tryAgain'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -132,18 +134,18 @@ const AcceptInvite = () => {
   if (state.status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <div className="animate-pulse text-muted-foreground">Validating your invitation…</div>
+        <div className="animate-pulse text-muted-foreground">{t('ainv.validating')}</div>
       </div>
     );
   }
 
   if (state.status !== 'valid') {
     const messages: Record<string, { title: string; body: string }> = {
-      missing: { title: 'No invitation link', body: 'This page needs a valid invitation link.' },
-      invalid: { title: 'Invalid invitation', body: 'This invitation link is not valid.' },
-      used: { title: 'Already used', body: 'This invitation has already been accepted. You can log in instead.' },
-      expired: { title: 'Invitation expired', body: 'This invitation has expired. Ask your school admin to re-send it.' },
-      revoked: { title: 'Invitation revoked', body: 'This invitation was revoked by your school admin.' },
+      missing: { title: t('ainv.missingTitle'), body: t('ainv.missingBody') },
+      invalid: { title: t('ainv.invalidTitle'), body: t('ainv.invalidBody') },
+      used: { title: t('ainv.usedTitle'), body: t('ainv.usedBody') },
+      expired: { title: t('ainv.expiredTitle'), body: t('ainv.expiredBody') },
+      revoked: { title: t('ainv.revokedTitle'), body: t('ainv.revokedBody') },
     };
     const m = messages[state.status] || messages.invalid;
     return (
@@ -154,7 +156,7 @@ const AcceptInvite = () => {
             <h2 className="text-xl font-semibold text-foreground">{m.title}</h2>
             <p className="text-muted-foreground">{m.body}</p>
             <Button asChild className="w-full">
-              <Link to="/auth">Go to login</Link>
+              <Link to="/auth">{t('ainv.goToLogin')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -170,39 +172,39 @@ const AcceptInvite = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Set your password
+            {t('ainv.setPassword')}
           </CardTitle>
           <CardDescription>
-            Finish setting up your Teachly account for <strong>{state.school_name}</strong>.
+            {t('ainv.finishPre')} <strong>{state.school_name}</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <RoleIcon className="h-4 w-4" />
             <AlertDescription>
-              You're joining as a <strong>{state.role}</strong>.
+              {t('ainv.joiningAsPre')} <strong>{state.role === 'teacher' ? t('invite.roleTeacher') : t('invite.roleParent')}</strong>.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-email">Email</Label>
+            <Label htmlFor="invite-email">{t('ainv.email')}</Label>
             <Input id="invite-email" type="email" value={state.email} disabled readOnly />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-password">Password</Label>
+            <Label htmlFor="invite-password">{t('ainv.password')}</Label>
             <Input
               id="invite-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={`At least ${MIN_PASSWORD_LEN} characters`}
+              placeholder={`${t('ainv.atLeast')} ${MIN_PASSWORD_LEN} ${t('ainv.charactersWord')}`}
               autoComplete="new-password"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invite-confirm">Confirm password</Label>
+            <Label htmlFor="invite-confirm">{t('ainv.confirmPassword')}</Label>
             <Input
               id="invite-confirm"
               type="password"
@@ -216,7 +218,7 @@ const AcceptInvite = () => {
           </div>
 
           <Button onClick={handleSubmit} disabled={submitting || !password || !confirmPassword} className="w-full">
-            {submitting ? 'Setting up…' : 'Create account & continue'}
+            {submitting ? t('ainv.settingUp') : t('ainv.createContinue')}
           </Button>
         </CardContent>
       </Card>
