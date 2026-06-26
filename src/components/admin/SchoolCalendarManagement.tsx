@@ -10,6 +10,7 @@ import { CalendarDays, Plus, Trash2, Pencil, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 
 interface Category { id: string; name: string; color: string; }
@@ -17,6 +18,7 @@ interface Entry { id: string; category_id: string | null; title: string; start_d
 
 export const SchoolCalendarManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [version, setVersion] = useState(0);
@@ -59,13 +61,13 @@ export const SchoolCalendarManagement = () => {
 
   const saveEntry = async () => {
     if (!schoolId || !title.trim() || !categoryId) return;
-    if (endDate < startDate) { toast({ title: 'Invalid dates', description: 'End date must be on or after start date', variant: 'destructive' }); return; }
+    if (endDate < startDate) { toast({ title: t('calendar.invalidDates'), description: t('calendar.invalidDatesDesc'), variant: 'destructive' }); return; }
     const payload = { school_id: schoolId, category_id: categoryId, title: title.trim(), start_date: startDate, end_date: endDate, description: description.trim() || null };
     const { error } = editingId
       ? await supabase.from('school_calendar_entries').update(payload).eq('id', editingId)
       : await supabase.from('school_calendar_entries').insert(payload);
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: editingId ? 'Entry updated' : 'Entry posted' });
+    if (error) { toast({ title: t('calendar.error'), description: error.message, variant: 'destructive' }); return; }
+    toast({ title: editingId ? t('calendar.entryUpdated') : t('calendar.entryPosted') });
     resetForm(); loadData(schoolId); bump();
   };
 
@@ -76,14 +78,14 @@ export const SchoolCalendarManagement = () => {
 
   const deleteEntry = async (id: string) => {
     const { error } = await supabase.from('school_calendar_entries').delete().eq('id', id);
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast({ title: t('calendar.error'), description: error.message, variant: 'destructive' }); return; }
     if (schoolId) loadData(schoolId); bump();
   };
 
   const addCategory = async () => {
     if (!schoolId || !catName.trim()) return;
     const { error } = await supabase.from('school_calendar_categories').insert({ school_id: schoolId, name: catName.trim(), color: catColor });
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast({ title: t('calendar.error'), description: error.message, variant: 'destructive' }); return; }
     setCatName(''); setCatColor('#3b82f6'); loadData(schoolId); bump();
   };
 
@@ -95,43 +97,43 @@ export const SchoolCalendarManagement = () => {
 
   const deleteCategory = async (id: string) => {
     const { error } = await supabase.from('school_calendar_categories').delete().eq('id', id);
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast({ title: t('calendar.error'), description: error.message, variant: 'destructive' }); return; }
     if (schoolId) loadData(schoolId); bump();
   };
 
-  if (!ready) return <div className="animate-pulse text-muted-foreground">Loading...</div>;
-  if (!schoolId) return <Card><CardContent className="p-8 text-center text-muted-foreground">No school found for your account.</CardContent></Card>;
+  if (!ready) return <div className="animate-pulse text-muted-foreground">{t('calendar.loading')}</div>;
+  if (!schoolId) return <Card><CardContent className="p-8 text-center text-muted-foreground">{t('calendar.noSchool')}</CardContent></Card>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <CalendarDays className="h-6 w-6 text-primary" />
         <div>
-          <h2 className="text-xl font-bold text-foreground">School Calendar</h2>
-          <p className="text-sm text-muted-foreground">Publish color-coded dates everyone can see (read-only for parents, teachers & students)</p>
+          <h2 className="text-xl font-bold text-foreground">{t('calendar.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('calendar.subtitle')}</p>
         </div>
       </div>
 
       <Tabs defaultValue="manage">
         <TabsList>
-          <TabsTrigger value="manage">Entries</TabsTrigger>
-          <TabsTrigger value="categories">Categories &amp; Colors</TabsTrigger>
-          <TabsTrigger value="preview">Calendar Preview</TabsTrigger>
+          <TabsTrigger value="manage">{t('calendar.tabEntries')}</TabsTrigger>
+          <TabsTrigger value="categories">{t('calendar.tabCategories')}</TabsTrigger>
+          <TabsTrigger value="preview">{t('calendar.tabPreview')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="manage" className="mt-4 space-y-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">{editingId ? 'Edit entry' : 'Post a calendar entry'}</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">{editingId ? t('calendar.editEntry') : t('calendar.postEntryCard')}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Title</Label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Eid Holiday" />
+                  <Label className="text-xs text-muted-foreground">{t('calendar.titleLabel')}</Label>
+                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('calendar.titlePlaceholder')} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Category</Label>
+                  <Label className="text-xs text-muted-foreground">{t('calendar.category')}</Label>
                   <Select value={categoryId} onValueChange={setCategoryId}>
-                    <SelectTrigger><SelectValue placeholder={categories.length ? 'Select category' : 'Add a category first'} /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={categories.length ? t('calendar.selectCategory') : t('calendar.addCategoryFirst')} /></SelectTrigger>
                     <SelectContent>
                       {categories.map(c => (
                         <SelectItem key={c.id} value={c.id}>
@@ -142,30 +144,30 @@ export const SchoolCalendarManagement = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Start date</Label>
+                  <Label className="text-xs text-muted-foreground">{t('calendar.startDate')}</Label>
                   <Input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); if (endDate < e.target.value) setEndDate(e.target.value); }} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">End date (same as start for one day)</Label>
+                  <Label className="text-xs text-muted-foreground">{t('calendar.endDate')}</Label>
                   <Input type="date" value={endDate} min={startDate} onChange={e => setEndDate(e.target.value)} />
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Description (optional)</Label>
+                <Label className="text-xs text-muted-foreground">{t('calendar.descriptionOptional')}</Label>
                 <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} />
               </div>
               <div className="flex gap-2">
                 <Button onClick={saveEntry} disabled={!title.trim() || !categoryId}>
-                  <Plus className="h-4 w-4 mr-2" />{editingId ? 'Save changes' : 'Post entry'}
+                  <Plus className="h-4 w-4 mr-2" />{editingId ? t('calendar.saveChanges') : t('calendar.postEntry')}
                 </Button>
-                {editingId && <Button variant="ghost" onClick={resetForm}><X className="h-4 w-4 mr-1" />Cancel</Button>}
+                {editingId && <Button variant="ghost" onClick={resetForm}><X className="h-4 w-4 mr-1" />{t('calendar.cancel')}</Button>}
               </div>
             </CardContent>
           </Card>
 
           <div className="space-y-2">
             {entries.length === 0 ? (
-              <Card><CardContent className="p-6 text-center text-muted-foreground">No calendar entries yet.</CardContent></Card>
+              <Card><CardContent className="p-6 text-center text-muted-foreground">{t('calendar.noEntries')}</CardContent></Card>
             ) : entries.map(e => {
               const cat = categories.find(c => c.id === e.category_id);
               return (
@@ -185,11 +187,11 @@ export const SchoolCalendarManagement = () => {
 
         <TabsContent value="categories" className="mt-4 space-y-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">Add category</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">{t('calendar.addCategory')}</CardTitle></CardHeader>
             <CardContent className="flex flex-wrap items-end gap-3">
-              <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={catName} onChange={e => setCatName(e.target.value)} placeholder="e.g. Sports Day" /></div>
-              <div><Label className="text-xs text-muted-foreground">Color</Label><Input type="color" value={catColor} onChange={e => setCatColor(e.target.value)} className="w-16 h-10 p-1" /></div>
-              <Button onClick={addCategory} disabled={!catName.trim()}><Plus className="h-4 w-4 mr-2" />Add</Button>
+              <div><Label className="text-xs text-muted-foreground">{t('calendar.name')}</Label><Input value={catName} onChange={e => setCatName(e.target.value)} placeholder={t('calendar.namePlaceholder')} /></div>
+              <div><Label className="text-xs text-muted-foreground">{t('calendar.color')}</Label><Input type="color" value={catColor} onChange={e => setCatColor(e.target.value)} className="w-16 h-10 p-1" /></div>
+              <Button onClick={addCategory} disabled={!catName.trim()}><Plus className="h-4 w-4 mr-2" />{t('calendar.add')}</Button>
             </CardContent>
           </Card>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

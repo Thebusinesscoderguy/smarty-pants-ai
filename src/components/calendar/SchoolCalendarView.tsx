@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Weekend definition — Saudi week is Friday + Saturday (getDay: Sun=0 … Sat=6).
 // Change this one constant to shift the weekend (e.g. [0,6] for Sun/Sat).
@@ -16,7 +17,6 @@ export interface CalendarEntry {
 }
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 interface Props {
@@ -25,6 +25,7 @@ interface Props {
 }
 
 export const SchoolCalendarView = ({ schoolId, version = 0 }: Props) => {
+  const { t } = useLanguage();
   const today = new Date();
   const [view, setView] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [categories, setCategories] = useState<CalendarCategory[]>([]);
@@ -58,7 +59,7 @@ export const SchoolCalendarView = ({ schoolId, version = 0 }: Props) => {
   const entriesOn = (d: Date) => { const k = toKey(d); return entries.filter(e => e.start_date <= k && e.end_date >= k); };
 
   const todayKey = toKey(today);
-  const monthLabel = `${MONTHS[view.getMonth()]} ${view.getFullYear()}`;
+  const monthLabel = `${t(`calendar.mon${view.getMonth()}`)} ${view.getFullYear()}`;
   const shift = (n: number) => setView(new Date(view.getFullYear(), view.getMonth() + n, 1));
 
   return (
@@ -71,7 +72,7 @@ export const SchoolCalendarView = ({ schoolId, version = 0 }: Props) => {
             <h3 className="font-semibold text-foreground">{monthLabel}</h3>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" onClick={() => setView(new Date(today.getFullYear(), today.getMonth(), 1))}>Today</Button>
+            <Button variant="outline" size="sm" onClick={() => setView(new Date(today.getFullYear(), today.getMonth(), 1))}>{t('calendar.today')}</Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => shift(1)}><ChevronRight className="h-4 w-4" /></Button>
           </div>
@@ -80,7 +81,7 @@ export const SchoolCalendarView = ({ schoolId, version = 0 }: Props) => {
         {/* Weekday header */}
         <div className="grid grid-cols-7 gap-1">
           {WEEKDAY_LABELS.map((lbl, i) => (
-            <div key={lbl} className={`text-center text-xs font-medium py-1 ${WEEKEND_DAYS.includes(i) ? 'text-amber-600 dark:text-amber-500' : 'text-muted-foreground'}`}>{lbl}</div>
+            <div key={lbl} className={`text-center text-xs font-medium py-1 ${WEEKEND_DAYS.includes(i) ? 'text-amber-600 dark:text-amber-500' : 'text-muted-foreground'}`}>{t(`calendar.dow${i}`)}</div>
           ))}
         </div>
 
@@ -111,7 +112,7 @@ export const SchoolCalendarView = ({ schoolId, version = 0 }: Props) => {
                       {e.title}
                     </div>
                   ))}
-                  {dayEntries.length > 3 && <div className="text-[10px] text-muted-foreground px-1">+{dayEntries.length - 3} more</div>}
+                  {dayEntries.length > 3 && <div className="text-[10px] text-muted-foreground px-1">+{dayEntries.length - 3} {t('calendar.more')}</div>}
                 </div>
               </div>
             );
@@ -120,8 +121,8 @@ export const SchoolCalendarView = ({ schoolId, version = 0 }: Props) => {
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 border-t border-border text-xs">
-          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-background border border-border" /> Weekday</span>
-          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40" /> Weekend (Fri–Sat)</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-background border border-border" /> {t('calendar.legendWeekday')}</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40" /> {t('calendar.legendWeekend')}</span>
           {categories.map(c => (
             <span key={c.id} className="flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ backgroundColor: c.color }} /> {c.name}</span>
           ))}
