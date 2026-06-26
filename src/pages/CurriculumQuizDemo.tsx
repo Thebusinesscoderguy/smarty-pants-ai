@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface BookRow {
   id: string;
@@ -32,6 +33,7 @@ interface QuizQuestion {
 }
 
 export default function CurriculumQuizDemo() {
+  const { t } = useLanguage();
   const [books, setBooks] = useState<BookRow[]>([]);
   const [bookId, setBookId] = useState<string>('');
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -110,10 +112,10 @@ export default function CurriculumQuizDemo() {
       });
       if (error) throw error;
       const qs = (data?.questions || data?.quiz?.questions || []) as QuizQuestion[];
-      if (!qs.length) throw new Error('No questions returned');
+      if (!qs.length) throw new Error(t('cqd.noQuestionsReturned'));
       setQuestions(qs);
     } catch (e: any) {
-      setError(e?.message || 'Failed to generate quiz');
+      setError(e?.message || t('cqd.failedGenerate'));
     } finally {
       setGenerating(false);
     }
@@ -122,19 +124,19 @@ export default function CurriculumQuizDemo() {
   return (
     <div className="mx-auto max-w-3xl p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Curriculum Quiz Demo</h1>
+        <h1 className="text-2xl font-semibold">{t('cqd.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Phase 1 proof: pick lessons from a hand-entered book → AI generates a quiz grounded in that content.
+          {t('cqd.subtitle')}
         </p>
       </div>
 
       {error && <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <Card>
-        <CardHeader><CardTitle>1. Book</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('cqd.step1Book')}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {books.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No published books found for your school.</p>
+            <p className="text-sm text-muted-foreground">{t('cqd.noBooks')}</p>
           ) : (
             <select
               className="w-full rounded border p-2 text-sm"
@@ -143,7 +145,7 @@ export default function CurriculumQuizDemo() {
             >
               {books.map(b => (
                 <option key={b.id} value={b.id}>
-                  {b.title} — {b.school_subjects?.name || 'subject'} / {b.grade_level}
+                  {b.title} — {b.school_subjects?.name || t('cqd.subjectFallback')} / {b.grade_level}
                 </option>
               ))}
             </select>
@@ -152,12 +154,12 @@ export default function CurriculumQuizDemo() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>2. Lessons (select one or more)</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('cqd.step2Lessons')}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : lessons.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No lessons in this book.</p>
+            <p className="text-sm text-muted-foreground">{t('cqd.noLessons')}</p>
           ) : (
             lessons.map(l => (
               <label key={l.id} className="flex items-start gap-2 text-sm">
@@ -176,20 +178,20 @@ export default function CurriculumQuizDemo() {
       </Card>
 
       <div className="flex items-center gap-3">
-        <label className="text-sm">Questions:</label>
+        <label className="text-sm">{t('cqd.questionsLabel')}</label>
         <input
           type="number" min={1} max={20} value={questionCount}
           onChange={e => setQuestionCount(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
           className="w-20 rounded border p-1 text-sm"
         />
         <Button onClick={generate} disabled={generating || selectedLessons.length === 0}>
-          {generating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating…</> : `Generate quiz (${selectedLessons.length} lesson${selectedLessons.length === 1 ? '' : 's'})`}
+          {generating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('cqd.generating')}</> : `${t('cqd.generatePre')} (${selectedLessons.length} ${selectedLessons.length === 1 ? t('cqd.lessonWord') : t('cqd.lessonsWord')})`}
         </Button>
       </div>
 
       {questions.length > 0 && (
         <Card>
-          <CardHeader><CardTitle>Generated quiz ({questions.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('cqd.generatedQuiz')} ({questions.length})</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             {questions.map((q, i) => (
               <div key={i} className="border-b pb-3 last:border-0">
@@ -199,7 +201,7 @@ export default function CurriculumQuizDemo() {
                     {q.options.map((o, j) => <li key={j}>{o}</li>)}
                   </ul>
                 )}
-                {q.correct_answer && <div className="text-sm text-green-700">Answer: {q.correct_answer}</div>}
+                {q.correct_answer && <div className="text-sm text-green-700">{t('cqd.answer')} {q.correct_answer}</div>}
               </div>
             ))}
           </CardContent>
