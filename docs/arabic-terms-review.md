@@ -31,6 +31,23 @@ Standing decisions already applied everywhere:
 | Vice Principal | وكيل المدرسة | staff | Gulf convention; vs "نائب المدير" |
 | Grade (letter A–F) | التقدير | gradebook summary | distinct from الصف (grade level) |
 | Manual (entry) | يدوي | import/export | |
+| Quest | المهمة / المهام | monitoring dashboards | gamification sense |
+| Curriculum | المنهج | landing, importer, nav | |
+| Insights | رؤى | monitoring dashboards | vs "بصائر" |
+| Engagement | التفاعل / تفاعلًا | monitoring AI-insights | |
+| Roster | قائمة الطلاب | school-onboarding RosterStep | |
+| Pre-K / Kindergarten | ما قبل الروضة / الروضة | ChildrenManagement grades | |
+| Strengths / Weaknesses | نقاط القوة / نقاط الضعف | analytics, monitoring | |
+| College (grade option) | الجامعة | QuizGenerator, importer | |
+| Mastery | إتقان | monitoring AI-insights | |
+| ELI5 (explain like I'm 5) | بَسِّط | QuizResults | chose verb "simplify" over literal |
+| Vice Principal etc. | (see staff above) | — | — |
+
+## Component-migration batch (pages + feature components)
+Added en+ar for ~40 component namespaces (landing, onboarding, monitoring, quiz,
+school-onboarding steps, analytics, news, share, exam, attendance, subjects,
+curriculum, student). Education terms followed the standing decisions above; the
+new ambiguous ones are listed in the table rows added in this batch.
 
 ## Not translated by design (flagged)
 - **PDF exports** (Behavior incident report): left in **English** — jsPDF cannot render
