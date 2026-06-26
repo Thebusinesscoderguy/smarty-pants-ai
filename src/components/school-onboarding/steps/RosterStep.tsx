@@ -8,17 +8,18 @@ import { Upload, Download, FileText, Loader2, CheckCircle, AlertCircle, X, KeyRo
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const FIELD_OPTIONS = [
-  { value: 'ignore', label: '— Ignore —' },
-  { value: 'first_name', label: 'First name *' },
-  { value: 'middle_name', label: 'Middle name' },
-  { value: 'last_name', label: 'Last name *' },
-  { value: 'email', label: 'Email *' },
-  { value: 'grade_level', label: 'Grade level' },
-  { value: 'section', label: 'Section' },
-  { value: 'parent_email', label: 'Parent email' },
-  { value: 'student_id', label: 'External student ID' },
+  { value: 'ignore', labelKey: 'ros.fIgnore' },
+  { value: 'first_name', labelKey: 'ros.fFirstName' },
+  { value: 'middle_name', labelKey: 'ros.fMiddleName' },
+  { value: 'last_name', labelKey: 'ros.fLastName' },
+  { value: 'email', labelKey: 'ros.fEmail' },
+  { value: 'grade_level', labelKey: 'ros.fGradeLevel' },
+  { value: 'section', labelKey: 'ros.fSection' },
+  { value: 'parent_email', labelKey: 'ros.fParentEmail' },
+  { value: 'student_id', labelKey: 'ros.fStudentId' },
 ];
 
 const REQUIRED = ['first_name', 'last_name', 'email'];
@@ -40,6 +41,7 @@ export const RosterStep = ({
   schoolId, onImported,
 }: { schoolId: string; onImported: (count: number) => void }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const fileRef = useRef<HTMLInputElement>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
@@ -75,7 +77,7 @@ export const RosterStep = ({
         });
         setMapping(map);
       },
-      error: () => toast({ title: 'Failed to parse CSV', variant: 'destructive' }),
+      error: () => toast({ title: t('ros.failedParse'), variant: 'destructive' }),
     });
   };
 
@@ -157,9 +159,9 @@ export const RosterStep = ({
       setCredentials(created.map(r => ({ email: r.email, password: r.password || '' })));
       setImported(res.created ?? created.length);
       onImported(res.created ?? created.length);
-      toast({ title: 'Roster imported', description: `${res.created ?? 0} created${res.failed ? `, ${res.failed} failed` : ''}` });
+      toast({ title: t('ros.rosterImported'), description: `${res.created ?? 0} ${t('ros.created')}${res.failed ? `, ${res.failed} ${t('ros.failed')}` : ''}` });
     } catch (e: any) {
-      toast({ title: 'Import failed', description: e.message, variant: 'destructive' });
+      toast({ title: t('ros.importFailed'), description: e.message, variant: 'destructive' });
     } finally { setImporting(false); }
   };
 
@@ -170,32 +172,32 @@ export const RosterStep = ({
           <div className="flex items-center gap-3">
             <CheckCircle className="h-6 w-6 text-primary" />
             <div className="flex-1">
-              <p className="font-semibold">{imported} student accounts created</p>
+              <p className="font-semibold">{imported} {t('ros.accountsCreated')}</p>
               <p className="text-xs text-muted-foreground">
-                Students can log in now. Download their credentials to distribute.
+                {t('ros.canLogin')}
               </p>
             </div>
             {credentials.length > 0 && (
               <Button variant="outline" size="sm" onClick={downloadCredentials}>
-                <KeyRound className="h-4 w-4 mr-2" />Download credentials
+                <KeyRound className="h-4 w-4 mr-2" />{t('ros.downloadCreds')}
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={reset}>Import more</Button>
+            <Button variant="outline" size="sm" onClick={reset}>{t('ros.importMore')}</Button>
           </div>
         </Card>
       ) : headers.length === 0 ? (
         <Card className="p-8 border-dashed text-center">
           <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-          <p className="font-medium mb-1">Upload your student roster CSV</p>
+          <p className="font-medium mb-1">{t('ros.uploadRoster')}</p>
           <p className="text-xs text-muted-foreground mb-4">
-            Required columns: first name, last name, email. Optional: grade, section, parent email.
+            {t('ros.requiredCols')}
           </p>
           <div className="flex gap-2 justify-center">
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="h-4 w-4 mr-2" />Download template
+              <Download className="h-4 w-4 mr-2" />{t('ros.downloadTemplate')}
             </Button>
             <Button size="sm" onClick={() => fileRef.current?.click()}>
-              <FileText className="h-4 w-4 mr-2" />Choose CSV
+              <FileText className="h-4 w-4 mr-2" />{t('ros.chooseCsv')}
             </Button>
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={onFile} />
           </div>
@@ -204,8 +206,8 @@ export const RosterStep = ({
         <>
           <Card className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium">Map your columns</p>
-              <Button variant="ghost" size="sm" onClick={reset}><X className="h-4 w-4 mr-1" />Start over</Button>
+              <p className="text-sm font-medium">{t('ros.mapColumns')}</p>
+              <Button variant="ghost" size="sm" onClick={reset}><X className="h-4 w-4 mr-1" />{t('ros.startOver')}</Button>
             </div>
             <div className="grid gap-2">
               {headers.map(h => (
@@ -215,7 +217,7 @@ export const RosterStep = ({
                   <Select value={mapping[h] || 'ignore'} onValueChange={(v) => setMapping(p => ({ ...p, [h]: v }))}>
                     <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {FIELD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      {FIELD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -223,24 +225,24 @@ export const RosterStep = ({
             </div>
             {missingRequired.length > 0 && (
               <div className="mt-3 text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" /> Missing required mapping: {missingRequired.join(', ')}
+                <AlertCircle className="h-3 w-3" /> {t('ros.missingMapping')} {missingRequired.join(', ')}
               </div>
             )}
           </Card>
 
           <Card className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium">Preview ({validCount} of {rows.length} valid)</p>
-              <Badge variant="outline">{rows.length} total rows</Badge>
+              <p className="text-sm font-medium">{t('ros.preview')} ({validCount} {t('ros.of')} {rows.length} {t('ros.validLower')})</p>
+              <Badge variant="outline">{rows.length} {t('ros.totalRows')}</Badge>
             </div>
             <div className="border rounded max-h-60 overflow-auto text-xs">
               <table className="w-full">
                 <thead className="bg-muted sticky top-0">
                   <tr>
-                    <th className="text-left p-2">Name</th>
-                    <th className="text-left p-2">Email</th>
-                    <th className="text-left p-2">Grade/Section</th>
-                    <th className="text-left p-2">Status</th>
+                    <th className="text-left p-2">{t('ros.colName')}</th>
+                    <th className="text-left p-2">{t('ros.colEmail')}</th>
+                    <th className="text-left p-2">{t('ros.colGradeSection')}</th>
+                    <th className="text-left p-2">{t('ros.colStatus')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,15 +253,15 @@ export const RosterStep = ({
                       <td className="p-2">{r.grade_level ? `${r.grade_level} ${r.section || ''}` : '—'}</td>
                       <td className="p-2">
                         {r._valid
-                          ? <Badge variant="outline" className="text-[10px]">Valid</Badge>
-                          : <Badge variant="destructive" className="text-[10px]">Invalid</Badge>}
+                          ? <Badge variant="outline" className="text-[10px]">{t('ros.valid')}</Badge>
+                          : <Badge variant="destructive" className="text-[10px]">{t('ros.invalid')}</Badge>}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {rows.length > 50 && <p className="text-[10px] text-muted-foreground mt-1">Showing first 50 rows.</p>}
+            {rows.length > 50 && <p className="text-[10px] text-muted-foreground mt-1">{t('ros.showingFirst')}</p>}
           </Card>
 
           <Button
@@ -268,7 +270,7 @@ export const RosterStep = ({
             onClick={doImport}
           >
             {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-            Import {validCount} students
+            {t('ros.importBtn')} {validCount} {t('ros.studentsWord')}
           </Button>
         </>
       )}
