@@ -9,8 +9,10 @@ import { useGradingInbox, type GradingItem } from '@/hooks/useGradingInbox';
 import { useQuizReviewInbox, type QuizReviewItem } from '@/hooks/useQuizReviewInbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const GradingInbox = () => {
+  const { t } = useLanguage();
   const { items, loading, error, approve, bulkApproveHighConfidence, refresh } = useGradingInbox();
   const { items: quizItems, loading: quizLoading, grade: gradeQuiz, refresh: refreshQuiz } = useQuizReviewInbox();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -28,10 +30,10 @@ export const GradingInbox = () => {
     try {
       const { error } = await supabase.functions.invoke('auto-grade-homework');
       if (error) throw error;
-      toast({ title: 'AI grading run complete' });
+      toast({ title: t('grading.runComplete') });
       await refresh();
     } catch (e: any) {
-      toast({ title: 'Failed to run', description: e.message, variant: 'destructive' });
+      toast({ title: t('grading.failedRun'), description: e.message, variant: 'destructive' });
     } finally {
       setRunning(false);
     }
@@ -50,9 +52,9 @@ export const GradingInbox = () => {
 
   const confidenceBadge = (c: number | null) => {
     const v = c ?? 0;
-    if (v >= 0.8) return <Badge variant="outline" className="border-primary/30 text-primary">High confidence</Badge>;
-    if (v >= 0.5) return <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">Medium</Badge>;
-    return <Badge variant="destructive">Low — review carefully</Badge>;
+    if (v >= 0.8) return <Badge variant="outline" className="border-primary/30 text-primary">{t('grading.highConfidence')}</Badge>;
+    if (v >= 0.5) return <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">{t('grading.medium')}</Badge>;
+    return <Badge variant="destructive">{t('grading.lowReview')}</Badge>;
   };
 
   if (loading) {
@@ -66,21 +68,21 @@ export const GradingInbox = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Grading Inbox
+              {t('grading.title')}
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
-              AI grades homework overnight. Review and approve in minutes.
+              {t('grading.subtitle')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={runNow} disabled={running}>
               {running ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Run AI grading now
+              {t('grading.runNow')}
             </Button>
             {items.length > 0 && (
               <Button size="sm" onClick={bulkApproveHighConfidence}>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Approve all high-confidence
+                {t('grading.approveAllHigh')}
               </Button>
             )}
           </div>
@@ -91,11 +93,11 @@ export const GradingInbox = () => {
         <Card className="border-destructive/40">
           <CardContent className="py-16 text-center">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-2">Couldn't load the grading inbox</h3>
+            <h3 className="font-semibold text-lg mb-2">{t('grading.loadError')}</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
             <Button variant="outline" size="sm" onClick={refresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Try again
+              {t('grading.tryAgain')}
             </Button>
           </CardContent>
         </Card>
@@ -103,8 +105,8 @@ export const GradingInbox = () => {
         <Card>
           <CardContent className="py-16 text-center">
             <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-2">All caught up</h3>
-            <p className="text-muted-foreground">AI is grading new submissions overnight. Check back tomorrow.</p>
+            <h3 className="font-semibold text-lg mb-2">{t('grading.allCaughtUp')}</h3>
+            <p className="text-muted-foreground">{t('grading.allCaughtUpDesc')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -123,7 +125,7 @@ export const GradingInbox = () => {
                     {editingId === item.id ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <label className="text-sm">Score:</label>
+                          <label className="text-sm">{t('grading.scoreLabel')}</label>
                           <Input type="number" min={0} max={100} value={editScore}
                             onChange={(e) => setEditScore(e.target.value)} className="w-24" />
                         </div>
@@ -139,14 +141,14 @@ export const GradingInbox = () => {
                   <div className="flex gap-2 shrink-0">
                     {editingId === item.id ? (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
-                        <Button size="sm" onClick={() => saveEdit(item.id)}>Save & Approve</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>{t('grading.cancel')}</Button>
+                        <Button size="sm" onClick={() => saveEdit(item.id)}>{t('grading.saveApprove')}</Button>
                       </>
                     ) : (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => startEdit(item)}>Override</Button>
+                        <Button size="sm" variant="outline" onClick={() => startEdit(item)}>{t('grading.override')}</Button>
                         <Button size="sm" onClick={() => approve(item.id)}>
-                          <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
+                          <CheckCircle2 className="h-4 w-4 mr-1" /> {t('grading.approve')}
                         </Button>
                       </>
                     )}
@@ -163,15 +165,15 @@ export const GradingInbox = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-primary" />
-              Quiz & Exam Open-Ended Review
+              {t('grading.quizReviewTitle')}
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
-              MCQs and matching questions auto-grade. Open-ended answers wait here for your review.
+              {t('grading.quizReviewSubtitle')}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={refreshQuiz} disabled={quizLoading}>
             {quizLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            Refresh
+            {t('grading.refresh')}
           </Button>
         </CardHeader>
       </Card>
@@ -181,7 +183,7 @@ export const GradingInbox = () => {
       ) : quizItems.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            No open-ended responses awaiting review.
+            {t('grading.noOpenEnded')}
           </CardContent>
         </Card>
       ) : (
@@ -196,25 +198,25 @@ export const GradingInbox = () => {
                     <h4 className="font-semibold">{q.student_name}</h4>
                     <span className="text-sm text-muted-foreground">·</span>
                     <span className="text-sm text-muted-foreground">{q.quiz_title}</span>
-                    <Badge variant="outline">{q.points} pts</Badge>
+                    <Badge variant="outline">{q.points} {t('grading.ptsSuffix')}</Badge>
                   </div>
                   <div>
-                    <div className="text-sm font-medium mb-1">Question</div>
+                    <div className="text-sm font-medium mb-1">{t('grading.question')}</div>
                     <p className="text-sm text-muted-foreground">{q.question}</p>
                   </div>
                   <div>
-                    <div className="text-sm font-medium mb-1">Student answer</div>
-                    <p className="text-sm whitespace-pre-line bg-muted/40 rounded-md p-2">{q.student_answer || <em className="text-muted-foreground">No answer provided</em>}</p>
+                    <div className="text-sm font-medium mb-1">{t('grading.studentAnswer')}</div>
+                    <p className="text-sm whitespace-pre-line bg-muted/40 rounded-md p-2">{q.student_answer || <em className="text-muted-foreground">{t('grading.noAnswer')}</em>}</p>
                   </div>
                   {q.reference_answer && (
                     <div>
-                      <div className="text-sm font-medium mb-1">Reference answer</div>
+                      <div className="text-sm font-medium mb-1">{t('grading.referenceAnswer')}</div>
                       <p className="text-sm text-muted-foreground whitespace-pre-line">{q.reference_answer}</p>
                     </div>
                   )}
                   <div className="flex flex-col sm:flex-row sm:items-end gap-2">
                     <div className="flex items-center gap-2">
-                      <label className="text-sm">Award:</label>
+                      <label className="text-sm">{t('grading.award')}</label>
                       <Input type="number" min={0} max={q.points} step={0.5}
                         value={draft.score}
                         onChange={(e) => setDraft(k, { score: e.target.value })}
@@ -224,16 +226,16 @@ export const GradingInbox = () => {
                     <Textarea
                       value={draft.feedback}
                       onChange={(e) => setDraft(k, { feedback: e.target.value })}
-                      rows={2} placeholder="Optional feedback for the student" className="flex-1" />
+                      rows={2} placeholder={t('grading.feedbackPlaceholder')} className="flex-1" />
                     <Button size="sm" onClick={() => {
                       const n = Number(draft.score);
                       if (Number.isNaN(n) || n < 0 || n > q.points) {
-                        toast({ title: `Enter a score between 0 and ${q.points}`, variant: 'destructive' });
+                        toast({ title: `${t('grading.enterScorePre')} ${q.points}`, variant: 'destructive' });
                         return;
                       }
                       gradeQuiz(q, n, draft.feedback);
                     }}>
-                      <CheckCircle2 className="h-4 w-4 mr-1" /> Save grade
+                      <CheckCircle2 className="h-4 w-4 mr-1" /> {t('grading.saveGrade')}
                     </Button>
                   </div>
                 </CardContent>
