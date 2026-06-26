@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 interface ParsedStudent {
   email: string;
   first_name: string;
+  middle_name: string;
   last_name: string;
   password?: string;
   valid: boolean;
@@ -34,7 +35,7 @@ export const BulkStudentImport = () => {
   const [resultRows, setResultRows] = useState<ImportResultRow[] | null>(null);
 
   const downloadTemplate = () => {
-    const csv = 'email,first_name,last_name,password\nstudent@example.com,John,Doe,\n';
+    const csv = 'email,first_name,middle_name,last_name,password\nstudent@example.com,John,,Doe,\n';
     triggerDownload(csv, 'student-import-template.csv');
   };
 
@@ -57,6 +58,7 @@ export const BulkStudentImport = () => {
     const header = lines[0].toLowerCase().split(',').map((h) => h.trim());
     const emailIdx = header.indexOf('email');
     const firstIdx = header.indexOf('first_name');
+    const middleIdx = header.indexOf('middle_name');
     const lastIdx = header.indexOf('last_name');
     const pwIdx = header.indexOf('password');
 
@@ -69,16 +71,21 @@ export const BulkStudentImport = () => {
       const cols = line.split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
       const email = cols[emailIdx] || '';
       const first_name = firstIdx >= 0 ? cols[firstIdx] || '' : '';
+      const middle_name = middleIdx >= 0 ? cols[middleIdx] || '' : '';
       const last_name = lastIdx >= 0 ? cols[lastIdx] || '' : '';
       const password = pwIdx >= 0 ? cols[pwIdx] || '' : '';
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       let valid = emailRegex.test(email);
       let error: string | undefined = valid ? undefined : 'Invalid email';
+      if (valid && !last_name) {
+        valid = false;
+        error = 'Last name required';
+      }
       if (valid && password && password.length < 8) {
         valid = false;
         error = 'Password < 8 chars';
       }
-      return { email, first_name, last_name, password: password || undefined, valid, error };
+      return { email, first_name, middle_name, last_name, password: password || undefined, valid, error };
     });
   };
 
@@ -107,6 +114,7 @@ export const BulkStudentImport = () => {
           students: validStudents.map((s) => ({
             email: s.email,
             first_name: s.first_name,
+            middle_name: s.middle_name,
             last_name: s.last_name,
             password: s.password,
           })),
@@ -180,7 +188,7 @@ export const BulkStudentImport = () => {
                   {students.map((s, i) => (
                     <tr key={i} className="border-t">
                       <td className="p-2 font-mono text-xs">{s.email}</td>
-                      <td className="p-2">{s.first_name} {s.last_name}</td>
+                      <td className="p-2">{[s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ')}</td>
                       <td className="p-2 text-xs text-muted-foreground">{s.password ? 'provided' : 'auto'}</td>
                       <td className="p-2">
                         {s.valid ? (

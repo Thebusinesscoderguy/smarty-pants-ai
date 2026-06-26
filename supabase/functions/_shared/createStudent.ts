@@ -12,6 +12,7 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 export interface CreateStudentInput {
   email: string;
   first_name?: string;
+  middle_name?: string;
   last_name?: string;
   password?: string;
   section_id?: string;
@@ -36,6 +37,9 @@ export async function createStudentAccount(
   if (!email || !EMAIL_RE.test(email)) {
     return { email: input.email || "", status: "failed", error: "Invalid email", code: "invalid_email" };
   }
+  if (!(input.last_name || "").trim()) {
+    return { email, status: "failed", error: "Last name is required", code: "missing_last_name" };
+  }
 
   // Password: admin override if valid, else auto-generate.
   let password = (input.password || "").trim();
@@ -58,7 +62,7 @@ export async function createStudentAccount(
     return { email, status: "failed", error: "This email already has an account", code: "email_exists" };
   }
 
-  const fullName = [input.first_name, input.last_name].filter(Boolean).join(" ").trim() || null;
+  const fullName = [input.first_name, input.middle_name, input.last_name].filter(Boolean).join(" ").trim() || null;
 
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,

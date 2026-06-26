@@ -35,6 +35,7 @@ export const StudentManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [lastCreated, setLastCreated] = useState<CreatedCredential | null>(null);
@@ -136,6 +137,10 @@ export const StudentManagement = () => {
       toast({ title: t('common.error'), description: 'Email is required', variant: 'destructive' });
       return;
     }
+    if (!lastName.trim()) {
+      toast({ title: t('common.error'), description: 'Last name is required', variant: 'destructive' });
+      return;
+    }
     if (password && password.length < 8) {
       toast({ title: t('common.error'), description: 'Password must be at least 8 characters', variant: 'destructive' });
       return;
@@ -147,6 +152,7 @@ export const StudentManagement = () => {
         body: {
           email: email.trim().toLowerCase(),
           first_name: firstName.trim(),
+          middle_name: middleName.trim() || undefined,
           last_name: lastName.trim(),
           password: password.trim() || undefined,
         },
@@ -166,6 +172,7 @@ export const StudentManagement = () => {
       toast({ title: 'Student created', description: `${res.email} can now log in.` });
       setEmail('');
       setFirstName('');
+      setMiddleName('');
       setLastName('');
       setPassword('');
       fetchData();
@@ -302,10 +309,13 @@ export const StudentManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input placeholder="student@school.edu" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             <Input placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <Input placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input placeholder="Middle name (optional)" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+            <Input placeholder="Last name *" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
@@ -319,7 +329,7 @@ export const StudentManagement = () => {
               />
             </div>
           </div>
-          <Button onClick={createStudent} disabled={isCreating || !email.trim()}>
+          <Button onClick={createStudent} disabled={isCreating || !email.trim() || !lastName.trim()}>
             {isCreating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
             {isCreating ? 'Creating...' : 'Create Student'}
           </Button>

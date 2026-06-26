@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 const FIELD_OPTIONS = [
   { value: 'ignore', label: '— Ignore —' },
   { value: 'first_name', label: 'First name *' },
+  { value: 'middle_name', label: 'Middle name' },
   { value: 'last_name', label: 'Last name *' },
   { value: 'email', label: 'Email *' },
   { value: 'grade_level', label: 'Grade level' },
@@ -24,6 +25,7 @@ const REQUIRED = ['first_name', 'last_name', 'email'];
 
 const HEADER_GUESS: Record<string, string> = {
   'first name': 'first_name', 'firstname': 'first_name', 'first_name': 'first_name', 'fname': 'first_name', 'given name': 'first_name',
+  'middle name': 'middle_name', 'middlename': 'middle_name', 'middle_name': 'middle_name', 'mname': 'middle_name',
   'last name': 'last_name', 'lastname': 'last_name', 'last_name': 'last_name', 'lname': 'last_name', 'surname': 'last_name', 'family name': 'last_name',
   'email': 'email', 'email address': 'email', 'student email': 'email', 'e-mail': 'email',
   'grade': 'grade_level', 'grade level': 'grade_level', 'grade_level': 'grade_level', 'year': 'grade_level',
@@ -94,14 +96,14 @@ export const RosterStep = ({
   const mappedFields = Object.values(mapping).filter(v => v !== 'ignore');
   const missingRequired = REQUIRED.filter(r => !mappedFields.includes(r));
 
-  type MappedRow = { first_name: string; last_name: string; email: string; grade_level?: string; section?: string; parent_email?: string; student_id?: string; _valid: boolean };
+  type MappedRow = { first_name: string; middle_name?: string; last_name: string; email: string; grade_level?: string; section?: string; parent_email?: string; student_id?: string; _valid: boolean };
   const validRows: MappedRow[] = rows.map(r => {
     const obj: Record<string, string> = {};
     Object.entries(mapping).forEach(([h, f]) => {
       if (f !== 'ignore') obj[f] = (r[h] || '').toString().trim();
     });
     const valid = !!(obj.first_name && obj.last_name && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(obj.email || ''));
-    return { first_name: obj.first_name || '', last_name: obj.last_name || '', email: obj.email || '', grade_level: obj.grade_level, section: obj.section, parent_email: obj.parent_email, student_id: obj.student_id, _valid: valid };
+    return { first_name: obj.first_name || '', middle_name: obj.middle_name, last_name: obj.last_name || '', email: obj.email || '', grade_level: obj.grade_level, section: obj.section, parent_email: obj.parent_email, student_id: obj.student_id, _valid: valid };
   });
 
   const validCount = validRows.filter(r => r._valid).length;
@@ -139,6 +141,7 @@ export const RosterStep = ({
       const payload = validRows.filter(r => r._valid).map(r => ({
         email: r.email,
         first_name: r.first_name,
+        middle_name: r.middle_name,
         last_name: r.last_name,
         section_id: r.grade_level ? sectionMap[`${r.grade_level}::${r.section || 'A'}`] : undefined,
       }));

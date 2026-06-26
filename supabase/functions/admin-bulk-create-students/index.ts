@@ -41,6 +41,7 @@ serve(async (req) => {
       const result = await createStudentAccount(adminClient, schoolId, {
         email: s.email,
         first_name: s.first_name,
+        middle_name: s.middle_name,
         last_name: s.last_name,
         password: s.password,
         section_id: s.section_id,
