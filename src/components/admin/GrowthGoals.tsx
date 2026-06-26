@@ -11,6 +11,7 @@ import { Target, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Status = 'not_started' | 'in_progress' | 'achieved';
 interface Goal {
@@ -19,10 +20,13 @@ interface Goal {
 }
 interface Update { id: string; goal_id: string; note: string | null; progress: number | null; created_at: string; }
 
-const STATUS_LABEL: Record<Status, string> = { not_started: 'Not started', in_progress: 'In progress', achieved: 'Achieved' };
+const STATUS_KEY: Record<Status, string> = {
+  not_started: 'growth.statusNotStarted', in_progress: 'growth.statusInProgress', achieved: 'growth.statusAchieved',
+};
 
 export const GrowthGoals = () => {
   const { user, isSchoolAdmin } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
@@ -83,74 +87,74 @@ export const GrowthGoals = () => {
       title: title.trim(), description: description.trim() || null,
       target_date: targetDate || null, status: 'not_started', progress: 0, created_by: user.id,
     });
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: 'Goal created' });
+    if (error) { toast({ title: t('growth.error'), description: error.message, variant: 'destructive' }); return; }
+    toast({ title: t('growth.goalCreated') });
     setTitle(''); setDescription(''); setTargetDate(''); setStudentId('');
     loadGoals();
   };
 
   const studentName = (id: string) => students.find(s => s.id === id)?.name;
-  const ownerLabel = (g: Goal) => g.owner_id === user?.id ? 'Me' : (g.owner_type === 'student' ? (studentName(g.owner_id) || 'Student') : 'Teacher');
+  const ownerLabel = (g: Goal) => g.owner_id === user?.id ? t('growth.ownerMe') : (g.owner_type === 'student' ? (studentName(g.owner_id) || t('growth.student')) : t('growth.ownerTeacher'));
 
-  if (!ready) return <div className="animate-pulse text-muted-foreground">Loading...</div>;
+  if (!ready) return <div className="animate-pulse text-muted-foreground">{t('growth.loading')}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Target className="h-6 w-6 text-primary" />
         <div>
-          <h2 className="text-xl font-bold text-foreground">Professional Growth Goals</h2>
-          <p className="text-sm text-muted-foreground">Set goals, log progress, and mark them achieved</p>
+          <h2 className="text-xl font-bold text-foreground">{t('growth.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('growth.subtitle')}</p>
         </div>
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">New goal</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t('growth.newGoal')}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {isSchoolAdmin && (
               <div>
-                <Label className="text-xs text-muted-foreground">Goal for</Label>
+                <Label className="text-xs text-muted-foreground">{t('growth.goalFor')}</Label>
                 <Select value={forWhom} onValueChange={(v) => setForWhom(v as 'self' | 'student')}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="self">Myself (staff)</SelectItem>
-                    <SelectItem value="student">A student</SelectItem>
+                    <SelectItem value="self">{t('growth.myselfStaff')}</SelectItem>
+                    <SelectItem value="student">{t('growth.aStudent')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             )}
             {(!isSchoolAdmin || forWhom === 'student') && (
               <div>
-                <Label className="text-xs text-muted-foreground">Student</Label>
+                <Label className="text-xs text-muted-foreground">{t('growth.student')}</Label>
                 <Select value={studentId} onValueChange={setStudentId}>
-                  <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('growth.selectStudent')} /></SelectTrigger>
                   <SelectContent>{students.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             )}
             <div>
-              <Label className="text-xs text-muted-foreground">Target date (optional)</Label>
+              <Label className="text-xs text-muted-foreground">{t('growth.targetDateOptional')}</Label>
               <Input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} />
             </div>
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Title</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Improve questioning techniques" />
+            <Label className="text-xs text-muted-foreground">{t('growth.titleLabel')}</Label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('growth.titlePlaceholder')} />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Description</Label>
+            <Label className="text-xs text-muted-foreground">{t('growth.description')}</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} />
           </div>
           <Button onClick={createGoal} disabled={!title.trim() || (forWhom === 'student' && !studentId)}>
-            <Plus className="h-4 w-4 mr-2" />Create Goal
+            <Plus className="h-4 w-4 mr-2" />{t('growth.createGoal')}
           </Button>
         </CardContent>
       </Card>
 
       <div className="space-y-3">
         {goals.length === 0 ? (
-          <Card><CardContent className="p-6 text-center text-muted-foreground">No goals yet.</CardContent></Card>
+          <Card><CardContent className="p-6 text-center text-muted-foreground">{t('growth.noGoals')}</CardContent></Card>
         ) : goals.map(g => (
           <GoalCard key={g.id} goal={g} ownerLabel={ownerLabel(g)} canEdit={g.owner_id === user?.id || isSchoolAdmin} onChange={loadGoals} userId={user!.id} />
         ))}
@@ -162,6 +166,7 @@ export const GrowthGoals = () => {
 const GoalCard = ({ goal, ownerLabel, canEdit, onChange, userId }: {
   goal: Goal; ownerLabel: string; canEdit: boolean; onChange: () => void; userId: string;
 }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [updates, setUpdates] = useState<Update[]>([]);
   const [note, setNote] = useState('');
@@ -181,7 +186,7 @@ const GoalCard = ({ goal, ownerLabel, canEdit, onChange, userId }: {
       supabase.from('goal_updates').insert({ goal_id: goal.id, note: note.trim() || null, progress, created_by: userId }),
       supabase.from('growth_goals').update({ progress, status }).eq('id', goal.id),
     ]);
-    if (uErr || gErr) { toast({ title: 'Error', description: (uErr || gErr)!.message, variant: 'destructive' }); return; }
+    if (uErr || gErr) { toast({ title: t('growth.error'), description: (uErr || gErr)!.message, variant: 'destructive' }); return; }
     setNote('');
     loadUpdates();
     onChange();
@@ -190,7 +195,7 @@ const GoalCard = ({ goal, ownerLabel, canEdit, onChange, userId }: {
   const setStatus = async (status: Status) => {
     const prog = status === 'achieved' ? 100 : goal.progress;
     const { error } = await supabase.from('growth_goals').update({ status, progress: prog }).eq('id', goal.id);
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast({ title: t('growth.error'), description: error.message, variant: 'destructive' }); return; }
     setProgress(prog);
     onChange();
   };
@@ -204,7 +209,7 @@ const GoalCard = ({ goal, ownerLabel, canEdit, onChange, userId }: {
             <div className="flex items-center gap-2">
               <span className="font-medium text-foreground">{goal.title}</span>
               <Badge variant="outline" className="text-[10px]">{ownerLabel}</Badge>
-              <Badge variant={goal.status === 'achieved' ? 'secondary' : 'default'} className="text-[10px]">{STATUS_LABEL[goal.status]}</Badge>
+              <Badge variant={goal.status === 'achieved' ? 'secondary' : 'default'} className="text-[10px]">{t(STATUS_KEY[goal.status])}</Badge>
             </div>
             <Progress value={goal.progress} className="h-1.5 mt-2" />
           </div>
@@ -215,36 +220,36 @@ const GoalCard = ({ goal, ownerLabel, canEdit, onChange, userId }: {
       {expanded && (
         <CardContent className="border-t border-border pt-4 space-y-4">
           {goal.description && <p className="text-sm text-muted-foreground">{goal.description}</p>}
-          {goal.target_date && <p className="text-xs text-muted-foreground">Target: {goal.target_date}</p>}
+          {goal.target_date && <p className="text-xs text-muted-foreground">{t('growth.target')}: {goal.target_date}</p>}
 
           {canEdit && (
             <div className="space-y-3 p-3 rounded-lg bg-muted/30">
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-[160px]">
-                  <Label className="text-xs text-muted-foreground">Progress: {progress}%</Label>
+                  <Label className="text-xs text-muted-foreground">{t('growth.progress')}: {progress}%</Label>
                   <input type="range" min={0} max={100} value={progress} onChange={e => setProgress(parseInt(e.target.value))} className="w-full" />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <Label className="text-xs text-muted-foreground">{t('growth.statusField')}</Label>
                   <Select value={goal.status} onValueChange={(v) => setStatus(v as Status)}>
                     <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="not_started">Not started</SelectItem>
-                      <SelectItem value="in_progress">In progress</SelectItem>
-                      <SelectItem value="achieved">Achieved</SelectItem>
+                      <SelectItem value="not_started">{t('growth.statusNotStarted')}</SelectItem>
+                      <SelectItem value="in_progress">{t('growth.statusInProgress')}</SelectItem>
+                      <SelectItem value="achieved">{t('growth.statusAchieved')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Add a progress note..." />
-              <Button size="sm" onClick={addUpdate}><Plus className="h-4 w-4 mr-2" />Log update</Button>
+              <Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={t('growth.notePlaceholder')} />
+              <Button size="sm" onClick={addUpdate}><Plus className="h-4 w-4 mr-2" />{t('growth.logUpdate')}</Button>
             </div>
           )}
 
           <div>
-            <p className="text-sm font-medium mb-2">Progress timeline</p>
+            <p className="text-sm font-medium mb-2">{t('growth.progressTimeline')}</p>
             {updates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No updates logged yet.</p>
+              <p className="text-sm text-muted-foreground">{t('growth.noUpdates')}</p>
             ) : (
               <div className="space-y-2">
                 {updates.map(u => (
