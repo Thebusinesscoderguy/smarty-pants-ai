@@ -6,6 +6,7 @@ import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Download, KeyRound
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ParsedStudent {
   email: string;
@@ -29,6 +30,7 @@ interface ImportResultRow {
 // after import the admin can download a credentials CSV to distribute.
 export const BulkStudentImport = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [students, setStudents] = useState<ParsedStudent[]>([]);
   const [importing, setImporting] = useState(false);
@@ -63,7 +65,7 @@ export const BulkStudentImport = () => {
     const pwIdx = header.indexOf('password');
 
     if (emailIdx === -1) {
-      toast({ title: 'Invalid CSV', description: 'CSV must have an "email" column', variant: 'destructive' });
+      toast({ title: t('bsi.invalidCsv'), description: t('bsi.invalidCsvDesc'), variant: 'destructive' });
       return [];
     }
 
@@ -76,14 +78,14 @@ export const BulkStudentImport = () => {
       const password = pwIdx >= 0 ? cols[pwIdx] || '' : '';
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       let valid = emailRegex.test(email);
-      let error: string | undefined = valid ? undefined : 'Invalid email';
+      let error: string | undefined = valid ? undefined : t('bsi.errInvalidEmail');
       if (valid && !last_name) {
         valid = false;
-        error = 'Last name required';
+        error = t('bsi.errLastNameRequired');
       }
       if (valid && password && password.length < 8) {
         valid = false;
-        error = 'Password < 8 chars';
+        error = t('bsi.errPasswordShort');
       }
       return { email, first_name, middle_name, last_name, password: password || undefined, valid, error };
     });
@@ -103,7 +105,7 @@ export const BulkStudentImport = () => {
     if (!user) return;
     const validStudents = students.filter((s) => s.valid);
     if (validStudents.length === 0) {
-      toast({ title: 'No valid students', description: 'Please fix errors and try again', variant: 'destructive' });
+      toast({ title: t('bsi.noValid'), description: t('bsi.noValidDesc'), variant: 'destructive' });
       return;
     }
 
@@ -123,13 +125,13 @@ export const BulkStudentImport = () => {
       const res = data as { ok?: boolean; created?: number; failed?: number; results?: ImportResultRow[]; error?: string } | null;
       if (error && !res?.results) throw error;
       if (!res?.ok) {
-        toast({ title: 'Import failed', description: res?.error || 'Please try again.', variant: 'destructive' });
+        toast({ title: t('bsi.importFailed'), description: res?.error || t('bsi.tryAgain'), variant: 'destructive' });
         return;
       }
       setResultRows(res.results || []);
-      toast({ title: 'Import complete', description: `${res.created ?? 0} created, ${res.failed ?? 0} failed` });
+      toast({ title: t('bsi.importComplete'), description: `${res.created ?? 0} ${t('bsi.createdWord')}, ${res.failed ?? 0} ${t('bsi.failedWord')}` });
     } catch (e: any) {
-      toast({ title: 'Import error', description: e.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('bsi.importError'), description: e.message || t('bsi.tryAgain'), variant: 'destructive' });
     } finally {
       setImporting(false);
     }
@@ -154,20 +156,19 @@ export const BulkStudentImport = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
-          Bulk Student Import
+          {t('bsi.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Creates student accounts directly (confirmed, ready to log in). Leave the optional <code>password</code> column
-          blank to auto-generate strong passwords — you can download all credentials after import.
+          {t('bsi.introPre')}<code>password</code>{t('bsi.introPost')}
         </p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadTemplate} size="sm">
-            <Download className="h-4 w-4 mr-2" /> Download Template
+            <Download className="h-4 w-4 mr-2" /> {t('bsi.downloadTemplate')}
           </Button>
           <Button onClick={() => fileInputRef.current?.click()} size="sm">
-            <FileText className="h-4 w-4 mr-2" /> Upload CSV
+            <FileText className="h-4 w-4 mr-2" /> {t('bsi.uploadCsv')}
           </Button>
           <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
         </div>
@@ -178,10 +179,10 @@ export const BulkStudentImport = () => {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0">
                   <tr>
-                    <th className="text-left p-2">Email</th>
-                    <th className="text-left p-2">Name</th>
-                    <th className="text-left p-2">Password</th>
-                    <th className="text-left p-2">Status</th>
+                    <th className="text-left p-2">{t('bsi.colEmail')}</th>
+                    <th className="text-left p-2">{t('bsi.colName')}</th>
+                    <th className="text-left p-2">{t('bsi.colPassword')}</th>
+                    <th className="text-left p-2">{t('bsi.colStatus')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -189,11 +190,11 @@ export const BulkStudentImport = () => {
                     <tr key={i} className="border-t">
                       <td className="p-2 font-mono text-xs">{s.email}</td>
                       <td className="p-2">{[s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ')}</td>
-                      <td className="p-2 text-xs text-muted-foreground">{s.password ? 'provided' : 'auto'}</td>
+                      <td className="p-2 text-xs text-muted-foreground">{s.password ? t('bsi.provided') : t('bsi.auto')}</td>
                       <td className="p-2">
                         {s.valid ? (
                           <Badge variant="secondary" className="text-green-600">
-                            <CheckCircle className="h-3 w-3 mr-1" /> Valid
+                            <CheckCircle className="h-3 w-3 mr-1" /> {t('bsi.valid')}
                           </Badge>
                         ) : (
                           <Badge variant="destructive">
@@ -208,11 +209,11 @@ export const BulkStudentImport = () => {
             </div>
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {students.filter((s) => s.valid).length} valid / {students.length} total
+                {students.filter((s) => s.valid).length} {t('bsi.validWord')} / {students.length} {t('bsi.totalWord')}
               </p>
               <Button onClick={handleImport} disabled={importing || students.filter((s) => s.valid).length === 0}>
                 {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                {importing ? 'Creating accounts...' : `Create ${students.filter((s) => s.valid).length} Students`}
+                {importing ? t('bsi.creatingAccounts') : `${t('bsi.createPre')} ${students.filter((s) => s.valid).length} ${t('bsi.studentsWord')}`}
               </Button>
             </div>
           </>
@@ -221,12 +222,12 @@ export const BulkStudentImport = () => {
         {resultRows && (
           <div className="space-y-3">
             <div className="p-3 rounded-lg bg-muted/50 text-sm">
-              <p className="text-green-600">✓ {createdCount} accounts created</p>
-              {failedRows.length > 0 && <p className="text-destructive">✗ {failedRows.length} failed</p>}
+              <p className="text-green-600">✓ {createdCount} {t('bsi.accountsCreatedSuffix')}</p>
+              {failedRows.length > 0 && <p className="text-destructive">✗ {failedRows.length} {t('bsi.failedSuffix')}</p>}
             </div>
             {createdCount > 0 && (
               <Button onClick={downloadCredentials} variant="outline" size="sm">
-                <KeyRound className="h-4 w-4 mr-2" /> Download Credentials CSV
+                <KeyRound className="h-4 w-4 mr-2" /> {t('bsi.downloadCredentials')}
               </Button>
             )}
             {failedRows.length > 0 && (
@@ -234,8 +235,8 @@ export const BulkStudentImport = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50 sticky top-0">
                     <tr>
-                      <th className="text-left p-2">Email</th>
-                      <th className="text-left p-2">Reason</th>
+                      <th className="text-left p-2">{t('bsi.colEmail')}</th>
+                      <th className="text-left p-2">{t('bsi.colReason')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -250,7 +251,7 @@ export const BulkStudentImport = () => {
               </div>
             )}
             <Button variant="ghost" size="sm" onClick={() => { setResultRows(null); setStudents([]); }}>
-              Import another file
+              {t('bsi.importAnother')}
             </Button>
           </div>
         )}
