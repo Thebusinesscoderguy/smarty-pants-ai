@@ -16,6 +16,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const QUEST_TYPE_KEY: Record<string, string> = { daily: 'quest.daily', weekly: 'quest.weekly' };
+const QUEST_DIFF_KEY: Record<string, string> = { basic: 'quest.basic', intermediate: 'quest.intermediate', hard: 'quest.hard' };
+
 interface Quest {
   id: string;
   title: string;
@@ -79,6 +84,7 @@ const convertDatabaseQuest = (dbQuest: any): Quest => {
 
 export const QuestManagement = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
@@ -91,8 +97,8 @@ export const QuestManagement = () => {
     console.log('[QuestManagement] Select creation method:', m);
     setCreationMethod(m);
     toast({
-      title: 'Creation mode selected',
-      description: m === 'manual' ? 'Made by Me' : m === 'ai' ? 'Made by AI' : 'Both',
+      title: t('quest.modeSelected'),
+      description: m === 'manual' ? t('quest.madeByMe') : m === 'ai' ? t('quest.madeByAi') : t('quest.both'),
     });
   };
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
@@ -190,8 +196,8 @@ const { isSchoolAdmin } = useUserRole();
     } catch (error: any) {
       console.error('Error fetching quests:', error);
       toast({
-        title: "Error",
-        description: "Failed to load quests",
+        title: t('quest.error'),
+        description: t('quest.failedLoad'),
         variant: "destructive"
       });
     } finally {
@@ -229,8 +235,8 @@ const { isSchoolAdmin } = useUserRole();
     } catch (error: any) {
       console.error('Error in fetchSubjects:', error);
       toast({
-        title: "Info",
-        description: "Creating default subjects for your school",
+        title: t('quest.info'),
+        description: t('quest.creatingDefaults'),
       });
       await createDefaultSubjects();
     }
@@ -257,14 +263,14 @@ const { isSchoolAdmin } = useUserRole();
       setSubjects(data || []);
       
       toast({
-        title: "Subjects Created",
-        description: "Default subjects have been added to your school",
+        title: t('quest.subjectsCreated'),
+        description: t('quest.subjectsCreatedDesc'),
       });
     } catch (error: any) {
       console.error('Error creating default subjects:', error);
       toast({
-        title: "Error",
-        description: "Failed to create default subjects",
+        title: t('quest.error'),
+        description: t('quest.failedDefaults'),
         variant: "destructive"
       });
     }
@@ -304,8 +310,8 @@ const { isSchoolAdmin } = useUserRole();
     
     if (!selectedSubject) {
       toast({
-        title: "Error",
-        description: "Please select a subject",
+        title: t('quest.error'),
+        description: t('quest.selectSubjectErr'),
         variant: "destructive"
       });
       return;
@@ -349,7 +355,7 @@ const { isSchoolAdmin } = useUserRole();
       }
 
       if (!data?.quests || data.quests.length === 0) {
-        throw new Error('No quests were generated - AI returned empty response');
+        throw new Error(t('quest.noQuestsGenerated'));
       }
 
       // Insert generated quests into database
@@ -388,15 +394,15 @@ const { isSchoolAdmin } = useUserRole();
       setIsDialogOpen(false);
 
       toast({
-        title: "Quests Generated",
-        description: `${data.quests.length} AI-generated quests created successfully`,
+        title: t('quest.questsGenerated'),
+        description: `${data.quests.length} ${t('quest.questsGeneratedDescSuffix')}`,
       });
 
     } catch (error: any) {
       console.error('[QuestManagement] Error generating quests:', error);
       toast({
-        title: "Quest Generation Failed",
-        description: error.message || "Failed to generate quests. Check console for details.",
+        title: t('quest.genFailed'),
+        description: error.message || t('quest.genFailedFallback'),
         variant: "destructive"
       });
     } finally {
@@ -407,8 +413,8 @@ const { isSchoolAdmin } = useUserRole();
   const createQuest = async () => {
     if (!newQuest.title.trim() || !newQuest.description.trim()) {
       toast({
-        title: "Error",
-        description: "Please fill in title and description",
+        title: t('quest.error'),
+        description: t('quest.fillTitleDesc'),
         variant: "destructive"
       });
       return;
@@ -459,16 +465,16 @@ const { isSchoolAdmin } = useUserRole();
       
       setIsDialogOpen(false);
       
-      const subjectName = data.subjects?.name || 'All Subjects';
+      const subjectName = data.subjects?.name || t('quest.allSubjects');
       toast({
-        title: "Quest Created",
-        description: `"${newQuest.title}" created for ${subjectName}`,
+        title: t('quest.created'),
+        description: `"${newQuest.title}" ${t('quest.createdForPre')} ${subjectName}`,
       });
     } catch (error: any) {
       console.error('Error creating quest:', error);
       toast({
-        title: "Error",
-        description: "Failed to create quest",
+        title: t('quest.error'),
+        description: t('quest.failedCreate'),
         variant: "destructive"
       });
     } finally {
@@ -492,21 +498,21 @@ const { isSchoolAdmin } = useUserRole();
       ));
 
       toast({
-        title: "Quest Updated",
-        description: `Quest ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+        title: t('quest.updated'),
+        description: !currentStatus ? t('quest.questActivated') : t('quest.questDeactivated'),
       });
     } catch (error: any) {
       console.error('Error updating quest:', error);
       toast({
-        title: "Error",
-        description: "Failed to update quest",
+        title: t('quest.error'),
+        description: t('quest.failedUpdate'),
         variant: "destructive"
       });
     }
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-foreground">Loading quests...</div>;
+    return <div className="animate-pulse text-foreground">{t('quest.loading')}</div>;
   }
 
   return (
@@ -514,9 +520,9 @@ const { isSchoolAdmin } = useUserRole();
       {/* Header with create button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Quest Management</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t('quest.title')}</h2>
           <p className="text-muted-foreground">
-            Complete quests to earn rewards and track your progress
+            {t('quest.subtitle')}
           </p>
         </div>
         
@@ -527,21 +533,21 @@ const { isSchoolAdmin } = useUserRole();
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
-              Create Quest
+              {t('quest.createQuest')}
             </Button>
           </DialogTrigger>
           <DialogContent ref={dialogContentRef} className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-foreground">Create New Quest</DialogTitle>
+              <DialogTitle className="text-foreground">{t('quest.createNew')}</DialogTitle>
               {creationMethod && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Mode: {creationMethod === 'manual' ? 'Made by Me' : creationMethod === 'ai' ? 'Made by AI' : 'Both'}
+                  {t('quest.modePrefix')} {creationMethod === 'manual' ? t('quest.madeByMe') : creationMethod === 'ai' ? t('quest.madeByAi') : t('quest.both')}
                 </p>
               )}
             </DialogHeader>
             {!creationMethod ? (
               <div className="space-y-4 py-6">
-                <p className="text-foreground/70 text-center mb-6">Choose how you'd like to create your quest</p>
+                <p className="text-foreground/70 text-center mb-6">{t('quest.chooseHow')}</p>
                 <div className="grid grid-cols-1 gap-4">
                   <Button
                     type="button"
@@ -549,8 +555,8 @@ const { isSchoolAdmin } = useUserRole();
                     className="h-auto py-6 bg-primary text-primary-foreground shadow-button hover:bg-primary/90 hover:shadow-button-hover flex flex-col items-center gap-2"
                   >
                     <Plus className="h-8 w-8" />
-                    <span className="text-lg font-semibold">Made by Me</span>
-                    <span className="text-sm opacity-80">Create a custom quest manually</span>
+                    <span className="text-lg font-semibold">{t('quest.madeByMe')}</span>
+                    <span className="text-sm opacity-80">{t('quest.madeByMeDesc')}</span>
                   </Button>
                   
                   <Button
@@ -559,34 +565,34 @@ const { isSchoolAdmin } = useUserRole();
                     className="h-auto py-6 bg-primary text-primary-foreground shadow-button hover:bg-primary/90 hover:shadow-button-hover flex flex-col items-center gap-2"
                   >
                     <Sparkles className="h-8 w-8" />
-                    <span className="text-lg font-semibold">Made by AI</span>
-                    <span className="text-sm opacity-80">Let AI generate engaging quests</span>
+                    <span className="text-lg font-semibold">{t('quest.madeByAi')}</span>
+                    <span className="text-sm opacity-80">{t('quest.madeByAiDesc')}</span>
                   </Button>
                 </div>
               </div>
             ) : creationMethod === 'manual' ? (
               <div className="space-y-4 pr-2 mt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">← Back</Button>
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">{t('quest.back')}</Button>
                 </div>
                 <div>
-                  <Label htmlFor="title" className="text-foreground">Quest Title *</Label>
+                  <Label htmlFor="title" className="text-foreground">{t('quest.questTitle')}</Label>
                   <Input
                     id="title"
                     value={newQuest.title}
                     onChange={(e) => setNewQuest({ ...newQuest, title: e.target.value })}
-                    placeholder="Complete 5 Math Problems"
+                    placeholder={t('quest.titlePlaceholder')}
                     className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="description" className="text-foreground">Description *</Label>
+                  <Label htmlFor="description" className="text-foreground">{t('quest.description')}</Label>
                   <Textarea
                     id="description"
                     value={newQuest.description}
                     onChange={(e) => setNewQuest({ ...newQuest, description: e.target.value })}
-                    placeholder="Practice arithmetic and problem-solving skills"
+                    placeholder={t('quest.descPlaceholder')}
                     className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                     rows={3}
                   />
@@ -594,28 +600,28 @@ const { isSchoolAdmin } = useUserRole();
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="type" className="text-foreground">Type</Label>
+                    <Label htmlFor="type" className="text-foreground">{t('quest.type')}</Label>
                     <Select value={newQuest.type} onValueChange={(value: 'daily' | 'weekly') => setNewQuest({ ...newQuest, type: value })}>
                       <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="daily">{t('quest.daily')}</SelectItem>
+                        <SelectItem value="weekly">{t('quest.weekly')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="difficulty" className="text-foreground">Difficulty</Label>
+                    <Label htmlFor="difficulty" className="text-foreground">{t('quest.difficulty')}</Label>
                     <Select value={newQuest.difficulty} onValueChange={(value: 'basic' | 'intermediate' | 'hard') => setNewQuest({ ...newQuest, difficulty: value })}>
                       <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="hard">Hard</SelectItem>
+                        <SelectItem value="basic">{t('quest.basic')}</SelectItem>
+                        <SelectItem value="intermediate">{t('quest.intermediate')}</SelectItem>
+                        <SelectItem value="hard">{t('quest.hard')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -623,7 +629,7 @@ const { isSchoolAdmin } = useUserRole();
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="targetValue" className="text-foreground">Target Value</Label>
+                    <Label htmlFor="targetValue" className="text-foreground">{t('quest.targetValue')}</Label>
                     <Input
                       id="targetValue"
                       type="text"
@@ -640,13 +646,13 @@ const { isSchoolAdmin } = useUserRole();
                   </div>
 
                   <div>
-                    <Label htmlFor="subject" className="text-foreground">Subject</Label>
+                    <Label htmlFor="subject" className="text-foreground">{t('quest.subject')}</Label>
                     <Select value={newQuest.subject_id} onValueChange={(value) => setNewQuest({ ...newQuest, subject_id: value })}>
                       <SelectTrigger className="bg-background border-input text-foreground">
-                        <SelectValue placeholder="Select subject" />
+                        <SelectValue placeholder={t('quest.selectSubject')} />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="">All Subjects</SelectItem>
+                        <SelectItem value="">{t('quest.allSubjects')}</SelectItem>
                         {subjects.map((subject) => (
                           <SelectItem key={subject.id} value={subject.id}>
                             {subject.name}
@@ -658,7 +664,7 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
 
                 <div>
-                  <Label className="text-foreground mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
+                  <Label className="text-foreground mb-2 block">{isSchoolAdmin ? t('quest.assignToStudents') : t('quest.assignToChildren')}</Label>
                   <div className="space-y-2 p-3 bg-muted/30 rounded-md border border-border">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -672,7 +678,7 @@ const { isSchoolAdmin } = useUserRole();
                         }}
                       />
                       <label htmlFor="all-children" className="text-sm text-foreground cursor-pointer">
-                        {isSchoolAdmin ? 'All Students' : 'All Children'}
+                        {isSchoolAdmin ? t('quest.allStudents') : t('quest.allChildren')}
                       </label>
                     </div>
                     {children.length > 0 ? (
@@ -702,7 +708,7 @@ const { isSchoolAdmin } = useUserRole();
                       ))
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        {isSchoolAdmin ? 'No students linked to your school yet.' : 'No children linked yet.'}
+                        {isSchoolAdmin ? t('quest.noStudentsLinked') : t('quest.noChildrenLinked')}
                       </p>
                     )}
                   </div>
@@ -713,32 +719,31 @@ const { isSchoolAdmin } = useUserRole();
                   disabled={isCreating || !newQuest.title.trim() || !newQuest.description.trim()}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-button hover:shadow-button-hover"
                 >
-                  {isCreating ? 'Creating...' : 'Create Quest'}
+                  {isCreating ? t('quest.creating') : t('quest.createQuest')}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4 pr-2 mt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">← Back</Button>
+                  <Button variant="outline" size="sm" onClick={() => setCreationMethod(null)} className="text-foreground border-border hover:bg-muted">{t('quest.back')}</Button>
                 </div>
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
                   <div className="flex items-start space-x-3">
                     <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="text-foreground font-medium mb-1">AI Quest Generation</h4>
+                      <h4 className="text-foreground font-medium mb-1">{t('quest.aiGenTitle')}</h4>
                       <p className="text-sm text-muted-foreground">
-                        Generate multiple quests automatically based on subject, grade level, and difficulty. 
-                        The AI will create engaging, curriculum-aligned quests for your students.
+                        {t('quest.aiGenDesc')}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="ai-subject" className="text-foreground">Subject *</Label>
+                  <Label htmlFor="ai-subject" className="text-foreground">{t('quest.subjectReq')}</Label>
                   <Select value={aiQuestParams.subject_id} onValueChange={(value) => setAiQuestParams({ ...aiQuestParams, subject_id: value })}>
                     <SelectTrigger className="bg-background border-input text-foreground">
-                      <SelectValue placeholder="Select subject" />
+                      <SelectValue placeholder={t('quest.selectSubject')} />
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border">
                       {subjects.map((subject) => (
@@ -751,46 +756,46 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
 
                 <div>
-                  <Label htmlFor="grade-level" className="text-foreground">Grade Level</Label>
+                  <Label htmlFor="grade-level" className="text-foreground">{t('quest.gradeLevel')}</Label>
                   <Input
                     id="grade-level"
                     value={aiQuestParams.grade_level}
                     onChange={(e) => setAiQuestParams({ ...aiQuestParams, grade_level: e.target.value })}
-                    placeholder="e.g., 6th grade, high school"
+                    placeholder={t('quest.gradePlaceholder')}
                     className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="ai-type" className="text-foreground">Type</Label>
+                    <Label htmlFor="ai-type" className="text-foreground">{t('quest.type')}</Label>
                     <Select value={aiQuestParams.type} onValueChange={(value: 'daily' | 'weekly') => setAiQuestParams({ ...aiQuestParams, type: value })}>
                       <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="daily">{t('quest.daily')}</SelectItem>
+                        <SelectItem value="weekly">{t('quest.weekly')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="ai-difficulty" className="text-foreground">Difficulty</Label>
+                    <Label htmlFor="ai-difficulty" className="text-foreground">{t('quest.difficulty')}</Label>
                     <Select value={aiQuestParams.difficulty} onValueChange={(value: 'basic' | 'intermediate' | 'hard') => setAiQuestParams({ ...aiQuestParams, difficulty: value })}>
                       <SelectTrigger className="bg-background border-input text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="hard">Hard</SelectItem>
+                        <SelectItem value="basic">{t('quest.basic')}</SelectItem>
+                        <SelectItem value="intermediate">{t('quest.intermediate')}</SelectItem>
+                        <SelectItem value="hard">{t('quest.hard')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="quest-count" className="text-foreground">Count</Label>
+                    <Label htmlFor="quest-count" className="text-foreground">{t('quest.count')}</Label>
                     <Input
                       id="quest-count"
                       type="number"
@@ -804,7 +809,7 @@ const { isSchoolAdmin } = useUserRole();
                 </div>
 
                 <div>
-                  <Label className="text-foreground mb-2 block">{isSchoolAdmin ? 'Assign to Students' : 'Assign to Children'}</Label>
+                  <Label className="text-foreground mb-2 block">{isSchoolAdmin ? t('quest.assignToStudents') : t('quest.assignToChildren')}</Label>
                   <div className="space-y-2 p-3 bg-muted/30 rounded-md border border-border max-h-40 overflow-y-auto">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -818,7 +823,7 @@ const { isSchoolAdmin } = useUserRole();
                         }}
                       />
                       <label htmlFor="ai-all-children" className="text-sm text-foreground cursor-pointer">
-                        {isSchoolAdmin ? 'All Students' : 'All Children'}
+                        {isSchoolAdmin ? t('quest.allStudents') : t('quest.allChildren')}
                       </label>
                     </div>
                     {children.map((child) => (
@@ -852,12 +857,12 @@ const { isSchoolAdmin } = useUserRole();
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
+                      {t('quest.generating')}
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Generate {aiQuestParams.count} Quest{aiQuestParams.count > 1 ? 's' : ''}
+                      {t('quest.generatePre')} {aiQuestParams.count} {aiQuestParams.count > 1 ? t('quest.questsWord') : t('quest.questWord')}
                     </>
                   )}
                 </Button>
@@ -871,7 +876,7 @@ const { isSchoolAdmin } = useUserRole();
       {subjects.length > 0 && (
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-foreground text-lg">Available Subjects</CardTitle>
+            <CardTitle className="text-foreground text-lg">{t('quest.availableSubjects')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -891,9 +896,9 @@ const { isSchoolAdmin } = useUserRole();
           <Card className="bg-card border-border">
             <CardContent className="p-6 text-center">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No quests created yet.</p>
+              <p className="text-muted-foreground">{t('quest.empty')}</p>
               <p className="text-muted-foreground text-sm mt-2">
-                Start by creating engaging quests for your students.
+                {t('quest.emptyHint')}
               </p>
             </CardContent>
           </Card>
@@ -906,10 +911,10 @@ const { isSchoolAdmin } = useUserRole();
                     <div className="flex items-center space-x-2 mb-2">
                       <h3 className="font-medium text-foreground">{quest.title}</h3>
                       <Badge variant={quest.type === 'daily' ? 'default' : 'secondary'}>
-                        {quest.type}
+                        {t(QUEST_TYPE_KEY[quest.type] || 'quest.daily')}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {quest.difficulty}
+                        {t(QUEST_DIFF_KEY[quest.difficulty] || 'quest.basic')}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{quest.description}</p>
@@ -921,19 +926,19 @@ const { isSchoolAdmin } = useUserRole();
                           <div className="text-sm font-semibold text-primary">
                             {Number(quest.progress_stats?.average_progress ?? 0).toFixed(1)}/{quest.target_value}
                           </div>
-                          <div className="text-xs text-muted-foreground">Avg Progress</div>
+                          <div className="text-xs text-muted-foreground">{t('quest.avgProgress')}</div>
                         </div>
                         <div className="text-center">
                           <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                             {quest.progress_stats ? `${quest.progress_stats.completion_rate}%` : '0%'}
                           </div>
-                          <div className="text-xs text-muted-foreground">Completion Rate</div>
+                          <div className="text-xs text-muted-foreground">{t('quest.completionRate')}</div>
                         </div>
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Overall Progress</span>
-                          <span>{quest.progress_stats ? `${quest.progress_stats.active_users} active users` : 'No participants yet'}</span>
+                          <span>{t('quest.overallProgress')}</span>
+                          <span>{quest.progress_stats ? `${quest.progress_stats.active_users} ${t('quest.activeUsersSuffix')}` : t('quest.noParticipants')}</span>
                         </div>
                         <Progress 
                           value={((quest.progress_stats?.average_progress ?? 0) / quest.target_value) * 100} 
@@ -943,14 +948,14 @@ const { isSchoolAdmin } = useUserRole();
                     </div>
                     
                     <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                      <span>Target: {quest.target_value}</span>
-                      {quest.subjects && <span>Subject: {quest.subjects.name}</span>}
-                      <span>Created: {new Date(quest.created_at).toLocaleDateString()}</span>
+                      <span>{t('quest.targetPrefix')} {quest.target_value}</span>
+                      {quest.subjects && <span>{t('quest.subjectPrefix')} {quest.subjects.name}</span>}
+                      <span>{t('quest.createdPrefix')} {new Date(quest.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 ml-4">
                     <Badge variant={quest.is_active ? 'default' : 'secondary'}>
-                      {quest.is_active ? 'Active' : 'Inactive'}
+                      {quest.is_active ? t('quest.active') : t('quest.inactive')}
                     </Badge>
                     <Button
                       variant="outline"
@@ -958,7 +963,7 @@ const { isSchoolAdmin } = useUserRole();
                       onClick={() => toggleQuestStatus(quest.id, quest.is_active)}
                       className="text-foreground border-border hover:bg-muted"
                     >
-                      {quest.is_active ? 'Deactivate' : 'Activate'}
+                      {quest.is_active ? t('quest.deactivate') : t('quest.activate')}
                     </Button>
                   </div>
                 </div>
