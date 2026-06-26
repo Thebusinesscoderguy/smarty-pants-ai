@@ -16,8 +16,10 @@ import { StudentClassificationManager } from '@/components/admin/StudentClassifi
 import { ContentAssignmentManager } from '@/components/admin/ContentAssignmentManager';
 import { RealAnalyticsService, RealStudentAnalytics } from '@/services/realAnalyticsService';
 import { useAISummaries } from '@/hooks/useAISummaries';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const StudentAnalyticsView = () => {
+  const { t } = useLanguage();
   const [students, setStudents] = useState<RealStudentAnalytics[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -72,8 +74,8 @@ export const StudentAnalyticsView = () => {
     } catch (error: any) {
       console.error('Error fetching student analytics:', error);
       toast({
-        title: "Error",
-        description: "Failed to load student analytics",
+        title: t('sa.error'),
+        description: t('sa.failedLoad'),
         variant: "destructive"
       });
     } finally {
@@ -87,7 +89,7 @@ export const StudentAnalyticsView = () => {
       setInsight(personalizedInsight);
     } catch (error) {
       console.error('Error generating insight:', error);
-      setInsight('Unable to generate personalized insight at this time.');
+      setInsight(t('sa.insightUnavailable'));
     }
   };
 
@@ -95,8 +97,8 @@ export const StudentAnalyticsView = () => {
     try {
       await generateAISummary(studentId);
       toast({
-        title: "Success",
-        description: "AI summary generated successfully",
+        title: t('sa.success'),
+        description: t('sa.summaryGenerated'),
       });
     } catch (error) {
       console.error('Error generating AI summary:', error);
@@ -107,26 +109,26 @@ export const StudentAnalyticsView = () => {
   const selectedStudentSummary = selectedStudent ? getSummaryForStudent(selectedStudent) : null;
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading student analytics...</div>;
+    return <div className="animate-pulse">{t('sa.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Student Analytics & Management</h2>
-          <p className="text-muted-foreground">AI-powered insights, classifications, and targeted content distribution</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('sa.title')}</h2>
+          <p className="text-muted-foreground">{t('sa.subtitle')}</p>
         </div>
-        
+
         <div className="flex gap-4">
           <Button onClick={fetchStudentAnalytics} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {t('sa.refresh')}
           </Button>
-          
+
           <Select value={selectedStudent} onValueChange={setSelectedStudent}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select student" />
+              <SelectValue placeholder={t('sa.selectStudent')} />
             </SelectTrigger>
             <SelectContent>
               {students.map((student) => (
@@ -143,19 +145,19 @@ export const StudentAnalyticsView = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
-            AI Analytics
+            {t('sa.tabAiAnalytics')}
           </TabsTrigger>
           <TabsTrigger value="classifications" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
-            Classifications
+            {t('sa.tabClassifications')}
           </TabsTrigger>
           <TabsTrigger value="assignments" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Content Assignments
+            {t('sa.tabAssignments')}
           </TabsTrigger>
           <TabsTrigger value="management" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Overview
+            {t('sa.tabOverview')}
           </TabsTrigger>
         </TabsList>
 
@@ -164,15 +166,15 @@ export const StudentAnalyticsView = () => {
             <Card className="bg-card border-border">
               <CardContent className="p-6 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-foreground font-medium">No registered students yet.</p>
+                <p className="text-foreground font-medium">{t('sa.noStudents')}</p>
                 <p className="text-muted-foreground text-sm mt-2">
-                  Students will appear here once they accept their invitation and create an account.
+                  {t('sa.noStudentsHint')}
                 </p>
                 {pendingInvitations.length > 0 && (
                   <div className="mt-6 text-left">
                     <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                       <Clock className="h-4 w-4 text-primary" />
-                      Pending Invitations ({pendingInvitations.length})
+                      {t('sa.pendingInvitations')} ({pendingInvitations.length})
                     </h4>
                     <div className="space-y-2">
                       {pendingInvitations.map((inv) => (
@@ -188,7 +190,7 @@ export const StudentAnalyticsView = () => {
                               <p className="text-xs text-muted-foreground">{inv.email}</p>
                             </div>
                           </div>
-                          <Badge variant="secondary">Pending</Badge>
+                          <Badge variant="secondary">{t('sa.pending')}</Badge>
                         </div>
                       ))}
                     </div>
@@ -205,14 +207,14 @@ export const StudentAnalyticsView = () => {
                     <CardTitle className="text-foreground flex items-center justify-between">
                       <span className="flex items-center gap-2">
                         <Brain className="h-5 w-5" />
-                        AI-Generated Student Summary
+                        {t('sa.aiSummaryTitle')}
                       </span>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleGenerateAISummary(selectedStudent)}
                       >
-                        Regenerate
+                        {t('sa.regenerate')}
                       </Button>
                     </CardTitle>
                   </CardHeader>
@@ -224,7 +226,7 @@ export const StudentAnalyticsView = () => {
                     {/* Strengths Progress Bars */}
                     {selectedStudentSummary.strengths.length > 0 && (
                       <div className="space-y-3">
-                        <h4 className="text-foreground font-medium">Key Strengths</h4>
+                        <h4 className="text-foreground font-medium">{t('sa.keyStrengths')}</h4>
                         {selectedStudentSummary.strengths.slice(0, 4).map((strength, index) => {
                           const strengthData = selectedStudentData.topicPerformance.find(t => t.topic.toLowerCase().includes(strength.toLowerCase()));
                           return (
@@ -245,7 +247,7 @@ export const StudentAnalyticsView = () => {
                     {/* Weaknesses Progress Bars */}
                     {selectedStudentSummary.weaknesses.length > 0 && (
                       <div className="space-y-3">
-                        <h4 className="text-foreground font-medium">Areas for Improvement</h4>
+                        <h4 className="text-foreground font-medium">{t('sa.areasForImprovement')}</h4>
                         {selectedStudentSummary.weaknesses.slice(0, 4).map((weakness, index) => {
                           const weaknessData = selectedStudentData.topicPerformance.find(t => t.topic.toLowerCase().includes(weakness.toLowerCase()));
                           return (
@@ -267,16 +269,16 @@ export const StudentAnalyticsView = () => {
                     {selectedStudentSummary.improvement_metrics && (
                       <Card className="bg-muted/50 border-border">
                         <CardContent className="p-4 space-y-2">
-                          <h4 className="text-foreground font-medium">Improvement Plan</h4>
+                          <h4 className="text-foreground font-medium">{t('sa.improvementPlan')}</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                              <span className="text-muted-foreground">Overall Trend:</span>
+                              <span className="text-muted-foreground">{t('sa.overallTrend')}</span>
                               <span className="text-foreground ml-2 capitalize">
                                 {selectedStudentSummary.improvement_metrics.overall_trend}
                               </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Timeline:</span>
+                              <span className="text-muted-foreground">{t('sa.timeline')}</span>
                               <span className="text-foreground ml-2">
                                 {selectedStudentSummary.improvement_metrics.estimated_improvement_timeline}
                               </span>
@@ -284,7 +286,7 @@ export const StudentAnalyticsView = () => {
                           </div>
                           {selectedStudentSummary.improvement_metrics.recommended_actions && (
                             <div>
-                              <span className="text-muted-foreground">Recommended Actions:</span>
+                              <span className="text-muted-foreground">{t('sa.recommendedActions')}</span>
                               <ul className="text-foreground ml-4 mt-1">
                                 {selectedStudentSummary.improvement_metrics.recommended_actions.map((action: string, index: number) => (
                                   <li key={index} className="text-sm">• {action}</li>
@@ -302,13 +304,13 @@ export const StudentAnalyticsView = () => {
                   <CardHeader>
                     <CardTitle className="text-foreground flex items-center gap-2">
                       <Brain className="h-5 w-5" />
-                      Generate AI Summary
+                      {t('sa.generateAiSummary')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No AI summary available for this student</p>
+                    <p className="text-muted-foreground mb-4">{t('sa.noAiSummary')}</p>
                     <Button onClick={() => handleGenerateAISummary(selectedStudent)}>
-                      Generate AI Summary
+                      {t('sa.generateAiSummary')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -318,7 +320,7 @@ export const StudentAnalyticsView = () => {
               {insight && (
                 <Card className="bg-card border-border">
                   <CardHeader>
-                    <CardTitle className="text-foreground">Quick AI Insight</CardTitle>
+                    <CardTitle className="text-foreground">{t('sa.quickInsight')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground text-sm leading-relaxed">{insight}</p>
@@ -347,7 +349,7 @@ export const StudentAnalyticsView = () => {
             <Card className="bg-card border-border">
               <CardContent className="p-6 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-foreground">Select a student to view detailed analytics</p>
+                <p className="text-foreground">{t('sa.selectToView')}</p>
               </CardContent>
             </Card>
           )}
@@ -365,20 +367,20 @@ export const StudentAnalyticsView = () => {
           <div className="grid gap-6">
             <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-foreground">System Overview</CardTitle>
+                <CardTitle className="text-foreground">{t('sa.systemOverview')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card className="bg-muted/50 border-border">
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold text-foreground">{students.length}</div>
-                      <div className="text-sm text-muted-foreground">Total Students</div>
+                      <div className="text-sm text-muted-foreground">{t('sa.totalStudents')}</div>
                     </CardContent>
                   </Card>
                   <Card className="bg-muted/50 border-border">
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold text-foreground">{summaries.length}</div>
-                      <div className="text-sm text-muted-foreground">AI Summaries</div>
+                      <div className="text-sm text-muted-foreground">{t('sa.aiSummaries')}</div>
                     </CardContent>
                   </Card>
                   <Card className="bg-muted/50 border-border">
@@ -386,15 +388,14 @@ export const StudentAnalyticsView = () => {
                       <div className="text-2xl font-bold text-foreground">
                         {students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.completionPercentage, 0) / students.length) : 0}%
                       </div>
-                      <div className="text-sm text-muted-foreground">Avg Completion</div>
+                      <div className="text-sm text-muted-foreground">{t('sa.avgCompletion')}</div>
                     </CardContent>
                   </Card>
                 </div>
                 
                 <div className="text-center py-4">
                   <p className="text-muted-foreground text-sm">
-                    AI-powered analytics help identify student strengths, weaknesses, and optimal learning paths.
-                    Use classifications to organize students and target content effectively.
+                    {t('sa.overviewNote')}
                   </p>
                 </div>
               </CardContent>
