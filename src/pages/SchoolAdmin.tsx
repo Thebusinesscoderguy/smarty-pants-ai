@@ -24,11 +24,17 @@ import { StaffManagement } from '@/components/admin/StaffManagement';
 import { AssignmentManagement } from '@/components/admin/AssignmentManagement';
 import { ReportCardDesigner } from '@/components/admin/ReportCardDesigner';
 import { InvoiceManagement } from '@/components/admin/InvoiceManagement';
+import { BehaviorManagement } from '@/components/admin/BehaviorManagement';
+import { ClassroomObservation } from '@/components/admin/ClassroomObservation';
+import { GrowthGoals } from '@/components/admin/GrowthGoals';
+import { SchoolCalendarManagement } from '@/components/admin/SchoolCalendarManagement';
+import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import {
   Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
+  ClipboardCheck, Target, CalendarDays,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
@@ -50,6 +56,8 @@ type TabValue =
   | 'attendance' | 'report-cards' | 'report-card-designer'
   // Communication
   | 'messages' | 'news'
+  // Staff development & conduct
+  | 'behavior' | 'observations' | 'growth-goals' | 'calendar'
   // Settings
   | 'billing' | 'fees' | 'import-export' | 'staff';
 
@@ -105,6 +113,18 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <Newspaper className="h-4 w-4 mr-2" />News
                 </TabsTrigger>
+                <TabsTrigger value="behavior" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Shield className="h-4 w-4 mr-2" />Behavior
+                </TabsTrigger>
+                <TabsTrigger value="observations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <ClipboardCheck className="h-4 w-4 mr-2" />Observations
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <CalendarDays className="h-4 w-4 mr-2" />Calendar
+                </TabsTrigger>
+                <TabsTrigger value="growth-goals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
+                  <Target className="h-4 w-4 mr-2" />Growth Goals
+                </TabsTrigger>
               </TabsList>
               <div className="mt-6">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
@@ -117,6 +137,10 @@ const SchoolAdmin = () => {
                 <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
                 <TabsContent value="news"><NewsManagement /></TabsContent>
+                <TabsContent value="behavior"><BehaviorManagement /></TabsContent>
+                <TabsContent value="observations"><ClassroomObservation /></TabsContent>
+                <TabsContent value="calendar"><SchoolCalendarView /></TabsContent>
+                <TabsContent value="growth-goals"><GrowthGoals /></TabsContent>
               </div>
             </Tabs>
           </div>
@@ -141,6 +165,9 @@ const SchoolAdmin = () => {
         { value: 'teachers', label: 'Teachers', icon: GraduationCap },
         { value: 'at-risk', label: 'At-Risk Students', icon: AlertTriangle },
         { value: 'student-analytics', label: t('schoolAdmin.tabs.studentAnalysis'), icon: Brain },
+        { value: 'behavior', label: 'Behavior', icon: Shield },
+        { value: 'observations', label: 'Observations', icon: ClipboardCheck },
+        { value: 'growth-goals', label: 'Growth Goals', icon: Target },
       ],
     },
     {
@@ -168,6 +195,7 @@ const SchoolAdmin = () => {
       items: [
         { value: 'messages', label: 'Messages', icon: MessageCircle },
         { value: 'news', label: 'News Feed', icon: Newspaper },
+        { value: 'calendar', label: 'School Calendar', icon: CalendarDays },
       ],
     },
     {
@@ -287,6 +315,10 @@ const SchoolAdmin = () => {
               <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
               <TabsContent value="staff"><StaffManagement /></TabsContent>
               <TabsContent value="fees"><InvoiceManagement /></TabsContent>
+              <TabsContent value="behavior"><BehaviorManagement /></TabsContent>
+              <TabsContent value="observations"><ClassroomObservation /></TabsContent>
+              <TabsContent value="growth-goals"><GrowthGoals /></TabsContent>
+              <TabsContent value="calendar"><SchoolCalendarManagement /></TabsContent>
             </div>
           </Tabs>
         </div>

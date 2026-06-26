@@ -13,6 +13,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { NewsFeed } from '@/components/news/NewsFeed';
+import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -195,6 +196,12 @@ const ChildOverview = ({
           <Newspaper className="h-5 w-5 text-primary" /> School News
         </h3>
         <NewsFeed />
+      </div>
+
+      {/* School calendar — read-only; RLS scopes to this parent's school */}
+      <div>
+        <h3 className="text-lg font-semibold mb-3">School Calendar</h3>
+        <SchoolCalendarView />
       </div>
     </div>
   );

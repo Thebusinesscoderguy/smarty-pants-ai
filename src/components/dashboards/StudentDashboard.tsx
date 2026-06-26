@@ -4,6 +4,7 @@ import { AssignmentList } from '@/components/student/AssignmentList';
 import { RecentQuizAttempts } from '@/components/student/RecentQuizAttempts';
 import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { NewsFeed } from '@/components/news/NewsFeed';
+import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -301,6 +302,16 @@ export const StudentDashboard = () => {
           </CardHeader>
           <CardContent>
             <NewsFeed />
+          </CardContent>
+        </Card>
+
+        {/* School Calendar — read-only */}
+        <Card className="mb-8 border-border">
+          <CardHeader>
+            <CardTitle>School Calendar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SchoolCalendarView />
           </CardContent>
         </Card>
 
