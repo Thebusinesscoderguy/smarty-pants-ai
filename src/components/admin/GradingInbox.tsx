@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle2, Sparkles, RefreshCw, Inbox, FileQuestion } from 'lucide-react';
+import { Loader2, CheckCircle2, Sparkles, RefreshCw, Inbox, FileQuestion, AlertTriangle } from 'lucide-react';
 import { useGradingInbox, type GradingItem } from '@/hooks/useGradingInbox';
 import { useQuizReviewInbox, type QuizReviewItem } from '@/hooks/useQuizReviewInbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
 export const GradingInbox = () => {
-  const { items, loading, approve, bulkApproveHighConfidence, refresh } = useGradingInbox();
+  const { items, loading, error, approve, bulkApproveHighConfidence, refresh } = useGradingInbox();
   const { items: quizItems, loading: quizLoading, grade: gradeQuiz, refresh: refreshQuiz } = useQuizReviewInbox();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editScore, setEditScore] = useState<string>('');
@@ -87,7 +87,19 @@ export const GradingInbox = () => {
         </CardHeader>
       </Card>
 
-      {items.length === 0 ? (
+      {error ? (
+        <Card className="border-destructive/40">
+          <CardContent className="py-16 text-center">
+            <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Couldn't load the grading inbox</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button variant="outline" size="sm" onClick={refresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
