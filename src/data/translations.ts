@@ -3453,6 +3453,16 @@ export const translations: TranslationData = {
     'cpd.extractingText': 'Extracting text from all pages…',
     'cpd.functionError': 'Function error',
 
+    // ===== Shared UI primitives (a11y labels) =====
+    'uic.more': 'More',
+    'uic.previousSlide': 'Previous slide',
+    'uic.nextSlide': 'Next slide',
+    'uic.close': 'Close',
+    'uic.previous': 'Previous',
+    'uic.next': 'Next',
+    'uic.morePages': 'More pages',
+    'uic.toggleSidebar': 'Toggle Sidebar',
+
   },
   ar: {
     // ===== Navigation =====
@@ -5955,5 +5965,15 @@ export const translations: TranslationData = {
     'cpd.uploadFailedPre': 'فشل الرفع:',
     'cpd.extractingText': 'جارٍ استخراج النص من جميع الصفحات…',
     'cpd.functionError': 'خطأ في الدالة',
+
+    // ===== Shared UI primitives (a11y labels) =====
+    'uic.more': 'المزيد',
+    'uic.previousSlide': 'الشريحة السابقة',
+    'uic.nextSlide': 'الشريحة التالية',
+    'uic.close': 'إغلاق',
+    'uic.previous': 'السابق',
+    'uic.next': 'التالي',
+    'uic.morePages': 'مزيد من الصفحات',
+    'uic.toggleSidebar': 'تبديل الشريط الجانبي',
   },
 };
