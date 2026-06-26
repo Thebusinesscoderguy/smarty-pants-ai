@@ -2596,6 +2596,20 @@ export const translations: TranslationData = {
     'rcEdit.saving': 'Saving…',
     'rcEdit.save': 'Save',
 
+    // ===== Student Classification =====
+    'cls.loading': 'Loading classifications...',
+    'cls.title': 'Student Classification Manager',
+    'cls.assignTitle': 'Assign Classification',
+    'cls.selectStudent': 'Select student',
+    'cls.selectClassification': 'Select classification',
+    'cls.assign': 'Assign Classification',
+    'cls.createCustomTitle': 'Create Custom Tag',
+    'cls.customPlaceholder': 'Enter custom classification tag',
+    'cls.createAssign': 'Create & Assign Custom Tag',
+    'cls.autoTitle': 'Auto-Classification',
+    'cls.statsTitle': 'Classification Statistics',
+    'cls.studentsPrefix': 'Students:',
+
   },
   ar: {
     // ===== Navigation =====
@@ -4241,5 +4255,19 @@ export const translations: TranslationData = {
     'rcEdit.cancel': 'إلغاء',
     'rcEdit.saving': 'جارٍ الحفظ…',
     'rcEdit.save': 'حفظ',
+
+    // ===== Student Classification =====
+    'cls.loading': 'جارٍ تحميل التصنيفات...',
+    'cls.title': 'مدير تصنيف الطلاب',
+    'cls.assignTitle': 'إسناد تصنيف',
+    'cls.selectStudent': 'اختر الطالب',
+    'cls.selectClassification': 'اختر التصنيف',
+    'cls.assign': 'إسناد التصنيف',
+    'cls.createCustomTitle': 'إنشاء وسم مخصص',
+    'cls.customPlaceholder': 'أدخل وسم تصنيف مخصص',
+    'cls.createAssign': 'إنشاء وإسناد وسم مخصص',
+    'cls.autoTitle': 'التصنيف التلقائي',
+    'cls.statsTitle': 'إحصاءات التصنيف',
+    'cls.studentsPrefix': 'الطلاب:',
   },
 };

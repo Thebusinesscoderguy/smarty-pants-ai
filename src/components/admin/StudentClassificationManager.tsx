@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tags, Plus, X, Wand2, Users } from 'lucide-react';
 import { useStudentClassifications } from '@/hooks/useStudentClassifications';
 import { useMonitoringData } from '@/hooks/useMonitoringData';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const StudentClassificationManager = () => {
+  const { t } = useLanguage();
   const { 
     classifications, 
     availableTags, 
@@ -57,7 +59,7 @@ export const StudentClassificationManager = () => {
   };
 
   if (loading) {
-    return <div className="animate-pulse">Loading classifications...</div>;
+    return <div className="animate-pulse">{t('cls.loading')}</div>;
   }
 
   return (
@@ -66,18 +68,18 @@ export const StudentClassificationManager = () => {
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
             <Tags className="h-5 w-5" />
-            Student Classification Manager
+            {t('cls.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Assignment Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Assign Classification</h3>
-              
+              <h3 className="text-lg font-semibold text-foreground">{t('cls.assignTitle')}</h3>
+
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select student" />
+                  <SelectValue placeholder={t('cls.selectStudent')} />
                 </SelectTrigger>
                 <SelectContent>
                   {studentProgress.map((student) => (
@@ -90,7 +92,7 @@ export const StudentClassificationManager = () => {
 
               <Select value={selectedTag} onValueChange={setSelectedTag}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select classification" />
+                  <SelectValue placeholder={t('cls.selectClassification')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableTags.map((tag) => (
@@ -107,34 +109,34 @@ export const StudentClassificationManager = () => {
                 className="w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Assign Classification
+                {t('cls.assign')}
               </Button>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Create Custom Tag</h3>
-              
+              <h3 className="text-lg font-semibold text-foreground">{t('cls.createCustomTitle')}</h3>
+
               <Input
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Enter custom classification tag"
+                placeholder={t('cls.customPlaceholder')}
               />
 
-              <Button 
+              <Button
                 onClick={handleCreateCustomTag}
                 disabled={!selectedStudent || !newTag.trim()}
                 className="w-full"
                 variant="secondary"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create & Assign Custom Tag
+                {t('cls.createAssign')}
               </Button>
             </div>
           </div>
 
           {/* Auto-Classification Section */}
           <div className="border-t border-border pt-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Auto-Classification</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">{t('cls.autoTitle')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {studentProgress.map((student) => (
                 <Card key={student.student_id} className="bg-muted/50 border-border">
@@ -184,7 +186,7 @@ export const StudentClassificationManager = () => {
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Classification Statistics
+            {t('cls.statsTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -202,7 +204,7 @@ export const StudentClassificationManager = () => {
                   </div>
                   {stat.count > 0 && (
                     <div className="text-xs text-muted-foreground">
-                      Students: {stat.students.map(s => s.student_name).join(', ')}
+                      {t('cls.studentsPrefix')} {stat.students.map(s => s.student_name).join(', ')}
                     </div>
                   )}
                 </CardContent>
