@@ -2215,6 +2215,36 @@ export const translations: TranslationData = {
     'examMon.statusSubmitted': 'Submitted',
     'examMon.statusAutoSubmitted': 'Auto-submitted',
 
+    // ===== Import / Export Center =====
+    'io.title': 'Universal Import / Export',
+    'io.desc': 'Move any data in or out — supports CSV, Excel (XLSX / XLS), PDF, and inline manual entry. Pick an entity to begin.',
+    'io.export': 'Export',
+    'io.import': 'Import',
+    'io.manual': 'Manual',
+
+    // ===== Staff & Permissions =====
+    'staff.title': 'Staff & Permissions',
+    'staff.email': 'Email',
+    'staff.emailPlaceholder': 'staff@school.edu',
+    'staff.fullName': 'Full Name',
+    'staff.role': 'Role',
+    'staff.add': 'Add Staff',
+    'staff.added': 'Staff added',
+    'staff.currentStaff': 'Current Staff',
+    'staff.none': 'No staff added yet.',
+    'staff.active': 'Active',
+    'staff.inactive': 'Inactive',
+    'staff.disable': 'Disable',
+    'staff.enable': 'Enable',
+    'staff.rolePrincipal': 'Principal',
+    'staff.roleVicePrincipal': 'Vice Principal',
+    'staff.roleRegistrar': 'Registrar',
+    'staff.roleAccountant': 'Accountant',
+    'staff.permPrincipal': 'Full access except billing',
+    'staff.permVicePrincipal': 'Academics + people, no billing/settings',
+    'staff.permRegistrar': 'Students, sections, attendance, report cards',
+    'staff.permAccountant': 'Billing and fees only',
+
   },
   ar: {
     // ===== Navigation =====
@@ -3479,5 +3509,35 @@ export const translations: TranslationData = {
     'examMon.statusInProgress': 'قيد التنفيذ',
     'examMon.statusSubmitted': 'سُلِّم',
     'examMon.statusAutoSubmitted': 'سُلِّم تلقائيًا',
+
+    // ===== Import / Export Center =====
+    'io.title': 'الاستيراد / التصدير الشامل',
+    'io.desc': 'انقل أي بيانات إلى الداخل أو الخارج — يدعم CSV وExcel (XLSX / XLS) وPDF والإدخال اليدوي المباشر. اختر عنصرًا للبدء.',
+    'io.export': 'تصدير',
+    'io.import': 'استيراد',
+    'io.manual': 'يدوي',
+
+    // ===== Staff & Permissions =====
+    'staff.title': 'الموظفون والصلاحيات',
+    'staff.email': 'البريد الإلكتروني',
+    'staff.emailPlaceholder': 'staff@school.edu',
+    'staff.fullName': 'الاسم الكامل',
+    'staff.role': 'الدور',
+    'staff.add': 'إضافة موظف',
+    'staff.added': 'تمت إضافة الموظف',
+    'staff.currentStaff': 'الموظفون الحاليون',
+    'staff.none': 'لم تتم إضافة موظفين بعد.',
+    'staff.active': 'نشط',
+    'staff.inactive': 'غير نشط',
+    'staff.disable': 'تعطيل',
+    'staff.enable': 'تفعيل',
+    'staff.rolePrincipal': 'مدير المدرسة',
+    'staff.roleVicePrincipal': 'وكيل المدرسة',
+    'staff.roleRegistrar': 'المسجّل',
+    'staff.roleAccountant': 'المحاسب',
+    'staff.permPrincipal': 'صلاحية كاملة عدا الفوترة',
+    'staff.permVicePrincipal': 'الشؤون الأكاديمية والأشخاص، دون الفوترة/الإعدادات',
+    'staff.permRegistrar': 'الطلاب والفصول والحضور وبطاقات التقارير',
+    'staff.permAccountant': 'الفوترة والرسوم فقط',
   },
 };
