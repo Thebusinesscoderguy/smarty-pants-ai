@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Lightbulb, Loader2, RotateCcw, Sparkles, Target } from 'lucide-react';
 import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface QuizResultsProps {
   quiz: Quiz;
@@ -37,6 +38,7 @@ interface AttemptRow {
 }
 
 const ELI5Button = ({ text }: { text: string }) => {
+  const { t } = useLanguage();
   const [simplified, setSimplified] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -54,7 +56,7 @@ const ELI5Button = ({ text }: { text: string }) => {
     <>
       <Button size="sm" variant="outline" onClick={handleClick} disabled={loading} className="gap-1">
         {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
-        {simplified ? 'Original' : 'ELI5'}
+        {simplified ? t('qr2.original') : t('qr2.eli5')}
       </Button>
       {simplified && <div className="text-sm bg-accent/20 p-2 rounded mt-1">{simplified}</div>}
     </>
@@ -62,6 +64,7 @@ const ELI5Button = ({ text }: { text: string }) => {
 };
 
 export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
+  const { t } = useLanguage();
   const { generateQuiz, saveQuiz } = useQuizGenerator();
   const [attempt, setAttempt] = useState<AttemptRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +78,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
       try {
         const { data: userData } = await supabase.auth.getUser();
         if (!userData?.user) {
-          setError('Please sign in to view your results.');
+          setError(t('qr2.signInResults'));
           setLoading(false);
           return;
         }
@@ -88,7 +91,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
         if (error) throw error;
         setAttempt((data as any)?.[0] ?? null);
       } catch (e: any) {
-        setError(e.message ?? 'Failed to load results');
+        setError(e.message ?? t('qr2.failedLoad'));
       } finally {
         setLoading(false);
       }
@@ -102,7 +105,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
   }, [attempt]);
 
   if (loading) {
-    return <div className="py-6 text-sm opacity-80">Loading results...</div>;
+    return <div className="py-6 text-sm opacity-80">{t('qr2.loadingResults')}</div>;
   }
 
   if (error) {
@@ -110,7 +113,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
   }
 
   if (!attempt) {
-    return <div className="py-6 text-sm opacity-80">No attempts yet. Take the quiz to see your results.</div>;
+    return <div className="py-6 text-sm opacity-80">{t('qr2.noAttempts')}</div>;
   }
 
   const answers = attempt.answers || [];
@@ -119,15 +122,15 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
 
   const startMistakesQuiz = async () => {
     if (!missedAnswers.length) {
-      toast({ title: 'No mistakes found', description: 'You got every question correct on your latest attempt.' });
+      toast({ title: t('qr2.noMistakes'), description: t('qr2.noMistakesDesc') });
       return;
     }
 
     setCreatingPractice('mistakes');
     try {
       const mistakesQuiz: Quiz = {
-        title: `${quiz.title} – Mistakes Only`,
-        description: 'Retake only the questions missed in your latest attempt.',
+        title: `${quiz.title} ${t('qr2.mistakesOnlySuffix')}`,
+        description: t('qr2.mistakesDesc'),
         difficulty: quiz.difficulty,
         subject_id: quiz.subject_id,
         questions: missedAnswers.map((answer, index) => {
@@ -164,7 +167,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
         quiz.questions.length
       );
       if (!similarQuiz) return;
-      const quizToSave = { ...similarQuiz, title: `${quiz.title} – Similar Quiz`, subject_id: quiz.subject_id };
+      const quizToSave = { ...similarQuiz, title: `${quiz.title} ${t('qr2.similarSuffix')}`, subject_id: quiz.subject_id };
       const savedId = await saveQuiz(quizToSave);
       if (savedId) onStartQuiz?.({ ...quizToSave, id: savedId });
     } finally {
@@ -177,46 +180,46 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-lg">Latest Result</CardTitle>
+            <CardTitle className="text-lg">{t('qr2.latestResult')}</CardTitle>
             <ShareArtifactButton
               artifactType="quiz"
               title={quiz.title}
               content={{ questions: quiz.questions, description: quiz.description }}
               sourceId={quiz.id}
-              label="Share quiz"
+              label={t('qr2.shareQuiz')}
             />
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="outline">Score</Badge>
+              <Badge variant="outline">{t('qr2.score')}</Badge>
               <div className="text-base font-medium">{attempt.score}/{attempt.total_possible} ({percent}%)</div>
               {pendingReview > 0 && (
                 <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50 gap-1">
                   <Loader2 className="h-3 w-3" />
-                  Awaiting teacher review · {pendingReview} {pendingReview === 1 ? 'question' : 'questions'}
+                  {t('qr2.awaitingReview')} · {pendingReview} {pendingReview === 1 ? t('qr2.questionWord') : t('qr2.questionsWord')}
                 </Badge>
               )}
             </div>
             {pendingReview > 0 && (
               <p className="text-xs text-muted-foreground">
-                Your auto-graded score is shown above. Open-ended answers will be reviewed by your teacher and added to your final score.
+                {t('qr2.autoGradedNote')}
               </p>
             )}
             {onStartQuiz && quiz.id && (
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => onStartQuiz(quiz)} className="gap-2">
                   <RotateCcw className="h-4 w-4" />
-                  Retake quiz
+                  {t('qr2.retakeQuiz')}
                 </Button>
                 <Button variant="outline" onClick={startMistakesQuiz} disabled={creatingPractice !== null || missedAnswers.length === 0} className="gap-2">
                   {creatingPractice === 'mistakes' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Target className="h-4 w-4" />}
-                  Retake mistakes only
+                  {t('qr2.retakeMistakes')}
                 </Button>
                 <Button variant="outline" onClick={startSimilarQuiz} disabled={creatingPractice !== null} className="gap-2">
                   {creatingPractice === 'similar' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  Retake similar quiz
+                  {t('qr2.retakeSimilar')}
                 </Button>
               </div>
             )}
@@ -226,7 +229,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Question Review</CardTitle>
+          <CardTitle className="text-lg">{t('qr2.questionReview')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -252,7 +255,7 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
                   }
                 } catch (e: any) {
                   console.error(e);
-                  toast({ title: 'Failed to generate', description: e.message ?? 'Please try again.' });
+                  toast({ title: t('qr2.failedGenerate'), description: e.message ?? t('qr2.tryAgain') });
                 } finally {
                   setLoadingIdx(null);
                 }
@@ -265,40 +268,40 @@ export const QuizResults = ({ quiz, onStartQuiz }: QuizResultsProps) => {
                     <div className="font-medium">{a.question}</div>
                     {isPending ? (
                       <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50">
-                        Awaiting teacher review
+                        {t('qr2.awaitingReview')}
                       </Badge>
                     ) : a.is_correct ? (
                       <Badge className="bg-green-100 text-green-800">
-                        Correct{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
+                        {t('qr2.correct')}{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
                       </Badge>
                     ) : (
                       <Badge className="bg-red-100 text-red-800">
-                        Incorrect{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
+                        {t('qr2.incorrect')}{typeof a.teacher_score === 'number' ? ` · ${a.teacher_score}/${a.points}` : ''}
                       </Badge>
                     )}
                   </div>
                   <div className="mt-2 text-sm opacity-90 space-y-1">
-                    <div><span className="font-semibold">Your answer:</span> {String(selected)}</div>
+                    <div><span className="font-semibold">{t('qr2.yourAnswer')}</span> {String(selected)}</div>
                     {!isPending && a.is_correct === false && (
-                      <div><span className="font-semibold">Correct answer:</span> {String(correctOpt)}</div>
+                      <div><span className="font-semibold">{t('qr2.correctAnswer')}</span> {String(correctOpt)}</div>
                     )}
                     {a.teacher_feedback && (
                       <div className="bg-muted/40 rounded p-2 mt-1">
-                        <span className="font-semibold">Teacher feedback:</span> {a.teacher_feedback}
+                        <span className="font-semibold">{t('qr2.teacherFeedback')}</span> {a.teacher_feedback}
                       </div>
                     )}
                     {typeof timeMs === 'number' && timeMs > 0 && (
-                      <div><span className="font-semibold">Time spent:</span> {Math.round(timeMs / 1000)}s</div>
+                      <div><span className="font-semibold">{t('qr2.timeSpent')}</span> {Math.round(timeMs / 1000)}s</div>
                     )}
                     {explanation && (
                       <div className="mt-2 space-y-2">
-                        <div><span className="font-semibold">Explanation:</span> {explanation}</div>
+                        <div><span className="font-semibold">{t('qr2.explanation')}</span> {explanation}</div>
                         <div className="flex gap-2 flex-wrap">
                           <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('summary')}>
-                            {loadingIdx === i ? 'Loading…' : 'Summarise'}
+                            {loadingIdx === i ? t('qr2.loadingShort') : t('qr2.summarise')}
                           </Button>
                           <Button size="sm" variant="outline" disabled={loadingIdx === i} onClick={() => handleExplain('detail')}>
-                            {loadingIdx === i ? 'Loading…' : 'More detail'}
+                            {loadingIdx === i ? t('qr2.loadingShort') : t('qr2.moreDetail')}
                           </Button>
                           <ELI5Button text={explanation} />
                         </div>
