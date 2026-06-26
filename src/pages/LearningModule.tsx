@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useGamification } from '@/hooks/useGamification';
 import { GenerationProgress } from '@/components/ui/generation-progress';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DailyLesson {
   day: number;
@@ -27,6 +28,7 @@ interface StudyPlan {
 
 const LearningModule = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(null);
   const [currentDay, setCurrentDay] = useState(1);
@@ -64,8 +66,8 @@ const LearningModule = () => {
           if (!guestRaw) {
             console.error('=== ERROR: No guest study plan found ===');
             toast({
-              title: "No active study plan",
-              description: "Please create a study plan first",
+              title: t('lm.noActivePlan'),
+              description: t('lm.createFirst'),
               variant: "destructive"
             });
             navigate('/quiz-generator');
@@ -82,8 +84,8 @@ const LearningModule = () => {
           const day = parseInt(urlParams.get('day') || '1');
           if (day > 1) {
             toast({
-              title: "Sign in to unlock more",
-              description: "Create a free account to access all study days.",
+              title: t('lm.signInUnlock'),
+              description: t('lm.signInUnlockDesc'),
             });
             navigate('/quiz-generator');
             return;
@@ -109,8 +111,8 @@ const LearningModule = () => {
           if (!data) {
             console.error('=== ERROR: No study plan found with ID:', planId, '===');
             toast({
-              title: "Study plan not found",
-              description: "The study plan may have been deleted or doesn't belong to you",
+              title: t('lm.planNotFound'),
+              description: t('lm.planNotFoundDesc'),
               variant: "destructive"
             });
             navigate('/quiz-generator');
@@ -156,8 +158,8 @@ const LearningModule = () => {
             if (contentError) {
               console.error('Error generating lesson content:', contentError);
               toast({
-                title: "Content generation failed",
-                description: `Error: ${contentError.message || 'Please check your OpenAI API key.'}`,
+                title: t('lm.contentGenFailed'),
+                description: `${t('lm.errorPrefix')} ${contentError.message || t('lm.checkApiKey')}`,
                 variant: "destructive"
               });
               setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\nDetailed lesson content could not be generated. Please ensure your OpenAI API key is configured properly.`);
@@ -167,8 +169,8 @@ const LearningModule = () => {
           } catch (edgeFunctionError: any) {
             console.error('=== ERROR: Edge function call failed ===', edgeFunctionError);
             toast({
-              title: "Failed to generate lesson",
-              description: "Using basic lesson content",
+              title: t('lm.failedGenerate'),
+              description: t('lm.usingBasic'),
               variant: "destructive"
             });
             setLessonContent(`# ${currentLesson.topic}\n\n## Content\n\n${currentLesson.description}\n\n**Activities:**\n${currentLesson.activities ? currentLesson.activities.map((activity: string) => `- ${activity}`).join('\n') : 'No specific activities defined.'}`);
@@ -181,8 +183,8 @@ const LearningModule = () => {
       } catch (error: any) {
         console.error('=== FATAL ERROR: Failed to load study plan ===', error);
         toast({
-          title: "Failed to load study plan",
-          description: error.message || "Please try again",
+          title: t('lm.failedLoad'),
+          description: error.message || t('lm.tryAgain'),
           variant: "destructive"
         });
         navigate('/quiz-generator');
@@ -202,7 +204,7 @@ const LearningModule = () => {
           <GenerationProgress
             isGenerating={true}
             estimatedSeconds={20}
-            label="Generating your lesson content..."
+            label={t('lm.generatingLabel')}
           />
         </div>
       </div>
@@ -213,12 +215,12 @@ const LearningModule = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-foreground text-center">
-          <h2 className="text-xl mb-4">No lessons found</h2>
-          <button 
+          <h2 className="text-xl mb-4">{t('lm.noLessonsFound')}</h2>
+          <button
             onClick={() => navigate('/quiz-generator')}
             className="text-primary underline"
           >
-            Return to Quiz Generator
+            {t('lm.returnToQuizGen')}
           </button>
         </div>
       </div>
@@ -250,8 +252,8 @@ const LearningModule = () => {
 
             if (studyPlan!.id === 'guest') {
               toast({
-                title: "Lesson completed! 🎉",
-                description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}. Sign in to track progress and unlock all days.`
+                title: t('lm.lessonCompleted'),
+                description: `${t('lm.greatJob')} ${currentLesson.day}: ${currentLesson.topic}. ${t('lm.signInToTrack')}`
               });
               navigate('/quiz-generator');
               return;
@@ -277,15 +279,15 @@ const LearningModule = () => {
               .eq('id', studyPlan!.id);
 
             toast({
-              title: "Lesson completed! 🎉",
-              description: `Great job completing Day ${currentLesson.day}: ${currentLesson.topic}${nextUncompleted ? '. Ready for your next lesson!' : ' Study plan completed!'}`
+              title: t('lm.lessonCompleted'),
+              description: `${t('lm.greatJob')} ${currentLesson.day}: ${currentLesson.topic}${nextUncompleted ? t('lm.readyNext') : t('lm.planCompleted')}`
             });
 
             // Always navigate back to study plans
             navigate('/quiz-generator');
           } catch (error) {
             console.error('Error completing lesson:', error);
-            toast({ title: 'Error', description: 'Failed to save completion', variant: 'destructive' });
+            toast({ title: t('lm.error'), description: t('lm.failedSaveCompletion'), variant: 'destructive' });
           }
         }}
       />
