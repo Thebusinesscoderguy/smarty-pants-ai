@@ -12,6 +12,7 @@ import autoTable from 'jspdf-autotable';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Category { id: string; name: string; valence: 'positive' | 'negative'; default_points: number; }
 interface Student { id: string; name: string; }
@@ -22,6 +23,7 @@ interface Incident {
 
 export const BehaviorManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -94,8 +96,8 @@ export const BehaviorManagement = () => {
       valence: cat.valence, points: 0, description: logNote.trim() || null,
       incident_date: logDate, recorded_by: user.id,
     });
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: 'Logged', description: 'Behavior incident recorded.' });
+    if (error) { toast({ title: t('behavior.error'), description: error.message, variant: 'destructive' }); return; }
+    toast({ title: t('behavior.logged'), description: t('behavior.loggedDesc') });
     setLogNote('');
     if (profileStudent === logStudent) loadIncidents();
   };
@@ -105,14 +107,14 @@ export const BehaviorManagement = () => {
     const { data, error } = await supabase.from('behavior_categories').insert({
       school_id: schoolId, name: catName.trim(), valence: catValence, default_points: 0,
     }).select().single();
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast({ title: t('behavior.error'), description: error.message, variant: 'destructive' }); return; }
     setCategories(prev => [...prev, data as Category].sort((a, b) => a.name.localeCompare(b.name)));
     setCatName('');
   };
 
   const deleteIncident = async (id: string) => {
     const { error } = await supabase.from('behavior_incidents').delete().eq('id', id);
-    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast({ title: t('behavior.error'), description: error.message, variant: 'destructive' }); return; }
     setIncidents(prev => prev.filter(i => i.id !== id));
   };
 
@@ -137,65 +139,65 @@ export const BehaviorManagement = () => {
     doc.save(`behavior-${student.name.replace(/\s+/g, '_')}.pdf`);
   };
 
-  if (!ready) return <div className="animate-pulse text-muted-foreground">Loading...</div>;
-  if (!schoolId) return <Card><CardContent className="p-8 text-center text-muted-foreground">No school found for your account.</CardContent></Card>;
+  if (!ready) return <div className="animate-pulse text-muted-foreground">{t('behavior.loading')}</div>;
+  if (!schoolId) return <Card><CardContent className="p-8 text-center text-muted-foreground">{t('behavior.noSchool')}</CardContent></Card>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Shield className="h-6 w-6 text-primary" />
         <div>
-          <h2 className="text-xl font-bold text-foreground">Behavior Management</h2>
-          <p className="text-sm text-muted-foreground">Log positive and negative incidents and generate per-student reports</p>
+          <h2 className="text-xl font-bold text-foreground">{t('behavior.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('behavior.subtitle')}</p>
         </div>
       </div>
 
       <Tabs defaultValue="log">
         <TabsList>
-          <TabsTrigger value="log">Quick Log</TabsTrigger>
-          <TabsTrigger value="profile">Student Profile</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="log">{t('behavior.tabLog')}</TabsTrigger>
+          <TabsTrigger value="profile">{t('behavior.tabProfile')}</TabsTrigger>
+          <TabsTrigger value="categories">{t('behavior.tabCategories')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="log" className="mt-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">Log an incident</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">{t('behavior.logIncidentCard')}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Student</Label>
+                  <Label className="text-xs text-muted-foreground">{t('behavior.student')}</Label>
                   <Select value={logStudent} onValueChange={setLogStudent}>
-                    <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t('behavior.selectStudent')} /></SelectTrigger>
                     <SelectContent>{students.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Category</Label>
+                  <Label className="text-xs text-muted-foreground">{t('behavior.category')}</Label>
                   <Select value={logCategory} onValueChange={setLogCategory}>
-                    <SelectTrigger><SelectValue placeholder={categories.length ? 'Select category' : 'No categories yet'} /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={categories.length ? t('behavior.selectCategory') : t('behavior.noCategoriesYet')} /></SelectTrigger>
                     <SelectContent>
                       {categories.map(c => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.valence === 'positive' ? '👍' : '👎'} {c.name} ({c.valence === 'positive' ? '+' : '-'}{c.default_points})
+                          {c.valence === 'positive' ? '👍' : '👎'} {c.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Date</Label>
+                  <Label className="text-xs text-muted-foreground">{t('behavior.date')}</Label>
                   <Input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} />
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Note (optional)</Label>
-                <Textarea value={logNote} onChange={e => setLogNote(e.target.value)} rows={2} placeholder="What happened?" />
+                <Label className="text-xs text-muted-foreground">{t('behavior.noteOptional')}</Label>
+                <Textarea value={logNote} onChange={e => setLogNote(e.target.value)} rows={2} placeholder={t('behavior.notePlaceholder')} />
               </div>
               <Button onClick={logIncident} disabled={!logStudent || !logCategory}>
-                <Plus className="h-4 w-4 mr-2" />Log Incident
+                <Plus className="h-4 w-4 mr-2" />{t('behavior.logIncident')}
               </Button>
               {!categories.length && (
-                <p className="text-xs text-muted-foreground">No categories exist yet. Add some in the Categories tab.</p>
+                <p className="text-xs text-muted-foreground">{t('behavior.noCategoriesHint')}</p>
               )}
             </CardContent>
           </Card>
@@ -204,23 +206,23 @@ export const BehaviorManagement = () => {
         <TabsContent value="profile" className="mt-4 space-y-4">
           <div className="flex items-end gap-3 flex-wrap">
             <div className="min-w-[200px]">
-              <Label className="text-xs text-muted-foreground">Student</Label>
+              <Label className="text-xs text-muted-foreground">{t('behavior.student')}</Label>
               <Select value={profileStudent} onValueChange={setProfileStudent}>
-                <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('behavior.selectStudent')} /></SelectTrigger>
                 <SelectContent>{students.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">From</Label>
+              <Label className="text-xs text-muted-foreground">{t('behavior.from')}</Label>
               <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">To</Label>
+              <Label className="text-xs text-muted-foreground">{t('behavior.to')}</Label>
               <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
             {profileStudent && (
               <Button variant="outline" onClick={exportPdf} disabled={!incidents.length}>
-                <FileDown className="h-4 w-4 mr-2" />Export PDF
+                <FileDown className="h-4 w-4 mr-2" />{t('behavior.exportPdf')}
               </Button>
             )}
           </div>
@@ -228,11 +230,11 @@ export const BehaviorManagement = () => {
           {profileStudent && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">History</CardTitle>
+                <CardTitle className="text-base">{t('behavior.history')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {incidents.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No incidents recorded for this range.</p>
+                  <p className="text-sm text-muted-foreground">{t('behavior.noIncidents')}</p>
                 ) : (
                   <div className="space-y-2">
                     {incidents.map(i => (
@@ -261,20 +263,20 @@ export const BehaviorManagement = () => {
 
         <TabsContent value="categories" className="mt-4 space-y-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">Add category</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">{t('behavior.addCategory')}</CardTitle></CardHeader>
             <CardContent className="flex flex-wrap items-end gap-3">
-              <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={catName} onChange={e => setCatName(e.target.value)} placeholder="e.g. Helped a peer" /></div>
+              <div><Label className="text-xs text-muted-foreground">{t('behavior.name')}</Label><Input value={catName} onChange={e => setCatName(e.target.value)} placeholder={t('behavior.namePlaceholder')} /></div>
               <div>
-                <Label className="text-xs text-muted-foreground">Type</Label>
+                <Label className="text-xs text-muted-foreground">{t('behavior.type')}</Label>
                 <Select value={catValence} onValueChange={(v) => setCatValence(v as 'positive' | 'negative')}>
                   <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="positive">Positive</SelectItem>
-                    <SelectItem value="negative">Negative</SelectItem>
+                    <SelectItem value="positive">{t('behavior.positive')}</SelectItem>
+                    <SelectItem value="negative">{t('behavior.negative')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={addCategory} disabled={!catName.trim()}><Plus className="h-4 w-4 mr-2" />Add</Button>
+              <Button onClick={addCategory} disabled={!catName.trim()}><Plus className="h-4 w-4 mr-2" />{t('behavior.add')}</Button>
             </CardContent>
           </Card>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
