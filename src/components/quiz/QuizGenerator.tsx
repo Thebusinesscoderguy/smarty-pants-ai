@@ -12,12 +12,16 @@ import { Loader2, Plus, Save, Trash2, FileQuestion, BookOpen, CheckCircle2 } fro
 import { useQuizGenerator, type Quiz } from '@/hooks/useQuizGenerator';
 import { FileUploadZone } from './FileUploadZone';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const QG_DIFF_KEY: Record<string, string> = { easy: 'qg2.easy', medium: 'qg2.medium', hard: 'qg2.hard' };
 
 interface QuizGeneratorProps {
   conversationHistory?: any[];
 }
 
 export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
+  const { t } = useLanguage();
   const [inputMethod, setInputMethod] = useState<'topic' | 'file'>('topic');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
@@ -53,10 +57,10 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
         difficultyVariant: quizDifficulty,
       });
       if (!quiz) return;
-      const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} (Same Questions)` });
-      if (savedId) toast({ title: 'Saved', description: 'Retake quiz saved to your Library.' });
+      const savedId = await saveQuiz({ ...quiz, title: `${uploadedFile.name.split('.')[0]} ${t('qg2.suffixSame')}` });
+      if (savedId) toast({ title: t('qg2.saved'), description: t('qg2.retakeSaved') });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('qg2.failed'), description: e?.message || t('qg2.tryAgain'), variant: 'destructive' });
     } finally {
       setCreatingPractice(false);
     }
@@ -67,10 +71,10 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
     try {
       const quiz = await quizFromLatestMistakes();
       if (!quiz) return;
-      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} (Mistakes Only)` });
-      if (savedId) toast({ title: 'Saved', description: 'Mistakes-only quiz saved to your Library.' });
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} ${t('qg2.suffixMistakes')}` });
+      if (savedId) toast({ title: t('qg2.saved'), description: t('qg2.mistakesSaved') });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('qg2.failed'), description: e?.message || t('qg2.tryAgain'), variant: 'destructive' });
     } finally {
       setCreatingPractice(false);
     }
@@ -81,10 +85,10 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
     try {
       const quiz = await quizFromLatestMistakes({ targetCount: 10 });
       if (!quiz) return;
-      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} + Similar` });
-      if (savedId) toast({ title: 'Saved', description: 'Mistakes + similar questions quiz saved to your Library.' });
+      const savedId = await saveQuiz({ ...quiz, title: `${quiz.title} ${t('qg2.suffixSimilar')}` });
+      if (savedId) toast({ title: t('qg2.saved'), description: t('qg2.mistakesSimilarSaved') });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+      toast({ title: t('qg2.failed'), description: e?.message || t('qg2.tryAgain'), variant: 'destructive' });
     } finally {
       setCreatingPractice(false);
     }
@@ -137,42 +141,42 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileQuestion className="h-5 w-5" />
-            Generate Quiz
+            {t('qg2.generateQuiz')}
           </CardTitle>
           <CardDescription>
-            Create a quiz based on any topic or your recent conversations
+            {t('qg2.generateDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as 'topic' | 'file')}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="topic">Enter Topic</TabsTrigger>
-              <TabsTrigger value="file">Upload Material</TabsTrigger>
+              <TabsTrigger value="topic">{t('qg2.enterTopic')}</TabsTrigger>
+              <TabsTrigger value="file">{t('qg2.uploadMaterial')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="topic" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="topic">Quiz Topic</Label>
+                  <Label htmlFor="topic">{t('qg2.quizTopic')}</Label>
                   <Input
                     id="topic"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="e.g., Photosynthesis, World War II, Algebra..."
+                    placeholder={t('qg2.topicPlaceholder')}
                     disabled={isGenerating}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Label htmlFor="difficulty">{t('qg2.difficultyLevel')}</Label>
                   <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
+                      <SelectValue placeholder={t('qg2.selectDifficulty')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
+                      <SelectItem value="easy">{t('qg2.easy')}</SelectItem>
+                      <SelectItem value="medium">{t('qg2.medium')}</SelectItem>
+                      <SelectItem value="hard">{t('qg2.hard')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -180,7 +184,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="questionCount">Number of Questions</Label>
+                  <Label htmlFor="questionCount">{t('qg2.numQuestions')}</Label>
                   <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -196,14 +200,14 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="quizMode">Quiz Mode</Label>
+                  <Label htmlFor="quizMode">{t('qg2.quizMode')}</Label>
                   <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select mode" />
+                      <SelectValue placeholder={t('qg2.selectMode')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="take">Take Quiz</SelectItem>
-                      <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
+                      <SelectItem value="take">{t('qg2.takeQuiz')}</SelectItem>
+                      <SelectItem value="view">{t('qg2.viewAnswers')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -212,7 +216,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
               {conversationHistory && conversationHistory.length > 0 && (
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    💡 This quiz will be based on your recent conversation about this topic
+                    {t('qg2.convNote')}
                   </p>
                 </div>
               )}
@@ -221,7 +225,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
             <TabsContent value="file" className="space-y-4">
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <Label>Upload Material Type</Label>
+                  <Label>{t('qg2.uploadMaterialType')}</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       variant={uploadType === 'study_material' ? "default" : "outline"}
@@ -230,7 +234,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                       className="justify-start"
                     >
                       <BookOpen className="mr-2 h-4 w-4" />
-                      Study Material
+                      {t('qg2.studyMaterial')}
                     </Button>
                     <Button
                       variant={uploadType === 'graded_quiz' ? "default" : "outline"}
@@ -239,14 +243,14 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                       className="justify-start"
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Graded Quiz
+                      {t('qg2.gradedQuiz')}
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>
-                    {uploadType === 'study_material' ? 'Upload Study Material' : 'Upload Graded Quiz/Test'}
+                    {uploadType === 'study_material' ? t('qg2.uploadStudyMaterial') : t('qg2.uploadGradedQuiz')}
                   </Label>
                   <FileUploadZone
                     onFileUpload={handleFileUpload}
@@ -259,29 +263,30 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="gradeLevel">Grade Level</Label>
+                    <Label htmlFor="gradeLevel">{t('qg2.gradeLevel')}</Label>
                     <Select value={gradeLevel} onValueChange={setGradeLevel}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select grade level" />
+                        <SelectValue placeholder={t('qg2.selectGradeLevel')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {['Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','College'].map(gl => (
-                          <SelectItem key={gl} value={gl}>{gl}</SelectItem>
+                        {[6,7,8,9,10,11,12].map(n => (
+                          <SelectItem key={n} value={`Grade ${n}`}>{t('qg2.gradeWord')} {n}</SelectItem>
                         ))}
+                        <SelectItem value="College">{t('qg2.college')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="difficulty">Difficulty Level</Label>
+                    <Label htmlFor="difficulty">{t('qg2.difficultyLevel')}</Label>
                     <Select value={difficulty} onValueChange={(value: 'easy' | 'medium' | 'hard') => setDifficulty(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select difficulty" />
+                        <SelectValue placeholder={t('qg2.selectDifficulty')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="easy">Easy</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="hard">Hard</SelectItem>
+                        <SelectItem value="easy">{t('qg2.easy')}</SelectItem>
+                        <SelectItem value="medium">{t('qg2.medium')}</SelectItem>
+                        <SelectItem value="hard">{t('qg2.hard')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -289,7 +294,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="questionCount">Number of Questions</Label>
+                    <Label htmlFor="questionCount">{t('qg2.numQuestions')}</Label>
                     <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
                       <SelectTrigger>
                         <SelectValue />
@@ -305,14 +310,14 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="quizMode">Quiz Mode</Label>
+                    <Label htmlFor="quizMode">{t('qg2.quizMode')}</Label>
                     <Select value={quizMode} onValueChange={(value: 'take' | 'view') => setQuizMode(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select mode" />
+                        <SelectValue placeholder={t('qg2.selectMode')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="take">Take Quiz</SelectItem>
-                        <SelectItem value="view">View Answers Before Taking Quiz</SelectItem>
+                        <SelectItem value="take">{t('qg2.takeQuiz')}</SelectItem>
+                        <SelectItem value="view">{t('qg2.viewAnswers')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -321,21 +326,21 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                 {uploadedFile && uploadType === 'graded_quiz' && (
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label>Quiz Difficulty Relative to Original</Label>
+                      <Label>{t('qg2.relativeDifficulty')}</Label>
                       <Select value={quizDifficulty} onValueChange={(value: 'easier' | 'same' | 'harder') => setQuizDifficulty(value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select difficulty" />
+                          <SelectValue placeholder={t('qg2.selectDifficulty')} />
                         </SelectTrigger>
                         <SelectContent className="bg-background z-50">
-                          <SelectItem value="easier">Easier</SelectItem>
-                          <SelectItem value="same">Same as Test</SelectItem>
-                          <SelectItem value="harder">Harder</SelectItem>
+                          <SelectItem value="easier">{t('qg2.easier')}</SelectItem>
+                          <SelectItem value="same">{t('qg2.sameAsTest')}</SelectItem>
+                          <SelectItem value="harder">{t('qg2.harder')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Quiz Generation Options</Label>
+                      <Label>{t('qg2.genOptions')}</Label>
                       <Select
                         onValueChange={async (value) => {
                           setCreatingPractice(true);
@@ -354,19 +359,19 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                                   mode: 'extract',
                                   difficultyVariant: quizDifficulty,
                                 });
-                                title = `${uploadedFile.name.split('.')[0]} (Same Questions)`;
+                                title = `${uploadedFile.name.split('.')[0]} ${t('qg2.suffixSame')}`;
                                 break;
                               case 'mistakes_only':
                                 quiz = await quizFromLatestMistakes();
-                                title = `${quiz?.title} (Mistakes Only)`;
+                                title = `${quiz?.title} ${t('qg2.suffixMistakes')}`;
                                 break;
                               case 'questions_like_mistakes':
                                 quiz = await quizFromLatestMistakes({ targetCount: 10 });
-                                title = `${quiz?.title} (Questions Like Mistakes)`;
+                                title = `${quiz?.title} ${t('qg2.suffixQLM')}`;
                                 break;
                               case 'mistakes_similar':
                                 quiz = await quizFromLatestMistakes({ targetCount: 10 });
-                                title = `${quiz?.title} + Similar`;
+                                title = `${quiz?.title} ${t('qg2.suffixSimilar')}`;
                                 break;
                               case 'similar_quiz':
                                 quiz = await extractQuizFromFile(uploadedFile, {
@@ -376,15 +381,15 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                                   mode: 'similar',
                                   difficultyVariant: quizDifficulty,
                                 });
-                                title = `${uploadedFile.name.split('.')[0]} (Similar Quiz)`;
+                                title = `${uploadedFile.name.split('.')[0]} ${t('qg2.suffixSimilarQuiz')}`;
                                 break;
                             }
                             
                             if (!quiz) return;
                             const savedId = await saveQuiz({ ...quiz, title });
-                            if (savedId) toast({ title: 'Saved', description: 'Quiz saved to your Library.' });
+                            if (savedId) toast({ title: t('qg2.saved'), description: t('qg2.quizSaved') });
                           } catch (e: any) {
-                            toast({ title: 'Failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+                            toast({ title: t('qg2.failed'), description: e?.message || t('qg2.tryAgain'), variant: 'destructive' });
                           } finally {
                             setCreatingPractice(false);
                           }
@@ -392,17 +397,17 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                         disabled={creatingPractice || isGenerating}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select quiz generation option" />
+                          <SelectValue placeholder={t('qg2.selectGenOption')} />
                         </SelectTrigger>
                         <SelectContent className="bg-background z-50">
-                          <SelectItem value="same_questions">Same Quiz Questions</SelectItem>
-                          <SelectItem value="mistakes_only">Test From Mistakes</SelectItem>
-                          <SelectItem value="questions_like_mistakes">Questions Like Mistakes</SelectItem>
-                          <SelectItem value="mistakes_similar">Mistakes + Similar</SelectItem>
-                          <SelectItem value="similar_quiz">Similar Quiz</SelectItem>
+                          <SelectItem value="same_questions">{t('qg2.sameQuestions')}</SelectItem>
+                          <SelectItem value="mistakes_only">{t('qg2.testFromMistakes')}</SelectItem>
+                          <SelectItem value="questions_like_mistakes">{t('qg2.questionsLikeMistakes')}</SelectItem>
+                          <SelectItem value="mistakes_similar">{t('qg2.mistakesPlusSimilar')}</SelectItem>
+                          <SelectItem value="similar_quiz">{t('qg2.similarQuiz')}</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">These will generate quizzes and save them to your Quiz Library.</p>
+                      <p className="text-xs text-muted-foreground">{t('qg2.genNote')}</p>
                     </div>
                   </div>
                 )}
@@ -422,12 +427,12 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating Quiz...
+                {t('qg2.generatingQuiz')}
               </>
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Generate Quiz
+                {t('qg2.generateQuiz')}
               </>
             )}
           </Button>
@@ -444,10 +449,10 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
               </div>
               <div className="flex items-center gap-2">
                 <Badge className={getDifficultyColor(generatedQuiz.difficulty)}>
-                  {generatedQuiz.difficulty}
+                  {QG_DIFF_KEY[generatedQuiz.difficulty] ? t(QG_DIFF_KEY[generatedQuiz.difficulty]) : generatedQuiz.difficulty}
                 </Badge>
                 <Badge variant="outline">
-                  {generatedQuiz.questions.length} questions
+                  {generatedQuiz.questions.length} {t('qg2.questionsSuffix')}
                 </Badge>
               </div>
             </div>
@@ -457,7 +462,7 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
               {generatedQuiz.questions.map((question, index) => (
                 <div key={index} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium">Question {index + 1}</h4>
+                    <h4 className="font-medium">{t('qg2.questionPrefix')} {index + 1}</h4>
                     <Badge variant="secondary" className="text-xs">
                       {question.type.replace('_', ' ')}
                     </Badge>
@@ -483,13 +488,13 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
                   
                   {!question.options && (
                     <div className="p-2 bg-green-100 text-green-800 rounded text-sm font-medium mb-3">
-                      Answer: {question.correct_answer}
+                      {t('qg2.answer')} {question.correct_answer}
                     </div>
                   )}
                   
                   {question.explanation && (
                     <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                      <strong>Explanation:</strong> {question.explanation}
+                      <strong>{t('qg2.explanation')}</strong> {question.explanation}
                     </div>
                   )}
                 </div>
@@ -499,15 +504,15 @@ export const QuizGenerator = ({ conversationHistory }: QuizGeneratorProps) => {
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSaveQuiz} className="flex-1">
                 <Save className="mr-2 h-4 w-4" />
-                Save Quiz
+                {t('qg2.saveQuiz')}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setGeneratedQuiz(null)}
                 className="flex-1"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Discard
+                {t('qg2.discard')}
               </Button>
             </div>
           </CardContent>
