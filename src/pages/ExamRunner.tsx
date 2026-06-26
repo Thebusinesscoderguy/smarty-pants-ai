@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { AlertTriangle, Clock, Loader2, Lock, ShieldAlert } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TestQuestion {
   id: string;
@@ -91,6 +92,7 @@ export default function ExamRunner() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
 
   const [test, setTest] = useState<TestRow | null>(null);
   const [questions, setQuestions] = useState<TestQuestion[]>([]);
@@ -163,7 +165,7 @@ export default function ExamRunner() {
     // Optimistically increment locally for immediate UX
     violationsRef.current += 1;
     setViolations(violationsRef.current);
-    setWarning(`Warning: ${type.replace(/_/g, ' ')}. Violations: ${violationsRef.current}/${test?.violation_threshold ?? 3}`);
+    setWarning(`${t('ex.warningPrefix')} ${type.replace(/_/g, ' ')}. ${t('ex.violationsPrefix')} ${violationsRef.current}/${test?.violation_threshold ?? 3}`);
     setTimeout(() => setWarning(null), 4000);
     try {
       const { data, error } = await supabase.functions.invoke('exam-record-violation', {
@@ -316,15 +318,15 @@ export default function ExamRunner() {
         body: { test_id: test.id, tab_id: tabIdRef.current, share_token: shareToken },
       });
       if (error) throw error;
-      if (!data?.session_id) throw new Error(data?.error || 'Could not start exam');
+      if (!data?.session_id) throw new Error(data?.error || t('ex.couldNotStart'));
       setSessionId(data.session_id);
       sessionRef.current = data.session_id;
       setStartTime(new Date(data.start_time).getTime());
       setPhase('in_progress');
       await requestFullscreen();
     } catch (e: any) {
-      const msg = await extractFunctionError(e, 'You may not be assigned to this exam.');
-      toast({ title: 'Cannot start exam', description: msg, variant: 'destructive' });
+      const msg = await extractFunctionError(e, t('ex.notAssigned'));
+      toast({ title: t('ex.cannotStart'), description: msg, variant: 'destructive' });
       setErrorMsg(msg);
       setPhase('denied');
     }
@@ -366,11 +368,11 @@ export default function ExamRunner() {
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-destructive" /> Access denied</CardTitle>
+            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-destructive" /> {t('ex.accessDenied')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">{errorMsg || 'You are not allowed to take this exam.'}</p>
-            <Button onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
+            <p className="text-sm text-muted-foreground">{errorMsg || t('ex.notAllowed')}</p>
+            <Button onClick={() => navigate('/dashboard')}>{t('ex.backToDashboard')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -382,16 +384,16 @@ export default function ExamRunner() {
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-destructive" /> Exam already open</CardTitle>
+            <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-destructive" /> {t('ex.alreadyOpen')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              {errorMsg || 'This exam is already open in another tab or window. Close all other sessions before continuing.'}
+              {errorMsg || t('ex.alreadyOpenDesc')}
             </p>
-            <p className="text-xs text-muted-foreground">For exam integrity, only one active session is allowed at a time.</p>
+            <p className="text-xs text-muted-foreground">{t('ex.oneSession')}</p>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
-              <Button onClick={() => window.location.reload()}>Try again</Button>
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>{t('ex.backToDashboard')}</Button>
+              <Button onClick={() => window.location.reload()}>{t('ex.tryAgain')}</Button>
             </div>
           </CardContent>
         </Card>
@@ -404,7 +406,7 @@ export default function ExamRunner() {
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-2xl w-full">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> {test.title} — Exam Mode</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> {test.title} — {t('ex.examMode')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {test.description && <p className="text-sm text-muted-foreground">{test.description}</p>}
@@ -412,21 +414,21 @@ export default function ExamRunner() {
               <div className="p-3 rounded border border-border bg-muted/50 text-sm whitespace-pre-line">{test.exam_instructions}</div>
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><strong>Time limit:</strong> {test.time_limit_minutes} min</div>
-              <div><strong>Questions:</strong> {questions.length}</div>
-              <div><strong>Backtracking:</strong> {test.allow_backtracking ? 'Allowed' : 'Disabled'}</div>
-              <div><strong>Randomized:</strong> {test.question_randomization && !test.question_order_locked ? 'Yes' : 'No'}</div>
+              <div><strong>{t('ex.timeLimit')}</strong> {test.time_limit_minutes} {t('ex.minSuffix')}</div>
+              <div><strong>{t('ex.questions')}</strong> {questions.length}</div>
+              <div><strong>{t('ex.backtracking')}</strong> {test.allow_backtracking ? t('ex.allowed') : t('ex.disabled')}</div>
+              <div><strong>{t('ex.randomized')}</strong> {test.question_randomization && !test.question_order_locked ? t('ex.yes') : t('ex.no')}</div>
             </div>
             <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400">
-              <p className="font-semibold mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Anti-cheating rules</p>
+              <p className="font-semibold mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {t('ex.antiCheatTitle')}</p>
               <ul className="list-disc list-inside space-y-0.5">
-                <li>Stay in fullscreen — leaving counts as a violation.</li>
-                <li>Do not switch tabs or windows.</li>
-                <li>Copy, paste, and right-click are disabled.</li>
-                <li>{test.violation_threshold} violations will {test.violation_action === 'auto_submit' ? 'auto-submit your exam' : 'flag your submission'}.</li>
+                <li>{t('ex.rule1')}</li>
+                <li>{t('ex.rule2')}</li>
+                <li>{t('ex.rule3')}</li>
+                <li>{test.violation_threshold} {t('ex.violationsWill')} {test.violation_action === 'auto_submit' ? t('ex.autoSubmit') : t('ex.flagSubmission')}.</li>
               </ul>
             </div>
-            <Button onClick={handleStart} className="w-full">Start exam</Button>
+            <Button onClick={handleStart} className="w-full">{t('ex.startExam')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -438,7 +440,7 @@ export default function ExamRunner() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-sm text-muted-foreground">Submitting your exam…</p>
+          <p className="text-sm text-muted-foreground">{t('ex.submitting')}</p>
         </div>
       </div>
     );
@@ -449,14 +451,14 @@ export default function ExamRunner() {
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>Exam submitted</CardTitle>
+            <CardTitle>{t('ex.examSubmitted')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">Your responses have been recorded. Your teacher will review them.</p>
+            <p className="text-sm text-muted-foreground">{t('ex.recordedDesc')}</p>
             {violations > 0 && (
-              <p className="text-xs text-amber-600">Recorded violations: {violations}</p>
+              <p className="text-xs text-amber-600">{t('ex.recordedViolationsPre')} {violations}</p>
             )}
-            <Button onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
+            <Button onClick={() => navigate('/dashboard')}>{t('ex.backToDashboard')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -475,7 +477,7 @@ export default function ExamRunner() {
         <div className="flex items-center gap-3">
           <Lock className="h-4 w-4 text-primary" />
           <span className="font-semibold truncate max-w-[40vw]">{test?.title}</span>
-          <Badge variant="outline">Exam Mode</Badge>
+          <Badge variant="outline">{t('ex.examMode')}</Badge>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant={violations > 0 ? 'destructive' : 'secondary'} className="gap-1">
@@ -506,8 +508,8 @@ export default function ExamRunner() {
       <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
         <div>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-            <span>Question {index + 1} of {questions.length}</span>
-            <span>{Object.keys(answers).length} answered</span>
+            <span>{t('ex.question')} {index + 1} {t('ex.of')} {questions.length}</span>
+            <span>{Object.keys(answers).length} {t('ex.answeredSuffix')}</span>
           </div>
           <Progress value={((index + 1) / questions.length) * 100} />
         </div>
@@ -520,7 +522,7 @@ export default function ExamRunner() {
             <CardContent>
               {q.question_type === 'short_answer' ? (
                 <div className="space-y-2">
-                  <Label htmlFor="ans">Your answer</Label>
+                  <Label htmlFor="ans">{t('ex.yourAnswer')}</Label>
                   <Input
                     id="ans"
                     value={answers[q.id] ?? ''}
@@ -553,12 +555,12 @@ export default function ExamRunner() {
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
             disabled={index === 0 || !test?.allow_backtracking}
           >
-            Previous
+            {t('ex.previous')}
           </Button>
           {index < questions.length - 1 ? (
-            <Button onClick={() => setIndex((i) => i + 1)}>Next</Button>
+            <Button onClick={() => setIndex((i) => i + 1)}>{t('ex.next')}</Button>
           ) : (
-            <Button onClick={() => setConfirmSubmit(true)}>Submit exam</Button>
+            <Button onClick={() => setConfirmSubmit(true)}>{t('ex.submitExam')}</Button>
           )}
         </div>
       </div>
@@ -566,15 +568,15 @@ export default function ExamRunner() {
       <AlertDialog open={confirmSubmit} onOpenChange={setConfirmSubmit}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Submit your exam?</AlertDialogTitle>
+            <AlertDialogTitle>{t('ex.submitConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              You answered {Object.keys(answers).length} of {questions.length} questions.
-              Once submitted you cannot make changes.
+              {t('ex.youAnswered')} {Object.keys(answers).length} {t('ex.of')} {questions.length} {t('ex.questionsWord')}.
+              {' '}{t('ex.onceSubmitted')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep working</AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleSubmit(false)}>Submit</AlertDialogAction>
+            <AlertDialogCancel>{t('ex.keepWorking')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleSubmit(false)}>{t('ex.submit')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
