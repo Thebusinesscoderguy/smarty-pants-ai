@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Copy, Users, GraduationCap, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Users, GraduationCap, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
 
 interface Props {
   schoolName: string;
@@ -18,15 +16,6 @@ interface Props {
 export const LiveStep = ({ schoolName, studentsImported, teachersInvited, frameworkChosen, onFinish }: Props) => {
   const navigate = useNavigate();
   const [finishing, setFinishing] = useState(false);
-
-  const baseUrl = window.location.origin;
-  const studentInviteUrl = `${baseUrl}/auth?role=student`;
-  const teacherInviteUrl = `${baseUrl}/auth?role=teacher`;
-
-  const copy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: `${label} link copied!` });
-  };
 
   const handleFinish = async (target: string) => {
     setFinishing(true);
@@ -69,52 +58,24 @@ export const LiveStep = ({ schoolName, studentsImported, teachersInvited, framew
         <div className="flex items-start gap-3 mb-4">
           <Sparkles className="h-5 w-5 text-primary mt-0.5" />
           <div>
-            <h4 className="font-semibold">Share your invite links</h4>
+            <h4 className="font-semibold">How people join your school</h4>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Send these to anyone who didn't get an automatic invitation email.
+              You provision everyone from the School Admin dashboard — there are no public sign-up links. Everyone logs in at <span className="font-mono">/auth</span> with their own email and password.
             </p>
           </div>
         </div>
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
-              <Users className="h-3 w-3" /> Student sign-up link
-            </label>
-            <div className="flex gap-2">
-              <Input value={studentInviteUrl} readOnly className="font-mono text-xs" />
-              <Button variant="outline" size="sm" onClick={() => copy(studentInviteUrl, 'Student')}>
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
-              <GraduationCap className="h-3 w-3" /> Teacher sign-up link
-            </label>
-            <div className="flex gap-2">
-              <Input value={teacherInviteUrl} readOnly className="font-mono text-xs" />
-              <Button variant="outline" size="sm" onClick={() => copy(teacherInviteUrl, 'Teacher')}>
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-5">
-        <h4 className="font-semibold mb-3">How to invite more people later</h4>
         <ol className="space-y-2 text-sm text-muted-foreground">
           <li className="flex gap-3">
             <Badge variant="outline" className="shrink-0">1</Badge>
-            <span><strong className="text-foreground">Students:</strong> School Admin → Students → "Invite student" or "Bulk import CSV"</span>
+            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-primary" /><strong className="text-foreground">Students:</strong> School Admin → Students → "Add Student" or "Bulk Student Import" (accounts are created instantly with credentials you share).</span>
           </li>
           <li className="flex gap-3">
             <Badge variant="outline" className="shrink-0">2</Badge>
-            <span><strong className="text-foreground">Teachers:</strong> School Admin → Teachers → "Add Teacher", then assign subjects + sections</span>
+            <span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5 text-primary" /><strong className="text-foreground">Teachers:</strong> School Admin → Teachers → "Invite Teacher" (they get a link to set their own password).</span>
           </li>
           <li className="flex gap-3">
             <Badge variant="outline" className="shrink-0">3</Badge>
-            <span><strong className="text-foreground">Announce it:</strong> Post a welcome message in the News tab so parents and students know what to expect</span>
+            <span><strong className="text-foreground">Parents:</strong> School Admin → Parents &amp; Invites → "Invite Parent", and link them to their child(ren).</span>
           </li>
         </ol>
       </Card>

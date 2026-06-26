@@ -1,51 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Mail, Clock, CheckCircle, Trash2, Loader2, ChevronRight, GraduationCap, Users, Camera } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { UserPlus, Loader2, ChevronRight, GraduationCap, Users, Camera, KeyRound, Copy, X } from 'lucide-react';
 import { BulkStudentImport } from '@/components/admin/BulkStudentImport';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-interface StudentInvitation {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  invitation_code: string;
-  expires_at: string;
-  used: boolean;
-  used_at: string | null;
-  created_at: string;
-  status?: 'pending' | 'sent' | 'accepted' | 'expired' | null;
-  sent_at?: string | null;
-}
-
-// Derive an effective status for display, falling back to legacy fields
-const getEffectiveStatus = (inv: StudentInvitation): 'pending' | 'sent' | 'accepted' | 'expired' => {
-  if (inv.used) return 'accepted';
-  if (inv.status === 'accepted') return 'accepted';
-  if (new Date(inv.expires_at).getTime() < Date.now()) return 'expired';
-  if (inv.status === 'sent' || inv.sent_at) return 'sent';
-  return inv.status === 'pending' ? 'pending' : 'sent';
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending',
-  sent: 'Email sent',
-  accepted: 'Accepted — has access',
-  expired: 'Expired',
-};
-
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  pending: 'outline',
-  sent: 'secondary',
-  accepted: 'default',
-  expired: 'destructive',
-};
 
 interface SectionWithStudents {
   id: string;
@@ -54,20 +19,30 @@ interface SectionWithStudents {
   students: { id: string; student_id: string; display_name: string; avatar_url: string | null }[];
 }
 
+interface CreatedCredential {
+  email: string;
+  password: string;
+  generated: boolean;
+}
+
+// Admin-provisioned student creation (direct, server-side, pre-confirmed accounts).
+// The legacy invitation-link flow (student_invitations) is intentionally no longer
+// surfaced here; students now log in immediately with admin-provided credentials.
 export const StudentManagement = () => {
-  const [invitations, setInvitations] = useState<StudentInvitation[]>([]);
   const [sections, setSections] = useState<SectionWithStudents[]>([]);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInviting, setIsInviting] = useState(false);
-  const [newStudentEmail, setNewStudentEmail] = useState('');
-  const [newStudentFirstName, setNewStudentFirstName] = useState('');
-  const [newStudentLastName, setNewStudentLastName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [password, setPassword] = useState('');
+  const [lastCreated, setLastCreated] = useState<CreatedCredential | null>(null);
   const { user } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
-    fetchInvitations();
+    fetchData();
   }, [user]);
 
   const getSchoolAccount = async () => {
@@ -89,11 +64,11 @@ export const StudentManagement = () => {
           school_name: 'My School',
           plan_type: 'school',
           student_limit: 1000,
-          is_active: true
+          is_active: true,
         })
         .select()
         .single();
-      
+
       if (createError) throw new Error('Failed to create school account');
       return newSchool;
     }
@@ -101,27 +76,12 @@ export const StudentManagement = () => {
     return schoolData;
   };
 
-  const fetchInvitations = async () => {
+  const fetchData = async () => {
     if (!user) return;
-
     try {
       setIsLoading(true);
       const schoolData = await getSchoolAccount();
 
-      // Fetch invitations
-      const { data: invitationsData, error: invitationsError } = await supabase
-        .from('student_invitations')
-        .select('*')
-        .eq('school_id', schoolData.id)
-        .order('created_at', { ascending: false });
-
-      if (invitationsError) {
-        toast({ title: t('common.error'), description: t('adminStudentManagement.errorLoadingInvitations'), variant: "destructive" });
-        return;
-      }
-      setInvitations((invitationsData || []) as unknown as StudentInvitation[]);
-
-      // Fetch sections with students
       const { data: sectionData } = await supabase
         .from('school_sections')
         .select('*')
@@ -133,121 +93,93 @@ export const StudentManagement = () => {
         const { data: assignments } = await supabase
           .from('section_students')
           .select('id, section_id, student_id')
-          .in('section_id', sectionData.map(s => s.id));
+          .in('section_id', sectionData.map((s) => s.id));
 
-        const studentIds = [...new Set((assignments || []).map(a => a.student_id))];
-        let profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
+        const studentIds = [...new Set((assignments || []).map((a) => a.student_id))];
+        const profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
         if (studentIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
             .select('id, display_name, avatar_url')
             .in('id', studentIds);
-          (profiles || []).forEach(p => {
+          (profiles || []).forEach((p) => {
             profileMap[p.id] = { name: p.display_name || 'Unknown', avatar_url: (p as any).avatar_url || null };
           });
         }
 
-        const enriched: SectionWithStudents[] = sectionData.map(sec => ({
+        const enriched: SectionWithStudents[] = sectionData.map((sec) => ({
           id: sec.id,
           grade_level: sec.grade_level,
           section_name: sec.section_name,
           students: (assignments || [])
-            .filter(a => a.section_id === sec.id)
-            .map(a => ({
+            .filter((a) => a.section_id === sec.id)
+            .map((a) => ({
               id: a.id,
               student_id: a.student_id,
               display_name: profileMap[a.student_id]?.name || 'Unknown',
               avatar_url: profileMap[a.student_id]?.avatar_url || null,
-            }))
+            })),
         }));
         setSections(enriched);
       } else {
         setSections([]);
       }
     } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message || t('adminStudentManagement.errorLoadingInvitations'), variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message || 'Failed to load students', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const inviteStudent = async () => {
-    if (!newStudentEmail.trim()) {
-      toast({ title: t('common.error'), description: t('adminStudentManagement.errorEmail'), variant: "destructive" });
+  const createStudent = async () => {
+    if (!email.trim()) {
+      toast({ title: t('common.error'), description: 'Email is required', variant: 'destructive' });
       return;
     }
-    if (!newStudentFirstName.trim()) {
-      toast({ title: t('common.error'), description: t('adminStudentManagement.errorFirstName'), variant: "destructive" });
+    if (password && password.length < 8) {
+      toast({ title: t('common.error'), description: 'Password must be at least 8 characters', variant: 'destructive' });
       return;
     }
 
     try {
-      setIsInviting(true);
-      const schoolData = await getSchoolAccount();
-
-      const { data: invitationData, error: invitationError } = await supabase
-        .from('student_invitations')
-        .insert({
-          school_id: schoolData.id,
-          invited_by_id: user?.id,
-          email: newStudentEmail.trim(),
-          first_name: newStudentFirstName.trim() || null,
-          last_name: newStudentLastName.trim() || null,
-        })
-        .select()
-        .single();
-
-      if (invitationError) throw new Error(`Failed to create invitation: ${invitationError.message}`);
-
-      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+      setIsCreating(true);
+      const { data, error } = await supabase.functions.invoke('admin-create-student', {
         body: {
-          studentEmail: newStudentEmail.trim(),
-          studentName: `${newStudentFirstName.trim()} ${newStudentLastName.trim()}`.trim(),
-          schoolName: schoolData.school_name,
-          invitationCode: invitationData.invitation_code,
+          email: email.trim().toLowerCase(),
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          password: password.trim() || undefined,
         },
       });
-
-      if (emailError) {
-        console.error('Email sending error:', emailError);
-        toast({
-          title: 'Invitation Created',
-          description: `Invitation created but email could not be sent. The student can still use the link manually.`,
-          variant: 'default',
-        });
-      } else if (emailResult?.success) {
-        toast({
-          title: 'Invitation Sent!',
-          description: `Registration email sent to ${newStudentEmail}`,
-        });
-      } else {
-        toast({
-          title: 'Invitation Created',
-          description: `Invitation created but email delivery may have failed. Error: ${emailResult?.error || 'Unknown'}`,
-          variant: 'default',
-        });
+      const res = data as { ok?: boolean; email?: string; password?: string; generated?: boolean; error?: string; code?: string } | null;
+      if (error && !res?.error) throw error;
+      if (res?.code === 'email_exists') {
+        toast({ title: 'Already exists', description: 'This email already has an account.', variant: 'destructive' });
+        return;
+      }
+      if (!res?.ok) {
+        toast({ title: 'Could not create student', description: res?.error || 'Please try again.', variant: 'destructive' });
+        return;
       }
 
-      setNewStudentEmail('');
-      setNewStudentFirstName('');
-      setNewStudentLastName('');
-      fetchInvitations();
+      setLastCreated({ email: res.email || email.trim(), password: res.password || '', generated: !!res.generated });
+      toast({ title: 'Student created', description: `${res.email} can now log in.` });
+      setEmail('');
+      setFirstName('');
+      setLastName('');
+      setPassword('');
+      fetchData();
     } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message || t('adminStudentManagement.errorSendingInvitation'), variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message || 'Failed to create student', variant: 'destructive' });
     } finally {
-      setIsInviting(false);
+      setIsCreating(false);
     }
   };
 
-  const deleteInvitation = async (invitationId: string) => {
-    try {
-      const { error } = await supabase.from('student_invitations').delete().eq('id', invitationId);
-      if (error) throw error;
-      toast({ title: t('adminStudentManagement.invitationDeleted'), description: t('adminStudentManagement.invitationDeletedDesc') });
-      fetchInvitations();
-    } catch (error: any) {
-      toast({ title: t('common.error'), description: t('adminStudentManagement.errorDeletingInvitation'), variant: "destructive" });
-    }
+  const copyCredentials = () => {
+    if (!lastCreated) return;
+    navigator.clipboard?.writeText(`${lastCreated.email} / ${lastCreated.password}`);
+    toast({ title: 'Copied', description: 'Credentials copied to clipboard.' });
   };
 
   const handleAvatarUpload = async (studentId: string, file: File) => {
@@ -258,24 +190,19 @@ export const StudentManagement = () => {
       const { error: uploadError } = await supabase.storage
         .from('student-avatars')
         .upload(filePath, file, { upsert: true });
-
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('student-avatars')
-        .getPublicUrl(filePath);
-
+      const { data: urlData } = supabase.storage.from('student-avatars').getPublicUrl(filePath);
       const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: avatarUrl } as any)
         .eq('id', studentId);
-
       if (updateError) throw updateError;
 
       toast({ title: 'Photo Updated', description: 'Student photo has been uploaded successfully.' });
-      fetchInvitations();
+      fetchData();
     } catch (error: any) {
       toast({ title: 'Upload Failed', description: error.message, variant: 'destructive' });
     }
@@ -289,7 +216,9 @@ export const StudentManagement = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground">{t('adminStudentManagement.title')}</h2>
-        <p className="text-muted-foreground">Invite students by email — they'll receive a registration link automatically</p>
+        <p className="text-muted-foreground">
+          Create student accounts directly — they can log in immediately with their email and password.
+        </p>
       </div>
 
       {/* Students by Section */}
@@ -302,7 +231,7 @@ export const StudentManagement = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {sections.map(section => {
+            {sections.map((section) => {
               const label = `${section.grade_level}${section.section_name ? ` ${section.section_name}` : ''}`;
               const isExpanded = expandedSection === section.id;
               return (
@@ -364,125 +293,67 @@ export const StudentManagement = () => {
         </Card>
       )}
 
-      {/* Invite Student Form */}
+      {/* Create Student Form */}
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <UserPlus className="h-5 w-5 text-primary" />
-            {t('adminStudentManagement.inviteStudent')}
+            Add Student
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              placeholder={t('adminStudentManagement.emailPlaceholder')}
-              type="email"
-              value={newStudentEmail}
-              onChange={(e) => setNewStudentEmail(e.target.value)}
-              required
-            />
-            <Input
-              placeholder={t('adminStudentManagement.firstNamePlaceholder')}
-              value={newStudentFirstName}
-              onChange={(e) => setNewStudentFirstName(e.target.value)}
-              required
-            />
-            <Input
-              placeholder={t('adminStudentManagement.lastNamePlaceholder')}
-              value={newStudentLastName}
-              onChange={(e) => setNewStudentLastName(e.target.value)}
-            />
+            <Input placeholder="student@school.edu" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <Input placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           </div>
-          <Button 
-            onClick={inviteStudent}
-            disabled={isInviting || !newStudentEmail.trim() || !newStudentFirstName.trim()}
-          >
-            {isInviting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Sending Email...
-              </>
-            ) : (
-              <>
-                <Mail className="h-4 w-4 mr-2" />
-                Send Invitation Email
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Invitations List */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground">{t('adminStudentManagement.invitationsSectionTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {invitations.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">{t('adminStudentManagement.noInvitations')}</p>
-          ) : (
-            <div className="space-y-3">
-              {invitations.map((invitation) => {
-                const effStatus = getEffectiveStatus(invitation);
-                const isAccepted = effStatus === 'accepted';
-                return (
-                <div
-                  key={invitation.id}
-                  className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      {isAccepted ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <Mail className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {invitation.first_name || invitation.last_name
-                          ? `${invitation.first_name || ''} ${invitation.last_name || ''}`.trim()
-                          : invitation.email}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{invitation.email}</p>
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
-                        <span className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Created {new Date(invitation.created_at).toLocaleDateString()}
-                        </span>
-                        {invitation.sent_at && effStatus !== 'pending' && (
-                          <span>Sent {new Date(invitation.sent_at).toLocaleDateString()}</span>
-                        )}
-                        {isAccepted && invitation.used_at && (
-                          <span className="text-green-600">
-                            Accepted {new Date(invitation.used_at).toLocaleDateString()}
-                          </span>
-                        )}
-                        {!isAccepted && effStatus !== 'expired' && (
-                          <span>
-                            Expires {new Date(invitation.expires_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={STATUS_VARIANT[effStatus]}>
-                      {STATUS_LABEL[effStatus]}
-                    </Badge>
-                    {!isAccepted && (
-                      <Button variant="destructive" size="sm" onClick={() => deleteInvitation(invitation.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                );
-              })}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <Label className="text-xs text-muted-foreground">Password (optional — leave blank to auto-generate)</Label>
+              <Input
+                placeholder="Auto-generated if blank"
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="off"
+              />
             </div>
+          </div>
+          <Button onClick={createStudent} disabled={isCreating || !email.trim()}>
+            {isCreating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
+            {isCreating ? 'Creating...' : 'Create Student'}
+          </Button>
+
+          {lastCreated && (
+            <Alert className="relative">
+              <KeyRound className="h-4 w-4" />
+              <button
+                className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+                onClick={() => setLastCreated(null)}
+                aria-label="Dismiss"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <AlertDescription>
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Account created — share these credentials:</p>
+                  <p className="font-mono text-sm">
+                    {lastCreated.email}<br />
+                    {lastCreated.password}
+                  </p>
+                  {lastCreated.generated && (
+                    <p className="text-xs text-muted-foreground">Auto-generated password. This is the only time it is shown.</p>
+                  )}
+                  <Button size="sm" variant="outline" className="mt-2" onClick={copyCredentials}>
+                    <Copy className="h-3 w-3 mr-1" /> Copy
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
+
       {/* Bulk Import */}
       <BulkStudentImport />
     </div>

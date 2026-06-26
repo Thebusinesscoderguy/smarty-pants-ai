@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { School, Users } from 'lucide-react';
+import { School } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,8 +10,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { UserRoleSelector } from '@/components/onboarding/UserRoleSelector';
-import { AddChildrenFirst } from '@/components/onboarding/AddChildrenFirst';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -35,10 +33,11 @@ const Auth = () => {
       ? rawRedirect
       : null;
   const [activeTab, setActiveTab] = useState(isSignup ? 'signup' : 'signin');
-  const [onboardingStep, setOnboardingStep] = useState<'auth' | 'account-type' | 'add-children' | 'role-selector'>('auth');
-  const [checkingChildren, setCheckingChildren] = useState(false);
+  // Post-auth routing state. Roles come only from admin provisioning + invites;
+  // there is no self-select chooser anymore. Self-signup at /auth creates a
+  // school admin; everyone else is provisioned and simply logs in.
+  const [routing, setRouting] = useState(false);
   const [settingUpSchool, setSettingUpSchool] = useState(false);
-  const [signupAccountType, setSignupAccountType] = useState<'school' | 'parent'>('parent');
 
   const safeT = (key: string, fallback: string) => {
     const value = t(key);
@@ -46,90 +45,66 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    if (user && onboardingStep === 'auth') {
-      // Came here from a shared link (e.g. a quiz): skip onboarding routing
-      // and send them straight to where they were headed.
+    if (user) {
+      // Came here from a shared link (e.g. a quiz): skip routing and send them
+      // straight to where they were headed.
       if (redirectTo) {
         navigate(redirectTo, { replace: true });
         return;
       }
-      checkExistingAccountType();
+      routeAfterAuth();
     }
-  }, [user, onboardingStep, redirectTo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, redirectTo]);
 
-  const checkExistingAccountType = async () => {
+  // Route a signed-in user to the right place based on server-backed role.
+  // A brand-new self-signup carries account_type='school' in its metadata and is
+  // provisioned as a school admin; everyone else (provisioned students, invited
+  // teachers/parents) is routed by their DB role.
+  const routeAfterAuth = async () => {
     if (!user) return;
-    
-    setCheckingChildren(true);
+
+    setRouting(true);
     try {
-      // Check if user is already a school admin
+      // Already a school admin?
       const { data: schoolData } = await supabase
         .from('school_accounts')
         .select('id')
         .eq('admin_user_id', user.id)
         .maybeSingle();
-
       if (schoolData) {
-        // Already a school admin, go straight to school admin
         navigate('/school-admin');
         return;
       }
 
-      // Read saved account type from profile
+      // New self-signup intending to create a school.
+      if ((user.user_metadata as any)?.account_type === 'school') {
+        await setupSchoolAdmin();
+        return;
+      }
+
+      // Route by DB role (assigned via invites / admin provisioning). Fall back
+      // to the legacy profiles.role so pre-existing accounts keep working.
+      const { data: roleRows } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .maybeSingle();
-      const savedRole = (profile?.role as string | undefined) ?? null;
+      const roles = (roleRows || []).map((r) => r.role as string);
+      if (profile?.role) roles.push(profile.role as string);
 
-      // Check if user already has children (existing parent)
-      const { data: children, error } = await supabase
-        .from('children')
-        .select('id')
-        .eq('parent_id', user.id);
-
-      if (error) throw error;
-
-      if (children && children.length > 0) {
-        // Existing parent with children, go to role selector
-        setOnboardingStep('role-selector');
-      } else if (savedRole === 'teacher') {
-        // Returning school admin without a school_accounts row — provision it
-        await setupSchoolAdmin();
-      } else if (savedRole === 'parent') {
-        // Returning parent without children yet — continue add-children flow
-        setOnboardingStep('add-children');
-      } else if (activeTab === 'signup' && signupAccountType === 'school') {
-        await setupSchoolAdmin();
-      } else if (activeTab === 'signup' && signupAccountType === 'parent') {
-        await supabase
-          .from('profiles')
-          .update({ role: 'parent' as any, updated_at: new Date().toISOString() })
-          .eq('id', user.id);
-        setOnboardingStep('add-children');
-      } else {
-        setOnboardingStep('account-type');
-      }
+      if (roles.includes('teacher')) navigate('/school-admin');
+      else if (roles.includes('parent')) navigate('/monitoring');
+      else navigate('/quiz-generator'); // student (default)
     } catch (error) {
-      console.error('Error checking account type:', error);
-      setOnboardingStep('account-type');
+      console.error('Error routing after auth:', error);
+      navigate('/quiz-generator');
     } finally {
-      setCheckingChildren(false);
-    }
-  };
-
-  const handleAccountTypeSelected = async (type: 'school' | 'parent') => {
-    if (type === 'school') {
-      await setupSchoolAdmin();
-    } else {
-      if (user) {
-        await supabase
-          .from('profiles')
-          .update({ role: 'parent' as any, updated_at: new Date().toISOString() })
-          .eq('id', user.id);
-      }
-      setOnboardingStep('add-children');
+      setRouting(false);
     }
   };
 
@@ -167,21 +142,6 @@ const Auth = () => {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setSettingUpSchool(false);
-    }
-  };
-
-  const handleChildrenAdded = () => {
-    setOnboardingStep('role-selector');
-  };
-
-  const handleRoleSelected = (role: 'parent' | 'child', childId?: string) => {
-    console.log('Auth: handleRoleSelected called', { role, childId });
-    if (role === 'parent') {
-      console.log('Auth: Navigating to monitoring dashboard');
-      navigate('/monitoring');
-    } else {
-      console.log('Auth: Navigating to quiz generator');
-      navigate('/quiz-generator');
     }
   };
 
@@ -236,6 +196,11 @@ const Auth = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
+          // Self-signup at /auth provisions a SCHOOL ADMIN. The metadata survives
+          // email confirmation so routeAfterAuth can finish provisioning the
+          // school on first sign-in. (Teachers/parents never sign up here — they
+          // arrive via invite; students are admin-provisioned.)
+          data: { account_type: 'school' },
         }
       });
 
@@ -339,146 +304,11 @@ const Auth = () => {
     }
   };
 
-  // Show loading while checking account type
-  if (user && checkingChildren) {
+  // Show loading while routing a signed-in user to their dashboard.
+  if (user && (routing || settingUpSchool)) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Show account type selector (School vs Parent)
-  if (user && onboardingStep === 'account-type') {
-    return (
-      <div className="min-h-screen bg-background text-foreground">
-        <Header />
-        <div className="min-h-[80vh] flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl">
-            <div className="text-center mb-10">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-                {safeT('auth.accountType.title', 'How will you use Teachly?')}
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                {safeT('auth.accountType.subtitle', 'Choose your account type to get started')}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* School / Institution */}
-              <Card
-                className="bg-card border-border hover:shadow-xl hover:border-primary/40 transition-all duration-300 cursor-pointer group"
-                onClick={() => handleAccountTypeSelected('school')}
-              >
-                <CardHeader className="text-center pb-2">
-                  <div className="mx-auto mb-4 p-5 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                    <School className="h-10 w-10 text-primary" />
-                  </div>
-                  <CardTitle className="text-foreground text-xl">
-                    {safeT('auth.accountType.school', 'School / Institution')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.schoolFeature1', 'Manage multiple students & classes')}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.schoolFeature2', 'Create custom curricula')}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.schoolFeature3', 'School-wide analytics & reporting')}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.schoolFeature4', 'Student invitations & enrollment')}
-                    </li>
-                  </ul>
-                  <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11"
-                    disabled={settingUpSchool}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAccountTypeSelected('school');
-                    }}
-                  >
-                    {settingUpSchool ? 'Setting up...' : safeT('auth.accountType.continueSchool', 'Continue as School')}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Parent / Student */}
-              <Card
-                className="bg-card border-border hover:shadow-xl hover:border-primary/40 transition-all duration-300 cursor-pointer group"
-                onClick={() => handleAccountTypeSelected('parent')}
-              >
-                <CardHeader className="text-center pb-2">
-                  <div className="mx-auto mb-4 p-5 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                    <Users className="h-10 w-10 text-primary" />
-                  </div>
-                  <CardTitle className="text-foreground text-xl">
-                    {safeT('auth.accountType.parent', 'Parent / Student')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.parentFeature1', 'Personal learning journey')}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.parentFeature2', 'AI-powered study plans & quizzes')}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.parentFeature3', 'Parent monitoring dashboard')}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      {safeT('auth.accountType.parentFeature4', 'Gamified quests & achievements')}
-                    </li>
-                  </ul>
-                  <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAccountTypeSelected('parent');
-                    }}
-                  >
-                    {safeT('auth.accountType.continueParent', 'Continue as Parent')}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Show add children step
-  if (user && onboardingStep === 'add-children') {
-    return (
-      <div className="min-h-screen bg-background text-foreground">
-        <Header />
-        <AddChildrenFirst onComplete={handleChildrenAdded} />
-        <Footer />
-      </div>
-    );
-  }
-
-  // Show role selector (parent vs child)
-  if (user && onboardingStep === 'role-selector') {
-    return (
-      <div className="min-h-screen bg-background text-foreground">
-        <Header />
-        <UserRoleSelector onRoleSelected={handleRoleSelected} />
-        <Footer />
       </div>
     );
   }
@@ -704,36 +534,11 @@ const Auth = () => {
               
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      {safeT('auth.accountType.label', 'I am signing up as')}
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setSignupAccountType('parent')}
-                        className={`flex flex-col items-center gap-1 rounded-lg border p-3 text-sm font-medium transition-all ${
-                          signupAccountType === 'parent'
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-muted/20 text-foreground hover:border-primary/40'
-                        }`}
-                      >
-                        <Users className="h-5 w-5" />
-                        {safeT('auth.accountType.parentShort', 'Student / Parent')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSignupAccountType('school')}
-                        className={`flex flex-col items-center gap-1 rounded-lg border p-3 text-sm font-medium transition-all ${
-                          signupAccountType === 'school'
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-muted/20 text-foreground hover:border-primary/40'
-                        }`}
-                      >
-                        <School className="h-5 w-5" />
-                        {safeT('auth.accountType.schoolShort', 'School')}
-                      </button>
-                    </div>
+                  <div className="rounded-lg border border-border bg-muted/20 p-3 flex items-start gap-2">
+                    <School className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      {safeT('auth.signup.schoolOnly', 'Create a school account. Teachers and parents join by invitation, and students are added by your school — they all just log in here.')}
+                    </p>
                   </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-muted-foreground">{t('auth.email')}</label>

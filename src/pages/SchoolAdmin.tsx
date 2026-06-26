@@ -12,6 +12,7 @@ import { AssessmentManagement } from '@/components/admin/AssessmentManagement';
 import { ExamMonitoring } from '@/components/admin/ExamMonitoring';
 import { SubjectManagement } from '@/components/admin/SubjectManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
+import { InviteManagement } from '@/components/admin/InviteManagement';
 import { TeacherLessonPlanGenerator } from '@/components/admin/TeacherLessonPlanGenerator';
 import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
@@ -34,7 +35,7 @@ import {
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
-  ClipboardCheck, Target, CalendarDays,
+  ClipboardCheck, Target, CalendarDays, Mail,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
@@ -49,7 +50,7 @@ import { OnboardingChecklistWidget } from '@/components/school-onboarding/Onboar
 type TabValue =
   | 'overview'
   // People
-  | 'students' | 'sections' | 'teachers' | 'at-risk' | 'student-analytics'
+  | 'students' | 'sections' | 'teachers' | 'invites' | 'at-risk' | 'student-analytics'
   // Academics
   | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects'
   | 'lesson-plans' | 'homework' | 'assignments'
@@ -166,6 +167,7 @@ const SchoolAdmin = () => {
         { value: 'students', label: t('schoolAdmin.tabs.students'), icon: Users },
         { value: 'sections', label: 'Classes', icon: FolderTree },
         { value: 'teachers', label: 'Teachers', icon: GraduationCap },
+        { value: 'invites', label: 'Parents & Invites', icon: Mail },
         { value: 'at-risk', label: 'At-Risk Students', icon: AlertTriangle },
         // student-analytics hidden from nav: learning_analytics pipeline is unpopulated (Option C). Route/component retained.
         { value: 'behavior', label: 'Behavior', icon: Shield },
@@ -297,6 +299,7 @@ const SchoolAdmin = () => {
               <TabsContent value="overview"><SchoolPulse /></TabsContent>
               <TabsContent value="students"><StudentManagement /></TabsContent>
               <TabsContent value="teachers"><TeacherManagement /></TabsContent>
+              <TabsContent value="invites"><InviteManagement /></TabsContent>
               <TabsContent value="subjects"><SubjectManagement /></TabsContent>
               <TabsContent value="sections"><SectionManagement /></TabsContent>
               <TabsContent value="gradebook"><GradeBook /></TabsContent>

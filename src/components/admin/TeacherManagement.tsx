@@ -116,19 +116,37 @@ export const TeacherManagement = () => {
     }
     setIsSaving(true);
     try {
-      const { error } = await supabase.from('school_teachers').insert({
-        school_id: schoolId,
-        email: newTeacher.email.trim().toLowerCase(),
-        first_name: newTeacher.first_name.trim() || null,
-        last_name: newTeacher.last_name.trim() || null,
+      // Invite via the server: create-invite registers the school_teachers row
+      // AND emails a single-use set-password link. The teacher gets an actual
+      // account with the teacher role baked in on acceptance.
+      const { data, error } = await supabase.functions.invoke('create-invite', {
+        body: {
+          email: newTeacher.email.trim().toLowerCase(),
+          role: 'teacher',
+          first_name: newTeacher.first_name.trim(),
+          last_name: newTeacher.last_name.trim(),
+        },
       });
-      if (error) throw error;
-      toast({ title: 'Teacher added', description: `${newTeacher.email} has been added.` });
+      const res = data as { ok?: boolean; error?: string; code?: string } | null;
+      if (error && !res?.error) throw error;
+      if (res?.code === 'email_exists') {
+        toast({
+          title: 'Already has an account',
+          description: 'This email already has a Teachly account. Ask them to log in at /auth.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (!res?.ok) {
+        toast({ title: 'Could not invite teacher', description: res?.error || 'Please try again.', variant: 'destructive' });
+        return;
+      }
+      toast({ title: 'Invitation sent', description: `A set-password link was emailed to ${newTeacher.email}.` });
       setNewTeacher({ email: '', first_name: '', last_name: '' });
       setIsAddOpen(false);
       fetchAll();
     } catch (e: any) {
-      toast({ title: 'Error', description: e.message?.includes('unique') ? 'This email is already added.' : e.message, variant: 'destructive' });
+      toast({ title: 'Error', description: e.message || 'Failed to invite teacher', variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -195,14 +213,14 @@ export const TeacherManagement = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Teacher Management</h2>
-          <p className="text-sm text-muted-foreground">Add teachers and assign them to subjects &amp; sections. They get access to the Grade Book and Assessments for their assignments.</p>
+          <p className="text-sm text-muted-foreground">Invite teachers by email — they get a single-use link to set their password. Assign them to subjects &amp; sections for Grade Book and Assessments access.</p>
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Add Teacher</Button>
+            <Button><Plus className="h-4 w-4 mr-2" />Invite Teacher</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Add New Teacher</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Invite New Teacher</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label>Email *</Label>
@@ -219,8 +237,8 @@ export const TeacherManagement = () => {
                 </div>
               </div>
               <Button onClick={addTeacher} disabled={isSaving} className="w-full">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                Add Teacher
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
+                Send Invitation
               </Button>
             </div>
           </DialogContent>

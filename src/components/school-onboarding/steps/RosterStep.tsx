@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Download, FileText, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Upload, Download, FileText, Loader2, CheckCircle, AlertCircle, X, KeyRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -44,6 +44,7 @@ export const RosterStep = ({
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState<number>(0);
+  const [credentials, setCredentials] = useState<{ email: string; password: string }[]>([]);
 
   const downloadTemplate = () => {
     const csv = 'first_name,last_name,email,grade_level,section,parent_email,student_id\nJane,Doe,jane@example.com,9,A,parent@example.com,STU001\n';
@@ -76,7 +77,19 @@ export const RosterStep = ({
     });
   };
 
-  const reset = () => { setHeaders([]); setRows([]); setMapping({}); setImported(0); };
+  const reset = () => { setHeaders([]); setRows([]); setMapping({}); setImported(0); setCredentials([]); };
+
+  const csvEscape = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+
+  const downloadCredentials = () => {
+    if (credentials.length === 0) return;
+    const csv = 'email,password\n' + credentials.map(c => `${csvEscape(c.email)},${csvEscape(c.password)}`).join('\n') + '\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'student-credentials.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const mappedFields = Object.values(mapping).filter(v => v !== 'ignore');
   const missingRequired = REQUIRED.filter(r => !mappedFields.includes(r));
@@ -96,14 +109,9 @@ export const RosterStep = ({
   const doImport = async () => {
     if (!user || missingRequired.length > 0) return;
     setImporting(true);
-    let success = 0, failed = 0;
 
     try {
-      const { data: school } = await supabase
-        .from('school_accounts').select('id, school_name').eq('id', schoolId).single();
-      if (!school) throw new Error('School not found');
-
-      // Pre-create unique sections
+      // Pre-create unique sections so students can be assigned on creation.
       const sectionKeys = new Set<string>();
       validRows.filter(r => r._valid && r.grade_level).forEach(r => {
         sectionKeys.add(`${r.grade_level}::${r.section || 'A'}`);
@@ -126,36 +134,27 @@ export const RosterStep = ({
         }
       }
 
-      for (const r of validRows.filter(r => r._valid)) {
-        try {
-          const code = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
-          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-          const { error } = await supabase.from('student_invitations').insert({
-            email: r.email,
-            first_name: r.first_name,
-            last_name: r.last_name,
-            school_id: schoolId,
-            invited_by_id: user.id,
-            invitation_code: code,
-            expires_at: expiresAt,
-          });
-          if (error) throw error;
+      // Create accounts directly (server-side, pre-confirmed). Passwords are
+      // auto-generated; the admin downloads them afterward.
+      const payload = validRows.filter(r => r._valid).map(r => ({
+        email: r.email,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        section_id: r.grade_level ? sectionMap[`${r.grade_level}::${r.section || 'A'}`] : undefined,
+      }));
 
-          // Best-effort email send
-          supabase.functions.invoke('send-invitation-email', {
-            body: {
-              email: r.email, firstName: r.first_name, lastName: r.last_name,
-              schoolName: school.school_name, invitationCode: code,
-            },
-          }).catch(() => {});
+      const { data, error } = await supabase.functions.invoke('admin-bulk-create-students', {
+        body: { students: payload },
+      });
+      const res = data as { ok?: boolean; created?: number; failed?: number; results?: { email: string; status: string; password?: string; error?: string }[]; error?: string } | null;
+      if (error && !res?.results) throw error;
+      if (!res?.ok) throw new Error(res?.error || 'Import failed');
 
-          success++;
-        } catch { failed++; }
-      }
-
-      setImported(success);
-      onImported(success);
-      toast({ title: 'Roster imported', description: `${success} invited${failed ? `, ${failed} failed` : ''}` });
+      const created = res.results?.filter(r => r.status === 'created') || [];
+      setCredentials(created.map(r => ({ email: r.email, password: r.password || '' })));
+      setImported(res.created ?? created.length);
+      onImported(res.created ?? created.length);
+      toast({ title: 'Roster imported', description: `${res.created ?? 0} created${res.failed ? `, ${res.failed} failed` : ''}` });
     } catch (e: any) {
       toast({ title: 'Import failed', description: e.message, variant: 'destructive' });
     } finally { setImporting(false); }
@@ -168,9 +167,16 @@ export const RosterStep = ({
           <div className="flex items-center gap-3">
             <CheckCircle className="h-6 w-6 text-primary" />
             <div className="flex-1">
-              <p className="font-semibold">{imported} students imported</p>
-              <p className="text-xs text-muted-foreground">Invitation emails are being sent.</p>
+              <p className="font-semibold">{imported} student accounts created</p>
+              <p className="text-xs text-muted-foreground">
+                Students can log in now. Download their credentials to distribute.
+              </p>
             </div>
+            {credentials.length > 0 && (
+              <Button variant="outline" size="sm" onClick={downloadCredentials}>
+                <KeyRound className="h-4 w-4 mr-2" />Download credentials
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={reset}>Import more</Button>
           </div>
         </Card>

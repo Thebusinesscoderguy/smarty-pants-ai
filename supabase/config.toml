@@ -44,6 +44,10 @@ project_id = "twfzlbockonxopuindaw"
     verify_jwt = false
   [functions.validate-student-invitation]
     verify_jwt = false
+  [functions.validate-invite]
+    verify_jwt = false
+  [functions.accept-invite]
+    verify_jwt = false
 
 [storage]
   enabled = true

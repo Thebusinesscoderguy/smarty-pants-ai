@@ -37,6 +37,7 @@ const PricingCheckout = lazy(() => import('./pages/PricingCheckout'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const SchoolAdmin = lazy(() => import('./pages/SchoolAdmin'));
 const AcceptInvitation = lazy(() => import('./pages/AcceptInvitation'));
+const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
 const FAQ = lazy(() => import('./pages/FAQ'));
 const QuizGenerator = lazy(() => import('./pages/QuizGenerator'));
 const QuestsAchievements = lazy(() => import('./pages/QuestsAchievements'));
@@ -105,6 +106,7 @@ function App() {
                       <Route path="/school-admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><SchoolAdmin /></ProtectedRoute>} />
                       <Route path="/school-onboarding" element={<ProtectedRoute><SchoolOnboarding /></ProtectedRoute>} />
                       <Route path="/accept-invitation" element={<AcceptInvitation />} />
+                      <Route path="/accept-invite" element={<AcceptInvite />} />
 
                       <Route path="/quiz-generator" element={<ProtectedRoute><QuizGenerator /></ProtectedRoute>} />
                       <Route path="/demo" element={<Demo />} />
