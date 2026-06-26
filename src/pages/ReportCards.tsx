@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
 import { Header } from '@/components/layout/Header';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Row {
   id: string;
@@ -23,6 +24,7 @@ interface Row {
 
 const ReportCards = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [rows, setRows] = useState<Row[]>([]);
   const [settingsBySchool, setSettingsBySchool] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ const ReportCards = () => {
         supabase.from('report_card_settings').select('*').in('school_id', schoolIds),
       ]);
 
-      const nameById = new Map((profs || []).map(p => [p.id, p.display_name || 'Student']));
+      const nameById = new Map((profs || []).map(p => [p.id, p.display_name || t('rcv.studentFallback')]));
       const settingsMap: Record<string, any> = {};
       (settings || []).forEach((s: any) => { settingsMap[s.school_id] = s; });
       setSettingsBySchool(settingsMap);
@@ -55,7 +57,7 @@ const ReportCards = () => {
       setRows(cards.map(c => ({
         id: c.id, student_id: c.student_id, term: c.term, academic_year: c.academic_year,
         data: c.data, school_id: c.school_id, published_at: c.published_at,
-        student_name: nameById.get(c.student_id) || 'Student',
+        student_name: nameById.get(c.student_id) || t('rcv.studentFallback'),
       })));
       setLoading(false);
     })();
@@ -69,14 +71,14 @@ const ReportCards = () => {
       name: row.student_name, term: row.term, academic_year: row.academic_year, data: row.data || {},
     }, settings, layout);
     doc.save(`report-${row.student_name}-${row.term}.pdf`);
-    toast.success('Downloaded');
+    toast.success(t('rcv.downloaded'));
   };
 
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="container py-12 text-center text-muted-foreground">Please sign in to view report cards.</div>
+        <div className="container py-12 text-center text-muted-foreground">{t('rcv.signIn')}</div>
       </div>
     );
   }
@@ -85,16 +87,16 @@ const ReportCards = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container py-8 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-2">Report Cards</h1>
-        <p className="text-muted-foreground mb-6">Published report cards for you and your children.</p>
+        <h1 className="text-3xl font-bold mb-2">{t('rcv.title')}</h1>
+        <p className="text-muted-foreground mb-6">{t('rcv.subtitle')}</p>
 
         {loading ? (
-          <Card><CardContent className="py-12 text-center text-muted-foreground">Loading…</CardContent></Card>
+          <Card><CardContent className="py-12 text-center text-muted-foreground">{t('rcv.loading')}</CardContent></Card>
         ) : rows.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p>No published report cards yet.</p>
+              <p>{t('rcv.empty')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -108,10 +110,10 @@ const ReportCards = () => {
                       <p className="text-sm text-muted-foreground">{r.term} · {r.academic_year}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">Overall {r.data?.overall ?? '-'}%</Badge>
-                      <Badge variant="outline">Attendance {r.data?.attendance_rate ?? '-'}%</Badge>
+                      <Badge variant="secondary">{t('rcv.overallPrefix')} {r.data?.overall ?? '-'}%</Badge>
+                      <Badge variant="outline">{t('rcv.attendancePrefix')} {r.data?.attendance_rate ?? '-'}%</Badge>
                       <Button size="sm" onClick={() => downloadPdf(r)}>
-                        <Download className="h-4 w-4 mr-1" />PDF
+                        <Download className="h-4 w-4 mr-1" />{t('rcv.pdf')}
                       </Button>
                     </div>
                   </div>

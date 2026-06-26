@@ -11,18 +11,20 @@ import { TeachersStep } from '@/components/school-onboarding/steps/TeachersStep'
 import { GradebookStep } from '@/components/school-onboarding/steps/GradebookStep';
 import { CurriculumStep } from '@/components/school-onboarding/steps/CurriculumStep';
 import { LiveStep } from '@/components/school-onboarding/steps/LiveStep';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const STEP_TITLES: Record<typeof STEP_KEYS[number], { title: string; subtitle?: string }> = {
-  welcome: { title: 'Get your school live in 15 minutes', subtitle: "We'll walk you through everything step by step." },
-  roster: { title: 'Import your students', subtitle: "Upload a CSV and we'll send invitations automatically." },
-  teachers: { title: 'Invite your teachers', subtitle: 'They get access to grading, assessments, and messaging.' },
-  gradebook: { title: 'Set up the gradebook', subtitle: 'Bring in legacy grades or start fresh.' },
-  curriculum: { title: 'Add your curriculum', subtitle: 'Upload a textbook — we detect chapters and lessons for you.' },
-  live: { title: '', subtitle: '' },
+const STEP_TITLE_KEYS: Record<typeof STEP_KEYS[number], { titleKey: string; subKey: string }> = {
+  welcome: { titleKey: 'so.welcomeTitle', subKey: 'so.welcomeSub' },
+  roster: { titleKey: 'so.rosterTitle', subKey: 'so.rosterSub' },
+  teachers: { titleKey: 'so.teachersTitle', subKey: 'so.teachersSub' },
+  gradebook: { titleKey: 'so.gradebookTitle', subKey: 'so.gradebookSub' },
+  curriculum: { titleKey: 'so.curriculumTitle', subKey: 'so.curriculumSub' },
+  live: { titleKey: '', subKey: '' },
 };
 
 const SchoolOnboarding = () => {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const {
     schoolId, schoolName, progress, loading,
@@ -48,14 +50,15 @@ const SchoolOnboarding = () => {
   if (!schoolId || !progress) return null;
 
   const currentKey = STEP_KEYS[progress.current_step] || 'welcome';
-  const meta = STEP_TITLES[currentKey];
+  const metaKeys = STEP_TITLE_KEYS[currentKey];
+  const meta = { title: metaKeys.titleKey ? t(metaKeys.titleKey) : '', subtitle: metaKeys.subKey ? t(metaKeys.subKey) : '' };
 
   const goNext = () => goToStep(Math.min(progress.current_step + 1, STEP_KEYS.length - 1));
   const goBack = () => goToStep(Math.max(progress.current_step - 1, 0));
 
   let content: React.ReactNode = null;
   let nextDisabled = false;
-  let nextLabel = 'Continue';
+  let nextLabel = t('so.continue');
   let onNext = async () => { await markStepComplete(currentKey); goNext(); };
   let onSkip: (() => void) | undefined = undefined;
   let hideNext = false;
@@ -63,7 +66,7 @@ const SchoolOnboarding = () => {
   switch (currentKey) {
     case 'welcome':
       content = <WelcomeStep schoolName={schoolName} />;
-      nextLabel = "Let's go";
+      nextLabel = t('so.letsGo');
       break;
     case 'roster':
       content = (

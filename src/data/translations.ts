@@ -3061,6 +3061,39 @@ export const translations: TranslationData = {
     'feat.stu3t': 'Quests & achievements', 'feat.stu3b': 'Optional streaks, levels and a class leaderboard to keep students motivated.',
     'feat.stu4t': 'Live progress', 'feat.stu4b': 'Students and parents follow grades and progress as they happen.',
 
+    // ===== Test share redirect =====
+    'tsr.invalidLink': 'Invalid link.',
+    'tsr.noLongerActive': 'This test link is no longer active.',
+    'tsr.failedOpen': 'Failed to open the test link.',
+    'tsr.backHome': 'Back to home',
+    'tsr.opening': 'Opening test…',
+
+    // ===== School Onboarding wizard =====
+    'so.welcomeTitle': 'Get your school live in 15 minutes',
+    'so.welcomeSub': "We'll walk you through everything step by step.",
+    'so.rosterTitle': 'Import your students',
+    'so.rosterSub': "Upload a CSV and we'll send invitations automatically.",
+    'so.teachersTitle': 'Invite your teachers',
+    'so.teachersSub': 'They get access to grading, assessments, and messaging.',
+    'so.gradebookTitle': 'Set up the gradebook',
+    'so.gradebookSub': 'Bring in legacy grades or start fresh.',
+    'so.curriculumTitle': 'Add your curriculum',
+    'so.curriculumSub': 'Upload a textbook — we detect chapters and lessons for you.',
+    'so.continue': 'Continue',
+    'so.letsGo': "Let's go",
+
+    // ===== Report Cards (parent/student view) =====
+    'rcv.studentFallback': 'Student',
+    'rcv.downloaded': 'Downloaded',
+    'rcv.signIn': 'Please sign in to view report cards.',
+    'rcv.title': 'Report Cards',
+    'rcv.subtitle': 'Published report cards for you and your children.',
+    'rcv.loading': 'Loading…',
+    'rcv.empty': 'No published report cards yet.',
+    'rcv.overallPrefix': 'Overall',
+    'rcv.attendancePrefix': 'Attendance',
+    'rcv.pdf': 'PDF',
+
   },
   ar: {
     // ===== Navigation =====
@@ -5171,5 +5204,38 @@ export const translations: TranslationData = {
     'feat.stu2t': 'تدريب تكيّفي', 'feat.stu2b': 'اختبارات ودروس تتكيّف مع مستوى كل طالب أثناء تقدّمه.',
     'feat.stu3t': 'المهام والإنجازات', 'feat.stu3b': 'سلاسل ومستويات اختيارية ولوحة صدارة للفصل لإبقاء الطلاب متحمّسين.',
     'feat.stu4t': 'تقدّم حيّ', 'feat.stu4b': 'يتابع الطلاب وأولياء الأمور الدرجات والتقدّم فور حدوثها.',
+
+    // ===== Test share redirect =====
+    'tsr.invalidLink': 'رابط غير صالح.',
+    'tsr.noLongerActive': 'لم يعد رابط الاختبار هذا نشطًا.',
+    'tsr.failedOpen': 'تعذّر فتح رابط الاختبار.',
+    'tsr.backHome': 'العودة إلى الرئيسية',
+    'tsr.opening': 'جارٍ فتح الاختبار…',
+
+    // ===== School Onboarding wizard =====
+    'so.welcomeTitle': 'شغّل مدرستك خلال 15 دقيقة',
+    'so.welcomeSub': 'سنرشدك عبر كل شيء خطوة بخطوة.',
+    'so.rosterTitle': 'استورد طلابك',
+    'so.rosterSub': 'ارفع ملف CSV وسنرسل الدعوات تلقائيًا.',
+    'so.teachersTitle': 'ادعُ معلميك',
+    'so.teachersSub': 'يحصلون على الوصول إلى التصحيح والتقييمات والمراسلة.',
+    'so.gradebookTitle': 'إعداد دفتر الدرجات',
+    'so.gradebookSub': 'أحضر الدرجات السابقة أو ابدأ من جديد.',
+    'so.curriculumTitle': 'أضف منهجك',
+    'so.curriculumSub': 'ارفع كتابًا مدرسيًا — ونكتشف الفصول والدروس لك.',
+    'so.continue': 'متابعة',
+    'so.letsGo': 'لننطلق',
+
+    // ===== Report Cards (parent/student view) =====
+    'rcv.studentFallback': 'طالب',
+    'rcv.downloaded': 'تم التنزيل',
+    'rcv.signIn': 'يرجى تسجيل الدخول لعرض بطاقات التقارير.',
+    'rcv.title': 'بطاقات التقارير',
+    'rcv.subtitle': 'بطاقات التقارير المنشورة لك ولأبنائك.',
+    'rcv.loading': 'جارٍ التحميل…',
+    'rcv.empty': 'لا توجد بطاقات تقارير منشورة بعد.',
+    'rcv.overallPrefix': 'الإجمالي',
+    'rcv.attendancePrefix': 'الحضور',
+    'rcv.pdf': 'PDF',
   },
 };

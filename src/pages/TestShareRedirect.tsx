@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const TestShareRedirect = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,7 +17,7 @@ const TestShareRedirect = () => {
     let cancelled = false;
     (async () => {
       if (!token) {
-        setError('Invalid link.');
+        setError(t('tsr.invalidLink'));
         return;
       }
       try {
@@ -24,7 +26,7 @@ const TestShareRedirect = () => {
         if (error) throw error;
         const testId = data as string | null;
         if (!testId) {
-          setError('This test link is no longer active.');
+          setError(t('tsr.noLongerActive'));
           return;
         }
         if (!user) {
@@ -33,7 +35,7 @@ const TestShareRedirect = () => {
           navigate(`/exam/${testId}`, { replace: true });
         }
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Failed to open the test link.');
+        if (!cancelled) setError(e?.message || t('tsr.failedOpen'));
       }
     })();
     return () => { cancelled = true; };
@@ -49,13 +51,13 @@ const TestShareRedirect = () => {
               onClick={() => navigate('/')}
               className="text-sm text-primary underline"
             >
-              Back to home
+              {t('tsr.backHome')}
             </button>
           </>
         ) : (
           <>
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-            <p className="text-muted-foreground">Opening test…</p>
+            <p className="text-muted-foreground">{t('tsr.opening')}</p>
           </>
         )}
       </div>
