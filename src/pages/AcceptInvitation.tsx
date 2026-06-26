@@ -10,6 +10,7 @@ import { UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface InvitationData {
   id: string;
@@ -26,6 +27,7 @@ const AcceptInvitation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, signUp, signIn } = useAuth();
+  const { t } = useLanguage();
   const [invitationCode, setInvitationCode] = useState((searchParams.get('code') || '').trim());
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,20 +78,20 @@ const AcceptInvitation = () => {
 
         if (response?.reason === 'used') {
           toast({
-            title: "Invitation Already Used",
-            description: "This invitation has already been accepted.",
+            title: t('aci.alreadyUsed'),
+            description: t('aci.alreadyUsedDesc'),
             variant: "destructive"
           });
         } else if (response?.reason === 'expired') {
           toast({
-            title: "Invitation Expired",
-            description: "This invitation has expired. Please request a new one.",
+            title: t('aci.expired'),
+            description: t('aci.expiredDesc'),
             variant: "destructive"
           });
         } else {
           toast({
-            title: "Invalid Invitation",
-            description: "The invitation code is invalid or has expired.",
+            title: t('aci.invalid'),
+            description: t('aci.invalidDesc'),
             variant: "destructive"
           });
         }
@@ -108,8 +110,8 @@ const AcceptInvitation = () => {
     } catch (error) {
       console.error('Error validating invitation:', error);
       toast({
-        title: "Error",
-        description: "Failed to validate invitation",
+        title: t('aci.error'),
+        description: t('aci.failedValidate'),
         variant: "destructive"
       });
       setInvitation(null);
@@ -129,8 +131,8 @@ const AcceptInvitation = () => {
       if (authMode === 'signup') {
         if (formData.password !== formData.confirmPassword) {
           toast({
-            title: "Password Mismatch",
-            description: "Passwords do not match",
+            title: t('aci.passwordMismatch'),
+            description: t('aci.passwordsNoMatch'),
             variant: "destructive"
           });
           return;
@@ -188,8 +190,8 @@ const AcceptInvitation = () => {
         .catch((e) => console.error('Confirmation email failed:', e));
 
       toast({
-        title: "Welcome!",
-        description: `You've successfully joined ${invitation.school_name}! A confirmation email is on the way.`,
+        title: t('aci.welcome'),
+        description: `${t('aci.welcomePre')} ${invitation.school_name}${t('aci.welcomePost')}`,
       });
 
       // Redirect to dashboard or student portal
@@ -198,8 +200,8 @@ const AcceptInvitation = () => {
     } catch (error: any) {
       console.error('Error accepting invitation:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to accept invitation",
+        title: t('aci.error'),
+        description: error.message || t('aci.failedAccept'),
         variant: "destructive"
       });
     } finally {
@@ -210,7 +212,7 @@ const AcceptInvitation = () => {
   if (isValidating) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="animate-pulse text-white">Validating invitation...</div>
+        <div className="animate-pulse text-white">{t('aci.validating')}</div>
       </div>
     );
   }
@@ -220,16 +222,16 @@ const AcceptInvitation = () => {
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-white/10 border-white/20">
           <CardHeader>
-            <CardTitle className="text-white text-center">Enter Invitation Code</CardTitle>
+            <CardTitle className="text-white text-center">{t('aci.enterCode')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="code" className="text-white">Invitation Code</Label>
+              <Label htmlFor="code" className="text-white">{t('aci.codeLabel')}</Label>
               <Input
                 id="code"
                 value={invitationCode}
                 onChange={(e) => setInvitationCode(e.target.value)}
-                placeholder="Enter your invitation code"
+                placeholder={t('aci.codePlaceholder')}
                 className="bg-white/10 border-white/20 text-white"
               />
             </div>
@@ -238,7 +240,7 @@ const AcceptInvitation = () => {
               disabled={!invitationCode.trim()}
               className="w-full"
             >
-              Validate Invitation
+              {t('aci.validateBtn')}
             </Button>
           </CardContent>
         </Card>
@@ -252,13 +254,13 @@ const AcceptInvitation = () => {
         <Card className="w-full max-w-md bg-white/10 border-white/20">
           <CardContent className="p-6 text-center">
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <p className="text-white">Invalid or expired invitation code.</p>
+            <p className="text-white">{t('aci.invalidExpired')}</p>
             <Button
               onClick={() => navigate('/')}
               className="mt-4"
               variant="outline"
             >
-              Go Home
+              {t('aci.goHome')}
             </Button>
           </CardContent>
         </Card>
@@ -272,14 +274,14 @@ const AcceptInvitation = () => {
         <CardHeader>
           <CardTitle className="text-white text-center flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Join {invitation.school_name}
+            {t('aci.joinPre')} {invitation.school_name}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert className="bg-blue-500/20 border-blue-500/50">
             <CheckCircle className="h-4 w-4" />
             <AlertDescription className="text-white">
-              You've been invited to join <strong>{invitation.school_name}</strong> as a student.
+              {t('aci.invitedPre')} <strong>{invitation.school_name}</strong> {t('aci.invitedPost')}
             </AlertDescription>
           </Alert>
 
@@ -289,20 +291,20 @@ const AcceptInvitation = () => {
               onClick={() => setAuthMode('signup')}
               className="flex-1"
             >
-              Sign Up
+              {t('aci.signUp')}
             </Button>
             <Button
               variant={authMode === 'signin' ? 'default' : 'outline'}
               onClick={() => setAuthMode('signin')}
               className="flex-1"
             >
-              Sign In
+              {t('aci.signIn')}
             </Button>
           </div>
 
           <div className="space-y-3">
             <div>
-              <Label htmlFor="email" className="text-white">Email</Label>
+              <Label htmlFor="email" className="text-white">{t('aci.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -317,7 +319,7 @@ const AcceptInvitation = () => {
               <>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label htmlFor="firstName" className="text-white">First Name</Label>
+                    <Label htmlFor="firstName" className="text-white">{t('aci.firstName')}</Label>
                     <Input
                       id="firstName"
                       value={formData.firstName}
@@ -326,7 +328,7 @@ const AcceptInvitation = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName" className="text-white">Last Name</Label>
+                    <Label htmlFor="lastName" className="text-white">{t('aci.lastName')}</Label>
                     <Input
                       id="lastName"
                       value={formData.lastName}
@@ -339,7 +341,7 @@ const AcceptInvitation = () => {
             )}
 
             <div>
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className="text-white">{t('aci.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -351,7 +353,7 @@ const AcceptInvitation = () => {
 
             {authMode === 'signup' && (
               <div>
-                <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-white">{t('aci.confirmPassword')}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -368,7 +370,7 @@ const AcceptInvitation = () => {
             disabled={loading || !formData.email || !formData.password}
             className="w-full"
           >
-            {loading ? 'Processing...' : `${authMode === 'signup' ? 'Accept Invitation & Sign Up' : 'Accept Invitation & Sign In'}`}
+            {loading ? t('aci.processing') : (authMode === 'signup' ? t('aci.acceptSignup') : t('aci.acceptSignin'))}
           </Button>
         </CardContent>
       </Card>
