@@ -12,7 +12,12 @@ import { Plus, ClipboardCheck, Clock, Users, Trash2, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { HomeworkSubmissionsDrawer } from './HomeworkSubmissionsDrawer';
+
+const HW_TYPE_KEY: Record<string, string> = {
+  practice: 'hw.typePractice', reading: 'hw.typeReading', quiz: 'hw.typeQuiz',
+};
 
 interface Assignment {
   id: string;
@@ -29,6 +34,7 @@ interface Assignment {
 
 export const HomeworkManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
@@ -99,7 +105,7 @@ export const HomeworkManagement = () => {
 
   const handleCreate = async () => {
     if (!user || !schoolId || !title.trim()) {
-      toast({ title: 'Error', description: 'Title is required', variant: 'destructive' });
+      toast({ title: t('hw.error'), description: t('hw.titleRequired'), variant: 'destructive' });
       return;
     }
 
@@ -115,12 +121,12 @@ export const HomeworkManagement = () => {
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
       });
       if (error) throw error;
-      toast({ title: 'Created', description: 'Homework assignment created!' });
+      toast({ title: t('hw.created'), description: t('hw.createdDesc') });
       setIsDialogOpen(false);
       resetForm();
       fetchSchoolData();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      toast({ title: t('hw.error'), description: err.message, variant: 'destructive' });
     }
   };
 
@@ -153,41 +159,41 @@ export const HomeworkManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Homework Assignments</h2>
-          <p className="text-muted-foreground">Create and manage homework for your students</p>
+          <h2 className="text-2xl font-bold">{t('hw.title')}</h2>
+          <p className="text-muted-foreground">{t('hw.subtitle')}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />New Assignment</Button>
+            <Button><Plus className="h-4 w-4 mr-2" />{t('hw.newAssignment')}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Create Assignment</DialogTitle>
+              <DialogTitle>{t('hw.createAssignment')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Title *</Label>
-                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Assignment title" />
+                <Label>{t('hw.titleLabel')}</Label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('hw.titlePlaceholder')} />
               </div>
               <div>
-                <Label>Description</Label>
-                <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Instructions for students..." />
+                <Label>{t('hw.description')}</Label>
+                <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('hw.descriptionPlaceholder')} />
               </div>
               <div>
-                <Label>Type</Label>
+                <Label>{t('hw.type')}</Label>
                 <Select value={assignmentType} onValueChange={setAssignmentType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="practice">Practice</SelectItem>
-                    <SelectItem value="reading">Reading</SelectItem>
-                    <SelectItem value="quiz">Quiz</SelectItem>
+                    <SelectItem value="practice">{t('hw.typePractice')}</SelectItem>
+                    <SelectItem value="reading">{t('hw.typeReading')}</SelectItem>
+                    <SelectItem value="quiz">{t('hw.typeQuiz')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Subject</Label>
+                <Label>{t('hw.subject')}</Label>
                 <Select value={subjectId} onValueChange={setSubjectId}>
-                  <SelectTrigger><SelectValue placeholder="Select subject" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('hw.selectSubject')} /></SelectTrigger>
                   <SelectContent>
                     {subjects.map(s => (
                       <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -196,9 +202,9 @@ export const HomeworkManagement = () => {
                 </Select>
               </div>
               <div>
-                <Label>Section</Label>
+                <Label>{t('hw.section')}</Label>
                 <Select value={sectionId} onValueChange={setSectionId}>
-                  <SelectTrigger><SelectValue placeholder="Select section" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('hw.selectSection')} /></SelectTrigger>
                   <SelectContent>
                     {sections.map(s => (
                       <SelectItem key={s.id} value={s.id}>{s.grade_level} {s.section_name}</SelectItem>
@@ -207,10 +213,10 @@ export const HomeworkManagement = () => {
                 </Select>
               </div>
               <div>
-                <Label>Due Date</Label>
+                <Label>{t('hw.dueDate')}</Label>
                 <Input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} />
               </div>
-              <Button onClick={handleCreate} className="w-full">Create Assignment</Button>
+              <Button onClick={handleCreate} className="w-full">{t('hw.createAssignment')}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -220,7 +226,7 @@ export const HomeworkManagement = () => {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <ClipboardCheck className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>No homework assignments yet. Create your first one!</p>
+            <p>{t('hw.emptyTitle')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -229,21 +235,21 @@ export const HomeworkManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Section</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Submissions</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('hw.colTitle')}</TableHead>
+                  <TableHead>{t('hw.colType')}</TableHead>
+                  <TableHead>{t('hw.colSubject')}</TableHead>
+                  <TableHead>{t('hw.colSection')}</TableHead>
+                  <TableHead>{t('hw.colDueDate')}</TableHead>
+                  <TableHead>{t('hw.colSubmissions')}</TableHead>
+                  <TableHead>{t('hw.colStatus')}</TableHead>
+                  <TableHead>{t('hw.colActions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {assignments.map(a => (
                   <TableRow key={a.id}>
                     <TableCell className="font-medium">{a.title}</TableCell>
-                    <TableCell><Badge variant="outline">{a.assignment_type}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{t(HW_TYPE_KEY[a.assignment_type] || 'hw.typePractice')}</Badge></TableCell>
                     <TableCell>{getSubjectName(a.subject_id)}</TableCell>
                     <TableCell>{getSectionName(a.section_id)}</TableCell>
                     <TableCell>
@@ -267,12 +273,12 @@ export const HomeworkManagement = () => {
                         className="cursor-pointer"
                         onClick={() => toggleActive(a.id, a.is_active)}
                       >
-                        {a.is_active ? 'Active' : 'Inactive'}
+                        {a.is_active ? t('hw.active') : t('hw.inactive')}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setDrawerAssignment(a)} title="View submissions">
+                        <Button variant="ghost" size="icon" onClick={() => setDrawerAssignment(a)} title={t('hw.viewSubmissions')}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => deleteAssignment(a.id)}>
