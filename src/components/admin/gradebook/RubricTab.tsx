@@ -7,6 +7,12 @@ import { Save, Loader2, CalendarCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const COMP_LABEL_KEY: Record<string, string> = {
+  exam_score: 'rubric.exam', quiz_score: 'rubric.quizzes', attendance_score: 'rubric.attendance',
+  literacy_score: 'rubric.literacy', project_score: 'rubric.project', cw_score: 'rubric.classwork', hw_score: 'rubric.homework',
+};
 
 interface StudentInfo {
   student_id: string;
@@ -46,6 +52,7 @@ const rowTotal = (row: Row): number =>
 
 export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const now = new Date();
   const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
   const [term, setTerm] = useState('Semester 1');
@@ -120,10 +127,10 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
         }
         return next;
       });
-      toast({ title: 'Attendance filled', description: 'Attendance /20 derived from session records. Adjust any row if needed.' });
+      toast({ title: t('rubric.attendanceFilled'), description: t('rubric.attendanceFilledDesc') });
     } catch (e) {
       console.error(e);
-      toast({ title: 'Error', description: 'Failed to derive attendance', variant: 'destructive' });
+      toast({ title: t('rubric.error'), description: t('rubric.failedDerive'), variant: 'destructive' });
     } finally {
       setIsDeriving(false);
     }
@@ -152,16 +159,16 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
           created_by: user.id,
           updated_at: new Date().toISOString(),
         }));
-      if (!upserts.length) { toast({ title: 'Nothing to save' }); setIsSaving(false); return; }
+      if (!upserts.length) { toast({ title: t('rubric.nothingToSave') }); setIsSaving(false); return; }
       const { error } = await supabase
         .from('rubric_grades')
         .upsert(upserts, { onConflict: 'student_id,subject_id,term,academic_year' });
       if (error) throw error;
-      toast({ title: 'Saved', description: `Rubric grades saved for ${term} ${academicYear}` });
+      toast({ title: t('rubric.saved'), description: `${t('rubric.savedDescPrefix')} ${term} ${academicYear}` });
       load();
     } catch (e) {
       console.error(e);
-      toast({ title: 'Error', description: 'Failed to save rubric grades', variant: 'destructive' });
+      toast({ title: t('rubric.error'), description: t('rubric.failedSave'), variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -173,20 +180,19 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <Input value={term} onChange={e => setTerm(e.target.value)} className="w-40" placeholder="Term" />
-        <Input value={academicYear} onChange={e => setAcademicYear(e.target.value)} className="w-36" placeholder="Academic year" />
+        <Input value={term} onChange={e => setTerm(e.target.value)} className="w-40" placeholder={t('rubric.term')} />
+        <Input value={academicYear} onChange={e => setAcademicYear(e.target.value)} className="w-36" placeholder={t('rubric.academicYear')} />
         <Button variant="outline" onClick={deriveAttendance} disabled={isDeriving}>
           {isDeriving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CalendarCheck className="h-4 w-4 mr-2" />}
-          Auto-fill Attendance /20
+          {t('rubric.autofillAttendance')}
         </Button>
         <Button onClick={save} disabled={isSaving}>
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-          Save Rubric
+          {t('rubric.save')}
         </Button>
       </div>
       <p className="text-sm text-muted-foreground">
-        Exam /20 · Quizzes /20 · Attendance /20 · Literacy /10 · Project /10 · Classwork /10 · Homework /10 = <strong>Total /100</strong>.
-        Marks are capped per component; the total can never exceed 100. Attendance is teacher-overridable after auto-fill.
+        {t('rubric.legendComponents')}<strong>{t('rubric.total100')}</strong>. {t('rubric.legendCapped')}
       </p>
 
       {Object.entries(sections).sort(([a], [b]) => a.localeCompare(b)).map(([section, sectionStudents]) => (
@@ -197,11 +203,11 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[160px]">Student</TableHead>
+                    <TableHead className="min-w-[160px]">{t('rubric.student')}</TableHead>
                     {COMPONENTS.map(c => (
-                      <TableHead key={c.key} className="text-center w-24">{c.label} /{c.max}</TableHead>
+                      <TableHead key={c.key} className="text-center w-24">{t(COMP_LABEL_KEY[c.key])} /{c.max}</TableHead>
                     ))}
-                    <TableHead className="text-center w-20">Total</TableHead>
+                    <TableHead className="text-center w-20">{t('rubric.total')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
