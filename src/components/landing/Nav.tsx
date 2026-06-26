@@ -5,15 +5,17 @@ import { cn } from '@/lib/utils';
 import { GradientButton, EASE } from './primitives';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'How it works', href: '#how' },
-  { label: 'Schools', href: '#proof' },
-  { label: 'Pricing', href: '#cta' },
+  { labelKey: 'lpn.features', href: '#features' },
+  { labelKey: 'lpn.howItWorks', href: '#how' },
+  { labelKey: 'lpn.schools', href: '#proof' },
+  { labelKey: 'lpn.pricing', href: '#cta' },
 ];
 
 export function Nav({ onCta }: { onCta?: () => void }) {
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { scrollY } = useScroll();
@@ -67,7 +69,7 @@ export function Nav({ onCta }: { onCta?: () => void }) {
               href={hrefFor(l.href)}
               className="relative rounded-lg px-3.5 py-2 text-sm font-medium text-[hsl(245_16%_40%)] transition-colors hover:text-violet-700"
             >
-              {l.label}
+              {t(l.labelKey)}
             </a>
           ))}
         </div>
@@ -79,14 +81,14 @@ export function Nav({ onCta }: { onCta?: () => void }) {
                 onClick={handleDashboard}
                 className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
               >
-                Dashboard
+                {t('lpn.dashboard')}
               </button>
               <GradientButton
                 className="px-5 py-2.5 text-sm"
                 onClick={handleSignOut}
                 disabled={isSigningOut}
               >
-                {isSigningOut ? 'Signing out…' : 'Sign out'}
+                {isSigningOut ? t('lpn.signingOut') : t('lpn.signOut')}
               </GradientButton>
             </>
           ) : (
@@ -95,17 +97,17 @@ export function Nav({ onCta }: { onCta?: () => void }) {
                 href="/auth"
                 className="rounded-xl px-3.5 py-2 text-sm font-semibold text-[hsl(250_47%_18%)] transition-colors hover:text-violet-700"
               >
-                Sign in
+                {t('lpn.signIn')}
               </a>
               <GradientButton className="px-5 py-2.5 text-sm" onClick={onCta}>
-                Start free
+                {t('lpn.startFree')}
               </GradientButton>
             </>
           )}
         </div>
 
         <button
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? t('lpn.closeMenu') : t('lpn.openMenu')}
           onClick={() => setOpen((v) => !v)}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-100 bg-white/70 text-violet-700 md:hidden"
         >
@@ -132,7 +134,7 @@ export function Nav({ onCta }: { onCta?: () => void }) {
                 onClick={() => setOpen(false)}
                 className="block rounded-xl px-4 py-3 text-sm font-medium text-[hsl(245_16%_38%)] transition-colors hover:bg-violet-50 hover:text-violet-700"
               >
-                {l.label}
+                {t(l.labelKey)}
               </a>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 p-1">
@@ -142,14 +144,14 @@ export function Nav({ onCta }: { onCta?: () => void }) {
                     onClick={() => { setOpen(false); handleDashboard(); }}
                     className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
                   >
-                    Dashboard
+                    {t('lpn.dashboard')}
                   </button>
                   <GradientButton
                     className="w-full px-4 py-2.5 text-sm"
                     onClick={() => { setOpen(false); handleSignOut(); }}
                     disabled={isSigningOut}
                   >
-                    {isSigningOut ? 'Signing out…' : 'Sign out'}
+                    {isSigningOut ? t('lpn.signingOut') : t('lpn.signOut')}
                   </GradientButton>
                 </>
               ) : (
@@ -158,10 +160,10 @@ export function Nav({ onCta }: { onCta?: () => void }) {
                     href="/auth"
                     className="rounded-xl border border-violet-100 px-4 py-2.5 text-center text-sm font-semibold text-violet-700"
                   >
-                    Sign in
+                    {t('lpn.signIn')}
                   </a>
                   <GradientButton className="w-full px-4 py-2.5 text-sm" onClick={onCta}>
-                    Start free
+                    {t('lpn.startFree')}
                   </GradientButton>
                 </>
               )}

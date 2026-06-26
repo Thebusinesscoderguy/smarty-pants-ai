@@ -5,14 +5,15 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Reveal, StaggerGroup, staggerItem, EASE } from './primitives';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type FeatureKind = 'quiz' | 'attendance' | 'analytics' | 'messaging' | 'report';
 
 type Feature = {
   icon: React.ElementType;
   kind: FeatureKind;
-  title: string;
-  body: string;
+  titleKey: string;
+  bodyKey: string;
   className: string; // grid span
   accent: string;    // icon tint bg
   span?: boolean;    // large card
@@ -22,8 +23,8 @@ const FEATURES: Feature[] = [
   {
     icon: Brain,
     kind: 'quiz',
-    title: 'AI lesson & quiz builder',
-    body: 'Generate standards-aligned lessons, worksheets and adaptive quizzes in seconds. Teachers edit, never start from scratch.',
+    titleKey: 'lpb.f1Title',
+    bodyKey: 'lpb.f1Body',
     className: 'md:col-span-2 md:row-span-2',
     accent: 'from-violet-500 to-indigo-500',
     span: true,
@@ -31,32 +32,32 @@ const FEATURES: Feature[] = [
   {
     icon: CalendarCheck,
     kind: 'attendance',
-    title: 'Smart attendance',
-    body: 'One-tap roll call with auto-alerts to parents for absences.',
+    titleKey: 'lpb.f2Title',
+    bodyKey: 'lpb.f2Body',
     className: 'md:col-span-1',
     accent: 'from-emerald-500 to-teal-500',
   },
   {
     icon: BarChart3,
     kind: 'analytics',
-    title: 'Live analytics',
-    body: 'Spot at-risk students early with predictive insights.',
+    titleKey: 'lpb.f3Title',
+    bodyKey: 'lpb.f3Body',
     className: 'md:col-span-1',
     accent: 'from-fuchsia-500 to-pink-500',
   },
   {
     icon: MessageSquare,
     kind: 'messaging',
-    title: 'Unified messaging',
-    body: 'Parents, teachers and admin in one secure inbox — translated automatically.',
+    titleKey: 'lpb.f4Title',
+    bodyKey: 'lpb.f4Body',
     className: 'md:col-span-2',
     accent: 'from-sky-500 to-indigo-500',
   },
   {
     icon: FileText,
     kind: 'report',
-    title: 'Report cards',
-    body: 'Auto-compiled, branded PDFs in a click.',
+    titleKey: 'lpb.f5Title',
+    bodyKey: 'lpb.f5Body',
     className: 'md:col-span-1',
     accent: 'from-amber-500 to-orange-500',
   },
@@ -75,6 +76,7 @@ function Bar({ w = 'w-full', tone = 'bg-violet-100' }: { w?: string; tone?: stri
 
 function QuizVisual() {
   const reduce = useReducedMotion();
+  const { t } = useLanguage();
   const options = [
     { correct: false },
     { correct: true },
@@ -85,10 +87,10 @@ function QuizVisual() {
       {/* prompt chip */}
       <div className="mb-3 flex items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-600">
-          <Sparkles className="h-3 w-3" /> Generated
+          <Sparkles className="h-3 w-3" /> {t('lpb.generated')}
         </span>
         <span className="flex-1" />
-        <span className="text-[11px] font-medium text-violet-300">Question 1</span>
+        <span className="text-[11px] font-medium text-violet-300">{t('lpb.question1')}</span>
       </div>
       {/* question lines */}
       <div className="space-y-1.5">
@@ -204,6 +206,7 @@ function AnalyticsVisual() {
 }
 
 function MessagingVisual() {
+  const { t } = useLanguage();
   return (
     <div className="rounded-2xl border border-violet-100 bg-white/80 p-3.5">
       <div className="space-y-2.5">
@@ -222,7 +225,7 @@ function MessagingVisual() {
         </div>
       </div>
       <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-600">
-        <Globe className="h-3 w-3" /> Auto-translated
+        <Globe className="h-3 w-3" /> {t('lpb.autoTranslated')}
       </div>
     </div>
   );
@@ -261,6 +264,7 @@ function FeatureVisual({ kind }: { kind: FeatureKind }) {
 
 function FeatureCard({ f }: { f: Feature }) {
   const reduce = useReducedMotion();
+  const { t } = useLanguage();
   const Icon = f.icon;
   return (
     <motion.article
@@ -293,13 +297,13 @@ function FeatureCard({ f }: { f: Feature }) {
           'font-display font-bold tracking-tight text-[hsl(250_47%_13%)]',
           f.span ? 'text-2xl' : 'text-lg',
         )}>
-          {f.title}
+          {t(f.titleKey)}
         </h3>
         <p className={cn(
           'mt-2 text-[hsl(245_16%_46%)]',
           f.span ? 'max-w-md text-base leading-relaxed' : 'text-sm leading-relaxed',
         )}>
-          {f.body}
+          {t(f.bodyKey)}
         </p>
 
         {/* feature UI sketch — fills the card and hints at the product */}
@@ -308,7 +312,7 @@ function FeatureCard({ f }: { f: Feature }) {
         </div>
 
         <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-violet-600 opacity-0 transition-all duration-300 group-hover:opacity-100">
-          Learn more
+          {t('lpb.learnMore')}
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </span>
       </div>
@@ -317,24 +321,24 @@ function FeatureCard({ f }: { f: Feature }) {
 }
 
 export function BentoFeatures() {
+  const { t } = useLanguage();
   return (
     <section id="features" className="relative px-4 py-24 sm:py-28">
       <Reveal className="mx-auto max-w-2xl text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50/70 px-3.5 py-1 text-sm font-medium text-violet-600">
-          <Sparkles className="h-3.5 w-3.5" /> Everything in one place
+          <Sparkles className="h-3.5 w-3.5" /> {t('lpb.badge')}
         </span>
         <h2 className="font-display mt-5 text-4xl font-extrabold tracking-tight text-[hsl(250_47%_11%)] sm:text-5xl">
-          One platform. <span className="lp-text-gradient">Zero busywork.</span>
+          {t('lpb.headPre')} <span className="lp-text-gradient">{t('lpb.headEm')}</span>
         </h2>
         <p className="mt-4 text-lg text-[hsl(245_16%_46%)]">
-          Replace a dozen disconnected tools with a single, beautifully
-          calm system your whole school actually enjoys using.
+          {t('lpb.subtitle')}
         </p>
       </Reveal>
 
       <StaggerGroup className="mx-auto mt-14 grid max-w-6xl auto-rows-[minmax(0,1fr)] grid-cols-1 gap-4 sm:gap-5 md:grid-cols-4">
         {FEATURES.map((f) => (
-          <FeatureCard key={f.title} f={f} />
+          <FeatureCard key={f.titleKey} f={f} />
         ))}
       </StaggerGroup>
     </section>

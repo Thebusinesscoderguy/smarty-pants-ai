@@ -1,6 +1,7 @@
 import {
   LayoutGrid, CalendarCheck, GraduationCap, MessageSquare, BookOpen,
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /* ============================================================
    TeachlyAI — Hero dashboard mockup
@@ -17,24 +18,24 @@ import {
    ============================================================ */
 
 const NAV = [
-  { icon: LayoutGrid, label: 'Overview', active: true },
-  { icon: CalendarCheck, label: 'Attendance' },
-  { icon: GraduationCap, label: 'Grades' },
-  { icon: MessageSquare, label: 'Messages' },
-  { icon: BookOpen, label: 'Curriculum' },
+  { icon: LayoutGrid, labelKey: 'lpm.overview', active: true },
+  { icon: CalendarCheck, labelKey: 'lpm.attendance' },
+  { icon: GraduationCap, labelKey: 'lpm.grades' },
+  { icon: MessageSquare, labelKey: 'lpm.messages' },
+  { icon: BookOpen, labelKey: 'lpm.curriculum' },
 ];
 
 const ATTENDANCE = 96; // % present today (drives the donut)
 
 const GRADES = [
-  { name: 'Amelia Rivera', subject: 'Mathematics', mark: 'A' },
-  { name: 'Noah Patel', subject: 'Science', mark: 'A−' },
-  { name: 'Liam Chen', subject: 'English', mark: 'B+' },
+  { name: 'Amelia Rivera', subjectKey: 'lpm.subjMath', mark: 'A' },
+  { name: 'Noah Patel', subjectKey: 'lpm.subjScience', mark: 'A−' },
+  { name: 'Liam Chen', subjectKey: 'lpm.subjEnglish', mark: 'B+' },
 ];
 
 const MESSAGES = [
-  { from: 'Mr. Daniels', text: 'Thanks for the quick update!', time: '2m' },
-  { from: 'PTA Group', text: 'Bake sale confirmed for Friday.', time: '1h' },
+  { from: 'Mr. Daniels', textKey: 'lpm.msg1', time: '2m' },
+  { from: 'PTA Group', textKey: 'lpm.msg2', time: '1h' },
 ];
 
 const INK = 'hsl(250_47%_11%)';
@@ -74,6 +75,7 @@ function Donut({ value }: { value: number }) {
 }
 
 export function DashboardMockup() {
+  const { t } = useLanguage();
   return (
     <div className="aspect-[1877/1030] w-full overflow-hidden bg-[#FBF9FF]">
       <div className="flex h-full">
@@ -89,9 +91,9 @@ export function DashboardMockup() {
             </span>
           </div>
 
-          {NAV.map(({ icon: Icon, label, active }) => (
+          {NAV.map(({ icon: Icon, labelKey, active }) => (
             <div
-              key={label}
+              key={labelKey}
               className={
                 active
                   ? 'flex items-center gap-2 rounded-lg bg-violet-50 px-2.5 py-2 text-[11px] font-semibold text-violet-700'
@@ -99,7 +101,7 @@ export function DashboardMockup() {
               }
             >
               <Icon className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{label}</span>
+              <span className="truncate">{t(labelKey)}</span>
             </div>
           ))}
         </aside>
@@ -110,10 +112,10 @@ export function DashboardMockup() {
           <div className="flex items-center justify-between">
             <div className="leading-tight">
               <p className="text-[13px] font-bold text-[hsl(250_47%_11%)]">
-                Good morning, Ms. Carter
+                {t('lpm.greeting')}
               </p>
               <p className="text-[10px] text-[hsl(245_16%_55%)]">
-                Monday, June 21 · Springfield Elementary
+                {t('lpm.dateLine')}
               </p>
             </div>
             <span className="h-7 w-7 rounded-full bg-[linear-gradient(135deg,#A855F7,#6366F1)] shadow-[0_6px_14px_-6px_rgba(99,102,241,0.7)]" />
@@ -124,13 +126,13 @@ export function DashboardMockup() {
             {/* attendance */}
             <div className={CARD}>
               <p className="text-[9px] font-semibold uppercase tracking-wider text-[hsl(245_16%_55%)]">
-                Attendance
+                {t('lpm.attendance')}
               </p>
               <div className="mt-1.5 flex items-center gap-2.5">
                 <Donut value={ATTENDANCE} />
                 <div className="leading-tight">
-                  <p className="text-[11px] font-semibold text-[hsl(250_47%_11%)]">Present today</p>
-                  <p className="mt-0.5 text-[9px] text-[hsl(245_16%_55%)]">+2% vs last week</p>
+                  <p className="text-[11px] font-semibold text-[hsl(250_47%_11%)]">{t('lpm.presentToday')}</p>
+                  <p className="mt-0.5 text-[9px] text-[hsl(245_16%_55%)]">{t('lpm.vsLastWeek')}</p>
                 </div>
               </div>
             </div>
@@ -138,7 +140,7 @@ export function DashboardMockup() {
             {/* parent messages */}
             <div className={CARD}>
               <p className="text-[9px] font-semibold uppercase tracking-wider text-[hsl(245_16%_55%)]">
-                Parent messages
+                {t('lpm.parentMessages')}
               </p>
               <div className="mt-2 space-y-2">
                 {MESSAGES.map((m) => (
@@ -148,7 +150,7 @@ export function DashboardMockup() {
                     </span>
                     <div className="min-w-0 flex-1 leading-tight">
                       <p className="truncate text-[10px] font-semibold text-[hsl(250_47%_11%)]">{m.from}</p>
-                      <p className="truncate text-[9px] text-[hsl(245_16%_55%)]">{m.text}</p>
+                      <p className="truncate text-[9px] text-[hsl(245_16%_55%)]">{t(m.textKey)}</p>
                     </div>
                     <span className="shrink-0 text-[9px] text-[hsl(245_16%_60%)]">{m.time}</span>
                   </div>
@@ -161,9 +163,9 @@ export function DashboardMockup() {
           <div className={CARD}>
             <div className="flex items-center justify-between">
               <p className="text-[9px] font-semibold uppercase tracking-wider text-[hsl(245_16%_55%)]">
-                Recent grades
+                {t('lpm.recentGrades')}
               </p>
-              <span className="text-[9px] text-[hsl(245_16%_60%)]">This week</span>
+              <span className="text-[9px] text-[hsl(245_16%_60%)]">{t('lpm.thisWeek')}</span>
             </div>
             <div className="mt-1.5 divide-y divide-violet-50">
               {GRADES.map((g) => (
@@ -173,7 +175,7 @@ export function DashboardMockup() {
                   </span>
                   <div className="min-w-0 flex-1 leading-tight">
                     <p className="truncate text-[10px] font-semibold text-[hsl(250_47%_11%)]">{g.name}</p>
-                    <p className="text-[9px] text-[hsl(245_16%_55%)]">{g.subject}</p>
+                    <p className="text-[9px] text-[hsl(245_16%_55%)]">{t(g.subjectKey)}</p>
                   </div>
                   <span className="shrink-0 rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-700">
                     {g.mark}

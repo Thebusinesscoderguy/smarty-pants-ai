@@ -3,29 +3,30 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion
 import { UploadCloud, Wand2, Rocket, Check, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Reveal, EASE } from './primitives';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type StepKind = 'import' | 'setup' | 'golive';
 
-const STEPS: { icon: React.ElementType; n: string; title: string; body: string; kind: StepKind }[] = [
+const STEPS: { icon: React.ElementType; n: string; titleKey: string; bodyKey: string; kind: StepKind }[] = [
   {
     icon: UploadCloud,
     n: '01',
-    title: 'Import your school',
-    body: 'Upload your roster, classes and timetable — or sync from your SIS. We map everything automatically in minutes.',
+    titleKey: 'lph.step1Title',
+    bodyKey: 'lph.step1Body',
     kind: 'import',
   },
   {
     icon: Wand2,
     n: '02',
-    title: 'Let AI set things up',
-    body: 'TeachlyAI drafts lesson plans, seating, grading scales and parent groups. Review, tweak, approve.',
+    titleKey: 'lph.step2Title',
+    bodyKey: 'lph.step2Body',
     kind: 'setup',
   },
   {
     icon: Rocket,
     n: '03',
-    title: 'Go live, calmly',
-    body: 'Teachers, parents and students get tailored access. Watch attendance, grades and engagement in real time.',
+    titleKey: 'lph.step3Title',
+    bodyKey: 'lph.step3Body',
     kind: 'golive',
   },
 ];
@@ -37,6 +38,7 @@ function Bar({ w = 'w-full', tone = 'bg-violet-100' }: { w?: string; tone?: stri
 
 /* decorative, abstract UI sketch that fills each step card */
 function StepSketch({ kind }: { kind: StepKind }) {
+  const { t } = useLanguage();
   if (kind === 'import') {
     return (
       <div className="rounded-2xl border border-violet-100 bg-white/80 p-3.5 shadow-[0_12px_40px_-26px_rgba(124,58,237,0.45)]">
@@ -45,7 +47,7 @@ function StepSketch({ kind }: { kind: StepKind }) {
           <Bar w="w-1/3" tone="bg-violet-200" />
           <span className="flex-1" />
           <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-600">
-            <RefreshCw className="h-2.5 w-2.5" /> SIS sync
+            <RefreshCw className="h-2.5 w-2.5" /> {t('lph.sisSync')}
           </span>
         </div>
         {['w-2/3', 'w-1/2', 'w-3/5'].map((w, i) => (
@@ -62,7 +64,7 @@ function StepSketch({ kind }: { kind: StepKind }) {
     return (
       <div className="rounded-2xl border border-violet-100 bg-white/80 p-3.5 shadow-[0_12px_40px_-26px_rgba(124,58,237,0.45)]">
         <div className="mb-2.5 inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-600">
-          <Sparkles className="h-2.5 w-2.5" /> Drafting
+          <Sparkles className="h-2.5 w-2.5" /> {t('lph.drafting')}
         </div>
         <div className="space-y-1.5">
           <Bar w="w-5/6" tone="bg-violet-200" />
@@ -70,9 +72,9 @@ function StepSketch({ kind }: { kind: StepKind }) {
           <Bar w="w-2/3" tone="bg-violet-100" />
         </div>
         <div className="mt-3 flex items-center justify-end gap-2">
-          <span className="rounded-md border border-violet-100 px-2 py-1 text-[10px] font-semibold text-violet-400">Tweak</span>
+          <span className="rounded-md border border-violet-100 px-2 py-1 text-[10px] font-semibold text-violet-400">{t('lph.tweak')}</span>
           <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-br from-violet-500 to-indigo-500 px-2 py-1 text-[10px] font-semibold text-white">
-            <Check className="h-2.5 w-2.5" strokeWidth={3} /> Approve
+            <Check className="h-2.5 w-2.5" strokeWidth={3} /> {t('lph.approve')}
           </span>
         </div>
       </div>
@@ -80,7 +82,7 @@ function StepSketch({ kind }: { kind: StepKind }) {
   }
 
   // golive
-  const audiences = ['Teachers', 'Parents', 'Students'];
+  const audiences = [t('lph.teachers'), t('lph.parents'), t('lph.students')];
   return (
     <div className="rounded-2xl border border-violet-100 bg-white/80 p-3.5 shadow-[0_12px_40px_-26px_rgba(124,58,237,0.45)]">
       <div className="mb-2.5 flex items-center gap-2 border-b border-violet-50 pb-2">
@@ -88,7 +90,7 @@ function StepSketch({ kind }: { kind: StepKind }) {
           <span className="absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-500" />
         </span>
-        <span className="text-[11px] font-semibold text-violet-600">Live</span>
+        <span className="text-[11px] font-semibold text-violet-600">{t('lph.live')}</span>
         <span className="flex-1" />
         <BarChartGlyph />
       </div>
@@ -137,6 +139,7 @@ function StepIcon({ icon: Icon }: { icon: React.ElementType }) {
 }
 
 export function HowItWorks() {
+  const { t } = useLanguage();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -149,13 +152,13 @@ export function HowItWorks() {
     <section id="how" className="relative px-4 py-24 sm:py-28">
       <Reveal className="mx-auto max-w-2xl text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50/70 px-3.5 py-1 text-sm font-medium text-violet-600">
-          How it works
+          {t('lph.badge')}
         </span>
         <h2 className="font-display mt-5 text-4xl font-extrabold tracking-tight text-[hsl(250_47%_11%)] sm:text-5xl">
-          Live in <span className="lp-text-gradient">three steps</span>
+          {t('lph.headPre')} <span className="lp-text-gradient">{t('lph.headEm')}</span>
         </h2>
         <p className="mt-4 text-lg text-[hsl(245_16%_46%)]">
-          A guided, step-by-step setup — from importing your data to going live.
+          {t('lph.subtitle')}
         </p>
       </Reveal>
 
@@ -183,13 +186,13 @@ export function HowItWorks() {
               </div>
               <div className="flex-1">
                 <span className="font-display text-sm font-bold tracking-widest text-violet-400">
-                  STEP {s.n}
+                  {t('lph.step')} {s.n}
                 </span>
                 <h3 className="font-display mt-1 text-xl font-bold text-[hsl(250_47%_13%)]">
-                  {s.title}
+                  {t(s.titleKey)}
                 </h3>
                 <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-[hsl(245_16%_46%)]">
-                  {s.body}
+                  {t(s.bodyKey)}
                 </p>
                 <div className="mt-5 max-w-xs">
                   <StepSketch kind={s.kind} />
