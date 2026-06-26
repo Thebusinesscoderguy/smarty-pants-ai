@@ -23,13 +23,15 @@ import {
   Activity
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const EnhancedStudentDashboard = () => {
-  const { 
-    studentProgress, 
-    overviewStats, 
-    loading, 
-    fetchStudentProgress 
+  const { t } = useLanguage();
+  const {
+    studentProgress,
+    overviewStats,
+    loading,
+    fetchStudentProgress
   } = useMonitoringData();
   
   const [selectedTimeFrame, setSelectedTimeFrame] = useState('month');
@@ -79,8 +81,8 @@ export const EnhancedStudentDashboard = () => {
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Export Successful",
-      description: "Student dashboard data has been exported to CSV.",
+      title: t('cmd.exportSuccess'),
+      description: t('esd.exportSuccessDesc'),
     });
   };
 
@@ -88,7 +90,7 @@ export const EnhancedStudentDashboard = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-2">Loading dashboard data...</span>
+        <span className="ml-2">{t('esd.loading')}</span>
       </div>
     );
   }
@@ -98,20 +100,20 @@ export const EnhancedStudentDashboard = () => {
       {/* Enhanced Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Enhanced Student Monitoring</h1>
+          <h1 className="text-3xl font-bold">{t('esd.title')}</h1>
           <p className="text-muted-foreground">
-            Comprehensive analytics and insights for student performance
+            {t('esd.subtitle')}
           </p>
         </div>
-        
+
         <div className="flex gap-2">
           <Button onClick={handleExportData} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Export Data
+            {t('esd.exportData')}
           </Button>
           <Button onClick={fetchStudentProgress}>
             <Activity className="h-4 w-4 mr-2" />
-            Refresh
+            {t('cmd.refresh')}
           </Button>
         </div>
       </div>
@@ -125,9 +127,9 @@ export const EnhancedStudentDashboard = () => {
                 <Users className="h-6 w-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Students</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('cmd.totalStudents')}</p>
                 <p className="text-2xl font-bold">{overviewStats?.totalStudents || 0}</p>
-                <p className="text-xs text-green-600">+2 this week</p>
+                <p className="text-xs text-green-600">{t('esd.plus2ThisWeek')}</p>
               </div>
             </div>
           </CardContent>
@@ -140,9 +142,9 @@ export const EnhancedStudentDashboard = () => {
                 <TrendingUp className="h-6 w-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Avg Progress</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('cmd.avgProgress')}</p>
                 <p className="text-2xl font-bold">{overviewStats?.avgCompletion || 0}%</p>
-                <p className="text-xs text-green-600">+5% from last month</p>
+                <p className="text-xs text-green-600">{t('esd.plus5LastMonth')}</p>
               </div>
             </div>
           </CardContent>
@@ -155,9 +157,9 @@ export const EnhancedStudentDashboard = () => {
                 <Clock className="h-6 w-6 text-purple-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Study Hours</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('cmd.studyHours')}</p>
                 <p className="text-2xl font-bold">{overviewStats?.totalStudyTime || 0}h</p>
-                <p className="text-xs text-blue-600">This month</p>
+                <p className="text-xs text-blue-600">{t('cmd.thisMonth')}</p>
               </div>
             </div>
           </CardContent>
@@ -170,9 +172,9 @@ export const EnhancedStudentDashboard = () => {
                 <Target className="h-6 w-6 text-violet-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Quests</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('esd.quests')}</p>
                 <p className="text-2xl font-bold">{overviewStats?.totalQuests || 0}</p>
-                <p className="text-xs text-violet-600">Active quests</p>
+                <p className="text-xs text-violet-600">{t('esd.activeQuests')}</p>
               </div>
             </div>
           </CardContent>
@@ -185,7 +187,7 @@ export const EnhancedStudentDashboard = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search students..."
+                placeholder={t('cmd.searchStudents')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
@@ -197,10 +199,10 @@ export const EnhancedStudentDashboard = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-input rounded-md bg-background"
               >
-                <option value="name">Sort by Name</option>
-                <option value="progress">Sort by Progress</option>
-                <option value="time">Sort by Study Time</option>
-                <option value="activity">Sort by Last Activity</option>
+                <option value="name">{t('cmd.sortName')}</option>
+                <option value="progress">{t('cmd.sortProgress')}</option>
+                <option value="time">{t('cmd.sortTime')}</option>
+                <option value="activity">{t('cmd.sortActivity')}</option>
               </select>
               
               <select
@@ -208,10 +210,10 @@ export const EnhancedStudentDashboard = () => {
                 onChange={(e) => setSelectedTimeFrame(e.target.value)}
                 className="px-3 py-2 border border-input rounded-md bg-background"
               >
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
+                <option value="week">{t('cmd.thisWeek')}</option>
+                <option value="month">{t('cmd.thisMonthOpt')}</option>
+                <option value="quarter">{t('cmd.thisQuarter')}</option>
+                <option value="year">{t('cmd.thisYear')}</option>
               </select>
             </div>
           </div>
@@ -223,16 +225,16 @@ export const EnhancedStudentDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
-            Student Progress Analytics
+            {t('cmd.analyticsTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {filteredStudents.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Students Found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('cmd.noStudents')}</h3>
               <p className="text-muted-foreground">
-                {searchTerm ? 'Try adjusting your search criteria.' : 'Add students to start monitoring their progress.'}
+                {searchTerm ? t('cmd.adjustSearch') : t('cmd.addStudents')}
               </p>
             </div>
           ) : (
@@ -247,58 +249,58 @@ export const EnhancedStudentDashboard = () => {
                           <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              Last active: {student.last_activity ? 
-                                new Date(student.last_activity).toLocaleDateString() : 
-                                'No recent activity'
+                              {t('cmd.lastActive')} {student.last_activity ?
+                                new Date(student.last_activity).toLocaleDateString() :
+                                t('cmd.noRecentActivity')
                               }
                             </span>
-                            <Badge 
-                              variant={student.completion_percentage >= 80 ? "default" : 
+                            <Badge
+                              variant={student.completion_percentage >= 80 ? "default" :
                                        student.completion_percentage >= 60 ? "secondary" : "destructive"}
                             >
-                              {student.completion_percentage >= 80 ? "Excellent" :
-                               student.completion_percentage >= 60 ? "Good" : "Needs Attention"}
+                              {student.completion_percentage >= 80 ? t('cmd.excellent') :
+                               student.completion_percentage >= 60 ? t('cmd.good') : t('cmd.needsAttention')}
                             </Badge>
                           </div>
                         </div>
                       </div>
 
                       <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="performance">Performance</TabsTrigger>
-                        <TabsTrigger value="insights">Insights</TabsTrigger>
-                        <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+                        <TabsTrigger value="overview">{t('cmd.overview')}</TabsTrigger>
+                        <TabsTrigger value="performance">{t('esd.performance')}</TabsTrigger>
+                        <TabsTrigger value="insights">{t('cmd.insights')}</TabsTrigger>
+                        <TabsTrigger value="recommendations">{t('esd.recommendations')}</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="overview" className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="space-y-3">
                             <div className="flex justify-between text-sm">
-                              <span>Overall Progress</span>
+                              <span>{t('cmd.overallProgress')}</span>
                               <span>{student.completion_percentage}%</span>
                             </div>
                             <Progress value={student.completion_percentage} className="h-2" />
                             <p className="text-xs text-muted-foreground">
-                              {student.completed_lessons} of {student.total_lessons} lessons completed
+                              {student.completed_lessons} {t('cmd.ofWord')} {student.total_lessons} {t('cmd.lessonsCompletedSuffix')}
                             </p>
                           </div>
                           
                           <div className="text-center">
-                            <p className="text-sm text-muted-foreground">Study Time</p>
+                            <p className="text-sm text-muted-foreground">{t('cmd.studyTime')}</p>
                             <p className="text-3xl font-bold text-primary">
                               {Math.round(student.total_time_spent / 60)}h
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {student.total_time_spent % 60}m additional
+                              {student.total_time_spent % 60}{t('esd.mAdditional')}
                             </p>
                           </div>
                           
                           <div className="text-center">
-                            <p className="text-sm text-muted-foreground">Subjects</p>
+                            <p className="text-sm text-muted-foreground">{t('cmd.subjects')}</p>
                             <p className="text-3xl font-bold text-secondary">
                               {student.subjects.length}
                             </p>
-                            <p className="text-xs text-muted-foreground">Active subjects</p>
+                            <p className="text-xs text-muted-foreground">{t('esd.activeSubjects')}</p>
                           </div>
                         </div>
 
@@ -314,7 +316,7 @@ export const EnhancedStudentDashboard = () => {
                                 </div>
                                 <Progress value={subject.completion_percentage} className="h-2" />
                                 <div className="flex justify-between text-xs text-muted-foreground">
-                                  <span>{subject.lessons_completed}/{subject.total_lessons} lessons</span>
+                                  <span>{subject.lessons_completed}/{subject.total_lessons} {t('cmd.lessonsWord')}</span>
                                   <span>{Math.round(subject.time_spent / 60)}h {subject.time_spent % 60}m</span>
                                 </div>
                               </div>
@@ -328,13 +330,13 @@ export const EnhancedStudentDashboard = () => {
                           <Card className="p-4">
                             <h4 className="font-medium text-green-600 mb-3 flex items-center gap-2">
                               <CheckCircle className="h-4 w-4" />
-                              Top Strengths
+                              {t('esd.topStrengths')}
                             </h4>
                             <div className="space-y-2">
                               {student.strengths.slice(0, 5).map((strength, index) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded">
                                   <span className="text-sm">{strength}</span>
-                                  <Badge variant="outline" className="bg-green-100">Strong</Badge>
+                                  <Badge variant="outline" className="bg-green-100">{t('esd.strong')}</Badge>
                                 </div>
                               ))}
                             </div>
@@ -343,13 +345,13 @@ export const EnhancedStudentDashboard = () => {
                           <Card className="p-4">
                             <h4 className="font-medium text-violet-600 mb-3 flex items-center gap-2">
                               <AlertTriangle className="h-4 w-4" />
-                              Improvement Areas
+                              {t('esd.improvementAreas')}
                             </h4>
                             <div className="space-y-2">
                               {student.weak_areas.slice(0, 5).map((area, index) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-violet-50 rounded">
                                   <span className="text-sm">{area}</span>
-                                  <Badge variant="outline" className="bg-violet-100">Focus</Badge>
+                                  <Badge variant="outline" className="bg-violet-100">{t('esd.focus')}</Badge>
                                 </div>
                               ))}
                             </div>
@@ -361,16 +363,16 @@ export const EnhancedStudentDashboard = () => {
                         <Card className="p-6">
                           <h4 className="font-medium mb-4 flex items-center gap-2">
                             <Brain className="h-5 w-5" />
-                            AI-Generated Insights
+                            {t('esd.aiInsights')}
                           </h4>
                           <div className="prose prose-sm max-w-none">
                             <p className="text-muted-foreground leading-relaxed">
-                              {student.student_name} shows {student.completion_percentage >= 80 ? 'excellent' : 
-                               student.completion_percentage >= 60 ? 'good' : 'developing'} engagement across subjects. 
-                              {student.strengths.length > 0 && ` Strong performance in ${student.strengths.slice(0, 2).join(' and ')}.`}
-                              {student.weak_areas.length > 0 && ` Recommended focus areas include ${student.weak_areas.slice(0, 2).join(' and ')}.`}
-                              Study time of {Math.round(student.total_time_spent / 60)} hours indicates 
-                              {student.total_time_spent > 600 ? ' excellent' : student.total_time_spent > 300 ? ' good' : ' developing'} commitment to learning.
+                              {student.student_name} {t('esd.iShows')} {student.completion_percentage >= 80 ? t('esd.iExcellent') :
+                               student.completion_percentage >= 60 ? t('esd.iGood') : t('esd.iDeveloping')} {t('esd.iEngagement')}
+                              {student.strengths.length > 0 && ` ${t('esd.iStrongPerf')} ${student.strengths.slice(0, 2).join(` ${t('esd.andWord')} `)}.`}
+                              {student.weak_areas.length > 0 && ` ${t('esd.iRecFocus')} ${student.weak_areas.slice(0, 2).join(` ${t('esd.andWord')} `)}.`}
+                              {' '}{t('esd.iStudyTimeOf')} {Math.round(student.total_time_spent / 60)} {t('esd.iHoursIndicates')}{' '}
+                              {student.total_time_spent > 600 ? t('esd.iExcellent') : student.total_time_spent > 300 ? t('esd.iGood') : t('esd.iDeveloping')} {t('esd.iCommitment')}
                             </p>
                           </div>
                         </Card>
@@ -381,20 +383,20 @@ export const EnhancedStudentDashboard = () => {
                           <Card className="p-4">
                             <h4 className="font-medium mb-3 flex items-center gap-2">
                               <Target className="h-4 w-4 text-blue-500" />
-                              Learning Recommendations
+                              {t('esd.learningRec')}
                             </h4>
                             <ul className="space-y-2 text-sm">
                               {student.weak_areas.length > 0 ? (
                                 student.weak_areas.slice(0, 3).map((area, index) => (
                                   <li key={index} className="flex items-start gap-2">
                                     <Zap className="h-3 w-3 text-violet-500 mt-1" />
-                                    Focus on {area} with additional practice exercises
+                                    {t('esd.focusOnPre')} {area} {t('esd.focusOnPost')}
                                   </li>
                                 ))
                               ) : (
                                 <li className="flex items-start gap-2">
                                   <CheckCircle className="h-3 w-3 text-green-500 mt-1" />
-                                  Continue current learning path - showing excellent progress
+                                  {t('esd.continuePath')}
                                 </li>
                               )}
                             </ul>
@@ -403,21 +405,21 @@ export const EnhancedStudentDashboard = () => {
                           <Card className="p-4">
                             <h4 className="font-medium mb-3 flex items-center gap-2">
                               <Activity className="h-4 w-4 text-purple-500" />
-                              Engagement Tips
+                              {t('esd.engagementTips')}
                             </h4>
                             <ul className="space-y-2 text-sm">
                               <li className="flex items-start gap-2">
                                 <Zap className="h-3 w-3 text-blue-500 mt-1" />
-                                {student.total_time_spent < 300 ? 
-                                  'Encourage 15-20 minutes daily study sessions' :
-                                  'Maintain current study schedule for optimal learning'
+                                {student.total_time_spent < 300 ?
+                                  t('esd.tip15min') :
+                                  t('esd.tipMaintain')
                                 }
                               </li>
                               <li className="flex items-start gap-2">
                                 <Zap className="h-3 w-3 text-green-500 mt-1" />
                                 {student.strengths.length > 0 ?
-                                  `Leverage strengths in ${student.strengths[0]} for confidence building` :
-                                  'Focus on building foundational skills across subjects'
+                                  `${t('esd.leveragePre')} ${student.strengths[0]} ${t('esd.leveragePost')}` :
+                                  t('esd.buildFoundational')
                                 }
                               </li>
                             </ul>
