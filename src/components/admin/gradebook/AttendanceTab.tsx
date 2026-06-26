@@ -9,6 +9,7 @@ import { Save, Loader2, CheckCircle, XCircle, FileSpreadsheet } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 
 interface AttendanceReason {
@@ -32,6 +33,7 @@ interface AttendanceTabProps {
 
 export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({}); // studentId -> reason_id
@@ -88,10 +90,10 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
         .upsert(upserts, { onConflict: 'student_id,subject_id,attendance_date' });
 
       if (error) throw error;
-      toast({ title: 'Saved', description: `Attendance saved for ${selectedDate}` });
+      toast({ title: t('gradebook.saved'), description: `${t('gbAttendance.savedDescPrefix')} ${selectedDate}` });
     } catch (e) {
       console.error(e);
-      toast({ title: 'Error', description: 'Failed to save attendance', variant: 'destructive' });
+      toast({ title: t('gradebook.error'), description: t('gbAttendance.failedSave'), variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -108,17 +110,17 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
         <Input type="date" value={selectedDate} onChange={e => { setSelectedDate(e.target.value); setIsLoaded(false); }} className="w-auto" />
-        <Button variant="outline" onClick={loadAttendance}>Load Attendance</Button>
+        <Button variant="outline" onClick={loadAttendance}>{t('gbAttendance.load')}</Button>
         <Button onClick={saveAttendance} disabled={isSaving || !isLoaded}>
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-          Save Attendance
+          {t('gbAttendance.save')}
         </Button>
         <Button variant="outline" onClick={() => setIoOpen(true)}>
-          <FileSpreadsheet className="h-4 w-4 mr-2" /> Import / Export
+          <FileSpreadsheet className="h-4 w-4 mr-2" /> {t('gradebook.importExport')}
         </Button>
         {isLoaded && (
           <span className="text-sm text-muted-foreground">
-            Present: {Object.values(attendance).filter(Boolean).length} / {Object.keys(attendance).length}
+            {t('gbAttendance.present')}: {Object.values(attendance).filter(Boolean).length} / {Object.keys(attendance).length}
           </span>
         )}
       </div>
@@ -127,7 +129,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
       {!isLoaded ? (
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center text-muted-foreground">
-            Select a date and click "Load Attendance" to begin marking.
+            {t('gbAttendance.selectDateHint')}
           </CardContent>
         </Card>
       ) : (
@@ -138,10 +140,10 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead className="text-center w-32">Present</TableHead>
-                    <TableHead className="text-center w-32">Status</TableHead>
-                    <TableHead className="w-48">Absence reason</TableHead>
+                    <TableHead>{t('gradebook.student')}</TableHead>
+                    <TableHead className="text-center w-32">{t('gbAttendance.present')}</TableHead>
+                    <TableHead className="text-center w-32">{t('gbAttendance.status')}</TableHead>
+                    <TableHead className="w-48">{t('gbAttendance.absenceReason')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -178,11 +180,11 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
                             value={reasons[s.student_id] || ''}
                             onValueChange={(v) => setReasons(prev => ({ ...prev, [s.student_id]: v }))}
                           >
-                            <SelectTrigger className="h-8"><SelectValue placeholder="No reason" /></SelectTrigger>
+                            <SelectTrigger className="h-8"><SelectValue placeholder={t('gbAttendance.noReason')} /></SelectTrigger>
                             <SelectContent>
                               {reasonOptions.map(r => (
                                 <SelectItem key={r.id} value={r.id}>
-                                  {r.label}{r.excused ? ' (excused)' : ''}
+                                  {r.label}{r.excused ? t('gbAttendance.excusedSuffix') : ''}
                                 </SelectItem>
                               ))}
                             </SelectContent>

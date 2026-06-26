@@ -8,6 +8,7 @@ import { Save, Loader2, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 
 interface StudentInfo {
@@ -25,6 +26,7 @@ interface SemesterMarksTabProps {
 
 export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMarksTabProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [semester, setSemester] = useState('S1');
   const [marks, setMarks] = useState<Record<string, { project: string; literacy: string; finalExam: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -74,17 +76,17 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
           created_by: user.id,
         }));
 
-      if (!upserts.length) { toast({ title: 'Nothing to save' }); setIsSaving(false); return; }
+      if (!upserts.length) { toast({ title: t('gradebook.nothingToSave') }); setIsSaving(false); return; }
 
       const { error } = await supabase
         .from('student_semester_marks')
         .upsert(upserts, { onConflict: 'student_id,subject_id,semester' });
 
       if (error) throw error;
-      toast({ title: 'Saved', description: `Semester marks saved for ${semester}` });
+      toast({ title: t('gradebook.saved'), description: `${t('gbSemester.savedDescPrefix')} ${semester === 'S1' ? t('gradebook.semester1') : t('gradebook.semester2')}` });
     } catch (e) {
       console.error(e);
-      toast({ title: 'Error', description: 'Failed to save semester marks', variant: 'destructive' });
+      toast({ title: t('gradebook.error'), description: t('gbSemester.failedSave'), variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -102,26 +104,26 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
         <Select value={semester} onValueChange={setSemester}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="S1">Semester 1</SelectItem>
-            <SelectItem value="S2">Semester 2</SelectItem>
+            <SelectItem value="S1">{t('gradebook.semester1')}</SelectItem>
+            <SelectItem value="S2">{t('gradebook.semester2')}</SelectItem>
           </SelectContent>
         </Select>
         <Button onClick={saveMarks} disabled={isSaving}>
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-          Save Marks
+          {t('gradebook.saveMarks')}
         </Button>
         <Button variant="outline" onClick={() => setIoOpen(true)}>
-          <FileSpreadsheet className="h-4 w-4 mr-2" /> Import / Export
+          <FileSpreadsheet className="h-4 w-4 mr-2" /> {t('gradebook.importExport')}
         </Button>
       </div>
       <DataPortabilityDialog open={ioOpen} onOpenChange={setIoOpen} defaultEntityKey="semester_marks" />
 
       <div className="text-sm text-muted-foreground">
-        <strong>Project:</strong> 0–10 • <strong>Literacy:</strong> 0–10 • <strong>Final Exam:</strong> 0–20
+        {t('gbSemester.legend')}
       </div>
 
       {isLoading ? (
-        <div className="animate-pulse text-muted-foreground py-8 text-center">Loading...</div>
+        <div className="animate-pulse text-muted-foreground py-8 text-center">{t('gradebook.loadingShort')}</div>
       ) : (
         Object.entries(sections).sort(([a], [b]) => a.localeCompare(b)).map(([section, sectionStudents]) => (
           <Card key={section} className="bg-card border-border">
@@ -130,10 +132,10 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId }: SemesterMark
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead className="text-center w-28">Project /10</TableHead>
-                    <TableHead className="text-center w-28">Literacy /10</TableHead>
-                    <TableHead className="text-center w-28">Final Exam /20</TableHead>
+                    <TableHead>{t('gradebook.student')}</TableHead>
+                    <TableHead className="text-center w-28">{t('gbSemester.projectCol')}</TableHead>
+                    <TableHead className="text-center w-28">{t('gbSemester.literacyCol')}</TableHead>
+                    <TableHead className="text-center w-28">{t('gbSemester.finalExamCol')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

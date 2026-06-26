@@ -9,6 +9,7 @@ import { BookOpen, Save, Loader2, Users, ChevronDown, ChevronRight, CalendarChec
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { AttendanceTab } from './gradebook/AttendanceTab';
 import { RubricTab } from './gradebook/RubricTab';
 import { SemesterMarksTab } from './gradebook/SemesterMarksTab';
@@ -30,6 +31,7 @@ export const GradeBook = () => {
   const [schoolId, setSchoolId] = useState('');
   const [activeTab, setActiveTab] = useState('daily');
   const { user, isSchoolAdmin, isTeacher, teacherInfo } = useAuth();
+  const { t } = useLanguage();
 
   // Teacher filtering state
   const [teacherSections, setTeacherSections] = useState<string[]>([]);
@@ -131,7 +133,7 @@ export const GradeBook = () => {
       for (const sec of secRes.data || []) sectionMap[sec.id] = { grade_level: sec.grade_level, section_name: sec.section_name };
       for (const ss of secStudRes.data || []) {
         const sec = sectionMap[ss.section_id];
-        if (sec) studentSectionMap[ss.student_id] = `Grade ${sec.grade_level} ${sec.section_name}`;
+        if (sec) studentSectionMap[ss.student_id] = `${t('gradebook.gradePrefix')} ${sec.grade_level} ${sec.section_name}`;
       }
 
       const dailyMap: Record<string, { classwork_mark: number | null; homework_mark: number | null }> = {};
@@ -141,7 +143,7 @@ export const GradeBook = () => {
         student_id: p.id,
         student_name: p.display_name || 'Unknown',
         avatar_url: p.avatar_url,
-        section_label: studentSectionMap[p.id] || 'Unassigned',
+        section_label: studentSectionMap[p.id] || t('gradebook.unassigned'),
       }));
 
       studentList.sort((a, b) => a.section_label.localeCompare(b.section_label) || a.student_name.localeCompare(b.student_name));
@@ -168,28 +170,28 @@ export const GradeBook = () => {
           homework_mark: v.homework !== '' ? parseFloat(v.homework) : null,
           created_by: user.id,
         }));
-      if (!upserts.length) { toast({ title: 'Nothing to save' }); setIsSaving(false); return; }
+      if (!upserts.length) { toast({ title: t('gradebook.nothingToSave') }); setIsSaving(false); return; }
       const { error } = await supabase.from('student_daily_grades').upsert(upserts, { onConflict: 'student_id,subject_id,grade_date' });
       if (error) throw error;
-      toast({ title: 'Saved', description: `Daily grades saved for ${selectedDate}` });
+      toast({ title: t('gradebook.saved'), description: `${t('gradebook.savedDescPrefix')} ${selectedDate}` });
       fetchStudentsAndGrades();
     } catch (e) {
       console.error(e);
-      toast({ title: 'Error', description: 'Failed to save grades', variant: 'destructive' });
+      toast({ title: t('gradebook.error'), description: t('gradebook.failedSave'), variant: 'destructive' });
     } finally { setIsSaving(false); }
   };
 
-  if (isLoading && !subjects.length) return <div className="animate-pulse text-muted-foreground">Loading grade book...</div>;
+  if (isLoading && !subjects.length) return <div className="animate-pulse text-muted-foreground">{t('gradebook.loading')}</div>;
 
   if (subjects.length === 0) {
     return (
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-foreground">Grade Book</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t('gradebook.title')}</h2>
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center text-muted-foreground">
             <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No subjects created yet</p>
-            <p className="text-sm mt-1">Go to the <strong>Subjects</strong> tab to create subjects first.</p>
+            <p className="font-medium">{t('gradebook.noSubjectsTitle')}</p>
+            <p className="text-sm mt-1">{t('gradebook.noSubjectsHintPre')}<strong>{t('gradebook.subjectsTab')}</strong>{t('gradebook.noSubjectsHintPost')}</p>
           </CardContent>
         </Card>
       </div>
@@ -205,8 +207,8 @@ export const GradeBook = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Grade Book</h2>
-        <p className="text-muted-foreground text-sm">Weighted: Classwork /10 • Homework /10 • Attendance /20 • Normal Exams /20 • Final Exam /20 • Project /10 • Literacy /10 = <strong>Total /100</strong></p>
+        <h2 className="text-2xl font-bold text-foreground">{t('gradebook.title')}</h2>
+        <p className="text-muted-foreground text-sm">{t('gradebook.weightedPre')}<strong>{t('gradebook.total100')}</strong></p>
       </div>
 
       {/* Subject Tabs */}
@@ -224,11 +226,11 @@ export const GradeBook = () => {
             {/* Inner tabs for each mode */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-muted/50">
-                <TabsTrigger value="daily"><ClipboardList className="h-4 w-4 mr-1" />Daily Marks</TabsTrigger>
-                <TabsTrigger value="attendance"><CalendarCheck className="h-4 w-4 mr-1" />Attendance</TabsTrigger>
-                <TabsTrigger value="rubric"><ClipboardList className="h-4 w-4 mr-1" />Rubric</TabsTrigger>
-                <TabsTrigger value="semester"><FileText className="h-4 w-4 mr-1" />Semester Marks</TabsTrigger>
-                <TabsTrigger value="summary"><BarChart3 className="h-4 w-4 mr-1" />Summary</TabsTrigger>
+                <TabsTrigger value="daily"><ClipboardList className="h-4 w-4 mr-1" />{t('gradebook.tabDaily')}</TabsTrigger>
+                <TabsTrigger value="attendance"><CalendarCheck className="h-4 w-4 mr-1" />{t('gradebook.tabAttendance')}</TabsTrigger>
+                <TabsTrigger value="rubric"><ClipboardList className="h-4 w-4 mr-1" />{t('gradebook.tabRubric')}</TabsTrigger>
+                <TabsTrigger value="semester"><FileText className="h-4 w-4 mr-1" />{t('gradebook.tabSemester')}</TabsTrigger>
+                <TabsTrigger value="summary"><BarChart3 className="h-4 w-4 mr-1" />{t('gradebook.tabSummary')}</TabsTrigger>
               </TabsList>
 
               {/* Daily Marks */}
@@ -236,15 +238,15 @@ export const GradeBook = () => {
                 <div className="flex items-center gap-3 flex-wrap">
                   <Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="w-auto" />
                   <Button onClick={saveDailyGrades} disabled={isSaving}>
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}Save Marks
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}{t('gradebook.saveMarks')}
                   </Button>
                 </div>
-                <div className="text-sm text-muted-foreground">Enter classwork and homework marks (0–100) for each student.</div>
+                <div className="text-sm text-muted-foreground">{t('gradebook.dailyHint')}</div>
 
                 {isLoading ? (
-                  <div className="animate-pulse text-muted-foreground py-8 text-center">Loading...</div>
+                  <div className="animate-pulse text-muted-foreground py-8 text-center">{t('gradebook.loadingShort')}</div>
                 ) : Object.keys(sectionGroups).length === 0 ? (
-                  <Card className="bg-card border-border"><CardContent className="p-8 text-center text-muted-foreground">No students enrolled.</CardContent></Card>
+                  <Card className="bg-card border-border"><CardContent className="p-8 text-center text-muted-foreground">{t('gradebook.noStudents')}</CardContent></Card>
                 ) : (
                   Object.entries(sectionGroups).sort(([a], [b]) => a.localeCompare(b)).map(([sectionLabel, sectionStudents]) => (
                     <DailySectionTable key={sectionLabel} sectionLabel={sectionLabel} students={sectionStudents} editingGrades={editingGrades} setEditingGrades={setEditingGrades} />
@@ -286,6 +288,7 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
   editingGrades: Record<string, { classwork: string; homework: string }>;
   setEditingGrades: React.Dispatch<React.SetStateAction<Record<string, { classwork: string; homework: string }>>>;
 }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   return (
     <Card className="bg-card border-border overflow-hidden">
@@ -294,7 +297,7 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
           {expanded ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
           <Users className="h-5 w-5 text-primary" />
           <span className="font-semibold text-foreground">{sectionLabel}</span>
-          <Badge variant="secondary">{students.length} students</Badge>
+          <Badge variant="secondary">{students.length} {t('gradebook.studentsCount')}</Badge>
         </div>
       </button>
       {expanded && (
@@ -302,9 +305,9 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead className="text-center w-28">Classwork</TableHead>
-                <TableHead className="text-center w-28">Homework</TableHead>
+                <TableHead>{t('gradebook.student')}</TableHead>
+                <TableHead className="text-center w-28">{t('gradebook.classwork')}</TableHead>
+                <TableHead className="text-center w-28">{t('gradebook.homework')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

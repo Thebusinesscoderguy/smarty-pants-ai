@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Download, Loader2, Users, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { StudentGradeData, SemesterMarks, calculateWeightedTotal, getLetterGrade } from './types';
 
@@ -26,6 +27,7 @@ interface SemesterSummaryTabProps {
 
 export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId }: SemesterSummaryTabProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [semester, setSemester] = useState('S1');
   const [gradeData, setGradeData] = useState<StudentGradeData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -120,7 +122,7 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId 
     const a = document.createElement('a');
     a.href = url; a.download = `gradebook-${subjectName}-${semester}.csv`; a.click();
     URL.revokeObjectURL(url);
-    toast({ title: 'Exported', description: 'Grade book exported to CSV' });
+    toast({ title: t('gbSummary.exported'), description: t('gbSummary.exportedDesc') });
   };
 
   const sections: Record<string, StudentGradeData[]> = {};
@@ -147,30 +149,30 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId 
         <Select value={semester} onValueChange={setSemester}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="S1">Semester 1</SelectItem>
-            <SelectItem value="S2">Semester 2</SelectItem>
+            <SelectItem value="S1">{t('gradebook.semester1')}</SelectItem>
+            <SelectItem value="S2">{t('gradebook.semester2')}</SelectItem>
           </SelectContent>
         </Select>
         <Button variant="outline" onClick={exportCSV} disabled={gradeData.length === 0}>
-          <Download className="h-4 w-4 mr-2" />Export CSV
+          <Download className="h-4 w-4 mr-2" />{t('gradebook.exportCsv')}
         </Button>
       </div>
 
       <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3 grid grid-cols-2 md:grid-cols-4 gap-2">
-        <span>📝 Classwork: /10</span>
-        <span>📚 Homework: /10</span>
-        <span>✅ Attendance: /20</span>
-        <span>📊 Normal Exams: /20</span>
-        <span>🎓 Final Exam: /20</span>
-        <span>🔬 Project: /10</span>
-        <span>📖 Literacy: /10</span>
-        <span className="font-bold">🏆 Total: /100</span>
+        <span>📝 {t('gbSummary.sumClasswork')}</span>
+        <span>📚 {t('gbSummary.sumHomework')}</span>
+        <span>✅ {t('gbSummary.sumAttendance')}</span>
+        <span>📊 {t('gbSummary.sumNormalExams')}</span>
+        <span>🎓 {t('gbSummary.sumFinalExam')}</span>
+        <span>🔬 {t('gbSummary.sumProject')}</span>
+        <span>📖 {t('gbSummary.sumLiteracy')}</span>
+        <span className="font-bold">🏆 {t('gbSummary.sumTotal')}</span>
       </div>
 
       {isLoading ? (
-        <div className="animate-pulse text-muted-foreground py-8 text-center">Loading summary...</div>
+        <div className="animate-pulse text-muted-foreground py-8 text-center">{t('gbSummary.loadingSummary')}</div>
       ) : Object.keys(sections).length === 0 ? (
-        <Card className="bg-card border-border"><CardContent className="p-8 text-center text-muted-foreground">No students enrolled.</CardContent></Card>
+        <Card className="bg-card border-border"><CardContent className="p-8 text-center text-muted-foreground">{t('gradebook.noStudents')}</CardContent></Card>
       ) : (
         Object.entries(sections).sort(([a], [b]) => a.localeCompare(b)).map(([sectionLabel, sectionStudents]) => (
           <SectionSummaryTable key={sectionLabel} sectionLabel={sectionLabel} students={sectionStudents} getGradeBadge={getGradeBadge} />
@@ -185,6 +187,7 @@ const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge }: {
   students: StudentGradeData[];
   getGradeBadge: (g: string) => React.ReactNode;
 }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -194,7 +197,7 @@ const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge }: {
           {expanded ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
           <Users className="h-5 w-5 text-primary" />
           <span className="font-semibold text-foreground">{sectionLabel}</span>
-          <Badge variant="secondary">{students.length} students</Badge>
+          <Badge variant="secondary">{students.length} {t('gradebook.studentsCount')}</Badge>
         </div>
       </button>
       {expanded && (
@@ -202,16 +205,16 @@ const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge }: {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead className="text-center">CW /10</TableHead>
-                <TableHead className="text-center">HW /10</TableHead>
-                <TableHead className="text-center">Attend /20</TableHead>
-                <TableHead className="text-center">Exams /20</TableHead>
-                <TableHead className="text-center">Final /20</TableHead>
-                <TableHead className="text-center">Proj /10</TableHead>
-                <TableHead className="text-center">Lit /10</TableHead>
-                <TableHead className="text-center font-bold">Total</TableHead>
-                <TableHead className="text-center">Grade</TableHead>
+                <TableHead>{t('gradebook.student')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colCW')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colHW')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colAttend')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colExams')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colFinal')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colProj')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colLit')}</TableHead>
+                <TableHead className="text-center font-bold">{t('gbSummary.colTotal')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colGrade')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
