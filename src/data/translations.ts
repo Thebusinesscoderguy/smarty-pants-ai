@@ -3734,6 +3734,20 @@ export const translations: TranslationData = {
     'swc.needsFocus': 'Needs Focus',
     'swc.noData': 'No data',
 
+    // ===== Student Assignment List =====
+    'al2.fileUploaded': 'File uploaded',
+    'al2.submitted': 'Submitted',
+    'al2.assignments': 'Assignments',
+    'al2.ptsSuffix': 'pts',
+    'al2.gradedPrefix': 'Graded:',
+    'al2.duePrefix': 'Due',
+    'al2.pastDue': '(Past Due)',
+    'al2.lateNotAllowed': 'Late submissions not allowed.',
+    'al2.yourAnswer': 'Your answer...',
+    'al2.submitting': 'Submitting...',
+    'al2.submit': 'Submit',
+    'al2.feedback': 'Feedback:',
+
   },
   ar: {
     // ===== Navigation =====
@@ -6517,5 +6531,19 @@ export const translations: TranslationData = {
     'swc.mostImproved': 'الأكثر تحسّنًا',
     'swc.needsFocus': 'يحتاج إلى تركيز',
     'swc.noData': 'لا توجد بيانات',
+
+    // ===== Student Assignment List =====
+    'al2.fileUploaded': 'تم رفع الملف',
+    'al2.submitted': 'تم التسليم',
+    'al2.assignments': 'الواجبات',
+    'al2.ptsSuffix': 'نقطة',
+    'al2.gradedPrefix': 'الدرجة:',
+    'al2.duePrefix': 'الاستحقاق',
+    'al2.pastDue': '(متأخر)',
+    'al2.lateNotAllowed': 'التسليم المتأخر غير مسموح.',
+    'al2.yourAnswer': 'إجابتك...',
+    'al2.submitting': 'جارٍ التسليم...',
+    'al2.submit': 'تسليم',
+    'al2.feedback': 'الملاحظات:',
   },
 };

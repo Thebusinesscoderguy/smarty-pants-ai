@@ -8,6 +8,7 @@ import { ClipboardList, Clock, CheckCircle, Download, Paperclip } from 'lucide-r
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AssignmentItem {
   id: string; title: string; description: string | null; due_date: string | null;
@@ -17,6 +18,7 @@ interface AssignmentItem {
 
 export const AssignmentList = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [items, setItems] = useState<AssignmentItem[]>([]);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [uploads, setUploads] = useState<Record<string, string[]>>({});
@@ -43,7 +45,7 @@ export const AssignmentList = () => {
     const { error } = await supabase.storage.from('assignments').upload(path, file);
     if (error) { toast.error(error.message); return; }
     setUploads(prev => ({ ...prev, [assignId]: [...(prev[assignId] || []), path] }));
-    toast.success('File uploaded');
+    toast.success(t('al2.fileUploaded'));
   };
 
   const submit = async (a: AssignmentItem) => {
@@ -59,7 +61,7 @@ export const AssignmentList = () => {
         status, submitted_at: new Date().toISOString(),
       } as any, { onConflict: 'assignment_id,student_id' });
       if (error) throw error;
-      toast.success('Submitted');
+      toast.success(t('al2.submitted'));
       load();
     } catch (e: any) { toast.error(e.message); } finally { setSubmitting(null); }
   };
@@ -73,7 +75,7 @@ export const AssignmentList = () => {
 
   return (
     <Card>
-      <CardHeader><CardTitle className="flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" />Assignments</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" />{t('al2.assignments')}</CardTitle></CardHeader>
       <CardContent className="space-y-3">
         {items.map(a => {
           const overdue = a.due_date && new Date(a.due_date) < new Date();
@@ -86,14 +88,14 @@ export const AssignmentList = () => {
                   {a.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{a.description}</p>}
                 </div>
                 <div className="flex gap-1 flex-wrap">
-                  <Badge variant="outline">{a.total_points} pts</Badge>
-                  {submitted && a.submission?.status === 'graded' && <Badge>Graded: {a.submission.score}/{a.total_points}</Badge>}
-                  {submitted && a.submission?.status !== 'graded' && <Badge className="bg-green-500/20 text-green-700"><CheckCircle className="h-3 w-3 mr-1" />Submitted</Badge>}
+                  <Badge variant="outline">{a.total_points} {t('al2.ptsSuffix')}</Badge>
+                  {submitted && a.submission?.status === 'graded' && <Badge>{t('al2.gradedPrefix')} {a.submission.score}/{a.total_points}</Badge>}
+                  {submitted && a.submission?.status !== 'graded' && <Badge className="bg-green-500/20 text-green-700"><CheckCircle className="h-3 w-3 mr-1" />{t('al2.submitted')}</Badge>}
                 </div>
               </div>
               {a.due_date && (
                 <p className={`text-xs flex items-center gap-1 mt-1 ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  <Clock className="h-3 w-3" />Due {new Date(a.due_date).toLocaleString()} {overdue && '(Past Due)'}
+                  <Clock className="h-3 w-3" />{t('al2.duePrefix')} {new Date(a.due_date).toLocaleString()} {overdue && t('al2.pastDue')}
                 </p>
               )}
               {a.attachment_urls?.length > 0 && (
@@ -104,12 +106,12 @@ export const AssignmentList = () => {
                 </div>
               )}
               {!submitted ? (
-                (overdue && !a.allow_late) ? <p className="text-sm text-destructive mt-2">Late submissions not allowed.</p> : (
+                (overdue && !a.allow_late) ? <p className="text-sm text-destructive mt-2">{t('al2.lateNotAllowed')}</p> : (
                   <div className="space-y-2 mt-3">
-                    <Textarea placeholder="Your answer..." value={responses[a.id] || ''} onChange={e => setResponses(p => ({ ...p, [a.id]: e.target.value }))} />
+                    <Textarea placeholder={t('al2.yourAnswer')} value={responses[a.id] || ''} onChange={e => setResponses(p => ({ ...p, [a.id]: e.target.value }))} />
                     <div className="flex items-center gap-2 flex-wrap">
                       <Input type="file" className="flex-1 min-w-[160px]" onChange={e => e.target.files?.[0] && upload(a.id, e.target.files[0])} />
-                      <Button size="sm" onClick={() => submit(a)} disabled={submitting === a.id}>{submitting === a.id ? 'Submitting...' : 'Submit'}</Button>
+                      <Button size="sm" onClick={() => submit(a)} disabled={submitting === a.id}>{submitting === a.id ? t('al2.submitting') : t('al2.submit')}</Button>
                     </div>
                     {(uploads[a.id] || []).length > 0 && (
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-1">
@@ -119,7 +121,7 @@ export const AssignmentList = () => {
                   </div>
                 )
               ) : a.submission?.feedback ? (
-                <p className="text-sm mt-2 p-2 bg-muted rounded"><strong>Feedback:</strong> {a.submission.feedback}</p>
+                <p className="text-sm mt-2 p-2 bg-muted rounded"><strong>{t('al2.feedback')}</strong> {a.submission.feedback}</p>
               ) : null}
             </div>
           );
