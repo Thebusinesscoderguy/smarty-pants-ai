@@ -30,7 +30,7 @@ import { GrowthGoals } from '@/components/admin/GrowthGoals';
 import { SchoolCalendarManagement } from '@/components/admin/SchoolCalendarManagement';
 import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import {
-  Users, BarChart3, BookOpen, CreditCard, Brain, ClipboardList, AlertTriangle,
+  Users, BarChart3, BookOpen, CreditCard, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
@@ -167,7 +167,7 @@ const SchoolAdmin = () => {
         { value: 'sections', label: 'Classes', icon: FolderTree },
         { value: 'teachers', label: 'Teachers', icon: GraduationCap },
         { value: 'at-risk', label: 'At-Risk Students', icon: AlertTriangle },
-        { value: 'student-analytics', label: t('schoolAdmin.tabs.studentAnalysis'), icon: Brain },
+        // student-analytics hidden from nav: learning_analytics pipeline is unpopulated (Option C). Route/component retained.
         { value: 'behavior', label: 'Behavior', icon: Shield },
         { value: 'observations', label: 'Observations', icon: ClipboardCheck },
         { value: 'growth-goals', label: 'Growth Goals', icon: Target },
