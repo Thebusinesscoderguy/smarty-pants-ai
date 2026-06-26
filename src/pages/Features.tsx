@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SEO } from '@/components/SEO';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Nav } from '@/components/landing/Nav';
 import { FinalCTA, Footer, DEMO_MAILTO } from '@/components/landing/FinalCTA';
 import {
@@ -23,35 +24,36 @@ import {
    (matches the current landing).
    ============================================================ */
 
-type Feat = { icon: React.ElementType; title: string; body: string; accent: string };
+type Feat = { icon: React.ElementType; tk: string; accent: string };
 
 const MANAGEMENT: Feat[] = [
-  { icon: CalendarCheck, title: 'Smart attendance', body: 'One-tap roll call with automatic absence alerts sent to parents.', accent: 'from-violet-500 to-indigo-500' },
-  { icon: GraduationCap, title: 'Living gradebook', body: 'Marks, weightings and term grades across every class, always up to date.', accent: 'from-emerald-500 to-teal-500' },
-  { icon: ClipboardList, title: 'Exams & assessments', body: 'Build, schedule and run exams with live monitoring and auto-submission when time runs out.', accent: 'from-fuchsia-500 to-pink-500' },
-  { icon: ListChecks, title: 'Homework & assignments', body: 'Set, collect and grade work in one queue — every submission lands in a single inbox.', accent: 'from-sky-500 to-indigo-500' },
-  { icon: FileText, title: 'Report cards', body: 'Auto-compiled, school-branded report-card PDFs in a click.', accent: 'from-amber-500 to-orange-500' },
-  { icon: Wallet, title: 'Invoicing & fees', body: 'Issue invoices, track fee payments and follow up on balances — no spreadsheet required.', accent: 'from-violet-500 to-fuchsia-500' },
-  { icon: MessageSquare, title: 'Parent–teacher messaging', body: 'One secure inbox for parents, teachers and admin, with messages translated automatically.', accent: 'from-sky-500 to-violet-500' },
-  { icon: BarChart3, title: 'At-risk analytics', body: 'School-wide dashboards that surface struggling students early — before grades slip.', accent: 'from-rose-500 to-pink-500' },
-  { icon: Upload, title: 'Roster & bulk import', body: 'Bring your whole school — students, classes and timetable — and map it in minutes.', accent: 'from-indigo-500 to-violet-500' },
+  { icon: CalendarCheck, tk: 'mgmt1', accent: 'from-violet-500 to-indigo-500' },
+  { icon: GraduationCap, tk: 'mgmt2', accent: 'from-emerald-500 to-teal-500' },
+  { icon: ClipboardList, tk: 'mgmt3', accent: 'from-fuchsia-500 to-pink-500' },
+  { icon: ListChecks, tk: 'mgmt4', accent: 'from-sky-500 to-indigo-500' },
+  { icon: FileText, tk: 'mgmt5', accent: 'from-amber-500 to-orange-500' },
+  { icon: Wallet, tk: 'mgmt6', accent: 'from-violet-500 to-fuchsia-500' },
+  { icon: MessageSquare, tk: 'mgmt7', accent: 'from-sky-500 to-violet-500' },
+  { icon: BarChart3, tk: 'mgmt8', accent: 'from-rose-500 to-pink-500' },
+  { icon: Upload, tk: 'mgmt9', accent: 'from-indigo-500 to-violet-500' },
 ];
 
 const AI: Feat[] = [
-  { icon: Brain, title: 'AI lesson & quiz builder', body: 'Generate standards-aligned lessons, worksheets and quizzes in seconds. Teachers edit — never start from a blank page.', accent: 'from-violet-500 to-indigo-500' },
-  { icon: BookOpen, title: 'Curriculum-grounded quizzes', body: 'Quizzes built from your own curriculum — tied to the exact books, units and lessons you teach.', accent: 'from-fuchsia-500 to-violet-500' },
-  { icon: Library, title: 'Lesson-plan library', body: 'Save, organise and reuse every AI lesson plan your teachers create.', accent: 'from-sky-500 to-indigo-500' },
-  { icon: CheckCircle2, title: 'Instant auto-grading', body: 'Quizzes grade themselves the moment students submit, with results flowing straight into the gradebook.', accent: 'from-emerald-500 to-teal-500' },
+  { icon: Brain, tk: 'ai1', accent: 'from-violet-500 to-indigo-500' },
+  { icon: BookOpen, tk: 'ai2', accent: 'from-fuchsia-500 to-violet-500' },
+  { icon: Library, tk: 'ai3', accent: 'from-sky-500 to-indigo-500' },
+  { icon: CheckCircle2, tk: 'ai4', accent: 'from-emerald-500 to-teal-500' },
 ];
 
 const STUDENTS: Feat[] = [
-  { icon: Mic, title: 'AI tutor with voice', body: 'A Socratic AI tutor students can talk to by voice or text, in 15+ languages.', accent: 'from-violet-500 to-indigo-500' },
-  { icon: Sparkles, title: 'Adaptive practice', body: 'Quizzes and lessons that adjust to each student’s level as they go.', accent: 'from-fuchsia-500 to-pink-500' },
-  { icon: Gamepad2, title: 'Quests & achievements', body: 'Optional streaks, levels and a class leaderboard to keep students motivated.', accent: 'from-amber-500 to-orange-500' },
-  { icon: LineChart, title: 'Live progress', body: 'Students and parents follow grades and progress as they happen.', accent: 'from-sky-500 to-indigo-500' },
+  { icon: Mic, tk: 'stu1', accent: 'from-violet-500 to-indigo-500' },
+  { icon: Sparkles, tk: 'stu2', accent: 'from-fuchsia-500 to-pink-500' },
+  { icon: Gamepad2, tk: 'stu3', accent: 'from-amber-500 to-orange-500' },
+  { icon: LineChart, tk: 'stu4', accent: 'from-sky-500 to-indigo-500' },
 ];
 
 function FeatureCard({ f }: { f: Feat }) {
+  const { t } = useLanguage();
   const reduce = useReducedMotion();
   const Icon = f.icon;
   return (
@@ -66,8 +68,8 @@ function FeatureCard({ f }: { f: Feat }) {
         <span className={cn('mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg', f.accent)}>
           <Icon className="h-6 w-6" strokeWidth={2.2} />
         </span>
-        <h3 className="font-display text-lg font-bold tracking-tight text-[hsl(250_47%_13%)]">{f.title}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-[hsl(245_16%_46%)]">{f.body}</p>
+        <h3 className="font-display text-lg font-bold tracking-tight text-[hsl(250_47%_13%)]">{t(`feat.${f.tk}t`)}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-[hsl(245_16%_46%)]">{t(`feat.${f.tk}b`)}</p>
       </div>
     </motion.article>
   );
@@ -91,6 +93,7 @@ function SectionHead({
 
 export default function Features() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const goSignup = useCallback(() => navigate('/auth'), [navigate]);
   const bookDemo = useCallback(() => { window.location.href = DEMO_MAILTO; }, []);
 
@@ -114,27 +117,26 @@ export default function Features() {
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7C3AED,#A855F7)]">
                   <Sparkles className="h-3 w-3 text-white" />
                 </span>
-                One platform for the whole school
+                {t('feat.heroBadge')}
               </span>
             </Reveal>
 
             <h1 className="font-display text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-[hsl(250_47%_11%)] sm:text-5xl lg:text-[3.5rem]">
-              <WordReveal text="Everything it takes to" />{' '}
-              <WordReveal text="run a modern school" delay={0.4} highlight={[2, 3]} />
+              <WordReveal text={t('feat.heroTitle1')} />{' '}
+              <WordReveal text={t('feat.heroTitle2')} delay={0.4} highlight={[2, 3]} />
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[hsl(245_16%_46%)] sm:text-xl">
-              Attendance, grading, exams, fees and parent messaging in one calm system —
-              with AI that handles the busywork and a tutor that helps students learn.
+              {t('feat.heroSubtitle')}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Magnetic strength={0.45}>
                 <GradientButton onClick={goSignup}>
-                  Start free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  {t('feat.startFree')} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </GradientButton>
               </Magnetic>
-              <GhostButton onClick={bookDemo}>Book a demo</GhostButton>
+              <GhostButton onClick={bookDemo}>{t('feat.bookDemo')}</GhostButton>
             </div>
           </div>
         </section>
@@ -142,42 +144,42 @@ export default function Features() {
         {/* ---- TIER 1: management ---- */}
         <section id="features" className="relative px-4 py-20 sm:py-24">
           <SectionHead
-            badge="The school operating system"
+            badge={t('feat.t1Badge')}
             icon={Layers}
-            title="Run the whole school,"
-            accent="in one place"
-            subtitle="Replace a dozen disconnected tools with a single system your staff actually enjoy using."
+            title={t('feat.t1Title')}
+            accent={t('feat.t1Accent')}
+            subtitle={t('feat.t1Subtitle')}
           />
           <StaggerGroup className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {MANAGEMENT.map((f) => <FeatureCard key={f.title} f={f} />)}
+            {MANAGEMENT.map((f) => <FeatureCard key={f.tk} f={f} />)}
           </StaggerGroup>
         </section>
 
         {/* ---- TIER 2: AI ---- */}
         <section className="relative px-4 py-20 sm:py-24">
           <SectionHead
-            badge="AI that does the busywork"
+            badge={t('feat.t2Badge')}
             icon={Brain}
-            title="Built on"
-            accent="your curriculum"
-            subtitle="Not generic AI bolted on — it works from the books, units and lessons your school actually teaches."
+            title={t('feat.t2Title')}
+            accent={t('feat.t2Accent')}
+            subtitle={t('feat.t2Subtitle')}
           />
           <StaggerGroup className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-            {AI.map((f) => <FeatureCard key={f.title} f={f} />)}
+            {AI.map((f) => <FeatureCard key={f.tk} f={f} />)}
           </StaggerGroup>
         </section>
 
         {/* ---- TIER 3: students (demoted) ---- */}
         <section className="relative px-4 py-20 sm:py-24">
           <SectionHead
-            badge="For students"
+            badge={t('feat.t3Badge')}
             icon={Gamepad2}
-            title="And a learning companion"
-            accent="they'll actually use"
-            subtitle="Once your school is running, students get an AI tutor and adaptive practice — included, not extra."
+            title={t('feat.t3Title')}
+            accent={t('feat.t3Accent')}
+            subtitle={t('feat.t3Subtitle')}
           />
           <StaggerGroup className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-            {STUDENTS.map((f) => <FeatureCard key={f.title} f={f} />)}
+            {STUDENTS.map((f) => <FeatureCard key={f.tk} f={f} />)}
           </StaggerGroup>
         </section>
       </main>
