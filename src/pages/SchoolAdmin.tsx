@@ -105,9 +105,6 @@ const SchoolAdmin = () => {
                 <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <FileText className="h-4 w-4 mr-2" />Lesson Plans
                 </TabsTrigger>
-                <TabsTrigger value="homework" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <ListChecks className="h-4 w-4 mr-2" />Homework
-                </TabsTrigger>
                 <TabsTrigger value="assignments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
                   <ListChecks className="h-4 w-4 mr-2" />Assignments
                 </TabsTrigger>
@@ -137,7 +134,6 @@ const SchoolAdmin = () => {
                 <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
                 <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
-                <TabsContent value="homework"><HomeworkManagement /></TabsContent>
                 <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
                 <TabsContent value="news"><NewsManagement /></TabsContent>
