@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, ImagePlus, Link2, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+type Audience = 'all' | 'teachers' | 'parents' | 'students' | 'class';
 
 interface NewsComposerProps {
   schoolId: string;
@@ -17,7 +21,16 @@ interface NewsComposerProps {
     image_url?: string;
     link_url?: string;
     link_title?: string;
+    audience?: Audience;
+    section_id?: string | null;
+    expires_at?: string | null;
   }) => Promise<boolean>;
+}
+
+interface SectionOption {
+  id: string;
+  grade_level: string;
+  section_name: string;
 }
 
 export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps) => {
@@ -26,12 +39,27 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
   const [imageUrl, setImageUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [linkTitle, setLinkTitle] = useState('');
+  const [audience, setAudience] = useState<Audience>('all');
+  const [sectionId, setSectionId] = useState<string>('');
+  const [expiresAt, setExpiresAt] = useState('');
+  const [sections, setSections] = useState<SectionOption[]>([]);
   const [showImage, setShowImage] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [posting, setPosting] = useState(false);
 
+  useEffect(() => {
+    if (audience !== 'class' || sections.length > 0) return;
+    supabase
+      .from('school_sections')
+      .select('id, grade_level, section_name')
+      .eq('school_id', schoolId)
+      .order('grade_level')
+      .then(({ data }) => setSections((data as SectionOption[]) || []));
+  }, [audience, schoolId, sections.length]);
+
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) return;
+    if (audience === 'class' && !sectionId) return;
     setPosting(true);
     const success = await onPost({
       school_id: schoolId,
@@ -41,6 +69,9 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
       image_url: imageUrl.trim() || undefined,
       link_url: linkUrl.trim() || undefined,
       link_title: linkTitle.trim() || undefined,
+      audience,
+      section_id: audience === 'class' ? sectionId : null,
+      expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
     });
     if (success) {
       setTitle('');
@@ -48,6 +79,9 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
       setImageUrl('');
       setLinkUrl('');
       setLinkTitle('');
+      setAudience('all');
+      setSectionId('');
+      setExpiresAt('');
       setShowImage(false);
       setShowLink(false);
     }
@@ -83,6 +117,46 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
             rows={3}
             maxLength={2000}
           />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Audience</Label>
+            <Select value={audience} onValueChange={(v) => setAudience(v as Audience)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Everyone</SelectItem>
+                <SelectItem value="teachers">Teachers</SelectItem>
+                <SelectItem value="parents">Parents</SelectItem>
+                <SelectItem value="students">Students</SelectItem>
+                <SelectItem value="class">A specific class</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {audience === 'class' && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Class</Label>
+              <Select value={sectionId} onValueChange={setSectionId}>
+                <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
+                <SelectContent>
+                  {sections.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.grade_level} - {s.section_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div>
+            <Label htmlFor="news-expiry" className="text-xs text-muted-foreground">Expires (optional)</Label>
+            <Input
+              id="news-expiry"
+              type="datetime-local"
+              value={expiresAt}
+              onChange={e => setExpiresAt(e.target.value)}
+            />
+          </div>
         </div>
 
         {showImage && (
@@ -148,7 +222,7 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
           </div>
           <Button
             onClick={handleSubmit}
-            disabled={!title.trim() || !content.trim() || posting}
+            disabled={!title.trim() || !content.trim() || posting || (audience === 'class' && !sectionId)}
             size="sm"
             className="rounded-full px-6"
           >

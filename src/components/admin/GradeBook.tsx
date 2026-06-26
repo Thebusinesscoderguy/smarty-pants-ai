@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { AttendanceTab } from './gradebook/AttendanceTab';
+import { RubricTab } from './gradebook/RubricTab';
 import { SemesterMarksTab } from './gradebook/SemesterMarksTab';
 import { SemesterSummaryTab } from './gradebook/SemesterSummaryTab';
 import type { SchoolSubject } from './gradebook/types';
@@ -225,6 +226,7 @@ export const GradeBook = () => {
               <TabsList className="bg-muted/50">
                 <TabsTrigger value="daily"><ClipboardList className="h-4 w-4 mr-1" />Daily Marks</TabsTrigger>
                 <TabsTrigger value="attendance"><CalendarCheck className="h-4 w-4 mr-1" />Attendance</TabsTrigger>
+                <TabsTrigger value="rubric"><ClipboardList className="h-4 w-4 mr-1" />Rubric</TabsTrigger>
                 <TabsTrigger value="semester"><FileText className="h-4 w-4 mr-1" />Semester Marks</TabsTrigger>
                 <TabsTrigger value="summary"><BarChart3 className="h-4 w-4 mr-1" />Summary</TabsTrigger>
               </TabsList>
@@ -253,6 +255,11 @@ export const GradeBook = () => {
               {/* Attendance */}
               <TabsContent value="attendance" className="mt-4">
                 <AttendanceTab subjectId={selectedSubject} students={students} schoolId={schoolId} />
+              </TabsContent>
+
+              {/* Rubric */}
+              <TabsContent value="rubric" className="mt-4">
+                <RubricTab subjectId={selectedSubject} students={students} schoolId={schoolId} />
               </TabsContent>
 
               {/* Semester Marks */}

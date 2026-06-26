@@ -13,6 +13,10 @@ export interface NewsPost {
   link_url: string | null;
   link_title: string | null;
   is_pinned: boolean;
+  audience: 'all' | 'teachers' | 'parents' | 'students' | 'class';
+  section_id: string | null;
+  publish_at: string;
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
   teacher?: { first_name: string | null; last_name: string | null; email: string };
@@ -58,6 +62,9 @@ export const useSchoolNews = (schoolId?: string) => {
     image_url?: string;
     link_url?: string;
     link_title?: string;
+    audience?: 'all' | 'teachers' | 'parents' | 'students' | 'class';
+    section_id?: string | null;
+    expires_at?: string | null;
   }) => {
     const { error } = await supabase.from('school_news').insert(post);
     if (error) {

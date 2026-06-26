@@ -1,14 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Loader2, CheckCircle, XCircle, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
+
+interface AttendanceReason {
+  id: string;
+  label: string;
+  excused: boolean;
+}
 
 interface StudentInfo {
   student_id: string;
@@ -27,23 +34,38 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
+  const [reasons, setReasons] = useState<Record<string, string>>({}); // studentId -> reason_id
+  const [reasonOptions, setReasonOptions] = useState<AttendanceReason[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [ioOpen, setIoOpen] = useState(false);
 
+  useEffect(() => {
+    supabase
+      .from('attendance_reasons')
+      .select('id, label, excused')
+      .eq('school_id', schoolId)
+      .order('label')
+      .then(({ data }) => setReasonOptions((data as AttendanceReason[]) || []));
+  }, [schoolId]);
 
   const loadAttendance = async () => {
     const { data } = await supabase
       .from('student_attendance')
-      .select('student_id, is_present')
+      .select('student_id, is_present, reason_id')
       .eq('subject_id', subjectId)
       .eq('attendance_date', selectedDate)
       .in('student_id', students.map(s => s.student_id));
 
     const map: Record<string, boolean> = {};
+    const reasonMap: Record<string, string> = {};
     for (const s of students) map[s.student_id] = true; // default present
-    for (const d of data || []) map[d.student_id] = d.is_present;
+    for (const d of data || []) {
+      map[d.student_id] = d.is_present;
+      if (d.reason_id) reasonMap[d.student_id] = d.reason_id;
+    }
     setAttendance(map);
+    setReasons(reasonMap);
     setIsLoaded(true);
   };
 
@@ -57,6 +79,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
         subject_id: subjectId,
         attendance_date: selectedDate,
         is_present: isPresent,
+        reason_id: isPresent ? null : (reasons[studentId] || null),
         created_by: user.id,
       }));
 
@@ -118,6 +141,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
                     <TableHead>Student</TableHead>
                     <TableHead className="text-center w-32">Present</TableHead>
                     <TableHead className="text-center w-32">Status</TableHead>
+                    <TableHead className="w-48">Absence reason</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -146,6 +170,23 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
                           <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />
                         ) : (
                           <XCircle className="h-5 w-5 text-destructive mx-auto" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {!attendance[s.student_id] && (
+                          <Select
+                            value={reasons[s.student_id] || ''}
+                            onValueChange={(v) => setReasons(prev => ({ ...prev, [s.student_id]: v }))}
+                          >
+                            <SelectTrigger className="h-8"><SelectValue placeholder="No reason" /></SelectTrigger>
+                            <SelectContent>
+                              {reasonOptions.map(r => (
+                                <SelectItem key={r.id} value={r.id}>
+                                  {r.label}{r.excused ? ' (excused)' : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         )}
                       </TableCell>
                     </TableRow>

@@ -1,9 +1,12 @@
+import { useState, useEffect } from 'react';
 import { useSchoolNews, NewsPost } from '@/hooks/useSchoolNews';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Pin, ExternalLink, Image as ImageIcon, Clock, Newspaper } from 'lucide-react';
+import { Pin, ExternalLink, Image as ImageIcon, Clock, Newspaper, Languages } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translationService } from '@/services/translationService';
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -19,11 +22,32 @@ const formatDate = (dateStr: string) => {
   return d.toLocaleDateString();
 };
 
-const NewsCard = ({ post }: { post: NewsPost }) => {
+const NewsCard = ({ post, language }: { post: NewsPost; language: string }) => {
   const teacherName = post.teacher
     ? `${post.teacher.first_name || ''} ${post.teacher.last_name || ''}`.trim() || post.teacher.email
     : 'Teacher';
   const initials = teacherName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  // Render the announcement in the viewer's language (cached server-side by post id).
+  const [translated, setTranslated] = useState<{ title: string; content: string } | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (language === 'en') { setTranslated(null); return; }
+    Promise.all([
+      translationService.translateMessage(`${post.id}:title`, post.title, language),
+      translationService.translateMessage(`${post.id}:content`, post.content, language),
+    ]).then(([title, content]) => {
+      if (!active) return;
+      if (title !== post.title || content !== post.content) setTranslated({ title, content });
+    });
+    return () => { active = false; };
+  }, [post.id, post.title, post.content, language]);
+
+  const showTranslated = translated && !showOriginal;
+  const displayTitle = showTranslated ? translated.title : post.title;
+  const displayContent = showTranslated ? translated.content : post.content;
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow border-border">
@@ -53,10 +77,23 @@ const NewsCard = ({ post }: { post: NewsPost }) => {
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-foreground text-lg mb-2">{post.title}</h3>
+        <h3 className="font-bold text-foreground text-lg mb-2">{displayTitle}</h3>
 
         {/* Content */}
-        <p className="text-foreground/80 text-sm whitespace-pre-wrap leading-relaxed mb-3">{post.content}</p>
+        <p className="text-foreground/80 text-sm whitespace-pre-wrap leading-relaxed mb-2">{displayContent}</p>
+
+        {/* Translation toggle */}
+        {translated && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowOriginal(v => !v)}
+            className="h-6 px-2 mb-2 text-xs text-muted-foreground hover:text-primary"
+          >
+            <Languages className="h-3 w-3 mr-1" />
+            {showOriginal ? 'Show translation' : 'Show original'}
+          </Button>
+        )}
 
         {/* Image */}
         {post.image_url && (
@@ -139,7 +176,7 @@ export const NewsFeed = ({ schoolId }: NewsFeedProps) => {
   return (
     <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
       {posts.map(post => (
-        <NewsCard key={post.id} post={post} />
+        <NewsCard key={post.id} post={post} language={language} />
       ))}
     </div>
   );
