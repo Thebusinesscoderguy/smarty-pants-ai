@@ -7,10 +7,14 @@ import { BookOpen, Clock, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockSubjects } from '@/utils/mockData';
 
+const SP2_BY_KEY: Record<string, string> = { school: 'sp2.bySchool', parent: 'sp2.byParent', self: 'sp2.bySelf' };
+
 export const SubjectProgress = () => {
+  const { t } = useLanguage();
   const [subjects, setSubjects] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -91,7 +95,7 @@ export const SubjectProgress = () => {
 
           return {
             id: assignment.id,
-            name: assignment.subjects?.name || 'Unknown Subject',
+            name: assignment.subjects?.name || t('sp2.unknownSubject'),
             description: assignment.subjects?.description || '',
             completion_percentage: completionPercentage,
             lessons_completed: masteredTopics,
@@ -111,8 +115,8 @@ export const SubjectProgress = () => {
     } catch (error: any) {
       console.error('Error fetching subjects:', error);
       toast({
-        title: "Error",
-        description: "Failed to load subjects",
+        title: t('sp2.error'),
+        description: t('sp2.failedLoad'),
         variant: "destructive"
       });
     } finally {
@@ -137,7 +141,7 @@ export const SubjectProgress = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading subjects...</div>;
+    return <div className="animate-pulse">{t('sp2.loading')}</div>;
   }
 
   return (
@@ -146,9 +150,9 @@ export const SubjectProgress = () => {
         <Card className="bg-white/10 border-white/20">
           <CardContent className="p-6 text-center">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-300">No subjects assigned yet.</p>
+            <p className="text-gray-300">{t('sp2.noSubjects')}</p>
             <p className="text-gray-400 text-sm mt-2">
-              Start learning to see your progress!
+              {t('sp2.startLearning')}
             </p>
           </CardContent>
         </Card>
@@ -167,7 +171,7 @@ export const SubjectProgress = () => {
                       {subject.current_grade}
                     </Badge>
                     <Badge variant="outline" className={`text-xs ${getAssignedByColor(subject.assigned_by)}`}>
-                      {subject.assigned_by}
+                      {SP2_BY_KEY[subject.assigned_by] ? t(SP2_BY_KEY[subject.assigned_by]) : subject.assigned_by}
                     </Badge>
                   </div>
                 </div>
@@ -176,9 +180,9 @@ export const SubjectProgress = () => {
                 {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Progress</span>
+                    <span className="text-gray-400">{t('sp2.progress')}</span>
                     <span className="text-white">
-                      {subject.lessons_completed}/{subject.total_lessons} lessons ({subject.completion_percentage}%)
+                      {subject.lessons_completed}/{subject.total_lessons} {t('sp2.lessonsSuffix')} ({subject.completion_percentage}%)
                     </span>
                   </div>
                   <Progress value={subject.completion_percentage} className="h-3" />
@@ -187,14 +191,14 @@ export const SubjectProgress = () => {
                 {/* Time Spent */}
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-400">Time spent:</span>
-                  <span className="text-white">{subject.time_spent} minutes</span>
+                  <span className="text-gray-400">{t('sp2.timeSpent')}</span>
+                  <span className="text-white">{subject.time_spent} {t('sp2.minutes')}</span>
                 </div>
 
                 {/* Last Activity */}
                 <div className="flex items-center gap-2 text-sm">
                   <TrendingUp className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-400">Last activity:</span>
+                  <span className="text-gray-400">{t('sp2.lastActivity')}</span>
                   <span className="text-white">
                     {new Date(subject.last_activity).toLocaleDateString()}
                   </span>
@@ -203,7 +207,7 @@ export const SubjectProgress = () => {
                 {/* Strengths */}
                 {subject.strengths && subject.strengths.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-green-400 mb-2">Strengths</h4>
+                    <h4 className="text-sm font-medium text-green-400 mb-2">{t('sp2.strengths')}</h4>
                     <div className="flex flex-wrap gap-1">
                       {subject.strengths.map((strength, index) => (
                         <Badge key={index} variant="outline" className="text-xs text-green-300 border-green-500/30">
@@ -217,7 +221,7 @@ export const SubjectProgress = () => {
                 {/* Areas for Improvement */}
                 {subject.needs_work && subject.needs_work.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-violet-400 mb-2">Areas for Improvement</h4>
+                    <h4 className="text-sm font-medium text-violet-400 mb-2">{t('sp2.areasImprovement')}</h4>
                     <div className="flex flex-wrap gap-1">
                       {subject.needs_work.map((area, index) => (
                         <Badge key={index} variant="outline" className="text-xs text-violet-300 border-violet-500/30">
@@ -231,7 +235,7 @@ export const SubjectProgress = () => {
                 {/* Recent Topics */}
                 {subject.recent_topics && subject.recent_topics.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-blue-400 mb-2">Recent Topics</h4>
+                    <h4 className="text-sm font-medium text-blue-400 mb-2">{t('sp2.recentTopics')}</h4>
                     <div className="space-y-1">
                       {subject.recent_topics.map((topic, index) => (
                         <div key={index} className="text-xs text-gray-300 bg-black/20 px-2 py-1 rounded">

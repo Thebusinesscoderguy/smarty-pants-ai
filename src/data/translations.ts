@@ -3766,6 +3766,25 @@ export const translations: TranslationData = {
     'sw2.areasImprovement': 'Areas for Improvement',
     'sw2.noWeaknesses': 'No significant weaknesses detected. Keep up the great work!',
 
+    // ===== Subject Progress =====
+    'sp2.error': 'Error',
+    'sp2.failedLoad': 'Failed to load subjects',
+    'sp2.unknownSubject': 'Unknown Subject',
+    'sp2.loading': 'Loading subjects...',
+    'sp2.noSubjects': 'No subjects assigned yet.',
+    'sp2.startLearning': 'Start learning to see your progress!',
+    'sp2.progress': 'Progress',
+    'sp2.lessonsSuffix': 'lessons',
+    'sp2.timeSpent': 'Time spent:',
+    'sp2.minutes': 'minutes',
+    'sp2.lastActivity': 'Last activity:',
+    'sp2.strengths': 'Strengths',
+    'sp2.areasImprovement': 'Areas for Improvement',
+    'sp2.recentTopics': 'Recent Topics',
+    'sp2.bySchool': 'school',
+    'sp2.byParent': 'parent',
+    'sp2.bySelf': 'self',
+
   },
   ar: {
     // ===== Navigation =====
@@ -6581,5 +6600,24 @@ export const translations: TranslationData = {
     'sw2.noStrengths': 'لم يتم تحديد نقاط قوة بعد. واصل التعلّم لاكتشاف نقاط قوتك!',
     'sw2.areasImprovement': 'مجالات التحسين',
     'sw2.noWeaknesses': 'لم تُكتشف نقاط ضعف كبيرة. واصل العمل الرائع!',
+
+    // ===== Subject Progress =====
+    'sp2.error': 'خطأ',
+    'sp2.failedLoad': 'تعذّر تحميل المواد',
+    'sp2.unknownSubject': 'مادة غير معروفة',
+    'sp2.loading': 'جارٍ تحميل المواد...',
+    'sp2.noSubjects': 'لا توجد مواد مُسندة بعد.',
+    'sp2.startLearning': 'ابدأ التعلّم لرؤية تقدّمك!',
+    'sp2.progress': 'التقدّم',
+    'sp2.lessonsSuffix': 'دروس',
+    'sp2.timeSpent': 'الوقت المستغرق:',
+    'sp2.minutes': 'دقيقة',
+    'sp2.lastActivity': 'آخر نشاط:',
+    'sp2.strengths': 'نقاط القوة',
+    'sp2.areasImprovement': 'مجالات التحسين',
+    'sp2.recentTopics': 'المواضيع الأخيرة',
+    'sp2.bySchool': 'المدرسة',
+    'sp2.byParent': 'ولي الأمر',
+    'sp2.bySelf': 'ذاتي',
   },
 };
