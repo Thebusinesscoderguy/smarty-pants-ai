@@ -12,12 +12,17 @@ import { FileText, Download, CheckCircle2, Pencil, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
 import { ReportCardEditDialog } from './ReportCardEditDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const RC_TERM_KEY: Record<string, string> = { 'Term 1': 'rc.term1', 'Term 2': 'rc.term2', 'Term 3': 'rc.term3', 'Final': 'rc.final' };
 
 interface Section { id: string; grade_level: string; section_name: string; }
 interface ReportCard { id: string; student_id: string; term: string; academic_year: string; data: any; published: boolean; }
 
 export const ReportCardManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const termLabel = (v: string) => RC_TERM_KEY[v] ? t(RC_TERM_KEY[v]) : v;
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [sectionId, setSectionId] = useState('');
@@ -49,22 +54,22 @@ export const ReportCardManagement = () => {
     const ids = (data || []).map(c => c.student_id);
     if (!ids.length) { setCards([]); return; }
     const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', ids);
-    const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || 'Unknown']));
-    setCards((data || []).map(c => ({ ...c, name: nameMap.get(c.student_id) || 'Unknown' })));
+    const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || t('rc.unknown')]));
+    setCards((data || []).map(c => ({ ...c, name: nameMap.get(c.student_id) || t('rc.unknown') })));
   };
 
   useEffect(() => { loadCards(); }, [schoolId, term, year]);
 
   const generate = async () => {
-    if (!schoolId || !sectionId) { toast.error('Pick a section'); return; }
+    if (!schoolId || !sectionId) { toast.error(t('rc.pickSection')); return; }
     setLoading(true);
     try {
       const { data: assigns } = await supabase.from('section_students').select('student_id').eq('section_id', sectionId);
       const studentIds = (assigns || []).map(a => a.student_id);
-      if (!studentIds.length) { toast.error('No students in section'); setLoading(false); return; }
+      if (!studentIds.length) { toast.error(t('rc.noStudentsInSection')); setLoading(false); return; }
 
       const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', studentIds);
-      const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || 'Unknown']));
+      const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || t('rc.unknown')]));
 
       // Pull gradebook entries
       const { data: entries } = await supabase.from('gradebook_entries' as any).select('*').in('student_id', studentIds);
@@ -96,8 +101,8 @@ export const ReportCardManagement = () => {
       });
 
       const { error } = await supabase.from('report_cards').upsert(rows, { onConflict: 'student_id,term,academic_year' });
-      if (error) { toast.error('Generate failed: ' + error.message); setLoading(false); return; }
-      toast.success(`Generated ${rows.length} report cards`);
+      if (error) { toast.error(`${t('rc.generateFailed')}: ` + error.message); setLoading(false); return; }
+      toast.success(`${t('rc.generatedPre')} ${rows.length} ${t('rc.reportCardsWord')}`);
       await loadCards();
     } finally { setLoading(false); }
   };
@@ -107,7 +112,7 @@ export const ReportCardManagement = () => {
     if (!ids.length) return;
     const { error } = await supabase.from('report_cards').update({ published: true, published_at: new Date().toISOString() }).in('id', ids);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Published ${ids.length} cards`);
+    toast.success(`${t('rc.publishedPre')} ${ids.length} ${t('rc.cardsWord')}`);
     loadCards();
   };
 
@@ -119,8 +124,8 @@ export const ReportCardManagement = () => {
         body: { school_id: schoolId, term, academic_year: year },
       });
       if (error) throw error;
-      toast.success(`Notified parents (${data?.sent ?? 0} emails sent)`);
-    } catch (e: any) { toast.error(e.message || 'Failed'); } finally { setNotifying(false); }
+      toast.success(`${t('rc.notifiedPre')} (${data?.sent ?? 0} ${t('rc.emailsSent')})`);
+    } catch (e: any) { toast.error(e.message || t('rc.failed')); } finally { setNotifying(false); }
   };
 
   const layout: ReportCardLayout = (settings?.layout_config && settings.layout_config.sections?.length) ? settings.layout_config : defaultLayoutConfig;
@@ -145,46 +150,46 @@ export const ReportCardManagement = () => {
       renderCardToDoc(doc, c);
     });
     doc.save(`report-cards-${term}-${year}.pdf`);
-    toast.success(`Downloaded ${cards.length} report cards`);
+    toast.success(`${t('rc.downloadedPre')} ${cards.length} ${t('rc.reportCardsWord')}`);
   };
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" />Settings</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" />{t('rc.settings')}</CardTitle></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-3">
-          <div><Label>School Name</Label><Input value={settings.school_name || ''} onChange={e => setSettings({ ...settings, school_name: e.target.value })} /></div>
-          <div><Label>Principal Name</Label><Input value={settings.principal_name || ''} onChange={e => setSettings({ ...settings, principal_name: e.target.value })} /></div>
+          <div><Label>{t('rc.schoolName')}</Label><Input value={settings.school_name || ''} onChange={e => setSettings({ ...settings, school_name: e.target.value })} /></div>
+          <div><Label>{t('rc.principalName')}</Label><Input value={settings.principal_name || ''} onChange={e => setSettings({ ...settings, principal_name: e.target.value })} /></div>
           <div className="md:col-span-2">
             <Button size="sm" variant="outline" onClick={async () => {
               if (!schoolId) return;
               const { error } = await supabase.from('report_card_settings').upsert({ school_id: schoolId, ...settings });
-              if (error) toast.error(error.message); else toast.success('Saved');
-            }}>Save Settings</Button>
+              if (error) toast.error(error.message); else toast.success(t('rc.saved'));
+            }}>{t('rc.saveSettings')}</Button>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Generate Report Cards</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('rc.generateTitle')}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-4 gap-3">
-            <div><Label>Section</Label>
+            <div><Label>{t('rc.section')}</Label>
               <Select value={sectionId} onValueChange={setSectionId}>
-                <SelectTrigger><SelectValue placeholder="Section" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('rc.section')} /></SelectTrigger>
                 <SelectContent className="bg-popover">{sections.map(s => <SelectItem key={s.id} value={s.id}>{s.grade_level} - {s.section_name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Term</Label>
+            <div><Label>{t('rc.term')}</Label>
               <Select value={term} onValueChange={setTerm}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-popover">
-                  {['Term 1', 'Term 2', 'Term 3', 'Final'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  {['Term 1', 'Term 2', 'Term 3', 'Final'].map(tv => <SelectItem key={tv} value={tv}>{termLabel(tv)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Academic Year</Label><Input value={year} onChange={e => setYear(e.target.value)} /></div>
-            <div className="flex items-end"><Button onClick={generate} disabled={loading} className="w-full">{loading ? 'Generating...' : 'Generate'}</Button></div>
+            <div><Label>{t('rc.academicYear')}</Label><Input value={year} onChange={e => setYear(e.target.value)} /></div>
+            <div className="flex items-end"><Button onClick={generate} disabled={loading} className="w-full">{loading ? t('rc.generating') : t('rc.generate')}</Button></div>
           </div>
         </CardContent>
       </Card>
@@ -192,29 +197,29 @@ export const ReportCardManagement = () => {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center gap-2 flex-wrap">
-            <CardTitle>Report Cards ({term}, {year})</CardTitle>
+            <CardTitle>{t('rc.reportCardsTitle')} ({termLabel(term)}, {year})</CardTitle>
             <div className="flex gap-2 flex-wrap">
-              <Button size="sm" variant="outline" onClick={downloadAllPdf} disabled={!cards.length}><Download className="h-4 w-4 mr-1" />Download All</Button>
+              <Button size="sm" variant="outline" onClick={downloadAllPdf} disabled={!cards.length}><Download className="h-4 w-4 mr-1" />{t('rc.downloadAll')}</Button>
               <Button size="sm" variant="outline" onClick={notifyParents} disabled={notifying || !cards.some(c => c.published)}>
-                <Mail className="h-4 w-4 mr-1" />{notifying ? 'Sending…' : 'Notify Parents'}
+                <Mail className="h-4 w-4 mr-1" />{notifying ? t('rc.sending') : t('rc.notifyParents')}
               </Button>
-              <Button size="sm" onClick={publishAll} disabled={!cards.some(c => !c.published)}><CheckCircle2 className="h-4 w-4 mr-1" />Publish All</Button>
+              <Button size="sm" onClick={publishAll} disabled={!cards.some(c => !c.published)}><CheckCircle2 className="h-4 w-4 mr-1" />{t('rc.publishAll')}</Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {cards.length === 0 ? <p className="text-sm text-muted-foreground">No report cards yet.</p> : (
+          {cards.length === 0 ? <p className="text-sm text-muted-foreground">{t('rc.empty')}</p> : (
             <div className="divide-y divide-border border border-border rounded-lg">
               {cards.map(c => (
                 <div key={c.id} className="flex items-center justify-between p-3 gap-2">
                   <div className="min-w-0">
                     <div className="font-medium truncate">{c.name}</div>
-                    <div className="text-xs text-muted-foreground">Overall: {c.data?.overall ?? '-'}% · Attendance: {c.data?.attendance_rate ?? '-'}%</div>
+                    <div className="text-xs text-muted-foreground">{t('rc.overall')} {c.data?.overall ?? '-'}% · {t('rc.attendance')} {c.data?.attendance_rate ?? '-'}%</div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {c.published ? <Badge>Published</Badge> : <Badge variant="outline">Draft</Badge>}
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title="Edit"><Pencil className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="outline" onClick={() => downloadPdf(c)}><Download className="h-4 w-4 mr-1" />PDF</Button>
+                    {c.published ? <Badge>{t('rc.published')}</Badge> : <Badge variant="outline">{t('rc.draft')}</Badge>}
+                    <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title={t('rc.edit')}><Pencil className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadPdf(c)}><Download className="h-4 w-4 mr-1" />{t('rc.pdf')}</Button>
                   </div>
                 </div>
               ))}

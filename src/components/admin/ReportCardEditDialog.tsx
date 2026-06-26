@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Sparkles, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Card {
   id: string;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export const ReportCardEditDialog = ({ card, open, onOpenChange, onSaved }: Props) => {
+  const { t, language } = useLanguage();
   const [comments, setComments] = useState('');
   const [overall, setOverall] = useState('');
   const [attendance, setAttendance] = useState('');
@@ -40,7 +42,7 @@ export const ReportCardEditDialog = ({ card, open, onOpenChange, onSaved }: Prop
   }, [card]);
 
   if (!card) return null;
-  const name = card.student_name || card.name || 'Student';
+  const name = card.student_name || card.name || t('rcEdit.studentFallback');
 
   const generateRemarks = async () => {
     setAiLoading(true);
@@ -52,14 +54,14 @@ export const ReportCardEditDialog = ({ card, open, onOpenChange, onSaved }: Prop
           subjects: card.data?.subjects || [],
           overall: card.data?.overall,
           attendance_rate: card.data?.attendance_rate,
-          language: 'en',
+          language,
         },
       });
       if (error) throw error;
       if (data?.remarks) setComments(data.remarks);
-      else throw new Error('No remarks returned');
+      else throw new Error(t('rcEdit.noRemarks'));
     } catch (e: any) {
-      toast.error(e.message || 'AI generation failed');
+      toast.error(e.message || t('rcEdit.aiFailed'));
     } finally { setAiLoading(false); }
   };
 
@@ -74,7 +76,7 @@ export const ReportCardEditDialog = ({ card, open, onOpenChange, onSaved }: Prop
     const { error } = await supabase.from('report_cards').update({ data: newData }).eq('id', card.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Saved');
+    toast.success(t('rc.saved'));
     onSaved();
     onOpenChange(false);
   };
@@ -82,31 +84,31 @@ export const ReportCardEditDialog = ({ card, open, onOpenChange, onSaved }: Prop
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Edit Report Card — {name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t('rcEdit.title')} {name}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Overall %</Label>
+              <Label>{t('rcEdit.overall')}</Label>
               <Input value={overall} onChange={e => setOverall(e.target.value)} placeholder="0-100" />
             </div>
             <div>
-              <Label>Attendance %</Label>
+              <Label>{t('rcEdit.attendance')}</Label>
               <Input value={attendance} onChange={e => setAttendance(e.target.value)} placeholder="0-100" />
             </div>
           </div>
           <div>
             <div className="flex justify-between items-center mb-1">
-              <Label>Principal's Remarks</Label>
+              <Label>{t('rcEdit.remarks')}</Label>
               <Button size="sm" variant="outline" onClick={generateRemarks} disabled={aiLoading}>
-                <Sparkles className="h-3 w-3 mr-1" />{aiLoading ? 'Generating…' : 'Generate with AI'}
+                <Sparkles className="h-3 w-3 mr-1" />{aiLoading ? t('rcEdit.generating') : t('rcEdit.generateAi')}
               </Button>
             </div>
-            <Textarea rows={5} value={comments} onChange={e => setComments(e.target.value)} placeholder="2-3 sentences about the student…" />
+            <Textarea rows={5} value={comments} onChange={e => setComments(e.target.value)} placeholder={t('rcEdit.remarksPlaceholder')} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save} disabled={saving}><Save className="h-4 w-4 mr-1" />{saving ? 'Saving…' : 'Save'}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('rcEdit.cancel')}</Button>
+          <Button onClick={save} disabled={saving}><Save className="h-4 w-4 mr-1" />{saving ? t('rcEdit.saving') : t('rcEdit.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
