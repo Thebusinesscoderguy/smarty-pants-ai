@@ -6,6 +6,10 @@ import { AlertTriangle, TrendingDown, Clock, RefreshCw, UserX, Activity, Trophy 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const RISK_LEVEL_KEY: Record<string, string> = { high: 'risk.levelHigh', medium: 'risk.levelMedium', low: 'risk.levelLow' };
+const RISK_TREND_KEY: Record<string, string> = { declining: 'risk.trendDeclining', stable: 'risk.trendStable', improving: 'risk.trendImproving' };
 
 interface AtRiskStudent {
   student_id: string;
@@ -22,6 +26,7 @@ export const AtRiskAlerts = () => {
   const [atRiskStudents, setAtRiskStudents] = useState<AtRiskStudent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     analyzeStudents();
@@ -111,12 +116,12 @@ export const AtRiskAlerts = () => {
         }
 
         // Determine risks
-        if (avgScore < 50 && scores.length > 0) reasons.push('Very low average score (<50%)');
-        else if (avgScore < 60 && scores.length > 0) reasons.push('Below passing average (<60%)');
-        if (daysSinceActive > 14) reasons.push(`Inactive for ${daysSinceActive} days`);
-        else if (daysSinceActive > 7) reasons.push(`Low activity (${daysSinceActive} days since last activity)`);
-        if (trend === 'declining') reasons.push('Declining performance trend');
-        if (scores.length === 0 && daysSinceActive > 3) reasons.push('No assessments completed');
+        if (avgScore < 50 && scores.length > 0) reasons.push(t('risk.reasonVeryLow'));
+        else if (avgScore < 60 && scores.length > 0) reasons.push(t('risk.reasonBelowPassing'));
+        if (daysSinceActive > 14) reasons.push(`${t('risk.reasonInactivePre')} ${daysSinceActive} ${t('risk.daysWord')}`);
+        else if (daysSinceActive > 7) reasons.push(`${t('risk.reasonLowActivityPre')} (${daysSinceActive} ${t('risk.reasonLowActivitySuffix')})`);
+        if (trend === 'declining') reasons.push(t('risk.reasonDeclining'));
+        if (scores.length === 0 && daysSinceActive > 3) reasons.push(t('risk.reasonNoAssessments'));
 
         if (reasons.length === 0) continue;
 
@@ -127,7 +132,7 @@ export const AtRiskAlerts = () => {
 
         results.push({
           student_id: sid,
-          student_name: profile.display_name || 'Unknown Student',
+          student_name: profile.display_name || t('risk.unknownStudent'),
           risk_level: riskLevel,
           reasons,
           average_score: avgScore,
@@ -145,7 +150,7 @@ export const AtRiskAlerts = () => {
       setAtRiskStudents(results);
     } catch (error) {
       console.error('Error analyzing students:', error);
-      toast({ title: 'Error', description: 'Failed to analyze student data', variant: 'destructive' });
+      toast({ title: t('risk.error'), description: t('risk.failedAnalyze'), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +169,7 @@ export const AtRiskAlerts = () => {
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-muted-foreground">Analyzing student data...</div>;
+    return <div className="animate-pulse text-muted-foreground">{t('risk.analyzing')}</div>;
   }
 
   const highRisk = atRiskStudents.filter(s => s.risk_level === 'high');
@@ -174,12 +179,12 @@ export const AtRiskAlerts = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">At-Risk Student Alerts</h2>
-          <p className="text-muted-foreground">Students flagged for declining performance or low engagement</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('risk.title')}</h2>
+          <p className="text-muted-foreground">{t('risk.subtitle')}</p>
         </div>
         <Button variant="outline" onClick={analyzeStudents}>
           <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+          {t('risk.refresh')}
         </Button>
       </div>
 
@@ -191,7 +196,7 @@ export const AtRiskAlerts = () => {
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">High Risk</p>
+              <p className="text-sm text-muted-foreground">{t('risk.highRisk')}</p>
               <p className="text-2xl font-bold text-foreground">{highRisk.length}</p>
             </div>
           </CardContent>
@@ -202,7 +207,7 @@ export const AtRiskAlerts = () => {
               <Clock className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Medium Risk</p>
+              <p className="text-sm text-muted-foreground">{t('risk.mediumRisk')}</p>
               <p className="text-2xl font-bold text-foreground">{mediumRisk.length}</p>
             </div>
           </CardContent>
@@ -213,7 +218,7 @@ export const AtRiskAlerts = () => {
               <UserX className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Flagged</p>
+              <p className="text-sm text-muted-foreground">{t('risk.totalFlagged')}</p>
               <p className="text-2xl font-bold text-foreground">{atRiskStudents.length}</p>
             </div>
           </CardContent>
@@ -227,8 +232,8 @@ export const AtRiskAlerts = () => {
             <div className="p-3 rounded-full bg-green-100 w-fit mx-auto mb-4">
               <Trophy className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">All Students On Track</h3>
-            <p className="text-muted-foreground">No students are currently flagged as at-risk. Great work!</p>
+            <h3 className="text-lg font-semibold text-foreground mb-1">{t('risk.allOnTrack')}</h3>
+            <p className="text-muted-foreground">{t('risk.allOnTrackDesc')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -241,11 +246,11 @@ export const AtRiskAlerts = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold text-foreground">{student.student_name}</h3>
                       <Badge className={getRiskColor(student.risk_level)}>
-                        {student.risk_level.toUpperCase()} RISK
+                        {t(RISK_LEVEL_KEY[student.risk_level])} {t('risk.riskWord')}
                       </Badge>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         {getTrendIcon(student.recent_trend)}
-                        <span className="capitalize">{student.recent_trend}</span>
+                        <span>{t(RISK_TREND_KEY[student.recent_trend])}</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-2">
@@ -256,10 +261,10 @@ export const AtRiskAlerts = () => {
                       ))}
                     </div>
                     <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>Avg: <strong className="text-foreground">{student.average_score}%</strong></span>
-                      <span>Assessments: <strong className="text-foreground">{student.total_assessments}</strong></span>
-                      <span>Last active: <strong className="text-foreground">
-                        {student.days_since_active >= 999 ? 'Never' : `${student.days_since_active}d ago`}
+                      <span>{t('risk.avg')} <strong className="text-foreground">{student.average_score}%</strong></span>
+                      <span>{t('risk.assessments')} <strong className="text-foreground">{student.total_assessments}</strong></span>
+                      <span>{t('risk.lastActive')} <strong className="text-foreground">
+                        {student.days_since_active >= 999 ? t('risk.never') : `${student.days_since_active} ${t('risk.daysAgoSuffix')}`}
                       </strong></span>
                     </div>
                   </div>
