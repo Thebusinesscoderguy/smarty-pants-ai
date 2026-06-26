@@ -10,6 +10,7 @@ import { Plus, Mail, Clock, Loader2, Send, Ban, Users, GraduationCap } from 'luc
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Invite {
   id: string;
@@ -30,6 +31,7 @@ interface StudentOption {
 // teacher/parent invites (re-send rotates the token; revoke disables it).
 export const InviteManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState('');
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -70,7 +72,7 @@ export const InviteManagement = () => {
           .in('id', studentIds);
         studentList = (profiles || []).map((p) => ({
           student_id: p.id,
-          display_name: p.display_name || 'Unnamed student',
+          display_name: p.display_name || t('invite.unnamedStudent'),
         }));
         studentList.sort((a, b) => a.display_name.localeCompare(b.display_name));
       }
@@ -100,7 +102,7 @@ export const InviteManagement = () => {
 
   const inviteParent = async () => {
     if (!newParent.email.trim()) {
-      toast({ title: 'Email is required', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.emailRequired'), variant: 'destructive' });
       return;
     }
     setIsSaving(true);
@@ -118,23 +120,23 @@ export const InviteManagement = () => {
       if (error && !res?.error) throw error;
       if (res?.code === 'email_exists') {
         toast({
-          title: 'Already has an account',
-          description: 'This email already has a Teachly account. Ask them to log in at /auth.',
+          title: t('teacherMgmt.alreadyAccount'),
+          description: t('teacherMgmt.alreadyAccountDesc'),
           variant: 'destructive',
         });
         return;
       }
       if (!res?.ok) {
-        toast({ title: 'Could not invite parent', description: res?.error || 'Please try again.', variant: 'destructive' });
+        toast({ title: t('invite.couldNotInviteParent'), description: res?.error || t('teacherMgmt.tryAgain'), variant: 'destructive' });
         return;
       }
-      toast({ title: 'Invitation sent', description: `A set-password link was emailed to ${newParent.email}.` });
+      toast({ title: t('teacherMgmt.invitationSent'), description: `${t('teacherMgmt.invitationSentDescPre')} ${newParent.email}.` });
       setNewParent({ email: '', first_name: '', last_name: '' });
       setSelectedChildren([]);
       setIsInviteOpen(false);
       load();
     } catch (e: any) {
-      toast({ title: 'Error', description: e.message || 'Failed to invite parent', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.error'), description: e.message || t('invite.failedInviteParent'), variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -153,13 +155,13 @@ export const InviteManagement = () => {
       const res = data as { ok?: boolean; error?: string } | null;
       if (error && !res?.error) throw error;
       if (!res?.ok) {
-        toast({ title: 'Could not re-send', description: res?.error || 'Please try again.', variant: 'destructive' });
+        toast({ title: t('invite.couldNotResend'), description: res?.error || t('teacherMgmt.tryAgain'), variant: 'destructive' });
         return;
       }
-      toast({ title: 'Invitation re-sent', description: `A fresh link was emailed to ${invite.email}. The old link no longer works.` });
+      toast({ title: t('invite.resent'), description: `${t('invite.resentDescPre')} ${invite.email}. ${t('invite.resentDescSuffix')}` });
       load();
     } catch (e: any) {
-      toast({ title: 'Error', description: e.message || 'Failed to re-send', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.error'), description: e.message || t('invite.failedResend'), variant: 'destructive' });
     } finally {
       setBusyId(null);
     }
@@ -174,60 +176,60 @@ export const InviteManagement = () => {
       const res = data as { ok?: boolean; error?: string } | null;
       if (error && !res?.error) throw error;
       if (!res?.ok) {
-        toast({ title: 'Could not revoke', description: res?.error || 'Please try again.', variant: 'destructive' });
+        toast({ title: t('invite.couldNotRevoke'), description: res?.error || t('teacherMgmt.tryAgain'), variant: 'destructive' });
         return;
       }
-      toast({ title: 'Invitation revoked', description: `${invite.email}'s link no longer works.` });
+      toast({ title: t('invite.revoked'), description: `${invite.email} — ${t('invite.revokedDescSuffix')}` });
       load();
     } catch (e: any) {
-      toast({ title: 'Error', description: e.message || 'Failed to revoke', variant: 'destructive' });
+      toast({ title: t('teacherMgmt.error'), description: e.message || t('invite.failedRevoke'), variant: 'destructive' });
     } finally {
       setBusyId(null);
     }
   };
 
-  if (isLoading) return <div className="animate-pulse text-muted-foreground">Loading invites...</div>;
+  if (isLoading) return <div className="animate-pulse text-muted-foreground">{t('invite.loading')}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Parents &amp; Invites</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t('invite.title')}</h2>
           <p className="text-sm text-muted-foreground">
-            Invite parents and link them to their children. Manage pending teacher &amp; parent invitations here.
+            {t('invite.subtitle')}
           </p>
         </div>
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Invite Parent</Button>
+            <Button><Plus className="h-4 w-4 mr-2" />{t('invite.inviteParent')}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Invite a Parent</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t('invite.inviteAParent')}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Email *</Label>
+                <Label>{t('teacherMgmt.emailReq')}</Label>
                 <Input
                   type="email"
-                  placeholder="parent@example.com"
+                  placeholder={t('invite.emailPlaceholder')}
                   value={newParent.email}
                   onChange={(e) => setNewParent((p) => ({ ...p, email: e.target.value }))}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>First Name</Label>
+                  <Label>{t('teacherMgmt.firstName')}</Label>
                   <Input value={newParent.first_name} onChange={(e) => setNewParent((p) => ({ ...p, first_name: e.target.value }))} />
                 </div>
                 <div>
-                  <Label>Last Name</Label>
+                  <Label>{t('teacherMgmt.lastName')}</Label>
                   <Input value={newParent.last_name} onChange={(e) => setNewParent((p) => ({ ...p, last_name: e.target.value }))} />
                 </div>
               </div>
               <div>
-                <Label>Link to student(s)</Label>
+                <Label>{t('invite.linkStudents')}</Label>
                 {students.length === 0 ? (
                   <p className="text-sm text-muted-foreground mt-1">
-                    No students yet. Add students first, then invite their parent.
+                    {t('invite.noStudents')}
                   </p>
                 ) : (
                   <div className="mt-2 border border-border rounded-md max-h-52 overflow-y-auto divide-y divide-border">
@@ -243,12 +245,12 @@ export const InviteManagement = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  {selectedChildren.length} student(s) selected. The parent will see these children after they accept.
+                  {selectedChildren.length} {t('invite.selectedSuffix')}
                 </p>
               </div>
               <Button onClick={inviteParent} disabled={isSaving || !newParent.email.trim()} className="w-full">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
-                Send Invitation
+                {t('teacherMgmt.sendInvitation')}
               </Button>
             </div>
           </DialogContent>
@@ -257,11 +259,11 @@ export const InviteManagement = () => {
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">Pending Invitations</CardTitle>
+          <CardTitle className="text-foreground">{t('invite.pending')}</CardTitle>
         </CardHeader>
         <CardContent>
           {invites.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No pending invitations.</p>
+            <p className="text-muted-foreground text-center py-8">{t('invite.noPending')}</p>
           ) : (
             <div className="space-y-3">
               {invites.map((invite) => {
@@ -274,26 +276,26 @@ export const InviteManagement = () => {
                       <div>
                         <p className="font-medium text-foreground">{invite.email}</p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                          <span className="flex items-center gap-1"><RoleIcon className="h-3 w-3" />{invite.role}</span>
+                          <span className="flex items-center gap-1"><RoleIcon className="h-3 w-3" />{invite.role === 'teacher' ? t('invite.roleTeacher') : t('invite.roleParent')}</span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {expired ? 'Expired' : `Expires ${new Date(invite.expires_at).toLocaleDateString()}`}
+                            {expired ? t('invite.expired') : `${t('invite.expiresPrefix')} ${new Date(invite.expires_at).toLocaleDateString()}`}
                           </span>
                           {invite.role === 'parent' && invite.child_ids && invite.child_ids.length > 0 && (
-                            <span>{invite.child_ids.length} linked student(s)</span>
+                            <span>{invite.child_ids.length} {t('invite.linkedStudentsSuffix')}</span>
                           )}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={expired ? 'destructive' : 'outline'}>{expired ? 'Expired' : 'Pending'}</Badge>
+                      <Badge variant={expired ? 'destructive' : 'outline'}>{expired ? t('invite.expired') : t('invite.pendingBadge')}</Badge>
                       <Button size="sm" variant="outline" disabled={busyId === invite.id} onClick={() => resend(invite)}>
                         {busyId === invite.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                        <span className="ml-1 hidden sm:inline">Re-send</span>
+                        <span className="ml-1 hidden sm:inline">{t('invite.resend')}</span>
                       </Button>
                       <Button size="sm" variant="destructive" disabled={busyId === invite.id} onClick={() => revoke(invite)}>
                         <Ban className="h-4 w-4" />
-                        <span className="ml-1 hidden sm:inline">Revoke</span>
+                        <span className="ml-1 hidden sm:inline">{t('invite.revoke')}</span>
                       </Button>
                     </div>
                   </div>
