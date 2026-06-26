@@ -67,6 +67,7 @@ const SchoolAdmin = () => {
   const { user, isSchoolAdmin, isTeacher } = useAuth();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>('overview');
+  const [teacherTab, setTeacherTab] = useState<TabValue>('gradebook');
 
   useEffect(() => {
     if (!user || !isSchoolAdmin) return;
@@ -74,60 +75,106 @@ const SchoolAdmin = () => {
       .then(({ data }) => { if (data) setSchoolId(data.id); });
   }, [user, isSchoolAdmin]);
 
-  // Teachers only see Grade Book and Assessments
+  // Teachers get the same grouped navigation as the admin view (no flat scroll strip).
   if (isTeacher && !isSchoolAdmin) {
+    type TNavItem = { value: TabValue; label: string; icon: any };
+    const teacherGroups: { id: string; label: string; icon: any; items: TNavItem[] }[] = [
+      {
+        id: 'academics',
+        label: 'Academics',
+        icon: BookMarked,
+        items: [
+          { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
+          { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
+          { value: 'assessments', label: 'Assessments', icon: FileCheck },
+          { value: 'assignments', label: 'Assignments', icon: ListChecks },
+          { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
+          { value: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
+          { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
+        ],
+      },
+      {
+        id: 'behavior',
+        label: 'Behavior & Growth',
+        icon: Target,
+        items: [
+          { value: 'behavior', label: 'Behavior', icon: Shield },
+          { value: 'observations', label: 'Observations', icon: ClipboardCheck },
+          { value: 'growth-goals', label: 'Growth Goals', icon: Target },
+        ],
+      },
+      {
+        id: 'communication',
+        label: 'Communication',
+        icon: MessageCircle,
+        items: [
+          { value: 'messages', label: 'Messages', icon: MessageCircle },
+          { value: 'news', label: 'News', icon: Newspaper },
+          { value: 'calendar', label: 'Calendar', icon: CalendarDays },
+        ],
+      },
+    ];
+    const activeTeacherGroup = teacherGroups.find((g) => g.items.some((i) => i.value === teacherTab));
+    const activeTeacherItem = activeTeacherGroup?.items.find((i) => i.value === teacherTab);
+
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col">
         <Header />
         <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
+            <div className="mb-6">
               <h1 className="text-3xl font-bold mb-2">Teacher Dashboard</h1>
               <p className="text-muted-foreground">Manage grades and assessments for your assigned subjects and sections.</p>
             </div>
-            <Tabs defaultValue="gradebook" className="w-full">
-              <TabsList className="flex w-full overflow-x-auto bg-muted scrollbar-none">
-                <TabsTrigger value="gradebook" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <ClipboardList className="h-4 w-4 mr-2" />Grade Book
-                </TabsTrigger>
-                <TabsTrigger value="attendance" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <CalendarCheck className="h-4 w-4 mr-2" />Attendance
-                </TabsTrigger>
-                <TabsTrigger value="assessments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <FileCheck className="h-4 w-4 mr-2" />Assessments
-                </TabsTrigger>
-                <TabsTrigger value="exam-monitoring" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <FileCheck className="h-4 w-4 mr-2" />Exam Monitoring
-                </TabsTrigger>
-                <TabsTrigger value="grading" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <Sparkles className="h-4 w-4 mr-2" />Grading Inbox
-                </TabsTrigger>
-                <TabsTrigger value="lesson-plans" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <FileText className="h-4 w-4 mr-2" />Lesson Plans
-                </TabsTrigger>
-                <TabsTrigger value="assignments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <ListChecks className="h-4 w-4 mr-2" />Assignments
-                </TabsTrigger>
-                <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <MessageCircle className="h-4 w-4 mr-2" />Messages
-                </TabsTrigger>
-                <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <Newspaper className="h-4 w-4 mr-2" />News
-                </TabsTrigger>
-                <TabsTrigger value="behavior" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <Shield className="h-4 w-4 mr-2" />Behavior
-                </TabsTrigger>
-                <TabsTrigger value="observations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <ClipboardCheck className="h-4 w-4 mr-2" />Observations
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <CalendarDays className="h-4 w-4 mr-2" />Calendar
-                </TabsTrigger>
-                <TabsTrigger value="growth-goals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap">
-                  <Target className="h-4 w-4 mr-2" />Growth Goals
-                </TabsTrigger>
+
+            <Tabs value={teacherTab} onValueChange={(v) => setTeacherTab(v as TabValue)} className="w-full">
+              {/* Top group bar — same grouped pattern as the admin view */}
+              <div className="flex items-center gap-2 flex-wrap border-b border-border pb-3 mb-4">
+                {teacherGroups.map((group) => {
+                  const isActive = activeTeacherGroup?.id === group.id;
+                  const GroupIcon = group.icon;
+                  return (
+                    <DropdownMenu key={group.id}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant={isActive ? 'default' : 'ghost'} size="sm" className="whitespace-nowrap">
+                          <GroupIcon className="h-4 w-4 mr-2" />
+                          {isActive && activeTeacherItem ? `${group.label} · ${activeTeacherItem.label}` : group.label}
+                          <ChevronDown className="h-3 w-3 ml-1.5 opacity-60" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="bg-popover w-56">
+                        <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                          {group.label}
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {group.items.map((item) => {
+                          const ItemIcon = item.icon;
+                          const itemActive = teacherTab === item.value;
+                          return (
+                            <DropdownMenuItem
+                              key={item.value}
+                              onSelect={() => setTeacherTab(item.value)}
+                              className={itemActive ? 'bg-muted font-medium' : ''}
+                            >
+                              <ItemIcon className="h-4 w-4 mr-2" />
+                              {item.label}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  );
+                })}
+              </div>
+
+              {/* Hidden TabsList for accessibility / keyboard nav */}
+              <TabsList className="sr-only">
+                {teacherGroups.flatMap((g) => g.items.map((i) => (
+                  <TabsTrigger key={i.value} value={i.value}>{i.label}</TabsTrigger>
+                )))}
               </TabsList>
-              <div className="mt-6">
+
+              <div className="mt-2">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
                 <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
