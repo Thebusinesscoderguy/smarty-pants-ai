@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SpeakButton } from '@/components/voice/SpeakButton';
 import { TTSSettingsBar } from '@/components/voice/TTSSettingsBar';
 import { ShareArtifactButton } from '@/components/share/ShareArtifactButton';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DailyLesson {
   day: number;
@@ -48,6 +49,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
   const [attemptedDay, setAttemptedDay] = useState<number | null>(null);
   const [ttsVoice, setTtsVoice] = useState('alloy');
   const { generateQuiz, isGenerating } = useQuizGenerator();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   if (!studyPlan) return null;
@@ -87,8 +89,8 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
 
       if (quiz) {
         toast({
-          title: "Quiz created successfully!",
-          description: `Generated quiz for Day ${lesson.day}: ${lesson.topic}`
+          title: t('spd.quizCreated'),
+          description: `${t('spd.generatedFor')} ${lesson.day}: ${lesson.topic}`
         });
         onClose();
         navigate('/quiz-generator');
@@ -96,8 +98,8 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
     } catch (error) {
       console.error('Error creating quiz:', error);
       toast({
-        title: "Failed to create quiz",
-        description: "Please try again or check your connection",
+        title: t('spd.failedCreate'),
+        description: t('spd.failedCreateDesc'),
         variant: "destructive"
       });
     } finally {
@@ -113,17 +115,17 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogTitle>{t('spd.signInRequired')}</DialogTitle>
             <DialogDescription>
-              Please sign in or create a free account to start Day {attemptedDay}. You can generate and view the plan without signing in.
+              {t('spd.signInDescPre')} {attemptedDay}. {t('spd.signInDescPost')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowSignInDialog(false)}>
-              Cancel
+              {t('spd.cancel')}
             </Button>
             <Button onClick={() => navigate('/auth')}>
-              Sign In
+              {t('spd.signIn')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -148,7 +150,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                   onClick={() => handleStartDay(1)}
                   className="bg-violet-500 hover:bg-violet-600 text-white"
                 >
-                  Start Plan
+                  {t('spd.startPlan')}
                 </Button>
                 <ShareArtifactButton
                   artifactType="study_plan"
@@ -159,14 +161,14 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                     estimated_duration: studyPlan.estimated_duration,
                   }}
                   sourceId={studyPlan.id}
-                  label="Share plan"
+                  label={t('spd.sharePlan')}
                 />
-                <Button 
+                <Button
                   variant="outline"
                   className="border-violet-500 text-violet-500 hover:bg-violet-50"
                   onClick={onClose}
                 >
-                  Save & Close
+                  {t('spd.saveClose')}
                 </Button>
               </div>
             </div>
@@ -176,22 +178,22 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                 <div className="text-2xl font-bold">{dailyLessons.length}</div>
-                <div className="text-xs text-muted-foreground">Days</div>
+                <div className="text-xs text-muted-foreground">{t('spd.days')}</div>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <Target className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                 <div className="text-2xl font-bold">{focusAreas.length}</div>
-                <div className="text-xs text-muted-foreground">Focus Areas</div>
+                <div className="text-xs text-muted-foreground">{t('spd.focusAreas')}</div>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <Book className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                 <div className="text-2xl font-bold">{dailyLessons.length}</div>
-                <div className="text-xs text-muted-foreground">Lessons</div>
+                <div className="text-xs text-muted-foreground">{t('spd.lessons')}</div>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <Clock className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                 <div className="text-2xl font-bold">{totalMinutes}</div>
-                <div className="text-xs text-muted-foreground">Total Minutes</div>
+                <div className="text-xs text-muted-foreground">{t('spd.totalMinutes')}</div>
               </div>
             </div>
 
@@ -200,7 +202,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                   <Target className="h-4 w-4" />
-                  Areas to Focus On
+                  {t('spd.areasToFocus')}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {focusAreas.map((area, idx) => (
@@ -216,7 +218,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
           {/* Daily Lessons section */}
           <div className="space-y-3 mt-4">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h3 className="font-semibold text-lg">Daily Lessons</h3>
+              <h3 className="font-semibold text-lg">{t('spd.dailyLessons')}</h3>
               <TTSSettingsBar voice={ttsVoice} onVoiceChange={setTtsVoice} />
             </div>
             
@@ -229,17 +231,17 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-3">
                       <Badge variant="outline" className="font-medium">
-                        Day {lesson.day}
+                        {t('spd.dayPrefix')} {lesson.day}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {lesson.estimatedTime} min
+                        {lesson.estimatedTime} {t('spd.minSuffix')}
                       </span>
                     </div>
                     
                     <h4 className="font-medium flex items-center gap-2">
                       {lesson.topic}
                       <SpeakButton
-                        text={`Day ${lesson.day}. ${lesson.topic}. ${lesson.description}. Activities: ${lesson.activities?.join('. ') || ''}`}
+                        text={`${t('spd.dayPrefix')} ${lesson.day}. ${lesson.topic}. ${lesson.description}. ${t('spd.activitiesLabel')} ${lesson.activities?.join('. ') || ''}`}
                         voice={ttsVoice}
                         size="icon"
                         variant="ghost"
@@ -259,7 +261,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                         ))}
                         {lesson.activities.length > 3 && (
                           <Badge variant="outline" className="text-xs font-normal">
-                            +{lesson.activities.length - 3} more
+                            +{lesson.activities.length - 3} {t('spd.moreSuffix')}
                           </Badge>
                         )}
                       </div>
@@ -268,7 +270,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                   
                   <div className="flex items-center gap-2 shrink-0">
                     <Badge variant="secondary" className="text-xs">
-                      {lesson.practiceQuestions || 2} examples
+                      {lesson.practiceQuestions || 2} {t('spd.examplesSuffix')}
                     </Badge>
                   </div>
                 </div>
@@ -279,16 +281,16 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
                     onClick={() => handleStartDay(lesson.day)}
                     className="flex-1 bg-violet-500 hover:bg-violet-600 text-white rounded-full"
                   >
-                    Begin Learning
+                    {t('spd.beginLearning')}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => handleCreateQuiz(lesson)}
                     variant="outline"
                     disabled={creatingQuiz === lesson.day || isGenerating}
                     className="flex-1 border-violet-400 text-violet-600 hover:bg-violet-50 rounded-full"
                   >
                     <Brain className="mr-2 h-4 w-4" />
-                    {creatingQuiz === lesson.day ? 'Creating...' : 'Take Quiz'}
+                    {creatingQuiz === lesson.day ? t('spd.creating') : t('spd.takeQuiz')}
                   </Button>
                 </div>
               </div>
@@ -297,7 +299,7 @@ const StudyPlanDaySelector: React.FC<StudyPlanDaySelectorProps> = ({
             {dailyLessons.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <Book className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No lessons found in this study plan</p>
+                <p>{t('spd.noLessons')}</p>
               </div>
             )}
           </div>
