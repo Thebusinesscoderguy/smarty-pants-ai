@@ -5,10 +5,12 @@ import { TrendingUp, TrendingDown, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { isMockDataEnabled } from '@/utils/mockDataToggle';
 import { mockAnalytics } from '@/utils/mockData';
 
 export const StrengthsWeaknesses = () => {
+  const { t } = useLanguage();
   const [strengths, setStrengths] = useState<any[]>([]);
   const [weaknesses, setWeaknesses] = useState<any[]>([]);
   const [improvementParagraph, setImprovementParagraph] = useState('');
@@ -68,8 +70,8 @@ export const StrengthsWeaknesses = () => {
     } catch (error: any) {
       console.error('Error fetching analytics:', error);
       toast({
-        title: "Error",
-        description: "Failed to load analytics data",
+        title: t('sw2.error'),
+        description: t('sw2.failedLoad'),
         variant: "destructive"
       });
     } finally {
@@ -81,33 +83,33 @@ export const StrengthsWeaknesses = () => {
     strengths: any[],
     weaknesses: any[]
   ): string => {
-    let paragraph = "Based on your recent activity, here's a summary of your strengths and areas for improvement. ";
+    let paragraph = t('sw2.paraIntro');
 
     if (strengths.length > 0) {
       const topStrength = strengths[0];
-      paragraph += `You're showing strong skills in ${topStrength.topic_name} with a strength score of ${Math.round(topStrength.strength_score * 100)}%. `;
+      paragraph += `${t('sw2.paraStrengthPre')} ${topStrength.topic_name} ${t('sw2.paraStrengthMid')} ${Math.round(topStrength.strength_score * 100)}%. `;
     }
 
     if (weaknesses.length > 0) {
       const topWeakness = weaknesses[0];
-      paragraph += `To improve, focus on ${topWeakness.topic_name} where additional practice would be beneficial. `;
+      paragraph += `${t('sw2.paraWeakPre')} ${topWeakness.topic_name} ${t('sw2.paraWeakPost')} `;
     }
 
-    paragraph += "Consistent practice and engagement will help you build a solid foundation!";
+    paragraph += t('sw2.paraOutro');
 
     return paragraph;
   };
 
   if (isLoading) {
-    return <div className="animate-pulse text-foreground">Loading analytics...</div>;
+    return <div className="animate-pulse text-foreground">{t('sw2.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Learning Analytics</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t('sw2.title')}</h2>
         <p className="text-muted-foreground">
-          Understand your strengths and weaknesses to improve learning
+          {t('sw2.subtitle')}
         </p>
       </div>
 
@@ -116,7 +118,7 @@ export const StrengthsWeaknesses = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Brain className="h-5 w-5" />
-            Learning Summary
+            {t('sw2.learningSummary')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -133,7 +135,7 @@ export const StrengthsWeaknesses = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Strengths
+              {t('sw2.strengths')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -161,7 +163,7 @@ export const StrengthsWeaknesses = () => {
               </div>
             ) : (
               <p className="text-muted-foreground text-center py-4">
-                No strengths identified yet. Keep learning to discover your strengths!
+                {t('sw2.noStrengths')}
               </p>
             )}
           </CardContent>
@@ -172,7 +174,7 @@ export const StrengthsWeaknesses = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <TrendingDown className="h-5 w-5 text-violet-600" />
-              Areas for Improvement
+              {t('sw2.areasImprovement')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -200,7 +202,7 @@ export const StrengthsWeaknesses = () => {
               </div>
             ) : (
               <p className="text-muted-foreground text-center py-4">
-                No significant weaknesses detected. Keep up the great work!
+                {t('sw2.noWeaknesses')}
               </p>
             )}
           </CardContent>

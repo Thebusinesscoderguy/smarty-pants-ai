@@ -3748,6 +3748,24 @@ export const translations: TranslationData = {
     'al2.submit': 'Submit',
     'al2.feedback': 'Feedback:',
 
+    // ===== Strengths & Weaknesses (analytics) =====
+    'sw2.error': 'Error',
+    'sw2.failedLoad': 'Failed to load analytics data',
+    'sw2.paraIntro': "Based on your recent activity, here's a summary of your strengths and areas for improvement. ",
+    'sw2.paraStrengthPre': "You're showing strong skills in",
+    'sw2.paraStrengthMid': 'with a strength score of',
+    'sw2.paraWeakPre': 'To improve, focus on',
+    'sw2.paraWeakPost': 'where additional practice would be beneficial.',
+    'sw2.paraOutro': 'Consistent practice and engagement will help you build a solid foundation!',
+    'sw2.loading': 'Loading analytics...',
+    'sw2.title': 'Learning Analytics',
+    'sw2.subtitle': 'Understand your strengths and weaknesses to improve learning',
+    'sw2.learningSummary': 'Learning Summary',
+    'sw2.strengths': 'Strengths',
+    'sw2.noStrengths': 'No strengths identified yet. Keep learning to discover your strengths!',
+    'sw2.areasImprovement': 'Areas for Improvement',
+    'sw2.noWeaknesses': 'No significant weaknesses detected. Keep up the great work!',
+
   },
   ar: {
     // ===== Navigation =====
@@ -6545,5 +6563,23 @@ export const translations: TranslationData = {
     'al2.submitting': 'جارٍ التسليم...',
     'al2.submit': 'تسليم',
     'al2.feedback': 'الملاحظات:',
+
+    // ===== Strengths & Weaknesses (analytics) =====
+    'sw2.error': 'خطأ',
+    'sw2.failedLoad': 'تعذّر تحميل بيانات التحليلات',
+    'sw2.paraIntro': 'بناءً على نشاطك الأخير، إليك ملخّصًا لنقاط قوتك ومجالات التحسين. ',
+    'sw2.paraStrengthPre': 'تُظهر مهارات قوية في',
+    'sw2.paraStrengthMid': 'بدرجة قوة تبلغ',
+    'sw2.paraWeakPre': 'للتحسين، ركّز على',
+    'sw2.paraWeakPost': 'حيث سيكون المزيد من التدريب مفيدًا.',
+    'sw2.paraOutro': 'ستساعدك الممارسة والمشاركة المنتظمة على بناء أساس متين!',
+    'sw2.loading': 'جارٍ تحميل التحليلات...',
+    'sw2.title': 'تحليلات التعلّم',
+    'sw2.subtitle': 'افهم نقاط قوتك وضعفك لتحسين التعلّم',
+    'sw2.learningSummary': 'ملخّص التعلّم',
+    'sw2.strengths': 'نقاط القوة',
+    'sw2.noStrengths': 'لم يتم تحديد نقاط قوة بعد. واصل التعلّم لاكتشاف نقاط قوتك!',
+    'sw2.areasImprovement': 'مجالات التحسين',
+    'sw2.noWeaknesses': 'لم تُكتشف نقاط ضعف كبيرة. واصل العمل الرائع!',
   },
 };
