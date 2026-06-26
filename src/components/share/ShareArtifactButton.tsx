@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export type SharableArtifactType = 'quiz' | 'study_plan' | 'presentation';
 
@@ -31,9 +32,10 @@ export const ShareArtifactButton = ({
   size = 'sm',
   variant = 'outline',
   className,
-  label = 'Share',
+  label,
 }: ShareArtifactButtonProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,7 +44,7 @@ export const ShareArtifactButton = ({
 
   const handleClick = async () => {
     if (!user) {
-      toast({ title: 'Sign in to share', description: 'Create a free account to generate share links.' });
+      toast({ title: t('sab.signInShare'), description: t('sab.signInShareDesc') });
       navigate('/auth');
       return;
     }
@@ -69,8 +71,8 @@ export const ShareArtifactButton = ({
       const url = `${window.location.origin}/s/${data.share_token}`;
       setShareUrl(url);
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Could not create share link';
-      toast({ title: 'Share failed', description: message, variant: 'destructive' });
+      const message = e instanceof Error ? e.message : t('sab.couldNotCreate');
+      toast({ title: t('sab.shareFailed'), description: message, variant: 'destructive' });
       setOpen(false);
     } finally {
       setLoading(false);
@@ -81,43 +83,43 @@ export const ShareArtifactButton = ({
     if (!shareUrl) return;
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    toast({ title: 'Link copied', description: 'Share it anywhere — no login required to view.' });
+    toast({ title: t('sab.linkCopied'), description: t('sab.linkCopiedDesc') });
     setTimeout(() => setCopied(false), 2000);
   };
 
   const labelMap: Record<SharableArtifactType, string> = {
-    quiz: 'quiz',
-    study_plan: 'study plan',
-    presentation: 'presentation',
+    quiz: t('sab.typeQuiz'),
+    study_plan: t('sab.typeStudyPlan'),
+    presentation: t('sab.typePresentation'),
   };
 
   return (
     <>
       <Button onClick={handleClick} size={size} variant={variant} className={className}>
         <Share2 className="h-4 w-4 mr-2" />
-        {label}
+        {label ?? t('sab.share')}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Share this {labelMap[artifactType]}</DialogTitle>
+            <DialogTitle>{t('sab.shareThis')} {labelMap[artifactType]}</DialogTitle>
             <DialogDescription>
-              Anyone with the link can view it — no Teachly account needed.
+              {t('sab.shareDesc')}
             </DialogDescription>
           </DialogHeader>
 
           {loading || !shareUrl ? (
             <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              Creating link…
+              {t('sab.creatingLink')}
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <Input readOnly value={shareUrl} className="flex-1" onFocus={(e) => e.currentTarget.select()} />
               <Button onClick={handleCopy} size="sm" className="shrink-0">
                 {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? t('sab.copied') : t('sab.copy')}
               </Button>
             </div>
           )}

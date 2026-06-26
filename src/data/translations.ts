@@ -3679,6 +3679,23 @@ export const translations: TranslationData = {
     'rs.tryStudentDemo': 'Try Student Demo',
     'rs.getStartedParent': 'Get Started as Parent',
 
+    // ===== Share Artifact Button =====
+    'sab.signInShare': 'Sign in to share',
+    'sab.signInShareDesc': 'Create a free account to generate share links.',
+    'sab.couldNotCreate': 'Could not create share link',
+    'sab.shareFailed': 'Share failed',
+    'sab.linkCopied': 'Link copied',
+    'sab.linkCopiedDesc': 'Share it anywhere — no login required to view.',
+    'sab.typeQuiz': 'quiz',
+    'sab.typeStudyPlan': 'study plan',
+    'sab.typePresentation': 'presentation',
+    'sab.share': 'Share',
+    'sab.shareThis': 'Share this',
+    'sab.shareDesc': 'Anyone with the link can view it — no Teachly account needed.',
+    'sab.creatingLink': 'Creating link…',
+    'sab.copied': 'Copied',
+    'sab.copy': 'Copy',
+
   },
   ar: {
     // ===== Navigation =====
@@ -6407,5 +6424,22 @@ export const translations: TranslationData = {
     'rs.parentL4': 'لوحة متابعة لولي الأمر',
     'rs.tryStudentDemo': 'جرّب عرض الطالب',
     'rs.getStartedParent': 'ابدأ كولي أمر',
+
+    // ===== Share Artifact Button =====
+    'sab.signInShare': 'سجّل الدخول للمشاركة',
+    'sab.signInShareDesc': 'أنشئ حسابًا مجانيًا لإنشاء روابط المشاركة.',
+    'sab.couldNotCreate': 'تعذّر إنشاء رابط المشاركة',
+    'sab.shareFailed': 'فشلت المشاركة',
+    'sab.linkCopied': 'تم نسخ الرابط',
+    'sab.linkCopiedDesc': 'شاركه في أي مكان — لا يلزم تسجيل دخول للعرض.',
+    'sab.typeQuiz': 'الاختبار',
+    'sab.typeStudyPlan': 'خطة الدراسة',
+    'sab.typePresentation': 'العرض التقديمي',
+    'sab.share': 'مشاركة',
+    'sab.shareThis': 'شارك',
+    'sab.shareDesc': 'يمكن لأي شخص لديه الرابط عرضه — لا حاجة لحساب Teachly.',
+    'sab.creatingLink': 'جارٍ إنشاء الرابط…',
+    'sab.copied': 'تم النسخ',
+    'sab.copy': 'نسخ',
   },
 };
