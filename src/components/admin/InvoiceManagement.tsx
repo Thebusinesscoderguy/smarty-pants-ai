@@ -11,7 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Plus, FileText, CheckCircle2, X, DollarSign, Clock } from 'lucide-react';
+
+const INV_STATUS_KEY: Record<string, string> = {
+  issued: 'inv.statusIssued', paid: 'inv.statusPaid', overdue: 'inv.statusOverdue', void: 'inv.statusVoid', draft: 'inv.statusDraft',
+};
 
 interface Invoice {
   id: string;
@@ -39,6 +44,7 @@ const statusColor: Record<string, string> = {
 
 export const InvoiceManagement = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -97,12 +103,12 @@ export const InvoiceManagement = () => {
 
   const createInvoice = async () => {
     if (!schoolId || !form.student_id || !form.title || !form.amount) {
-      toast({ title: 'Missing info', description: 'Student, title, and amount are required', variant: 'destructive' });
+      toast({ title: t('inv.missingInfo'), description: t('inv.missingInfoDesc'), variant: 'destructive' });
       return;
     }
     const cents = Math.round(parseFloat(form.amount) * 100);
     if (isNaN(cents) || cents < 0) {
-      toast({ title: 'Invalid amount', variant: 'destructive' });
+      toast({ title: t('inv.invalidAmount'), variant: 'destructive' });
       return;
     }
 
@@ -122,10 +128,10 @@ export const InvoiceManagement = () => {
       created_by: user?.id,
     });
     if (error) {
-      toast({ title: 'Could not create', description: error.message, variant: 'destructive' });
+      toast({ title: t('inv.couldNotCreate'), description: error.message, variant: 'destructive' });
       return;
     }
-    toast({ title: 'Invoice issued' });
+    toast({ title: t('inv.issued') });
     setOpen(false);
     setForm({ student_id: '', title: '', description: '', amount: '', due_date: '' });
     if (schoolId) loadInvoices(schoolId);
@@ -134,41 +140,41 @@ export const InvoiceManagement = () => {
   const markPaid = async (id: string) => {
     const { error } = await supabase.from('school_invoices')
       .update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id);
-    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: 'Marked as paid' });
+    if (error) { toast({ title: t('inv.failed'), description: error.message, variant: 'destructive' }); return; }
+    toast({ title: t('inv.markedPaid') });
     if (schoolId) loadInvoices(schoolId);
   };
 
   const voidInvoice = async (id: string) => {
     const { error } = await supabase.from('school_invoices').update({ status: 'void' }).eq('id', id);
-    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: 'Invoice voided' });
+    if (error) { toast({ title: t('inv.failed'), description: error.message, variant: 'destructive' }); return; }
+    toast({ title: t('inv.voided') });
     if (schoolId) loadInvoices(schoolId);
   };
 
   const formatMoney = (c: number, cur = 'usd') =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: cur.toUpperCase() }).format(c / 100);
 
-  if (loading) return <div className="text-muted-foreground">Loading invoices…</div>;
+  if (loading) return <div className="text-muted-foreground">{t('inv.loading')}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Fees & Invoicing</h2>
-          <p className="text-muted-foreground">Issue invoices and track parent payments.</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('inv.title')}</h2>
+          <p className="text-muted-foreground">{t('inv.subtitle')}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />New Invoice</Button>
+            <Button><Plus className="h-4 w-4 mr-2" />{t('inv.newInvoice')}</Button>
           </DialogTrigger>
           <DialogContent className="bg-card">
-            <DialogHeader><DialogTitle>Create Invoice</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t('inv.createInvoice')}</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div>
-                <Label>Student</Label>
+                <Label>{t('inv.student')}</Label>
                 <Select value={form.student_id} onValueChange={(v) => setForm(f => ({ ...f, student_id: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Select a student" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('inv.selectStudent')} /></SelectTrigger>
                   <SelectContent className="bg-popover">
                     {students.map(s => (
                       <SelectItem key={s.id} value={s.id}>{s.display_name || s.id.slice(0, 8)}</SelectItem>
@@ -177,28 +183,28 @@ export const InvoiceManagement = () => {
                 </Select>
               </div>
               <div>
-                <Label>Title</Label>
+                <Label>{t('inv.titleLabel')}</Label>
                 <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  placeholder="e.g., Term 1 Tuition" />
+                  placeholder={t('inv.titlePlaceholder')} />
               </div>
               <div>
-                <Label>Description (optional)</Label>
+                <Label>{t('inv.descriptionOptional')}</Label>
                 <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   rows={2} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Amount (USD)</Label>
+                  <Label>{t('inv.amountUsd')}</Label>
                   <Input type="number" step="0.01" min="0" value={form.amount}
                     onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="500.00" />
                 </div>
                 <div>
-                  <Label>Due Date</Label>
+                  <Label>{t('inv.dueDate')}</Label>
                   <Input type="date" value={form.due_date}
                     onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
                 </div>
               </div>
-              <Button className="w-full" onClick={createInvoice}>Issue Invoice</Button>
+              <Button className="w-full" onClick={createInvoice}>{t('inv.issueInvoice')}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -209,7 +215,7 @@ export const InvoiceManagement = () => {
           <CardContent className="p-5 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><FileText className="h-5 w-5 text-primary" /></div>
             <div>
-              <p className="text-xs text-muted-foreground">Total invoices</p>
+              <p className="text-xs text-muted-foreground">{t('inv.totalInvoices')}</p>
               <p className="text-2xl font-bold">{totals.count}</p>
             </div>
           </CardContent>
@@ -218,7 +224,7 @@ export const InvoiceManagement = () => {
           <CardContent className="p-5 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-500/10"><Clock className="h-5 w-5 text-amber-600" /></div>
             <div>
-              <p className="text-xs text-muted-foreground">Outstanding</p>
+              <p className="text-xs text-muted-foreground">{t('inv.outstanding')}</p>
               <p className="text-2xl font-bold">{formatMoney(totals.outstanding)}</p>
             </div>
           </CardContent>
@@ -227,7 +233,7 @@ export const InvoiceManagement = () => {
           <CardContent className="p-5 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-500/10"><DollarSign className="h-5 w-5 text-green-600" /></div>
             <div>
-              <p className="text-xs text-muted-foreground">Collected</p>
+              <p className="text-xs text-muted-foreground">{t('inv.collected')}</p>
               <p className="text-2xl font-bold">{formatMoney(totals.paid)}</p>
             </div>
           </CardContent>
@@ -236,30 +242,30 @@ export const InvoiceManagement = () => {
 
       <Card className="bg-card border-border">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-foreground">Invoices</CardTitle>
+          <CardTitle className="text-foreground">{t('inv.invoices')}</CardTitle>
           <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
             <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
             <SelectContent className="bg-popover">
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="issued">Issued</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="all">{t('inv.filterAll')}</SelectItem>
+              <SelectItem value="issued">{t('inv.filterIssued')}</SelectItem>
+              <SelectItem value="paid">{t('inv.filterPaid')}</SelectItem>
+              <SelectItem value="overdue">{t('inv.filterOverdue')}</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">No invoices yet.</div>
+            <div className="text-center py-10 text-muted-foreground">{t('inv.empty')}</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Due</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('inv.colStudent')}</TableHead>
+                  <TableHead>{t('inv.colTitle')}</TableHead>
+                  <TableHead>{t('inv.colAmount')}</TableHead>
+                  <TableHead>{t('inv.colDue')}</TableHead>
+                  <TableHead>{t('inv.colStatus')}</TableHead>
+                  <TableHead className="text-right">{t('inv.colActions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -271,14 +277,14 @@ export const InvoiceManagement = () => {
                     <TableCell>{inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '—'}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColor[inv.status] || ''}>
-                        {inv.status}
+                        {INV_STATUS_KEY[inv.status] ? t(INV_STATUS_KEY[inv.status]) : inv.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       {inv.status === 'issued' && (
                         <>
                           <Button size="sm" variant="outline" onClick={() => markPaid(inv.id)}>
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />Mark paid
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />{t('inv.markPaid')}
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => voidInvoice(inv.id)}>
                             <X className="h-3.5 w-3.5" />
