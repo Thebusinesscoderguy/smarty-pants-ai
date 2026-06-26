@@ -24,6 +24,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChildInfo {
   id: string;
@@ -43,6 +44,7 @@ interface ParentPreferences {
 
 const ParentOnboarding = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [children, setChildren] = useState<ChildInfo[]>([]);
   const [preferences, setPreferences] = useState<ParentPreferences>({
@@ -63,14 +65,14 @@ const ParentOnboarding = () => {
   const progressPercentage = (currentStep / totalSteps) * 100;
 
   const availableSubjects = [
-    'Mathematics', 'Science', 'English/Language Arts', 'History', 'Geography',
-    'Art', 'Music', 'Physical Education', 'Foreign Languages', 'Computer Science'
+    t('po.s.math'), t('po.s.science'), t('po.s.english'), t('po.s.history'), t('po.s.geography'),
+    t('po.s.art'), t('po.s.music'), t('po.s.pe'), t('po.s.langs'), t('po.s.cs')
   ];
 
   const learningGoalOptions = [
-    'Improve grades', 'Build confidence', 'Catch up on missed topics',
-    'Prepare for tests', 'Develop study habits', 'Enhance critical thinking',
-    'Explore new interests', 'Get ahead in curriculum'
+    t('po.g.grades'), t('po.g.confidence'), t('po.g.catchup'),
+    t('po.g.tests'), t('po.g.habits'), t('po.g.thinking'),
+    t('po.g.interests'), t('po.g.ahead')
   ];
 
   const handleAddChild = () => {
@@ -122,39 +124,39 @@ const ParentOnboarding = () => {
       <CardHeader className="text-center">
         <CardTitle className="text-white text-2xl flex items-center justify-center gap-2">
           <Heart className="h-6 w-6 text-pink-400" />
-          Welcome to TeachlyAI Family
+          {t('po.welcomeTitle')}
         </CardTitle>
-        <p className="text-white/80">Let's set up your family's personalized learning experience</p>
+        <p className="text-white/80">{t('po.welcomeSub')}</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30">
               <FileQuestion className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-white mb-2">Smart Quiz Analysis</h3>
-              <p className="text-white/70 text-sm">Upload quizzes to get personalized study plans targeting weak areas</p>
+              <h3 className="font-semibold text-white mb-2">{t('po.smartQuizTitle')}</h3>
+              <p className="text-white/70 text-sm">{t('po.smartQuizBody')}</p>
             </div>
             
             <div className="p-6 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30">
               <Brain className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-white mb-2">AI-Powered Learning</h3>
-              <p className="text-white/70 text-sm">Adaptive AI that personalizes lessons to your child's learning style</p>
+              <h3 className="font-semibold text-white mb-2">{t('po.aiLearnTitle')}</h3>
+              <p className="text-white/70 text-sm">{t('po.aiLearnBody')}</p>
             </div>
             
             <div className="p-6 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
               <TrendingUp className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-white mb-2">Progress Tracking</h3>
-              <p className="text-white/70 text-sm">Detailed insights and reports to celebrate achievements</p>
+              <h3 className="font-semibold text-white mb-2">{t('po.progressTitle')}</h3>
+              <p className="text-white/70 text-sm">{t('po.progressBody')}</p>
             </div>
           </div>
           
           <div className="p-6 bg-gradient-to-r from-yellow-500/20 to-violet-500/20 rounded-xl border border-yellow-500/30">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Shield className="h-5 w-5 text-yellow-400" />
-              <span className="font-semibold text-yellow-400">Safe & Secure</span>
+              <span className="font-semibold text-yellow-400">{t('po.safeTitle')}</span>
             </div>
             <p className="text-white/80 text-sm">
-              Your children's privacy and safety are our top priority. All interactions are monitored and secure.
+              {t('po.safeBody')}
             </p>
           </div>
         </div>
@@ -167,48 +169,48 @@ const ParentOnboarding = () => {
       <CardHeader>
         <CardTitle className="text-white text-xl flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Add Your Children
+          {t('po.addChildren')}
         </CardTitle>
-        <p className="text-white/70">Tell us about each child who will be using TeachlyAI</p>
+        <p className="text-white/70">{t('po.addChildrenSub')}</p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Child Input Form */}
         <div className="space-y-4 p-4 bg-white/5 rounded-lg border border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="childName" className="text-white">Child's Name</Label>
+              <Label htmlFor="childName" className="text-white">{t('po.childName')}</Label>
               <Input
                 id="childName"
                 value={currentChild.name || ''}
                 onChange={(e) => setCurrentChild({ ...currentChild, name: e.target.value })}
-                placeholder="Enter name"
+                placeholder={t('po.enterName')}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
               />
             </div>
             <div>
-              <Label htmlFor="childAge" className="text-white">Age</Label>
+              <Label htmlFor="childAge" className="text-white">{t('po.age')}</Label>
               <Input
                 id="childAge"
                 value={currentChild.age || ''}
                 onChange={(e) => setCurrentChild({ ...currentChild, age: e.target.value })}
-                placeholder="Age"
+                placeholder={t('po.age')}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
               />
             </div>
             <div>
-              <Label htmlFor="gradeLevel" className="text-white">Grade Level</Label>
+              <Label htmlFor="gradeLevel" className="text-white">{t('po.gradeLevel')}</Label>
               <Input
                 id="gradeLevel"
                 value={currentChild.gradeLevel || ''}
                 onChange={(e) => setCurrentChild({ ...currentChild, gradeLevel: e.target.value })}
-                placeholder="Grade"
+                placeholder={t('po.gradePlaceholder')}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
               />
             </div>
           </div>
           
           <div>
-            <Label className="text-white mb-3 block">Subjects of Interest</Label>
+            <Label className="text-white mb-3 block">{t('po.subjectsInterest')}</Label>
             <div className="flex flex-wrap gap-2">
               {availableSubjects.map((subject) => (
                 <Badge
@@ -232,20 +234,20 @@ const ParentOnboarding = () => {
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
             disabled={!currentChild.name || !currentChild.age || !currentChild.gradeLevel}
           >
-            Add Child
+            {t('po.addChild')}
           </Button>
         </div>
 
         {/* Added Children */}
         {children.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-white font-medium">Added Children:</h3>
+            <h3 className="text-white font-medium">{t('po.addedChildren')}</h3>
             {children.map((child) => (
               <div key={child.id} className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="text-white font-medium">{child.name}</h4>
-                    <p className="text-white/70 text-sm">Age {child.age}, Grade {child.gradeLevel}</p>
+                    <p className="text-white/70 text-sm">{t('po.ageWord')} {child.age}, {t('po.gradeWord')} {child.gradeLevel}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {child.subjects.slice(0, 3).map((subject) => (
                         <Badge key={subject} variant="outline" className="border-white/30 text-white text-xs">
@@ -254,7 +256,7 @@ const ParentOnboarding = () => {
                       ))}
                       {child.subjects.length > 3 && (
                         <Badge variant="outline" className="border-white/30 text-white text-xs">
-                          +{child.subjects.length - 3} more
+                          +{child.subjects.length - 3} {t('po.moreSuffix')}
                         </Badge>
                       )}
                     </div>
@@ -274,13 +276,13 @@ const ParentOnboarding = () => {
       <CardHeader>
         <CardTitle className="text-white text-xl flex items-center gap-2">
           <Target className="h-5 w-5" />
-          Learning Goals & Preferences
+          {t('po.goalsTitle')}
         </CardTitle>
-        <p className="text-white/70">Help us understand what you want to achieve</p>
+        <p className="text-white/70">{t('po.goalsSub')}</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <Label className="text-white mb-3 block">Primary Learning Goals</Label>
+          <Label className="text-white mb-3 block">{t('po.primaryGoals')}</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {learningGoalOptions.map((goal) => (
               <div
@@ -310,11 +312,11 @@ const ParentOnboarding = () => {
         </div>
         
         <div>
-          <Label className="text-white mb-3 block">Daily Study Time Goal (minutes)</Label>
+          <Label className="text-white mb-3 block">{t('po.studyTimeGoal')}</Label>
           <Input
             value={preferences.studyTimeGoals}
             onChange={(e) => setPreferences({ ...preferences, studyTimeGoals: e.target.value })}
-            placeholder="Enter minutes (e.g., 30, 45, 60)"
+            placeholder={t('po.studyTimePlaceholder')}
             className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
             type="number"
             min="5"
@@ -330,18 +332,18 @@ const ParentOnboarding = () => {
       <CardHeader>
         <CardTitle className="text-white text-xl flex items-center gap-2">
           <Settings className="h-5 w-5" />
-          Notification & Privacy Settings
+          {t('po.notifPrivacy')}
         </CardTitle>
-        <p className="text-white/70">Customize how we communicate with you</p>
+        <p className="text-white/70">{t('po.notifPrivacySub')}</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <Label className="text-white mb-3 block">Progress Report Frequency</Label>
+          <Label className="text-white mb-3 block">{t('po.reportFreq')}</Label>
           <div className="flex gap-3">
             {[
-              { value: 'daily', label: 'Daily' },
-              { value: 'weekly', label: 'Weekly' },
-              { value: 'monthly', label: 'Monthly' }
+              { value: 'daily', label: t('po.daily') },
+              { value: 'weekly', label: t('po.weekly') },
+              { value: 'monthly', label: t('po.monthly') }
             ].map((option) => (
               <Button
                 key={option.value}
@@ -360,42 +362,42 @@ const ParentOnboarding = () => {
         </div>
         
         <div>
-          <Label className="text-white mb-3 block">Notification Preferences</Label>
+          <Label className="text-white mb-3 block">{t('po.notifPrefs')}</Label>
           <div className="space-y-3">
             {[
-              'Achievement alerts', 
-              'Weekly progress summaries', 
-              'Study reminders',
-              'Improvement suggestions',
-              'New feature announcements'
-            ].map((type) => (
-              <div key={type} className="flex items-center gap-3">
+              { v: 'Achievement alerts', l: t('po.n.achieve') },
+              { v: 'Weekly progress summaries', l: t('po.n.weekly') },
+              { v: 'Study reminders', l: t('po.n.reminders') },
+              { v: 'Improvement suggestions', l: t('po.n.suggestions') },
+              { v: 'New feature announcements', l: t('po.n.features') }
+            ].map(({ v, l }) => (
+              <div key={v} className="flex items-center gap-3">
                 <Checkbox
-                  checked={preferences.notificationTypes.includes(type)}
-                  onCheckedChange={() => handlePreferenceToggle('notificationTypes', type)}
+                  checked={preferences.notificationTypes.includes(v)}
+                  onCheckedChange={() => handlePreferenceToggle('notificationTypes', v)}
                   className="border-white/30"
                 />
-                <span className="text-white">{type}</span>
+                <span className="text-white">{l}</span>
               </div>
             ))}
           </div>
         </div>
         
         <div>
-          <Label className="text-white mb-3 block">Privacy Settings</Label>
+          <Label className="text-white mb-3 block">{t('po.privacy')}</Label>
           <div className="space-y-3">
             {[
-              'Share anonymous usage data to improve the platform',
-              'Allow educational content recommendations',
-              'Enable social features (achievements sharing)'
-            ].map((setting) => (
-              <div key={setting} className="flex items-center gap-3">
+              { v: 'Share anonymous usage data to improve the platform', l: t('po.p.anon') },
+              { v: 'Allow educational content recommendations', l: t('po.p.recs') },
+              { v: 'Enable social features (achievements sharing)', l: t('po.p.social') }
+            ].map(({ v, l }) => (
+              <div key={v} className="flex items-center gap-3">
                 <Checkbox
-                  checked={preferences.privacySettings.includes(setting)}
-                  onCheckedChange={() => handlePreferenceToggle('privacySettings', setting)}
+                  checked={preferences.privacySettings.includes(v)}
+                  onCheckedChange={() => handlePreferenceToggle('privacySettings', v)}
                   className="border-white/30"
                 />
-                <span className="text-white text-sm">{setting}</span>
+                <span className="text-white text-sm">{l}</span>
               </div>
             ))}
           </div>
@@ -409,37 +411,37 @@ const ParentOnboarding = () => {
       <CardHeader className="text-center">
         <CardTitle className="text-white text-2xl flex items-center justify-center gap-2">
           <Star className="h-6 w-6 text-yellow-400" />
-          You're All Set!
+          {t('po.allSet')}
         </CardTitle>
-        <p className="text-white/80">Your family learning environment is ready</p>
+        <p className="text-white/80">{t('po.allSetSub')}</p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-4">
           <div className="p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30">
             <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
-            <h3 className="font-semibold text-white mb-2">Welcome to the Family!</h3>
+            <h3 className="font-semibold text-white mb-2">{t('po.welcomeFamily')}</h3>
             <p className="text-white/80">
-              We've set up personalized learning experiences for {children.length} child{children.length !== 1 ? 'ren' : ''}.
+              {t('po.setupDonePre')} {children.length} {children.length !== 1 ? t('po.childrenWord') : t('po.childWord')}.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-white/5 rounded-lg">
               <Zap className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-              <h4 className="text-white font-medium mb-1">Start Learning</h4>
-              <p className="text-white/70 text-sm">Begin with our AI chat or voice sessions</p>
+              <h4 className="text-white font-medium mb-1">{t('po.startLearning')}</h4>
+              <p className="text-white/70 text-sm">{t('po.startLearningBody')}</p>
             </div>
             
             <div className="p-4 bg-white/5 rounded-lg">
               <FileQuestion className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-              <h4 className="text-white font-medium mb-1">Upload Quizzes</h4>
-              <p className="text-white/70 text-sm">Get personalized study plans from quiz results</p>
+              <h4 className="text-white font-medium mb-1">{t('po.uploadQuizzes')}</h4>
+              <p className="text-white/70 text-sm">{t('po.uploadQuizzesBody')}</p>
             </div>
             
             <div className="p-4 bg-white/5 rounded-lg">
               <TrendingUp className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-              <h4 className="text-white font-medium mb-1">Track Progress</h4>
-              <p className="text-white/70 text-sm">Monitor achievements and celebrate milestones</p>
+              <h4 className="text-white font-medium mb-1">{t('po.trackProgress')}</h4>
+              <p className="text-white/70 text-sm">{t('po.trackProgressBody')}</p>
             </div>
           </div>
         </div>
@@ -475,9 +477,9 @@ const ParentOnboarding = () => {
         {/* Progress Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-white">Family Setup</h1>
+            <h1 className="text-3xl font-bold text-white">{t('po.familySetup')}</h1>
             <Badge className="bg-white/20 text-white">
-              Step {currentStep} of {totalSteps}
+              {t('po.step')} {currentStep} {t('po.of')} {totalSteps}
             </Badge>
           </div>
           <Progress value={progressPercentage} className="h-2" />
@@ -497,7 +499,7 @@ const ParentOnboarding = () => {
             className="border-white/30 text-white hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Previous
+            {t('po.previous')}
           </Button>
           
           {currentStep < totalSteps ? (
@@ -506,7 +508,7 @@ const ParentOnboarding = () => {
               disabled={!canProceed()}
               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
             >
-              Next
+              {t('po.next')}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
@@ -514,7 +516,7 @@ const ParentOnboarding = () => {
               onClick={() => navigate('/family-hub')}
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
             >
-              Get Started
+              {t('po.getStarted')}
               <Star className="h-4 w-4 ml-2" />
             </Button>
           )}
