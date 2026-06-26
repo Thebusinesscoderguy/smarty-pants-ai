@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, ThumbsUp, ThumbsDown, Plus, FileDown, Trash2 } from 'lucide-react';
@@ -22,7 +21,7 @@ interface Incident {
 }
 
 export const BehaviorManagement = () => {
-  const { user, isSchoolAdmin } = useAuth();
+  const { user } = useAuth();
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -40,10 +39,9 @@ export const BehaviorManagement = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  // New category (admin)
+  // New category
   const [catName, setCatName] = useState('');
   const [catValence, setCatValence] = useState<'positive' | 'negative'>('positive');
-  const [catPoints, setCatPoints] = useState('1');
 
   useEffect(() => {
     if (!user) return;
@@ -93,7 +91,7 @@ export const BehaviorManagement = () => {
     if (!cat) return;
     const { error } = await supabase.from('behavior_incidents').insert({
       school_id: schoolId, student_id: logStudent, category_id: cat.id,
-      valence: cat.valence, points: cat.default_points, description: logNote.trim() || null,
+      valence: cat.valence, points: 0, description: logNote.trim() || null,
       incident_date: logDate, recorded_by: user.id,
     });
     if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
@@ -105,7 +103,7 @@ export const BehaviorManagement = () => {
   const addCategory = async () => {
     if (!schoolId || !catName.trim()) return;
     const { data, error } = await supabase.from('behavior_categories').insert({
-      school_id: schoolId, name: catName.trim(), valence: catValence, default_points: parseInt(catPoints) || 0,
+      school_id: schoolId, name: catName.trim(), valence: catValence, default_points: 0,
     }).select().single();
     if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
     setCategories(prev => [...prev, data as Category].sort((a, b) => a.name.localeCompare(b.name)));
@@ -118,7 +116,6 @@ export const BehaviorManagement = () => {
     setIncidents(prev => prev.filter(i => i.id !== id));
   };
 
-  const totalPoints = incidents.reduce((sum, i) => sum + (i.valence === 'positive' ? i.points : -i.points), 0);
   const catName_ = (id: string | null) => categories.find(c => c.id === id)?.name || '—';
 
   const exportPdf = () => {
@@ -129,14 +126,12 @@ export const BehaviorManagement = () => {
     doc.text('Behavior Incident Report', 14, 18);
     doc.setFontSize(11);
     doc.text(`Student: ${student.name}`, 14, 28);
-    doc.text(`Net points: ${totalPoints}`, 14, 35);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 42);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 35);
     autoTable(doc, {
-      startY: 48,
-      head: [['Date', 'Type', 'Category', 'Points', 'Note']],
+      startY: 42,
+      head: [['Date', 'Type', 'Category', 'Note']],
       body: incidents.map(i => [
-        i.incident_date, i.valence, catName_(i.category_id),
-        (i.valence === 'positive' ? '+' : '-') + i.points, i.description || '',
+        i.incident_date, i.valence, catName_(i.category_id), i.description || '',
       ]),
     });
     doc.save(`behavior-${student.name.replace(/\s+/g, '_')}.pdf`);
@@ -159,7 +154,7 @@ export const BehaviorManagement = () => {
         <TabsList>
           <TabsTrigger value="log">Quick Log</TabsTrigger>
           <TabsTrigger value="profile">Student Profile</TabsTrigger>
-          {isSchoolAdmin && <TabsTrigger value="categories">Categories</TabsTrigger>}
+          <TabsTrigger value="categories">Categories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="log" className="mt-4">
@@ -200,7 +195,7 @@ export const BehaviorManagement = () => {
                 <Plus className="h-4 w-4 mr-2" />Log Incident
               </Button>
               {!categories.length && (
-                <p className="text-xs text-muted-foreground">No categories exist yet. {isSchoolAdmin ? 'Add some in the Categories tab.' : 'Ask an admin to create behavior categories.'}</p>
+                <p className="text-xs text-muted-foreground">No categories exist yet. Add some in the Categories tab.</p>
               )}
             </CardContent>
           </Card>
@@ -232,9 +227,8 @@ export const BehaviorManagement = () => {
 
           {profileStudent && (
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader>
                 <CardTitle className="text-base">History</CardTitle>
-                <Badge variant={totalPoints >= 0 ? 'default' : 'destructive'}>Net points: {totalPoints}</Badge>
               </CardHeader>
               <CardContent>
                 {incidents.length === 0 ? (
@@ -249,7 +243,6 @@ export const BehaviorManagement = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">{catName_(i.category_id)}</span>
-                            <Badge variant="outline" className="text-[10px]">{i.valence === 'positive' ? '+' : '-'}{i.points}</Badge>
                             <span className="text-xs text-muted-foreground">{i.incident_date}</span>
                           </div>
                           {i.description && <p className="text-sm text-muted-foreground mt-0.5">{i.description}</p>}
@@ -266,37 +259,33 @@ export const BehaviorManagement = () => {
           )}
         </TabsContent>
 
-        {isSchoolAdmin && (
-          <TabsContent value="categories" className="mt-4 space-y-4">
-            <Card>
-              <CardHeader><CardTitle className="text-base">Add category</CardTitle></CardHeader>
-              <CardContent className="flex flex-wrap items-end gap-3">
-                <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={catName} onChange={e => setCatName(e.target.value)} placeholder="e.g. Helped a peer" /></div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Type</Label>
-                  <Select value={catValence} onValueChange={(v) => setCatValence(v as 'positive' | 'negative')}>
-                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="positive">Positive</SelectItem>
-                      <SelectItem value="negative">Negative</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div><Label className="text-xs text-muted-foreground">Points</Label><Input type="number" min="0" className="w-24" value={catPoints} onChange={e => setCatPoints(e.target.value)} /></div>
-                <Button onClick={addCategory} disabled={!catName.trim()}><Plus className="h-4 w-4 mr-2" />Add</Button>
-              </CardContent>
-            </Card>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {categories.map(c => (
-                <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-border">
-                  {c.valence === 'positive' ? <ThumbsUp className="h-4 w-4 text-green-500" /> : <ThumbsDown className="h-4 w-4 text-destructive" />}
-                  <span className="text-sm font-medium">{c.name}</span>
-                  <Badge variant="outline" className="text-[10px] ml-auto">{c.valence === 'positive' ? '+' : '-'}{c.default_points}</Badge>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        )}
+        <TabsContent value="categories" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Add category</CardTitle></CardHeader>
+            <CardContent className="flex flex-wrap items-end gap-3">
+              <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={catName} onChange={e => setCatName(e.target.value)} placeholder="e.g. Helped a peer" /></div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Type</Label>
+                <Select value={catValence} onValueChange={(v) => setCatValence(v as 'positive' | 'negative')}>
+                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="positive">Positive</SelectItem>
+                    <SelectItem value="negative">Negative</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={addCategory} disabled={!catName.trim()}><Plus className="h-4 w-4 mr-2" />Add</Button>
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {categories.map(c => (
+              <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-border">
+                {c.valence === 'positive' ? <ThumbsUp className="h-4 w-4 text-green-500" /> : <ThumbsDown className="h-4 w-4 text-destructive" />}
+                <span className="text-sm font-medium">{c.name}</span>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
