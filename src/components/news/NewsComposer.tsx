@@ -41,7 +41,6 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
   const [linkTitle, setLinkTitle] = useState('');
   const [audience, setAudience] = useState<Audience>('all');
   const [sectionId, setSectionId] = useState<string>('');
-  const [expiresAt, setExpiresAt] = useState('');
   const [sections, setSections] = useState<SectionOption[]>([]);
   const [showImage, setShowImage] = useState(false);
   const [showLink, setShowLink] = useState(false);
@@ -71,7 +70,6 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
       link_title: linkTitle.trim() || undefined,
       audience,
       section_id: audience === 'class' ? sectionId : null,
-      expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
     });
     if (success) {
       setTitle('');
@@ -81,7 +79,6 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
       setLinkTitle('');
       setAudience('all');
       setSectionId('');
-      setExpiresAt('');
       setShowImage(false);
       setShowLink(false);
     }
@@ -148,15 +145,6 @@ export const NewsComposer = ({ schoolId, teacherId, onPost }: NewsComposerProps)
               </Select>
             </div>
           )}
-          <div>
-            <Label htmlFor="news-expiry" className="text-xs text-muted-foreground">Expires (optional)</Label>
-            <Input
-              id="news-expiry"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={e => setExpiresAt(e.target.value)}
-            />
-          </div>
         </div>
 
         {showImage && (
