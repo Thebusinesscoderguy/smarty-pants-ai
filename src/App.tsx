@@ -93,8 +93,8 @@ function App() {
                       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
                       <Route path="/modules" element={<ProtectedRoute><LearningModule /></ProtectedRoute>} />
                       <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
-                      {/* SECURITY: students must not reach the monitoring dashboard. */}
-                      <Route path="/monitoring" element={<ProtectedRoute allowedRoles={['parent', 'teacher', 'admin']}><Monitoring /></ProtectedRoute>} />
+                      {/* SECURITY: monitoring is a staff-only analytics surface — not for students OR parents. */}
+                      <Route path="/monitoring" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><Monitoring /></ProtectedRoute>} />
                       <Route path="/auth" element={<Auth />} />
 
                       <Route path="/features" element={<Features />} />

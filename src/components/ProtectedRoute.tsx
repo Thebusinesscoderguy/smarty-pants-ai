@@ -76,7 +76,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   // exclusively from admin provisioning + invites now (no self-select chooser).
   if (location.pathname === '/dashboard' || location.pathname === '/') {
     if (isSchoolAdmin || isTeacher) return <Navigate to="/school-admin" replace />;
-    if (userRole === 'parent') return <Navigate to="/monitoring" replace />;
+    if (userRole === 'parent') return <Navigate to="/family-hub" replace />;
     // Students fall through to the dashboard content.
   }
 

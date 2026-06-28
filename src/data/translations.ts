@@ -18,6 +18,8 @@ export const translations: TranslationData = {
     'nav.leaderboard': 'Leaderboard',
     'nav.teacherDashboard': 'Teacher Dashboard',
     'nav.schoolAdmin': 'School Admin',
+    'nav.familyHub': 'Family Hub',
+    'nav.reportCards': 'Report Cards',
     
     // Home Page
     'home.badge': 'AI-Powered Education Platform',
@@ -4213,6 +4215,8 @@ export const translations: TranslationData = {
     'nav.bookDemo': 'احجز عرضاً تجريبياً',
     'nav.schoolAdmin': 'لوحة المدرسة',
     'nav.teacherDashboard': 'لوحة المعلم',
+    'nav.familyHub': 'مركز الأسرة',
+    'nav.reportCards': 'بطاقات التقارير',
     'nav.news': 'الأخبار',
     'nav.leaderboard': 'لوحة المتصدرين',
     'auth.signOutSuccess': 'تم تسجيل الخروج بنجاح',

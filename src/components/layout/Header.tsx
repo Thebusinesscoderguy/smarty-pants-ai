@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from 'sonner';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const Header = () => {
   const navigate = useNavigate();
   const { user, signOut, isSchoolAdmin, isTeacher } = useAuth();
+  const { userRole } = useUserRole();
   const { t, language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSchoolStudent, setIsSchoolStudent] = useState(false);
@@ -107,6 +109,34 @@ export const Header = () => {
               <School className="w-4 h-4" />
               {t('nav.teacherDashboard')}
             </Link>
+          )}
+          {userRole === 'parent' && (
+            <>
+              <Link
+                to="/family-hub"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <Home className="w-4 h-4" />
+                {t('nav.familyHub')}
+              </Link>
+              <Link
+                to="/news"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <Newspaper className="w-4 h-4" />
+                {t('nav.news')}
+              </Link>
+              <Link
+                to="/report-cards"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <FileText className="w-4 h-4" />
+                {t('nav.reportCards')}
+              </Link>
+            </>
           )}
           <Link
             to="/inbox"

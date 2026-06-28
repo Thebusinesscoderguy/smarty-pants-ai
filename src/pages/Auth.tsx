@@ -98,7 +98,7 @@ const Auth = () => {
       if (profile?.role) roles.push(profile.role as string);
 
       if (roles.includes('teacher')) navigate('/school-admin');
-      else if (roles.includes('parent')) navigate('/monitoring');
+      else if (roles.includes('parent')) navigate('/family-hub');
       else navigate('/quiz-generator'); // student (default)
     } catch (error) {
       console.error('Error routing after auth:', error);
