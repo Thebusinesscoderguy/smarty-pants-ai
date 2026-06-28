@@ -2,16 +2,29 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
+// Homework grading inbox — MANUAL only. Homework answers are free-text, so per the
+// uniform grading rule they are graded by the teacher, never AI. This surfaces
+// submitted-but-ungraded homework for hand-grading (score + feedback).
 export interface GradingItem {
   id: string;
   assignment_id: string;
   student_id: string;
   student_name: string;
   assignment_title: string;
-  ai_score: number | null;
-  ai_feedback: string | null;
-  ai_confidence: number | null;
+  answer_text: string;
   submitted_at: string | null;
+}
+
+function answerText(responseData: any): string {
+  if (!responseData) return '';
+  if (typeof responseData.text === 'string' && responseData.text.trim()) return responseData.text;
+  // Fallback: older submissions stored an array of {question, studentAnswer}.
+  if (Array.isArray(responseData.responses)) {
+    return responseData.responses
+      .map((r: any, i: number) => `Q${i + 1}: ${r?.studentAnswer ?? ''}`)
+      .join('\n');
+  }
+  return '';
 }
 
 export const useGradingInbox = () => {
@@ -22,13 +35,11 @@ export const useGradingInbox = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    // NOTE: student names are fetched in a separate query (not a PostgREST embed):
-    // homework_submissions.student_id has no FK to profiles, so `profiles:student_id(...)`
-    // raises PGRST200. This mirrors the pattern used in StudentManagement / AtRiskAlerts.
+    // Submitted-but-ungraded homework awaiting manual teacher grading.
     const { data, error: loadError } = await supabase
       .from('homework_submissions')
-      .select('id, assignment_id, student_id, ai_score, ai_feedback, ai_confidence, submitted_at, homework_assignments(title)')
-      .eq('status', 'ai_graded')
+      .select('id, assignment_id, student_id, response_data, submitted_at, homework_assignments(title)')
+      .eq('status', 'submitted')
       .order('submitted_at', { ascending: false });
 
     if (loadError) {
@@ -40,8 +51,7 @@ export const useGradingInbox = () => {
 
     const rows = (data ?? []) as any[];
 
-    // Resolve student names (subject to profiles RLS: teachers see students in their
-    // assigned sections; others fall back to a neutral label).
+    // Resolve student names (subject to profiles RLS).
     const studentIds = [...new Set(rows.map((d) => d.student_id).filter(Boolean))];
     const nameById: Record<string, string> = {};
     if (studentIds.length > 0) {
@@ -60,9 +70,7 @@ export const useGradingInbox = () => {
       student_id: d.student_id,
       student_name: nameById[d.student_id] || 'Student',
       assignment_title: d.homework_assignments?.title || 'Assignment',
-      ai_score: d.ai_score,
-      ai_feedback: d.ai_feedback,
-      ai_confidence: d.ai_confidence,
+      answer_text: answerText(d.response_data),
       submitted_at: d.submitted_at,
     })));
     setLoading(false);
@@ -70,36 +78,20 @@ export const useGradingInbox = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  const approve = useCallback(async (id: string, overrideScore?: number, overrideFeedback?: string) => {
-    const item = items.find((i) => i.id === id);
-    if (!item) return;
+  // Teacher manually awards a score + feedback.
+  const grade = useCallback(async (id: string, score: number, feedback: string) => {
     const { error } = await supabase.from('homework_submissions').update({
-      score: overrideScore ?? item.ai_score,
-      feedback: overrideFeedback ?? item.ai_feedback,
+      score,
+      feedback: feedback || null,
       status: 'graded',
     }).eq('id', id);
     if (error) {
-      toast({ title: 'Failed to approve', description: error.message, variant: 'destructive' });
+      toast({ title: 'Failed to save grade', description: error.message, variant: 'destructive' });
       return;
     }
     setItems((prev) => prev.filter((i) => i.id !== id));
-    toast({ title: 'Approved' });
-  }, [items]);
+    toast({ title: 'Graded' });
+  }, []);
 
-  const bulkApproveHighConfidence = useCallback(async () => {
-    const high = items.filter((i) => (i.ai_confidence ?? 0) >= 0.8);
-    if (!high.length) {
-      toast({ title: 'No high-confidence items to approve' });
-      return;
-    }
-    for (const it of high) {
-      await supabase.from('homework_submissions').update({
-        score: it.ai_score, feedback: it.ai_feedback, status: 'graded',
-      }).eq('id', it.id);
-    }
-    setItems((prev) => prev.filter((i) => (i.ai_confidence ?? 0) < 0.8));
-    toast({ title: `Approved ${high.length} submissions` });
-  }, [items]);
-
-  return { items, loading, error, approve, bulkApproveHighConfidence, refresh: load };
+  return { items, loading, error, grade, refresh: load };
 };

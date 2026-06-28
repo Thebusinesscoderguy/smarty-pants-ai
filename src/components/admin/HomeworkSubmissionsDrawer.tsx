@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Paperclip, CheckCircle2, Sparkles } from 'lucide-react';
+import { Paperclip, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -78,8 +78,8 @@ export const HomeworkSubmissionsDrawer = ({ assignmentId, sectionId, title, open
           student_id: sid,
           student_name: nameById.get(sid) || t('hwsub.studentFallback'),
           submission: sub,
-          draftScore: sub?.score != null ? String(sub.score) : sub?.ai_score != null ? String(sub.ai_score) : '',
-          draftFeedback: sub?.feedback || sub?.ai_feedback || '',
+          draftScore: sub?.score != null ? String(sub.score) : '',
+          draftFeedback: sub?.feedback || '',
         };
       }));
     } finally { setLoading(false); }
@@ -102,18 +102,6 @@ export const HomeworkSubmissionsDrawer = ({ assignmentId, sectionId, title, open
     void load();
   };
 
-  const approveAllAi = async () => {
-    const toApprove = rows.filter(r => r.submission?.status === 'ai_graded');
-    if (!toApprove.length) { toast.info(t('hwsub.noAiGrades')); return; }
-    for (const r of toApprove) {
-      await supabase.from('homework_submissions').update({
-        score: r.submission!.ai_score, feedback: r.submission!.ai_feedback, status: 'graded',
-      }).eq('id', r.submission!.id);
-    }
-    toast.success(`${t('hwsub.approvedPre')} ${toApprove.length} ${t('hwsub.approvedSuffix')}`);
-    void load();
-  };
-
   const downloadAttachment = async (path: string) => {
     const { data, error } = await supabase.storage.from('assignments').createSignedUrl(path, 300);
     if (error || !data?.signedUrl) { toast.error(t('hwsub.couldNotLoadFile')); return; }
@@ -126,11 +114,6 @@ export const HomeworkSubmissionsDrawer = ({ assignmentId, sectionId, title, open
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
-        <div className="mt-4 flex justify-end">
-          <Button size="sm" variant="outline" onClick={approveAllAi}>
-            <Sparkles className="h-4 w-4 mr-1" />{t('hwsub.approveAllAi')}
-          </Button>
-        </div>
         <div className="mt-4 space-y-3">
           {loading && <p className="text-sm text-muted-foreground">{t('hwsub.loading')}</p>}
           {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">{t('hwsub.noStudents')}</p>}
@@ -163,12 +146,6 @@ export const HomeworkSubmissionsDrawer = ({ assignmentId, sectionId, title, open
                             <Paperclip className="h-3 w-3 mr-1" />{p.split('/').pop()}
                           </Button>
                         ))}
-                      </div>
-                    )}
-                    {r.submission.ai_score != null && status !== 'graded' && (
-                      <div className="text-xs text-muted-foreground">
-                        {t('hwsub.aiSuggests')} <strong>{r.submission.ai_score}</strong>
-                        {r.submission.ai_confidence != null && ` (${Math.round(r.submission.ai_confidence * 100)}% ${t('hwsub.confidenceSuffix')})`}
                       </div>
                     )}
                     <div className="flex gap-2 items-end">
