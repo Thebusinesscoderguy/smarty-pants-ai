@@ -18,7 +18,6 @@ import { HomeworkManagement } from '@/components/admin/HomeworkManagement';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { NewsManagement } from '@/components/admin/NewsManagement';
 import { GradingInbox } from '@/components/admin/GradingInbox';
-import { AttendanceManagement } from '@/components/admin/AttendanceManagement';
 import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
 import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
 import { StaffManagement } from '@/components/admin/StaffManagement';
@@ -33,7 +32,7 @@ import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import {
   Users, BarChart3, BookOpen, CreditCard, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
-  MessageCircle, Newspaper, Globe, Sparkles, CalendarCheck, FileSpreadsheet, Shield,
+  MessageCircle, Newspaper, Globe, Sparkles, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
   ClipboardCheck, Target, CalendarDays, Mail,
 } from 'lucide-react';
@@ -85,7 +84,6 @@ const SchoolAdmin = () => {
         icon: BookMarked,
         items: [
           { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
-          { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
           { value: 'assessments', label: 'Assessments', icon: FileCheck },
           { value: 'assignments', label: 'Assignments', icon: ListChecks },
           { value: 'grading', label: 'Grading Inbox', icon: Sparkles },
@@ -176,7 +174,6 @@ const SchoolAdmin = () => {
 
               <div className="mt-2">
                 <TabsContent value="gradebook"><GradeBook /></TabsContent>
-                <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
                 <TabsContent value="assessments"><AssessmentManagement /></TabsContent>
                 <TabsContent value="exam-monitoring"><ExamMonitoring /></TabsContent>
                 <TabsContent value="grading"><GradingInbox /></TabsContent>
@@ -224,7 +221,6 @@ const SchoolAdmin = () => {
       icon: BookMarked,
       items: [
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
-        { value: 'attendance', label: 'Attendance', icon: CalendarCheck },
         { value: 'report-cards', label: 'Report Cards', icon: FileText },
         { value: 'report-card-designer', label: 'Report Card Designer', icon: SettingsIcon },
         { value: 'assignments', label: 'Assignments', icon: ListChecks },
@@ -357,7 +353,6 @@ const SchoolAdmin = () => {
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
-              <TabsContent value="attendance"><AttendanceManagement /></TabsContent>
               <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
               <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
               <TabsContent value="report-card-designer"><ReportCardDesigner /></TabsContent>
