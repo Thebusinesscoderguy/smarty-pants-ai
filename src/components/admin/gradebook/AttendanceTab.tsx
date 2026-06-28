@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
+import { StudentAvatar } from '@/components/admin/StudentAvatar';
 
 interface AttendanceReason {
   id: string;
@@ -20,7 +21,7 @@ interface AttendanceReason {
 interface StudentInfo {
   student_id: string;
   student_name: string;
-  avatar_url: string | null;
+  student_photo_path: string | null;
   section_label: string;
 }
 
@@ -28,9 +29,10 @@ interface AttendanceTabProps {
   subjectId: string;
   students: StudentInfo[];
   schoolId: string;
+  photoUrls: Record<string, string>;
 }
 
-export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabProps) => {
+export const AttendanceTab = ({ subjectId, students, schoolId, photoUrls }: AttendanceTabProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   // Attendance is always marked for today; the date is fixed (no picker).
@@ -156,13 +158,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
                     <TableRow key={s.student_id}>
                       <TableCell className="font-medium text-foreground">
                         <div className="flex items-center gap-2">
-                          {s.avatar_url ? (
-                            <img src={s.avatar_url} alt={s.student_name} className="h-7 w-7 rounded-full object-cover" />
-                          ) : (
-                            <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                              {s.student_name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                          <StudentAvatar name={s.student_name} photoUrl={photoUrls[s.student_id]} />
                           {s.student_name}
                         </div>
                       </TableCell>

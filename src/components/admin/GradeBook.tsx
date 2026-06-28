@@ -14,12 +14,14 @@ import { AttendanceTab } from './gradebook/AttendanceTab';
 import { RubricTab } from './gradebook/RubricTab';
 import { SemesterMarksTab } from './gradebook/SemesterMarksTab';
 import { SemesterSummaryTab } from './gradebook/SemesterSummaryTab';
+import { StudentAvatar } from '@/components/admin/StudentAvatar';
+import { useStudentPhotos } from '@/hooks/useStudentPhotos';
 import type { SchoolSubject } from './gradebook/types';
 
 interface StudentInfo {
   student_id: string;
   student_name: string;
-  avatar_url: string | null;
+  student_photo_path: string | null;
   section_label: string;
 }
 
@@ -32,6 +34,10 @@ export const GradeBook = () => {
   const [activeTab, setActiveTab] = useState('daily');
   const { user, isSchoolAdmin, isTeacher, teacherInfo } = useAuth();
   const { t } = useLanguage();
+
+  // Staff-only signed URLs for private student photos, resolved once and shared
+  // across every roster tab below.
+  const photoUrls = useStudentPhotos(students);
 
   // Teacher filtering state
   const [teacherSections, setTeacherSections] = useState<string[]>([]);
@@ -124,7 +130,7 @@ export const GradeBook = () => {
       }
 
       const [profRes, dailyRes] = await Promise.all([
-        supabase.from('profiles').select('id, display_name, avatar_url').in('id', studentIds),
+        supabase.from('profiles').select('id, display_name, student_photo_path').in('id', studentIds),
         supabase.from('student_daily_grades').select('*').eq('subject_id', selectedSubject).eq('grade_date', selectedDate).in('student_id', studentIds),
       ]);
 
@@ -142,7 +148,7 @@ export const GradeBook = () => {
       const studentList: StudentInfo[] = (profRes.data || []).map(p => ({
         student_id: p.id,
         student_name: p.display_name || 'Unknown',
-        avatar_url: p.avatar_url,
+        student_photo_path: (p as any).student_photo_path ?? null,
         section_label: studentSectionMap[p.id] || t('gradebook.unassigned'),
       }));
 
@@ -249,14 +255,14 @@ export const GradeBook = () => {
                   <Card className="bg-card border-border"><CardContent className="p-8 text-center text-muted-foreground">{t('gradebook.noStudents')}</CardContent></Card>
                 ) : (
                   Object.entries(sectionGroups).sort(([a], [b]) => a.localeCompare(b)).map(([sectionLabel, sectionStudents]) => (
-                    <DailySectionTable key={sectionLabel} sectionLabel={sectionLabel} students={sectionStudents} editingGrades={editingGrades} setEditingGrades={setEditingGrades} />
+                    <DailySectionTable key={sectionLabel} sectionLabel={sectionLabel} students={sectionStudents} editingGrades={editingGrades} setEditingGrades={setEditingGrades} photoUrls={photoUrls} />
                   ))
                 )}
               </TabsContent>
 
               {/* Attendance */}
               <TabsContent value="attendance" className="mt-4">
-                <AttendanceTab subjectId={selectedSubject} students={students} schoolId={schoolId} />
+                <AttendanceTab subjectId={selectedSubject} students={students} schoolId={schoolId} photoUrls={photoUrls} />
               </TabsContent>
 
               {/* Rubric */}
@@ -266,12 +272,12 @@ export const GradeBook = () => {
 
               {/* Semester Marks */}
               <TabsContent value="semester" className="mt-4">
-                <SemesterMarksTab subjectId={selectedSubject} students={students} schoolId={schoolId} />
+                <SemesterMarksTab subjectId={selectedSubject} students={students} schoolId={schoolId} photoUrls={photoUrls} />
               </TabsContent>
 
               {/* Summary */}
               <TabsContent value="summary" className="mt-4">
-                <SemesterSummaryTab subjectId={selectedSubject} subjectName={sub.name} students={students} schoolId={schoolId} />
+                <SemesterSummaryTab subjectId={selectedSubject} subjectName={sub.name} students={students} schoolId={schoolId} photoUrls={photoUrls} />
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -282,11 +288,12 @@ export const GradeBook = () => {
 };
 
 // Daily section accordion
-const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGrades }: {
+const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGrades, photoUrls }: {
   sectionLabel: string;
   students: StudentInfo[];
   editingGrades: Record<string, { classwork: string; homework: string }>;
   setEditingGrades: React.Dispatch<React.SetStateAction<Record<string, { classwork: string; homework: string }>>>;
+  photoUrls: Record<string, string>;
 }) => {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
@@ -315,13 +322,7 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
                 <TableRow key={s.student_id}>
                   <TableCell className="font-medium text-foreground">
                     <div className="flex items-center gap-2">
-                      {s.avatar_url ? (
-                        <img src={s.avatar_url} alt={s.student_name} className="h-7 w-7 rounded-full object-cover" />
-                      ) : (
-                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                          {s.student_name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <StudentAvatar name={s.student_name} photoUrl={photoUrls[s.student_id]} />
                       {s.student_name}
                     </div>
                   </TableCell>

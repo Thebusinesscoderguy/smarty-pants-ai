@@ -2143,6 +2143,7 @@ export type Database = {
           preferred_language: string | null
           referral_code: string | null
           role: Database["public"]["Enums"]["user_role"]
+          student_photo_path: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2157,6 +2158,7 @@ export type Database = {
           preferred_language?: string | null
           referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          student_photo_path?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2171,6 +2173,7 @@ export type Database = {
           preferred_language?: string | null
           referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          student_photo_path?: string | null
           updated_at?: string | null
         }
         Relationships: []

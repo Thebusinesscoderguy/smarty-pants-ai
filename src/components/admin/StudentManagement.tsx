@@ -7,16 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserPlus, Loader2, ChevronRight, GraduationCap, Users, Camera, KeyRound, Copy, X } from 'lucide-react';
 import { BulkStudentImport } from '@/components/admin/BulkStudentImport';
+import { StudentAvatar } from '@/components/admin/StudentAvatar';
+import { useStudentPhotos } from '@/hooks/useStudentPhotos';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+const PHOTO_BUCKET = 'student-photos';
+
 interface SectionWithStudents {
   id: string;
   grade_level: string;
   section_name: string;
-  students: { id: string; student_id: string; display_name: string; avatar_url: string | null }[];
+  students: { id: string; student_id: string; display_name: string; student_photo_path: string | null }[];
 }
 
 interface CreatedCredential {
@@ -39,8 +43,12 @@ export const StudentManagement = () => {
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [lastCreated, setLastCreated] = useState<CreatedCredential | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const { user } = useAuth();
   const { t } = useLanguage();
+
+  // Staff-only signed URLs for every loaded student's private photo.
+  const photoUrls = useStudentPhotos(sections.flatMap((s) => s.students));
 
   useEffect(() => {
     fetchData();
@@ -82,6 +90,7 @@ export const StudentManagement = () => {
     try {
       setIsLoading(true);
       const schoolData = await getSchoolAccount();
+      setSchoolId(schoolData.id);
 
       const { data: sectionData } = await supabase
         .from('school_sections')
@@ -97,14 +106,14 @@ export const StudentManagement = () => {
           .in('section_id', sectionData.map((s) => s.id));
 
         const studentIds = [...new Set((assignments || []).map((a) => a.student_id))];
-        const profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
+        const profileMap: Record<string, { name: string; student_photo_path: string | null }> = {};
         if (studentIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
-            .select('id, display_name, avatar_url')
+            .select('id, display_name, student_photo_path')
             .in('id', studentIds);
           (profiles || []).forEach((p) => {
-            profileMap[p.id] = { name: p.display_name || 'Unknown', avatar_url: (p as any).avatar_url || null };
+            profileMap[p.id] = { name: p.display_name || 'Unknown', student_photo_path: (p as any).student_photo_path || null };
           });
         }
 
@@ -118,7 +127,7 @@ export const StudentManagement = () => {
               id: a.id,
               student_id: a.student_id,
               display_name: profileMap[a.student_id]?.name || 'Unknown',
-              avatar_url: profileMap[a.student_id]?.avatar_url || null,
+              student_photo_path: profileMap[a.student_id]?.student_photo_path || null,
             })),
         }));
         setSections(enriched);
@@ -189,29 +198,53 @@ export const StudentManagement = () => {
     toast({ title: 'Copied', description: 'Credentials copied to clipboard.' });
   };
 
-  const handleAvatarUpload = async (studentId: string, file: File) => {
+  // Upload/replace a student photo into the PRIVATE bucket. Path is foldered by
+  // school_id so storage RLS can enforce staff-only, same-school access. We store
+  // only the path on the profile (never a public URL). Replaces the legacy public
+  // avatar upload — admin-uploaded faces no longer touch the public student-avatars
+  // bucket or `avatar_url`.
+  const handlePhotoUpload = async (studentId: string, oldPath: string | null, file: File) => {
+    if (!schoolId) return;
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${studentId}/avatar.${fileExt}`;
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${schoolId}/${studentId}-${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('student-avatars')
-        .upload(filePath, file, { upsert: true });
+        .from(PHOTO_BUCKET)
+        .upload(path, file, { upsert: false, contentType: file.type });
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from('student-avatars').getPublicUrl(filePath);
-      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: avatarUrl } as any)
+        .update({ student_photo_path: path } as any)
         .eq('id', studentId);
       if (updateError) throw updateError;
 
-      toast({ title: 'Photo Updated', description: 'Student photo has been uploaded successfully.' });
+      // Best-effort cleanup of the previous object (ignore failure).
+      if (oldPath && oldPath !== path) {
+        await supabase.storage.from(PHOTO_BUCKET).remove([oldPath]);
+      }
+
+      toast({ title: t('studentPhoto.updated'), description: t('studentPhoto.updatedDesc') });
       fetchData();
     } catch (error: any) {
-      toast({ title: 'Upload Failed', description: error.message, variant: 'destructive' });
+      toast({ title: t('studentPhoto.uploadFailed'), description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handlePhotoRemove = async (studentId: string, path: string | null) => {
+    if (!path) return;
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ student_photo_path: null } as any)
+        .eq('id', studentId);
+      if (updateError) throw updateError;
+      await supabase.storage.from(PHOTO_BUCKET).remove([path]);
+      toast({ title: t('studentPhoto.removed') });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: t('studentPhoto.uploadFailed'), description: error.message, variant: 'destructive' });
     }
   };
 
@@ -266,27 +299,36 @@ export const StudentManagement = () => {
                           {section.students.map((student) => (
                             <div key={student.id} className="flex items-center gap-3 p-2 rounded-md bg-card border border-border">
                               <div className="relative group">
-                                {student.avatar_url ? (
-                                  <img src={student.avatar_url} alt={student.display_name} className="h-8 w-8 rounded-full object-cover" />
-                                ) : (
-                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
-                                    {student.display_name.charAt(0).toUpperCase()}
-                                  </div>
-                                )}
-                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                                <StudentAvatar
+                                  name={student.display_name}
+                                  photoUrl={photoUrls[student.student_id]}
+                                  className="h-8 w-8 text-sm"
+                                />
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity" title={t('studentPhoto.upload')}>
                                   <Camera className="h-3 w-3 text-white" />
                                   <input
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/png,image/webp"
                                     className="hidden"
                                     onChange={(e) => {
                                       const file = e.target.files?.[0];
-                                      if (file) handleAvatarUpload(student.student_id, file);
+                                      if (file) handlePhotoUpload(student.student_id, student.student_photo_path, file);
                                     }}
                                   />
                                 </label>
                               </div>
                               <span className="text-sm font-medium text-foreground">{student.display_name}</span>
+                              {student.student_photo_path && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ml-auto h-7 px-2 text-muted-foreground hover:text-destructive"
+                                  onClick={() => handlePhotoRemove(student.student_id, student.student_photo_path)}
+                                  title={t('studentPhoto.remove')}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
                             </div>
                           ))}
                         </div>

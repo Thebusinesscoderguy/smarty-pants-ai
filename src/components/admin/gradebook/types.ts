@@ -24,7 +24,7 @@ export interface SemesterMarks {
 export interface StudentGradeData {
   student_id: string;
   student_name: string;
-  avatar_url: string | null;
+  student_photo_path: string | null;
   section_label: string;
   // Daily averages (will be scaled to /10)
   classwork_avg: number;

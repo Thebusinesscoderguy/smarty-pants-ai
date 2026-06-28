@@ -17,7 +17,7 @@ const COMP_LABEL_KEY: Record<string, string> = {
 interface StudentInfo {
   student_id: string;
   student_name: string;
-  avatar_url: string | null;
+  student_photo_path: string | null;
   section_label: string;
 }
 

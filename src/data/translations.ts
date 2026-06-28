@@ -775,7 +775,15 @@ export const translations: TranslationData = {
     'adminStudentManagement.errorEmail': 'Please enter a valid email address',
     'adminStudentManagement.errorFirstName': "Please enter the student's first name",
     'adminStudentManagement.loadingStudents': 'Loading student data...',
-    
+
+    // ===== Student photo (private, staff-only) =====
+    'studentPhoto.upload': 'Upload photo',
+    'studentPhoto.remove': 'Remove photo',
+    'studentPhoto.updated': 'Photo updated',
+    'studentPhoto.updatedDesc': 'The student photo has been saved.',
+    'studentPhoto.removed': 'Photo removed',
+    'studentPhoto.uploadFailed': 'Upload failed',
+
     // Admin Content Assignment
     'adminContentAssignment.title': 'Content Assignment Manager',
     'adminContentAssignment.createAssignment': 'Create Assignment',
@@ -4867,6 +4875,15 @@ export const translations: TranslationData = {
     'adminStudentManagement.subtitle': 'دعوة وإدارة الطلاب في مدرستك',
     'adminStudentManagement.realEmailBadge': 'بريد إلكتروني حقيقي',
     'adminStudentManagement.loadingStudents': 'جاري تحميل الطلاب...',
+
+    // ===== صورة الطالب (خاصة، للموظفين فقط) =====
+    'studentPhoto.upload': 'رفع صورة',
+    'studentPhoto.remove': 'إزالة الصورة',
+    'studentPhoto.updated': 'تم تحديث الصورة',
+    'studentPhoto.updatedDesc': 'تم حفظ صورة الطالب.',
+    'studentPhoto.removed': 'تمت إزالة الصورة',
+    'studentPhoto.uploadFailed': 'فشل الرفع',
+
     'adminStudentManagement.inviteStudent': 'دعوة طالب',
     'adminStudentManagement.emailEnabled': 'البريد مفعل',
     'adminStudentManagement.emailPlaceholder': 'البريد الإلكتروني للطالب',

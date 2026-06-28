@@ -10,11 +10,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { StudentGradeData, SemesterMarks, calculateWeightedTotal, getLetterGrade } from './types';
+import { StudentAvatar } from '@/components/admin/StudentAvatar';
 
 interface StudentInfo {
   student_id: string;
   student_name: string;
-  avatar_url: string | null;
+  student_photo_path: string | null;
   section_label: string;
 }
 
@@ -23,9 +24,10 @@ interface SemesterSummaryTabProps {
   subjectName: string;
   students: StudentInfo[];
   schoolId: string;
+  photoUrls: Record<string, string>;
 }
 
-export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId }: SemesterSummaryTabProps) => {
+export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId, photoUrls }: SemesterSummaryTabProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [semester, setSemester] = useState('S1');
@@ -175,17 +177,18 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId 
         <Card className="bg-card border-border"><CardContent className="p-8 text-center text-muted-foreground">{t('gradebook.noStudents')}</CardContent></Card>
       ) : (
         Object.entries(sections).sort(([a], [b]) => a.localeCompare(b)).map(([sectionLabel, sectionStudents]) => (
-          <SectionSummaryTable key={sectionLabel} sectionLabel={sectionLabel} students={sectionStudents} getGradeBadge={getGradeBadge} />
+          <SectionSummaryTable key={sectionLabel} sectionLabel={sectionLabel} students={sectionStudents} getGradeBadge={getGradeBadge} photoUrls={photoUrls} />
         ))
       )}
     </div>
   );
 };
 
-const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge }: {
+const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge, photoUrls }: {
   sectionLabel: string;
   students: StudentGradeData[];
   getGradeBadge: (g: string) => React.ReactNode;
+  photoUrls: Record<string, string>;
 }) => {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
@@ -225,13 +228,7 @@ const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge }: {
                   <TableRow key={s.student_id}>
                     <TableCell className="font-medium text-foreground">
                       <div className="flex items-center gap-2">
-                        {s.avatar_url ? (
-                          <img src={s.avatar_url} alt={s.student_name} className="h-7 w-7 rounded-full object-cover" />
-                        ) : (
-                          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                            {s.student_name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <StudentAvatar name={s.student_name} photoUrl={photoUrls[s.student_id]} />
                         {s.student_name}
                       </div>
                     </TableCell>
