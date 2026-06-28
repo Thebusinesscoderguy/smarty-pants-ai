@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,7 +33,8 @@ interface AttendanceTabProps {
 export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  // Attendance is always marked for today; the date is fixed (no picker).
+  const today = new Date().toISOString().split('T')[0];
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({}); // studentId -> reason_id
   const [reasonOptions, setReasonOptions] = useState<AttendanceReason[]>([]);
@@ -56,7 +56,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
       .from('student_attendance')
       .select('student_id, is_present, reason_id')
       .eq('subject_id', subjectId)
-      .eq('attendance_date', selectedDate)
+      .eq('attendance_date', today)
       .in('student_id', students.map(s => s.student_id));
 
     const map: Record<string, boolean> = {};
@@ -71,6 +71,13 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
     setIsLoaded(true);
   };
 
+  // Auto-load today's roster on open (and whenever the subject/students change),
+  // surfacing any marks already saved for today instead of a blank slate.
+  useEffect(() => {
+    loadAttendance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjectId, students]);
+
   const saveAttendance = async () => {
     if (!user) return;
     setIsSaving(true);
@@ -79,7 +86,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
         school_id: schoolId,
         student_id: studentId,
         subject_id: subjectId,
-        attendance_date: selectedDate,
+        attendance_date: today,
         is_present: isPresent,
         reason_id: isPresent ? null : (reasons[studentId] || null),
         created_by: user.id,
@@ -90,7 +97,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
         .upsert(upserts, { onConflict: 'student_id,subject_id,attendance_date' });
 
       if (error) throw error;
-      toast({ title: t('gradebook.saved'), description: `${t('gbAttendance.savedDescPrefix')} ${selectedDate}` });
+      toast({ title: t('gradebook.saved'), description: `${t('gbAttendance.savedDescPrefix')} ${today}` });
     } catch (e) {
       console.error(e);
       toast({ title: t('gradebook.error'), description: t('gbAttendance.failedSave'), variant: 'destructive' });
@@ -109,8 +116,6 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <Input type="date" value={selectedDate} onChange={e => { setSelectedDate(e.target.value); setIsLoaded(false); }} className="w-auto" />
-        <Button variant="outline" onClick={loadAttendance}>{t('gbAttendance.load')}</Button>
         <Button onClick={saveAttendance} disabled={isSaving || !isLoaded}>
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
           {t('gbAttendance.save')}
@@ -128,8 +133,8 @@ export const AttendanceTab = ({ subjectId, students, schoolId }: AttendanceTabPr
 
       {!isLoaded ? (
         <Card className="bg-card border-border">
-          <CardContent className="p-8 text-center text-muted-foreground">
-            {t('gbAttendance.selectDateHint')}
+          <CardContent className="p-8 flex justify-center text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" />
           </CardContent>
         </Card>
       ) : (
