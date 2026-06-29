@@ -62,6 +62,12 @@ serve(async (req) => {
     const firstName = String(body.first_name || "").trim();
     const lastName = String(body.last_name || "").trim();
     const childIds: string[] = Array.isArray(body.child_ids) ? body.child_ids.map(String) : [];
+    // Teacher honorific — admin-selected, never inferred. Stored only if it is one
+    // of the recognized values (defense in depth); anything else becomes null.
+    const ALLOWED_TITLES = ["Mr.", "Mrs.", "Ms.", "Dr."];
+    const rawTitle = String(body.title || "").trim();
+    const safeTitle = ALLOWED_TITLES.includes(rawTitle) ? rawTitle : null;
+    const subjectIds: string[] = Array.isArray(body.subject_ids) ? body.subject_ids.map(String) : [];
 
     // Business-rule outcomes return HTTP 200 with { ok:false, code } so the
     // supabase-js client can read them from `data` (non-2xx hides the body in
@@ -104,25 +110,77 @@ serve(async (req) => {
     }
 
     // For teacher invites, ensure a school_teachers row exists so email-match
-    // access works once they sign in (mirrors existing TeacherManagement behavior).
+    // access works once they sign in (mirrors existing TeacherManagement behavior),
+    // and record the admin-selected title + subject(s).
     if (role === "teacher") {
+      // Validate every subject_id belongs to THIS school.
+      let validSubjectIds: string[] = [];
+      if (subjectIds.length > 0) {
+        const { data: validSubs, error: subErr } = await adminClient
+          .from("school_subjects")
+          .select("id")
+          .eq("school_id", schoolId)
+          .in("id", subjectIds);
+        if (subErr) {
+          console.error("[create-invite] subject validation error:", subErr.message);
+          return json({ error: "Could not validate selected subjects" }, 500);
+        }
+        validSubjectIds = (validSubs || []).map((r: { id: string }) => r.id);
+        const invalid = subjectIds.filter((id) => !validSubjectIds.includes(id));
+        if (invalid.length > 0) {
+          return json({ ok: false, error: "One or more selected subjects are not in your school", code: "invalid_subjects" });
+        }
+      }
+
+      // Ensure the school_teachers row and capture its id.
+      let teacherId: string;
       const { data: existingTeacher } = await adminClient
         .from("school_teachers")
         .select("id")
         .eq("school_id", schoolId)
         .eq("email", email)
         .maybeSingle();
-      if (!existingTeacher) {
-        const { error: teacherErr } = await adminClient.from("school_teachers").insert({
-          school_id: schoolId,
-          email,
-          first_name: firstName || null,
-          last_name: lastName || null,
-          is_active: true,
-        });
-        if (teacherErr) {
-          console.error("[create-invite] school_teachers insert error:", teacherErr.message);
+      if (existingTeacher) {
+        teacherId = existingTeacher.id;
+        // Backfill name/title from this (re)invite when provided.
+        const upd: Record<string, unknown> = {};
+        if (firstName) upd.first_name = firstName;
+        if (lastName) upd.last_name = lastName;
+        if (safeTitle !== null) upd.title = safeTitle;
+        if (Object.keys(upd).length > 0) {
+          await adminClient.from("school_teachers").update(upd).eq("id", teacherId);
+        }
+      } else {
+        const { data: insertedTeacher, error: teacherErr } = await adminClient
+          .from("school_teachers")
+          .insert({
+            school_id: schoolId,
+            email,
+            first_name: firstName || null,
+            last_name: lastName || null,
+            title: safeTitle,
+            is_active: true,
+          })
+          .select("id")
+          .single();
+        if (teacherErr || !insertedTeacher) {
+          console.error("[create-invite] school_teachers insert error:", teacherErr?.message);
           return json({ error: "Could not register teacher" }, 500);
+        }
+        teacherId = insertedTeacher.id;
+      }
+
+      // Attach the selected subjects (idempotent — safe on re-invite).
+      if (validSubjectIds.length > 0) {
+        const { error: tsErr } = await adminClient
+          .from("teacher_subjects")
+          .upsert(
+            validSubjectIds.map((sid) => ({ teacher_id: teacherId, subject_id: sid })),
+            { onConflict: "teacher_id,subject_id", ignoreDuplicates: true },
+          );
+        if (tsErr) {
+          // Non-fatal: the invite still proceeds; admin can re-assign subjects later.
+          console.error("[create-invite] teacher_subjects insert error:", tsErr.message);
         }
       }
     }

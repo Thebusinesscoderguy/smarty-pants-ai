@@ -97,9 +97,11 @@ AS $$
   ),
   base AS (
     SELECT COALESCE(
-      CASE WHEN coalesce((SELECT last_name FROM t), '') <> ''
-           THEN trim(coalesce((SELECT title FROM t), '') || ' ' || (SELECT last_name FROM t))
+      -- "[Title] Last" only when BOTH a title and a last name exist
+      CASE WHEN coalesce((SELECT title FROM t), '') <> '' AND coalesce((SELECT last_name FROM t), '') <> ''
+           THEN trim((SELECT title FROM t) || ' ' || (SELECT last_name FROM t))
       END,
+      -- otherwise the fullest name we have (first + last), then email
       NULLIF(trim(coalesce((SELECT first_name FROM t), '') || ' ' || coalesce((SELECT last_name FROM t), '')), ''),
       (SELECT email FROM t)
     ) AS name_part

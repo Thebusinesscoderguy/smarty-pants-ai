@@ -3274,6 +3274,7 @@ export type Database = {
           is_active: boolean
           last_name: string | null
           school_id: string
+          title: string | null
         }
         Insert: {
           created_at?: string
@@ -3283,6 +3284,7 @@ export type Database = {
           is_active?: boolean
           last_name?: string | null
           school_id: string
+          title?: string | null
         }
         Update: {
           created_at?: string
@@ -3292,6 +3294,7 @@ export type Database = {
           is_active?: boolean
           last_name?: string | null
           school_id?: string
+          title?: string | null
         }
         Relationships: [
           {
@@ -4156,6 +4159,42 @@ export type Database = {
           },
         ]
       }
+      teacher_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          subject_id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          subject_id: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          subject_id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_subjects_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_subjects_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "school_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test_attempts: {
         Row: {
           answers: Json | null
@@ -4746,6 +4785,21 @@ export type Database = {
           school_id: string
           staff_role: string
         }[]
+      }
+      get_teacher_labels: {
+        Args: { p_ids: string[]; p_and?: string }
+        Returns: {
+          teacher_id: string
+          label: string
+        }[]
+      }
+      format_teacher_label: {
+        Args: { p_teacher_id: string; p_and?: string }
+        Returns: string
+      }
+      join_names: {
+        Args: { p_names: string[]; p_and?: string }
+        Returns: string
       }
       get_user_role: {
         Args: { _user_id: string }

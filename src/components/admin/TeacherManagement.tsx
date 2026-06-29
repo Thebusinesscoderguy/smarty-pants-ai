@@ -7,7 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, UserCog, Mail, BookOpen, FolderTree, Loader2 } from 'lucide-react';
+
+// Admin-selected honorifics. Stored verbatim; never inferred from anything else,
+// so a female teacher is never defaulted to "Mr.".
+const TITLE_OPTIONS = ['Mr.', 'Mrs.', 'Ms.', 'Dr.'];
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface Teacher {
   id: string;
   email: string;
+  title: string | null;
   first_name: string | null;
   last_name: string | null;
   is_active: boolean;
@@ -51,7 +57,7 @@ export const TeacherManagement = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-  const [newTeacher, setNewTeacher] = useState({ email: '', first_name: '', last_name: '' });
+  const [newTeacher, setNewTeacher] = useState<{ email: string; first_name: string; last_name: string; title: string; subject_ids: string[] }>({ email: '', first_name: '', last_name: '', title: '', subject_ids: [] });
   const [selectedAssignments, setSelectedAssignments] = useState<{ subject_id: string; section_id: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
@@ -127,6 +133,8 @@ export const TeacherManagement = () => {
           role: 'teacher',
           first_name: newTeacher.first_name.trim(),
           last_name: newTeacher.last_name.trim(),
+          title: newTeacher.title,
+          subject_ids: newTeacher.subject_ids,
         },
       });
       const res = data as { ok?: boolean; error?: string; code?: string } | null;
@@ -144,7 +152,7 @@ export const TeacherManagement = () => {
         return;
       }
       toast({ title: t('teacherMgmt.invitationSent'), description: `${t('teacherMgmt.invitationSentDescPre')} ${newTeacher.email}.` });
-      setNewTeacher({ email: '', first_name: '', last_name: '' });
+      setNewTeacher({ email: '', first_name: '', last_name: '', title: '', subject_ids: [] });
       setIsAddOpen(false);
       fetchAll();
     } catch (e: any) {
@@ -228,7 +236,20 @@ export const TeacherManagement = () => {
                 <Label>{t('teacherMgmt.emailReq')}</Label>
                 <Input type="email" placeholder={t('teacherMgmt.emailPlaceholder')} value={newTeacher.email} onChange={e => setNewTeacher(p => ({ ...p, email: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>{t('teacherMgmt.honorific')}</Label>
+                  <Select value={newTeacher.title} onValueChange={v => setNewTeacher(p => ({ ...p, title: v }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('teacherMgmt.honorificPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TITLE_OPTIONS.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <Label>{t('teacherMgmt.firstName')}</Label>
                   <Input placeholder={t('teacherMgmt.firstNamePlaceholder')} value={newTeacher.first_name} onChange={e => setNewTeacher(p => ({ ...p, first_name: e.target.value }))} />
@@ -237,6 +258,35 @@ export const TeacherManagement = () => {
                   <Label>{t('teacherMgmt.lastName')}</Label>
                   <Input placeholder={t('teacherMgmt.lastNamePlaceholder')} value={newTeacher.last_name} onChange={e => setNewTeacher(p => ({ ...p, last_name: e.target.value }))} />
                 </div>
+              </div>
+              <div>
+                <Label>{t('teacherMgmt.subjectsLabel')}</Label>
+                {subjects.length === 0 ? (
+                  <p className="text-sm text-muted-foreground mt-1">{t('teacherMgmt.noSubjectsYet')}</p>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-2">{t('teacherMgmt.subjectsHint')}</p>
+                    <div className="grid grid-cols-2 gap-1 max-h-40 overflow-y-auto rounded-md border border-border p-2">
+                      {subjects.map(sub => {
+                        const checked = newTeacher.subject_ids.includes(sub.id);
+                        return (
+                          <label key={sub.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-2 py-1">
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => setNewTeacher(p => ({
+                                ...p,
+                                subject_ids: checked
+                                  ? p.subject_ids.filter(id => id !== sub.id)
+                                  : [...p.subject_ids, sub.id],
+                              }))}
+                            />
+                            <span className="text-sm text-foreground">{sub.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
               <Button onClick={addTeacher} disabled={isSaving} className="w-full">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
@@ -270,7 +320,7 @@ export const TeacherManagement = () => {
               {teachers.map(teacher => (
                 <TableRow key={teacher.id}>
                   <TableCell className="font-medium text-foreground">
-                    {[teacher.first_name, teacher.last_name].filter(Boolean).join(' ') || '—'}
+                    {[teacher.title, teacher.first_name, teacher.last_name].filter(Boolean).join(' ') || '—'}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{teacher.email}</TableCell>
                   <TableCell>

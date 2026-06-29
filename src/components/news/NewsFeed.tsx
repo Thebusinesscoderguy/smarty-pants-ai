@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Pin, ExternalLink, Image as ImageIcon, Clock, Newspaper, Languages } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translationService } from '@/services/translationService';
+import { supabase } from '@/integrations/supabase/client';
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -22,10 +23,14 @@ const formatDate = (dateStr: string) => {
   return d.toLocaleDateString();
 };
 
-const NewsCard = ({ post, language }: { post: NewsPost; language: string }) => {
-  const teacherName = post.teacher
-    ? `${post.teacher.first_name || ''} ${post.teacher.last_name || ''}`.trim() || post.teacher.email
-    : 'Teacher';
+const NewsCard = ({ post, language, label }: { post: NewsPost; language: string; label?: string }) => {
+  // Prefer the canonical "[Title] [Last] — [Subjects]" label (resolved via the
+  // get_teacher_labels RPC, which parents/students can read); fall back to the
+  // embedded name (admin/teacher view) and finally a generic 'Teacher'.
+  const teacherName = label
+    || (post.teacher
+      ? `${post.teacher.first_name || ''} ${post.teacher.last_name || ''}`.trim() || post.teacher.email
+      : 'Teacher');
   const initials = teacherName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   // Render the announcement in the viewer's language (cached server-side by post id).
@@ -135,6 +140,27 @@ export const NewsFeed = ({ schoolId }: NewsFeedProps) => {
   const { language } = useLanguage();
   const isRTL = language === 'ar';
 
+  // Resolve each author's canonical "[Title] [Last] — [Subjects]" label. Uses the
+  // SECURITY DEFINER RPC so it works for parents/students who cannot read
+  // school_teachers directly; the connector follows the viewer's language.
+  const [teacherLabels, setTeacherLabels] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const ids = [...new Set(posts.map(p => p.teacher_id).filter(Boolean))];
+    if (ids.length === 0) { setTeacherLabels({}); return; }
+    let active = true;
+    supabase
+      .rpc('get_teacher_labels', { p_ids: ids, p_and: language === 'ar' ? 'و' : 'and' })
+      .then(({ data }) => {
+        if (!active || !data) return;
+        const map: Record<string, string> = {};
+        for (const row of data as { teacher_id: string; label: string }[]) {
+          if (row.label) map[row.teacher_id] = row.label;
+        }
+        setTeacherLabels(map);
+      });
+    return () => { active = false; };
+  }, [posts, language]);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -176,7 +202,7 @@ export const NewsFeed = ({ schoolId }: NewsFeedProps) => {
   return (
     <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
       {posts.map(post => (
-        <NewsCard key={post.id} post={post} language={language} />
+        <NewsCard key={post.id} post={post} language={language} label={teacherLabels[post.teacher_id]} />
       ))}
     </div>
   );
