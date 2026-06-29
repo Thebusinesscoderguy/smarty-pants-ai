@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Users, FileText, ClipboardList, Receipt, Newspaper, ChevronRight,
+  Users, FileText, ClipboardList, Newspaper, ChevronRight,
   Loader2, GraduationCap, Sparkles, Shield, MessageCircle,
   LayoutDashboard, CalendarCheck, CalendarDays,
 } from 'lucide-react';
@@ -22,8 +22,6 @@ import { RecentGradesCard } from '@/components/family/RecentGradesCard';
 import { EmptyHint } from '@/components/family/EmptyHint';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const FH_STATUS_KEY: Record<string, string> = { issued: 'inv.statusIssued', paid: 'inv.statusPaid', overdue: 'inv.statusOverdue', void: 'inv.statusVoid', draft: 'inv.statusDraft' };
 
 /**
  * Family Hub — the parent's dashboard.
@@ -40,7 +38,7 @@ const FH_STATUS_KEY: Record<string, string> = { issued: 'inv.statusIssued', paid
 
 type FhTab =
   | 'overview' | 'grades' | 'attendance' | 'behavior'
-  | 'report-cards' | 'invoices' | 'news' | 'messages' | 'calendar';
+  | 'report-cards' | 'news' | 'messages' | 'calendar';
 
 interface Child {
   id: string;
@@ -112,7 +110,6 @@ const FamilyHub = () => {
     { value: 'attendance', label: isRTL ? 'الحضور' : 'Attendance', icon: CalendarCheck },
     { value: 'behavior', label: t('nav.behavior'), icon: Shield },
     { value: 'report-cards', label: t('nav.reportCards'), icon: FileText },
-    { value: 'invoices', label: isRTL ? 'الفواتير' : 'Invoices', icon: Receipt },
     { value: 'news', label: t('nav.news'), icon: Newspaper },
     { value: 'messages', label: t('nav.messages'), icon: MessageCircle },
     { value: 'calendar', label: t('fh.schoolCalendar'), icon: CalendarDays },
@@ -244,10 +241,6 @@ const FamilyHub = () => {
                     <TabsContent value="report-cards">
                       <ReportCardsCard studentId={selectedChild.id} onOpen={() => navigate('/report-cards')} />
                     </TabsContent>
-
-                    <TabsContent value="invoices">
-                      <InvoicesCard studentId={selectedChild.id} onOpen={() => navigate('/invoices')} />
-                    </TabsContent>
                   </>
                 )}
 
@@ -332,103 +325,6 @@ const ReportCardsCard = ({ studentId, onOpen }: { studentId: string; onOpen: () 
                   )}
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-/* Invoices                                                            */
-/* ------------------------------------------------------------------ */
-
-interface InvoiceRow {
-  id: string;
-  title: string;
-  amount_cents: number;
-  currency: string;
-  status: string;
-  due_date: string | null;
-}
-
-const statusColor: Record<string, string> = {
-  issued: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
-  paid: 'bg-green-500/15 text-green-600 border-green-500/30',
-  overdue: 'bg-red-500/15 text-red-600 border-red-500/30',
-  void: 'bg-muted text-muted-foreground',
-  draft: 'bg-muted text-muted-foreground',
-};
-
-const formatMoney = (cents: number, cur = 'usd') =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: (cur || 'usd').toUpperCase() }).format(cents / 100);
-
-const InvoicesCard = ({ studentId, onOpen }: { studentId: string; onOpen: () => void }) => {
-  const { t } = useLanguage();
-  const [rows, setRows] = useState<InvoiceRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from('school_invoices')
-        .select('id, title, amount_cents, currency, status, due_date')
-        .eq('student_id', studentId)
-        .order('issued_at', { ascending: false })
-        .limit(5);
-      if (!cancelled) { setRows((data as InvoiceRow[]) || []); setLoading(false); }
-    })();
-    return () => { cancelled = true; };
-  }, [studentId]);
-
-  const outstanding = rows.filter((r) => ['issued', 'overdue'].includes(r.status));
-
-  return (
-    <Card className="bg-card border-border">
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Receipt className="h-4 w-4 text-primary" /> {t('fh.invoices')}
-        </CardTitle>
-        {rows.length > 0 && (
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onOpen}>
-            {t('fh.open')} <ChevronRight className="h-3 w-3 ml-0.5" />
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <p className="text-sm text-muted-foreground">{t('fh.loadingShort')}</p>
-        ) : rows.length === 0 ? (
-          <EmptyHint icon={Receipt} text={t('fh.noInvoices')} />
-        ) : (
-          <div className="space-y-2">
-            {outstanding.length > 0 && (
-              <div className="text-xs text-muted-foreground">
-                {outstanding.length} {t('fh.outstandingWord')} ·{' '}
-                <span className="font-medium text-foreground">
-                  {formatMoney(outstanding.reduce((s, r) => s + r.amount_cents, 0), rows[0]?.currency)}
-                </span>{' '}
-                {t('fh.dueWord')}
-              </div>
-            )}
-            {rows.map((r) => (
-              <button
-                key={r.id}
-                onClick={onOpen}
-                className="w-full flex items-center justify-between rounded-lg border border-border p-3 text-left hover:bg-muted transition-colors"
-              >
-                <div className="min-w-0">
-                  <div className="font-medium text-sm truncate">{r.title}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatMoney(r.amount_cents, r.currency)}
-                    {r.due_date ? ` · ${t('fh.dueWord')} ${new Date(r.due_date).toLocaleDateString()}` : ''}
-                  </div>
-                </div>
-                <Badge variant="outline" className={statusColor[r.status] || ''}>{FH_STATUS_KEY[r.status] ? t(FH_STATUS_KEY[r.status]) : r.status}</Badge>
               </button>
             ))}
           </div>
