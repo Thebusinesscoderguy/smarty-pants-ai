@@ -27,14 +27,12 @@ import { InvoiceManagement } from '@/components/admin/InvoiceManagement';
 import { BehaviorManagement } from '@/components/admin/BehaviorManagement';
 import { ClassroomObservation } from '@/components/admin/ClassroomObservation';
 import { GrowthGoals } from '@/components/admin/GrowthGoals';
-import { SchoolCalendarManagement } from '@/components/admin/SchoolCalendarManagement';
-import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import {
   Users, BarChart3, BookOpen, CreditCard, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, FileSpreadsheet, Shield,
   LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
-  ClipboardCheck, Target, CalendarDays, Mail,
+  ClipboardCheck, Target, Mail,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SectionManagement } from '@/components/admin/SectionManagement';
@@ -57,7 +55,7 @@ type TabValue =
   // Communication
   | 'messages' | 'news'
   // Staff development & conduct
-  | 'behavior' | 'observations' | 'growth-goals' | 'calendar'
+  | 'behavior' | 'observations' | 'growth-goals'
   // Settings
   | 'billing' | 'fees' | 'import-export' | 'staff';
 
@@ -108,7 +106,6 @@ const SchoolAdmin = () => {
         items: [
           { value: 'messages', label: 'Messages', icon: MessageCircle },
           { value: 'news', label: 'News', icon: Newspaper },
-          { value: 'calendar', label: 'Calendar', icon: CalendarDays },
         ],
       },
     ];
@@ -183,7 +180,6 @@ const SchoolAdmin = () => {
                 <TabsContent value="news"><NewsManagement /></TabsContent>
                 <TabsContent value="behavior"><BehaviorManagement /></TabsContent>
                 <TabsContent value="observations"><ClassroomObservation /></TabsContent>
-                <TabsContent value="calendar"><SchoolCalendarView /></TabsContent>
                 <TabsContent value="growth-goals"><GrowthGoals /></TabsContent>
               </div>
             </Tabs>
@@ -239,7 +235,6 @@ const SchoolAdmin = () => {
       items: [
         { value: 'messages', label: 'Messages', icon: MessageCircle },
         { value: 'news', label: 'News Feed', icon: Newspaper },
-        { value: 'calendar', label: 'School Calendar', icon: CalendarDays },
       ],
     },
     {
@@ -362,7 +357,6 @@ const SchoolAdmin = () => {
               <TabsContent value="behavior"><BehaviorManagement /></TabsContent>
               <TabsContent value="observations"><ClassroomObservation /></TabsContent>
               <TabsContent value="growth-goals"><GrowthGoals /></TabsContent>
-              <TabsContent value="calendar"><SchoolCalendarManagement /></TabsContent>
             </div>
           </Tabs>
         </div>

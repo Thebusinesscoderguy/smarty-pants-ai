@@ -9,13 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users, FileText, ClipboardList, Newspaper, ChevronRight,
   Loader2, GraduationCap, Sparkles, Shield, MessageCircle,
-  LayoutDashboard, CalendarCheck, CalendarDays,
+  LayoutDashboard, CalendarCheck,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { NewsFeed } from '@/components/news/NewsFeed';
-import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { BehaviorCard } from '@/components/family/BehaviorCard';
 import { RecentGradesCard } from '@/components/family/RecentGradesCard';
@@ -39,7 +38,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 type FhTab =
   | 'overview' | 'grades' | 'attendance' | 'behavior'
-  | 'report-cards' | 'news' | 'messages' | 'calendar';
+  | 'report-cards' | 'news' | 'messages';
 
 interface Child {
   id: string;
@@ -113,7 +112,6 @@ const FamilyHub = () => {
     { value: 'report-cards', label: t('nav.reportCards'), icon: FileText },
     { value: 'news', label: t('nav.news'), icon: Newspaper },
     { value: 'messages', label: t('nav.messages'), icon: MessageCircle },
-    { value: 'calendar', label: t('fh.schoolCalendar'), icon: CalendarDays },
   ];
 
   return (
@@ -247,7 +245,6 @@ const FamilyHub = () => {
 
                 <TabsContent value="news"><NewsFeed /></TabsContent>
                 <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
-                <TabsContent value="calendar"><SchoolCalendarView /></TabsContent>
               </div>
             </Tabs>
           </div>

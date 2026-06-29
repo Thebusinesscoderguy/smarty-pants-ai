@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   LayoutDashboard, ClipboardCheck, ListChecks, ClipboardList,
-  CalendarCheck, Newspaper, CalendarDays, FileText,
+  CalendarCheck, Newspaper, FileText,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { NewsFeed } from '@/components/news/NewsFeed';
-import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
 import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { AssignedExamsList } from '@/components/exam/AssignedExamsList';
 import { AssignmentList } from '@/components/student/AssignmentList';
@@ -29,14 +28,14 @@ import { ReportCardsCard } from '@/components/family/ReportCardsCard';
  * picker — a student views only their own data (studentId = user.id).
  *
  * Every tab is RLS-scoped to the signed-in student (student_id / user_id =
- * auth.uid()); News and Calendar are the same school-scoped surfaces other roles
- * see. Self-study Study Tools (/quiz-generator) is a separate mode, reached from
+ * auth.uid()); News is the same school-scoped surface other roles see.
+ * Self-study Study Tools (/quiz-generator) is a separate mode, reached from
  * its own nav link — not part of this dashboard.
  */
 
 type StudentTab =
   | 'overview' | 'assessments' | 'assignments' | 'grades'
-  | 'attendance' | 'news' | 'calendar' | 'report-cards';
+  | 'attendance' | 'news' | 'report-cards';
 
 export const StudentDashboard = () => {
   const { user } = useAuth();
@@ -54,7 +53,6 @@ export const StudentDashboard = () => {
     { value: 'grades', label: t('nav.grades'), icon: ClipboardList },
     { value: 'attendance', label: isRTL ? 'الحضور' : 'Attendance', icon: CalendarCheck },
     { value: 'news', label: t('nav.news'), icon: Newspaper },
-    { value: 'calendar', label: t('fh.schoolCalendar'), icon: CalendarDays },
     { value: 'report-cards', label: t('nav.reportCards'), icon: FileText },
   ];
 
@@ -133,7 +131,6 @@ export const StudentDashboard = () => {
             </TabsContent>
 
             <TabsContent value="news"><NewsFeed /></TabsContent>
-            <TabsContent value="calendar"><SchoolCalendarView /></TabsContent>
 
             <TabsContent value="report-cards">
               {studentId && <ReportCardsCard studentId={studentId} onOpen={() => navigate('/report-cards')} />}
