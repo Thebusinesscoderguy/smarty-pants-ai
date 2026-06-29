@@ -1150,8 +1150,9 @@ export const translations: TranslationData = {
     'childSettings.selectedVoiceDesc': 'Selected voice: {voice} - {description}',
     
     // Student Dashboard
-    'studentDashboard.welcome': 'Welcome back, Student! 🚀',
-    'studentDashboard.subtitle': 'Ready to continue your learning adventure?',
+    'studentDashboard.welcome': 'Your Dashboard',
+    'studentDashboard.subtitle': 'Your assignments, grades, and school news in one place.',
+    'studentDashboard.assignments': 'Assignments',
     'studentDashboard.quizzesCompleted': 'Quizzes Completed',
     'studentDashboard.averageScore': 'Average Score',
     'studentDashboard.dayStreak': 'Day Streak',
@@ -4246,6 +4247,9 @@ export const translations: TranslationData = {
     'sg.final': 'النهائي',
     'sg.literacy': 'القرائية',
     'sg.project': 'المشروع',
+    'studentDashboard.welcome': 'لوحتك',
+    'studentDashboard.subtitle': 'واجباتك ودرجاتك وأخبار المدرسة في مكان واحد.',
+    'studentDashboard.assignments': 'الواجبات',
     'nav.messages': 'الرسائل',
     'nav.behavior': 'السلوك',
     'nav.leaderboard': 'لوحة المتصدرين',
