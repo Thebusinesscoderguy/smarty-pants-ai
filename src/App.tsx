@@ -45,9 +45,6 @@ const MadeByMe = lazy(() => import('./pages/MadeByMe'));
 const Monitoring = lazy(() => import('./pages/Monitoring'));
 const News = lazy(() => import('./pages/News'));
 const Inbox = lazy(() => import('./pages/Inbox'));
-const Messages = lazy(() => import('./pages/Messages'));
-const Behavior = lazy(() => import('./pages/Behavior'));
-const Grades = lazy(() => import('./pages/Grades'));
 const Invoices = lazy(() => import('./pages/Invoices'));
 const ReportCards = lazy(() => import('./pages/ReportCards'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -118,9 +115,6 @@ function App() {
                       <Route path="/quests/made-by-me" element={<ProtectedRoute><MadeByMe /></ProtectedRoute>} />
                       <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
                       <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
-                      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                      <Route path="/behavior" element={<ProtectedRoute allowedRoles={['parent']}><Behavior /></ProtectedRoute>} />
-                      <Route path="/grades" element={<ProtectedRoute allowedRoles={['parent']}><Grades /></ProtectedRoute>} />
                       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
                       {/* Students may view their OWN published report cards; RLS (report_cards
                           "Students view own published report cards") scopes them to themselves. */}

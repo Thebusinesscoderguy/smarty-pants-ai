@@ -111,61 +111,19 @@ export const Header = () => {
             </Link>
           )}
           {userRole === 'parent' && (
-            <>
-              <Link
-                to="/family-hub"
-                onClick={() => mobile && setMobileOpen(false)}
-                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-              >
-                <Home className="w-4 h-4" />
-                {t('nav.familyHub')}
-              </Link>
-              <Link
-                to="/news"
-                onClick={() => mobile && setMobileOpen(false)}
-                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-              >
-                <Newspaper className="w-4 h-4" />
-                {t('nav.news')}
-              </Link>
-              <Link
-                to="/grades"
-                onClick={() => mobile && setMobileOpen(false)}
-                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-              >
-                <ClipboardList className="w-4 h-4" />
-                {t('nav.grades')}
-              </Link>
-              <Link
-                to="/messages"
-                onClick={() => mobile && setMobileOpen(false)}
-                className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-              >
-                <MessageCircle className="w-4 h-4" />
-                {t('nav.messages')}
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Link>
-              <Link
-                to="/report-cards"
-                onClick={() => mobile && setMobileOpen(false)}
-                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-              >
-                <FileText className="w-4 h-4" />
-                {t('nav.reportCards')}
-              </Link>
-              <Link
-                to="/behavior"
-                onClick={() => mobile && setMobileOpen(false)}
-                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-              >
-                <Shield className="w-4 h-4" />
-                {t('nav.behavior')}
-              </Link>
-            </>
+            <Link
+              to="/family-hub"
+              onClick={() => mobile && setMobileOpen(false)}
+              className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+            >
+              <Home className="w-4 h-4" />
+              {t('nav.familyHub')}
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                  {unreadCount}
+                </Badge>
+              )}
+            </Link>
           )}
           {userRole !== 'parent' && (
             <Link

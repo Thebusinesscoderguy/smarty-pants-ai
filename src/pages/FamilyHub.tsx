@@ -1,19 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users, FileText, ClipboardList, Receipt, Newspaper, ChevronRight,
-  Loader2, GraduationCap, Sparkles,
+  Loader2, GraduationCap, Sparkles, Shield, MessageCircle,
+  LayoutDashboard, CalendarCheck, CalendarDays,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard';
 import { NewsFeed } from '@/components/news/NewsFeed';
 import { SchoolCalendarView } from '@/components/calendar/SchoolCalendarView';
+import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { BehaviorCard } from '@/components/family/BehaviorCard';
 import { RecentGradesCard } from '@/components/family/RecentGradesCard';
 import { EmptyHint } from '@/components/family/EmptyHint';
@@ -23,13 +26,21 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const FH_STATUS_KEY: Record<string, string> = { issued: 'inv.statusIssued', paid: 'inv.statusPaid', overdue: 'inv.statusOverdue', void: 'inv.statusVoid', draft: 'inv.statusDraft' };
 
 /**
- * Family Hub — the parent's home base.
+ * Family Hub — the parent's dashboard.
  *
- * Every figure on this page is read live from the database and is strictly
- * scoped (by RLS) to the signed-in parent's own children. There is NO mock or
- * placeholder student data. When a parent has no children linked, or a child
- * has no records yet, we render explicit empty states rather than inventing data.
+ * Mirrors the teacher / school-admin dashboard pattern: a single shell with
+ * grouped tab navigation, where each section (Grades, Behavior, Report Cards,
+ * Invoices, News, Messages, Calendar) is its own focused view rather than one
+ * long bundled scroll. The "Overview" tab is the at-a-glance dashboard.
+ *
+ * Every figure is read live from the database and is strictly scoped (by RLS)
+ * to the signed-in parent's own children. There is NO mock or placeholder
+ * student data — empty states are rendered explicitly.
  */
+
+type FhTab =
+  | 'overview' | 'grades' | 'attendance' | 'behavior'
+  | 'report-cards' | 'invoices' | 'news' | 'messages' | 'calendar';
 
 interface Child {
   id: string;
@@ -42,12 +53,14 @@ const initials = (name: string) =>
 
 const FamilyHub = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const isRTL = language === 'ar';
 
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<FhTab>('overview');
 
   useEffect(() => {
     if (!user) return;
@@ -91,8 +104,22 @@ const FamilyHub = () => {
 
   const selectedChild = children.find((c) => c.id === selectedId) || null;
 
+  // Tab definitions. Per-child tabs reflect the selected child; News / Messages /
+  // Calendar are school-wide (RLS already scopes them to the parent's schools).
+  const tabs: { value: FhTab; label: string; icon: React.ElementType }[] = [
+    { value: 'overview', label: isRTL ? 'نظرة عامة' : 'Overview', icon: LayoutDashboard },
+    { value: 'grades', label: t('nav.grades'), icon: ClipboardList },
+    { value: 'attendance', label: isRTL ? 'الحضور' : 'Attendance', icon: CalendarCheck },
+    { value: 'behavior', label: t('nav.behavior'), icon: Shield },
+    { value: 'report-cards', label: t('nav.reportCards'), icon: FileText },
+    { value: 'invoices', label: isRTL ? 'الفواتير' : 'Invoices', icon: Receipt },
+    { value: 'news', label: t('nav.news'), icon: Newspaper },
+    { value: 'messages', label: t('nav.messages'), icon: MessageCircle },
+    { value: 'calendar', label: t('fh.schoolCalendar'), icon: CalendarDays },
+  ];
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
@@ -141,78 +168,99 @@ const FamilyHub = () => {
               </div>
             )}
 
-            {selectedChild && <ChildOverview key={selectedChild.id} child={selectedChild} onNavigate={navigate} />}
+            {/* Selected child header */}
+            {selectedChild && (
+              <Card className="bg-card border-border">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <Avatar className="h-14 w-14 border-2 border-primary/20">
+                    {selectedChild.avatarUrl && <AvatarImage src={selectedChild.avatarUrl} alt={selectedChild.name} />}
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {initials(selectedChild.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <h2 className="text-xl font-bold truncate">{selectedChild.name}</h2>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <GraduationCap className="h-4 w-4" /> {t('fh.studentOverview')}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Tabbed sections — same dashboard pattern as the teacher / admin view */}
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FhTab)} className="w-full">
+              {/* Tab bar */}
+              <div className="flex items-center gap-2 flex-wrap border-b border-border pb-3 mb-4">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.value;
+                  return (
+                    <Button
+                      key={tab.value}
+                      variant={active ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setActiveTab(tab.value)}
+                      className="whitespace-nowrap"
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {tab.label}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              {/* Hidden TabsList for accessibility / keyboard nav */}
+              <TabsList className="sr-only">
+                {tabs.map((tab) => (
+                  <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+                ))}
+              </TabsList>
+
+              <div className="mt-2">
+                {selectedChild && (
+                  <>
+                    <TabsContent value="overview">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <AttendanceSummaryCard studentId={selectedChild.id} studentName={selectedChild.name} />
+                        <RecentGradesCard studentId={selectedChild.id} />
+                        <BehaviorCard studentId={selectedChild.id} />
+                        <ReportCardsCard studentId={selectedChild.id} onOpen={() => setActiveTab('report-cards')} />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="grades">
+                      <RecentGradesCard studentId={selectedChild.id} />
+                    </TabsContent>
+
+                    <TabsContent value="attendance">
+                      <AttendanceSummaryCard studentId={selectedChild.id} studentName={selectedChild.name} />
+                    </TabsContent>
+
+                    <TabsContent value="behavior">
+                      <BehaviorCard studentId={selectedChild.id} />
+                    </TabsContent>
+
+                    <TabsContent value="report-cards">
+                      <ReportCardsCard studentId={selectedChild.id} onOpen={() => navigate('/report-cards')} />
+                    </TabsContent>
+
+                    <TabsContent value="invoices">
+                      <InvoicesCard studentId={selectedChild.id} onOpen={() => navigate('/invoices')} />
+                    </TabsContent>
+                  </>
+                )}
+
+                <TabsContent value="news"><NewsFeed /></TabsContent>
+                <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
+                <TabsContent value="calendar"><SchoolCalendarView /></TabsContent>
+              </div>
+            </Tabs>
           </div>
         )}
       </main>
 
       <Footer />
-    </div>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-/* Per-child overview                                                  */
-/* ------------------------------------------------------------------ */
-
-const ChildOverview = ({
-  child,
-  onNavigate,
-}: {
-  child: Child;
-  onNavigate: (path: string) => void;
-}) => {
-  const { t } = useLanguage();
-  return (
-    <div className="space-y-6">
-      {/* Child header */}
-      <Card className="bg-card border-border">
-        <CardContent className="p-5 flex items-center gap-4">
-          <Avatar className="h-14 w-14 border-2 border-primary/20">
-            {child.avatarUrl && <AvatarImage src={child.avatarUrl} alt={child.name} />}
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-              {initials(child.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <h2 className="text-xl font-bold truncate">{child.name}</h2>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <GraduationCap className="h-4 w-4" /> {t('fh.studentOverview')}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Attendance (reuses the same component the parent dashboard uses) */}
-        <AttendanceSummaryCard studentId={child.id} studentName={child.name} />
-
-        {/* Recent grades */}
-        <RecentGradesCard studentId={child.id} />
-
-        {/* Report cards */}
-        <ReportCardsCard studentId={child.id} onOpen={() => onNavigate('/report-cards')} />
-
-        {/* Invoices */}
-        <InvoicesCard studentId={child.id} onOpen={() => onNavigate('/invoices')} />
-
-        {/* Behavior (read-only; RLS scopes to this parent's child) */}
-        <BehaviorCard studentId={child.id} />
-      </div>
-
-      {/* School news (RLS already scopes to this parent's children's schools) */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <Newspaper className="h-5 w-5 text-primary" /> {t('fh.schoolNews')}
-        </h3>
-        <NewsFeed />
-      </div>
-
-      {/* School calendar — read-only; RLS scopes to this parent's school */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">{t('fh.schoolCalendar')}</h3>
-        <SchoolCalendarView />
-      </div>
     </div>
   );
 };
