@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText, MessageCircle, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -129,6 +129,19 @@ export const Header = () => {
                 {t('nav.news')}
               </Link>
               <Link
+                to="/messages"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <MessageCircle className="w-4 h-4" />
+                {t('nav.messages')}
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Link>
+              <Link
                 to="/report-cards"
                 onClick={() => mobile && setMobileOpen(false)}
                 className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
@@ -136,21 +149,31 @@ export const Header = () => {
                 <FileText className="w-4 h-4" />
                 {t('nav.reportCards')}
               </Link>
+              <Link
+                to="/behavior"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <Shield className="w-4 h-4" />
+                {t('nav.behavior')}
+              </Link>
             </>
           )}
-          <Link
-            to="/inbox"
-            onClick={() => mobile && setMobileOpen(false)}
-            className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
-          >
-            <InboxIcon className="w-4 h-4" />
-            {language === 'ar' ? 'الوارد' : 'Inbox'}
-            {unreadCount > 0 && (
-              <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
-                {unreadCount}
-              </Badge>
-            )}
-          </Link>
+          {userRole !== 'parent' && (
+            <Link
+              to="/inbox"
+              onClick={() => mobile && setMobileOpen(false)}
+              className={`relative inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+            >
+              <InboxIcon className="w-4 h-4" />
+              {language === 'ar' ? 'الوارد' : 'Inbox'}
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                  {unreadCount}
+                </Badge>
+              )}
+            </Link>
+          )}
           {!isSchoolAdmin && !isTeacher && (
             <Link
               to="/invoices"
