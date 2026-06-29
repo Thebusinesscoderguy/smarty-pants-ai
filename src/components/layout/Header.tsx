@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText, MessageCircle, Shield } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText, MessageCircle, Shield, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -127,6 +127,14 @@ export const Header = () => {
               >
                 <Newspaper className="w-4 h-4" />
                 {t('nav.news')}
+              </Link>
+              <Link
+                to="/grades"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <ClipboardList className="w-4 h-4" />
+                {t('nav.grades')}
               </Link>
               <Link
                 to="/messages"
