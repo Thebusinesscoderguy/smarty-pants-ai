@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText, MessageCircle, Shield, ClipboardList } from 'lucide-react';
+import { GraduationCap, School, Trophy, Menu, Newspaper, Inbox as InboxIcon, Receipt, Home, FileText, MessageCircle, Shield, ClipboardList, ClipboardCheck, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -124,6 +124,65 @@ export const Header = () => {
                 </Badge>
               )}
             </Link>
+          )}
+          {userRole === 'student' && (
+            <>
+              {/* School-enrolled students get their school surfaces; self-study
+                  users (no active school_student_relationships) do not. */}
+              {isSchoolStudent && (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => mobile && setMobileOpen(false)}
+                    className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+                  >
+                    <Home className="w-4 h-4" />
+                    {t('nav.dashboard')}
+                  </Link>
+                  <Link
+                    to="/news"
+                    onClick={() => mobile && setMobileOpen(false)}
+                    className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+                  >
+                    <Newspaper className="w-4 h-4" />
+                    {t('nav.news')}
+                  </Link>
+                  <Link
+                    to="/assessments"
+                    onClick={() => mobile && setMobileOpen(false)}
+                    className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+                  >
+                    <ClipboardCheck className="w-4 h-4" />
+                    {t('nav.assessments')}
+                  </Link>
+                  <Link
+                    to="/report-cards"
+                    onClick={() => mobile && setMobileOpen(false)}
+                    className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+                  >
+                    <FileText className="w-4 h-4" />
+                    {t('nav.reportCards')}
+                  </Link>
+                  <Link
+                    to="/grades"
+                    onClick={() => mobile && setMobileOpen(false)}
+                    className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    {t('nav.grades')}
+                  </Link>
+                </>
+              )}
+              {/* Study Tools stays reachable for every student (enrolled + self-study). */}
+              <Link
+                to="/quiz-generator"
+                onClick={() => mobile && setMobileOpen(false)}
+                className={`inline-flex items-center gap-1.5 text-foreground/70 hover:text-foreground font-medium transition-colors ${mobile ? 'py-2 text-lg' : ''}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                {t('nav.studyTools')}
+              </Link>
+            </>
           )}
           {userRole !== 'parent' && (
             <Link

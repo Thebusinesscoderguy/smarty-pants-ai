@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, MessageSquare, Trophy, User } from 'lucide-react';
+import { BookOpen, MessageSquare, Trophy, User, Home } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 /**
@@ -12,10 +14,33 @@ export const MobileBottomNav = () => {
   const location = useLocation();
   const { user, isSchoolAdmin, isTeacher } = useAuth();
 
+  // Enrolled (school) students get Home → their dashboard as the first slot;
+  // self-study users keep Study Tools there. Scoped to own rows by RLS.
+  const [isSchoolStudent, setIsSchoolStudent] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user || isSchoolAdmin || isTeacher) { setIsSchoolStudent(false); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('school_student_relationships')
+        .select('school_id')
+        .eq('student_id', user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) setIsSchoolStudent(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user, isSchoolAdmin, isTeacher]);
+
   if (!user || isSchoolAdmin || isTeacher) return null;
 
+  const firstItem = isSchoolStudent
+    ? { label: 'Home', icon: Home, path: '/dashboard', match: ['/dashboard'] }
+    : { label: 'Study', icon: BookOpen, path: '/quiz-generator', match: ['/quiz-generator', '/modules'] };
+
   const items = [
-    { label: 'Study', icon: BookOpen, path: '/quiz-generator', match: ['/quiz-generator', '/modules'] },
+    firstItem,
     { label: 'Chat', icon: MessageSquare, path: '/chat', match: ['/chat'] },
     { label: 'Quests', icon: Trophy, path: '/quests', match: ['/quests'] },
     { label: 'Profile', icon: User, path: '/settings', match: ['/settings'] },

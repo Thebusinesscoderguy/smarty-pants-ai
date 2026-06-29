@@ -45,6 +45,8 @@ const MadeByMe = lazy(() => import('./pages/MadeByMe'));
 const Monitoring = lazy(() => import('./pages/Monitoring'));
 const News = lazy(() => import('./pages/News'));
 const Inbox = lazy(() => import('./pages/Inbox'));
+const StudentGrades = lazy(() => import('./pages/StudentGrades'));
+const Assessments = lazy(() => import('./pages/Assessments'));
 const Invoices = lazy(() => import('./pages/Invoices'));
 const ReportCards = lazy(() => import('./pages/ReportCards'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -119,6 +121,9 @@ function App() {
                       {/* Students may view their OWN published report cards; RLS (report_cards
                           "Students view own published report cards") scopes them to themselves. */}
                       <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['student', 'parent', 'teacher', 'admin']}><ReportCards /></ProtectedRoute>} />
+                      {/* Student's own grades + assigned assessments. RLS scopes both to student_id = auth.uid(). */}
+                      <Route path="/grades" element={<ProtectedRoute allowedRoles={['student']}><StudentGrades /></ProtectedRoute>} />
+                      <Route path="/assessments" element={<ProtectedRoute allowedRoles={['student']}><Assessments /></ProtectedRoute>} />
                       <Route path="/s/:token" element={<SharedArtifact />} />
                       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                       <Route path="/exam/:testId" element={<ExamRunner />} />

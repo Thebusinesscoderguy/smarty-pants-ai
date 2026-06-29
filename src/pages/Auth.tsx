@@ -99,7 +99,19 @@ const Auth = () => {
 
       if (roles.includes('teacher')) navigate('/school-admin');
       else if (roles.includes('parent')) navigate('/family-hub');
-      else navigate('/quiz-generator'); // student (default)
+      else {
+        // Student: land enrolled (school) students on their dashboard (assigned
+        // work, news, report card); self-study users go to Study Tools. Scoped to
+        // the student's own rows by RLS ("Students can view their school relationships").
+        const { data: enrollment } = await supabase
+          .from('school_student_relationships')
+          .select('school_id')
+          .eq('student_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
+        navigate(enrollment ? '/dashboard' : '/quiz-generator');
+      }
     } catch (error) {
       console.error('Error routing after auth:', error);
       navigate('/quiz-generator');
