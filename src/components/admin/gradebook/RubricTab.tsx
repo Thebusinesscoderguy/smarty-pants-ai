@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const COMP_LABEL_KEY: Record<string, string> = {
-  exam_score: 'rubric.exam', quiz_score: 'rubric.quizzes', attendance_score: 'rubric.attendance',
+  exam_score: 'rubric.exam', quiz1_score: 'rubric.quiz1', quiz2_score: 'rubric.quiz2', attendance_score: 'rubric.attendance',
   literacy_score: 'rubric.literacy', project_score: 'rubric.project', cw_score: 'rubric.classwork', hw_score: 'rubric.homework',
 };
 
@@ -27,14 +27,16 @@ interface RubricTabProps {
   schoolId: string;
 }
 
-// The 7 weighted components and their DB-enforced maxima. The sum of maxima is 100,
-// so a valid row can never exceed 100 — mirrored here for live client-side validation.
+// The marks a teacher enters and their DB-enforced maxima. Quiz 1 and Quiz 2 are two
+// separate /20 marks that combine (averaged) into the single Quizzes component (/20);
+// see quizCombined below. The resulting 7 weighted components sum to 100.
 const COMPONENTS = [
-  { key: 'exam_score', label: 'Exam', max: 20 },
-  { key: 'quiz_score', label: 'Quizzes', max: 20 },
+  { key: 'exam_score', label: 'Final Exam', max: 20 },
+  { key: 'quiz1_score', label: 'Quiz 1', max: 20 },
+  { key: 'quiz2_score', label: 'Quiz 2', max: 20 },
   { key: 'attendance_score', label: 'Attendance', max: 20 },
   { key: 'literacy_score', label: 'Literacy', max: 10 },
-  { key: 'project_score', label: 'Project', max: 10 },
+  { key: 'project_score', label: 'Projects', max: 10 },
   { key: 'cw_score', label: 'Classwork', max: 10 },
   { key: 'hw_score', label: 'Homework', max: 10 },
 ] as const;
@@ -43,12 +45,20 @@ type ComponentKey = typeof COMPONENTS[number]['key'];
 type Row = Record<ComponentKey, string>;
 
 const emptyRow = (): Row => ({
-  exam_score: '', quiz_score: '', attendance_score: '',
+  exam_score: '', quiz1_score: '', quiz2_score: '', attendance_score: '',
   literacy_score: '', project_score: '', cw_score: '', hw_score: '',
 });
 
+// Quizzes component (/20) = average of the two entered quiz marks.
+const quizCombined = (row: Row): number =>
+  ((parseFloat(row.quiz1_score) || 0) + (parseFloat(row.quiz2_score) || 0)) / 2;
+
+// Weighted total of the 7 components: Quiz 1/Quiz 2 count once, as their average.
 const rowTotal = (row: Row): number =>
-  COMPONENTS.reduce((sum, c) => sum + (parseFloat(row[c.key]) || 0), 0);
+  COMPONENTS.reduce(
+    (sum, c) => (c.key === 'quiz1_score' || c.key === 'quiz2_score' ? sum : sum + (parseFloat(row[c.key]) || 0)),
+    0,
+  ) + quizCombined(row);
 
 export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => {
   const { user } = useAuth();
@@ -76,7 +86,8 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
     for (const g of data || []) {
       map[g.student_id] = {
         exam_score: g.exam_score?.toString() ?? '',
-        quiz_score: g.quiz_score?.toString() ?? '',
+        quiz1_score: g.quiz1_score?.toString() ?? '',
+        quiz2_score: g.quiz2_score?.toString() ?? '',
         attendance_score: g.attendance_score?.toString() ?? '',
         literacy_score: g.literacy_score?.toString() ?? '',
         project_score: g.project_score?.toString() ?? '',
@@ -150,7 +161,9 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
           term,
           academic_year: academicYear,
           exam_score: parseFloat(row.exam_score) || 0,
-          quiz_score: parseFloat(row.quiz_score) || 0,
+          quiz1_score: parseFloat(row.quiz1_score) || 0,
+          quiz2_score: parseFloat(row.quiz2_score) || 0,
+          quiz_score: quizCombined(row),
           attendance_score: parseFloat(row.attendance_score) || 0,
           literacy_score: parseFloat(row.literacy_score) || 0,
           project_score: parseFloat(row.project_score) || 0,
@@ -205,7 +218,12 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
                   <TableRow>
                     <TableHead className="min-w-[160px]">{t('rubric.student')}</TableHead>
                     {COMPONENTS.map(c => (
-                      <TableHead key={c.key} className="text-center w-24">{t(COMP_LABEL_KEY[c.key])} /{c.max}</TableHead>
+                      <Fragment key={c.key}>
+                        <TableHead className="text-center w-24">{t(COMP_LABEL_KEY[c.key])} /{c.max}</TableHead>
+                        {c.key === 'quiz2_score' && (
+                          <TableHead className="text-center w-24">{t('rubric.quizzes')} /20</TableHead>
+                        )}
+                      </Fragment>
                     ))}
                     <TableHead className="text-center w-20">{t('rubric.total')}</TableHead>
                   </TableRow>
@@ -218,14 +236,21 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
                       <TableRow key={s.student_id}>
                         <TableCell className="font-medium text-foreground">{s.student_name}</TableCell>
                         {COMPONENTS.map(c => (
-                          <TableCell key={c.key} className="text-center">
-                            <Input
-                              type="number" min={0} max={c.max}
-                              className="w-16 mx-auto text-center h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={row[c.key]}
-                              onChange={e => setCell(s.student_id, c.key, c.max, e.target.value)}
-                            />
-                          </TableCell>
+                          <Fragment key={c.key}>
+                            <TableCell className="text-center">
+                              <Input
+                                type="number" min={0} max={c.max}
+                                className="w-16 mx-auto text-center h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                value={row[c.key]}
+                                onChange={e => setCell(s.student_id, c.key, c.max, e.target.value)}
+                              />
+                            </TableCell>
+                            {c.key === 'quiz2_score' && (
+                              <TableCell className="text-center font-medium text-muted-foreground">
+                                {Math.round(quizCombined(row) * 10) / 10}
+                              </TableCell>
+                            )}
+                          </Fragment>
                         ))}
                         <TableCell className="text-center font-bold">{Math.round(total * 10) / 10}</TableCell>
                       </TableRow>

@@ -2718,6 +2718,8 @@ export type Database = {
           id: string
           literacy_score: number
           project_score: number
+          quiz1_score: number
+          quiz2_score: number
           quiz_score: number
           school_id: string
           student_id: string
@@ -2738,6 +2740,8 @@ export type Database = {
           id?: string
           literacy_score?: number
           project_score?: number
+          quiz1_score?: number
+          quiz2_score?: number
           quiz_score?: number
           school_id: string
           student_id: string
@@ -2758,6 +2762,8 @@ export type Database = {
           id?: string
           literacy_score?: number
           project_score?: number
+          quiz1_score?: number
+          quiz2_score?: number
           quiz_score?: number
           school_id?: string
           student_id?: string
