@@ -4,7 +4,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { SchoolPulse } from '@/components/admin/SchoolPulse';
-import { PaymentManagement } from '@/components/admin/PaymentManagement';
 import { StudentAnalyticsView } from '@/components/admin/StudentAnalyticsView';
 import { GradeBook } from '@/components/admin/GradeBook';
 import { AtRiskAlerts } from '@/components/admin/AtRiskAlerts';
@@ -22,15 +21,14 @@ import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
 import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
 import { StaffManagement } from '@/components/admin/StaffManagement';
 import { AssignmentManagement } from '@/components/admin/AssignmentManagement';
-import { InvoiceManagement } from '@/components/admin/InvoiceManagement';
 import { BehaviorManagement } from '@/components/admin/BehaviorManagement';
 import { ClassroomObservation } from '@/components/admin/ClassroomObservation';
 import { GrowthGoals } from '@/components/admin/GrowthGoals';
 import {
-  Users, BarChart3, BookOpen, CreditCard, ClipboardList, AlertTriangle,
+  Users, BarChart3, BookOpen, ClipboardList, AlertTriangle,
   FileCheck, FolderTree, Library, GraduationCap, FileText, ListChecks, Database,
   MessageCircle, Newspaper, Globe, Sparkles, FileSpreadsheet, Shield,
-  LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown, DollarSign,
+  LayoutDashboard, Users2, BookMarked, Settings as SettingsIcon, ChevronDown,
   ClipboardCheck, Target, Mail,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -56,7 +54,7 @@ type TabValue =
   // Staff development & conduct
   | 'behavior' | 'observations' | 'growth-goals'
   // Settings
-  | 'billing' | 'fees' | 'import-export' | 'staff';
+  | 'import-export' | 'staff';
 
 const SchoolAdmin = () => {
   const { t } = useLanguage();
@@ -241,9 +239,7 @@ const SchoolAdmin = () => {
       icon: SettingsIcon,
       items: [
         { value: 'staff', label: 'Staff & Roles', icon: Shield },
-        { value: 'fees', label: 'Fees & Invoicing', icon: DollarSign },
         { value: 'import-export', label: 'Import / Export', icon: FileSpreadsheet },
-        { value: 'billing', label: t('schoolAdmin.tabs.billing'), icon: CreditCard },
       ],
     },
   ];
@@ -345,12 +341,10 @@ const SchoolAdmin = () => {
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
               <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
-              <TabsContent value="billing"><PaymentManagement /></TabsContent>
               <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
               <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
               <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
               <TabsContent value="staff"><StaffManagement /></TabsContent>
-              <TabsContent value="fees"><InvoiceManagement /></TabsContent>
               <TabsContent value="behavior"><BehaviorManagement /></TabsContent>
               <TabsContent value="observations"><ClassroomObservation /></TabsContent>
               <TabsContent value="growth-goals"><GrowthGoals /></TabsContent>
