@@ -32,7 +32,7 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
   const { t } = useLanguage();
   const { activeSemester } = useActiveSemester(schoolId);
   const [semester, setSemester] = useState('S1');
-  const [marks, setMarks] = useState<Record<string, { project: string; literacy: string; finalExam: string }>>({});
+  const [marks, setMarks] = useState<Record<string, { project: string; finalExam: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [ioOpen, setIoOpen] = useState(false);
@@ -51,17 +51,16 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
     setIsLoading(true);
     const { data } = await supabase
       .from('student_semester_marks')
-      .select('student_id, project_mark, literacy_mark, final_exam_mark')
+      .select('student_id, project_mark, final_exam_mark')
       .eq('subject_id', subjectId)
       .eq('semester', semester)
       .in('student_id', students.map(s => s.student_id));
 
-    const map: Record<string, { project: string; literacy: string; finalExam: string }> = {};
-    for (const s of students) map[s.student_id] = { project: '', literacy: '', finalExam: '' };
+    const map: Record<string, { project: string; finalExam: string }> = {};
+    for (const s of students) map[s.student_id] = { project: '', finalExam: '' };
     for (const d of data || []) {
       map[d.student_id] = {
         project: d.project_mark?.toString() ?? '',
-        literacy: d.literacy_mark?.toString() ?? '',
         finalExam: d.final_exam_mark?.toString() ?? '',
       };
     }
@@ -74,14 +73,13 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
     setIsSaving(true);
     try {
       const upserts = Object.entries(marks)
-        .filter(([_, v]) => v.project !== '' || v.literacy !== '' || v.finalExam !== '')
+        .filter(([_, v]) => v.project !== '' || v.finalExam !== '')
         .map(([studentId, v]) => ({
           school_id: schoolId,
           student_id: studentId,
           subject_id: subjectId,
           semester,
           project_mark: v.project !== '' ? parseFloat(v.project) : null,
-          literacy_mark: v.literacy !== '' ? parseFloat(v.literacy) : null,
           final_exam_mark: v.finalExam !== '' ? parseFloat(v.finalExam) : null,
           created_by: user.id,
         }));
@@ -144,7 +142,6 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
                   <TableRow>
                     <TableHead>{t('gradebook.student')}</TableHead>
                     <TableHead className="text-center w-28">{t('gbSemester.projectCol')}</TableHead>
-                    <TableHead className="text-center w-28">{t('gbSemester.literacyCol')}</TableHead>
                     <TableHead className="text-center w-28">{t('gbSemester.finalExamCol')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -161,12 +158,6 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
                         <Input type="number" min="0" max="10" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
                           value={marks[s.student_id]?.project ?? ''}
                           onChange={e => setMarks(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], project: e.target.value } }))}
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Input type="number" min="0" max="10" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
-                          value={marks[s.student_id]?.literacy ?? ''}
-                          onChange={e => setMarks(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], literacy: e.target.value } }))}
                         />
                       </TableCell>
                       <TableCell className="text-center">

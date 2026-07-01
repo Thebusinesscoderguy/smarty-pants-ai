@@ -15,7 +15,6 @@ interface SemesterRow {
   subject: string;
   semester: string;
   final: number | null;
-  literacy: number | null;
   project: number | null;
 }
 
@@ -37,7 +36,7 @@ export const SemesterMarksCard = ({ studentId }: { studentId: string }) => {
     setLoading(true);
     const { data: marks } = await supabase
       .from('student_semester_marks')
-      .select('id, subject_id, semester, final_exam_mark, literacy_mark, project_mark')
+      .select('id, subject_id, semester, final_exam_mark, project_mark')
       .eq('student_id', studentId)
       .order('semester', { ascending: false });
 
@@ -57,7 +56,6 @@ export const SemesterMarksCard = ({ studentId }: { studentId: string }) => {
         subject: nameById[m.subject_id] || t('fh.subjectFallback'),
         semester: m.semester,
         final: m.final_exam_mark,
-        literacy: m.literacy_mark,
         project: m.project_mark,
       })),
     );
@@ -88,7 +86,6 @@ export const SemesterMarksCard = ({ studentId }: { studentId: string }) => {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <Mark label={t('sg.final')} value={r.final} />
-                  <Mark label={t('sg.literacy')} value={r.literacy} />
                   <Mark label={t('sg.project')} value={r.project} />
                 </div>
               </div>

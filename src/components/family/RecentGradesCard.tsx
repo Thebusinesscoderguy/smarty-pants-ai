@@ -15,6 +15,7 @@ interface GradeRow {
   subject: string;
   classwork: number | null;
   homework: number | null;
+  literacy: number | null;
   date: string;
 }
 
@@ -36,7 +37,7 @@ export const RecentGradesCard = ({ studentId }: { studentId: string }) => {
     setLoading(true);
     const { data: grades } = await supabase
       .from('student_daily_grades')
-      .select('id, subject_id, classwork_mark, homework_mark, grade_date')
+      .select('id, subject_id, classwork_mark, homework_mark, literacy_mark, grade_date')
       .eq('student_id', studentId)
       .order('grade_date', { ascending: false })
       .limit(8);
@@ -57,6 +58,7 @@ export const RecentGradesCard = ({ studentId }: { studentId: string }) => {
         subject: nameById[g.subject_id] || t('fh.subjectFallback'),
         classwork: g.classwork_mark,
         homework: g.homework_mark,
+        literacy: g.literacy_mark,
         date: g.grade_date,
       })),
     );
@@ -88,6 +90,7 @@ export const RecentGradesCard = ({ studentId }: { studentId: string }) => {
                 <div className="flex gap-2 shrink-0">
                   <Mark label="CW" value={r.classwork} />
                   <Mark label="HW" value={r.homework} />
+                  <Mark label="Lit" value={r.literacy} />
                 </div>
               </div>
             ))}

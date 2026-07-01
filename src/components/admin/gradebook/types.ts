@@ -17,7 +17,6 @@ export interface AttendanceRecord {
 
 export interface SemesterMarks {
   project_mark: number | null;
-  literacy_mark: number | null;
   final_exam_mark: number | null;
 }
 
@@ -26,12 +25,14 @@ export interface StudentGradeData {
   student_name: string;
   student_photo_path: string | null;
   section_label: string;
-  // Classwork/Homework: two-stage weekly→semester average, already on the /10 scale
-  // (see twoStageWeeklyAverage). Counts are kept for empty-state display.
+  // Classwork/Homework/Literacy: two-stage weekly→semester average, already on the /10
+  // scale (see twoStageWeeklyAverage). Counts are kept for empty-state display.
   classwork_component: number;
   homework_component: number;
+  literacy_component: number;
   classwork_count: number;
   homework_count: number;
+  literacy_count: number;
   // Attendance: days_present / total_days * 20 (single roll-up)
   days_present: number;
   total_days: number;
@@ -82,9 +83,10 @@ const weekKey = (dateStr: string): string => {
 };
 
 export const calculateWeightedTotal = (s: StudentGradeData): WeightedTotal => {
-  // Classwork/Homework: already the two-stage /10 component; clamp to the max.
+  // Classwork/Homework/Literacy: already the two-stage /10 component; clamp to the max.
   const classwork = s.classwork_count > 0 ? Math.min(10, s.classwork_component) : 0;
   const homework = s.homework_count > 0 ? Math.min(10, s.homework_component) : 0;
+  const literacy = s.literacy_count > 0 ? Math.min(10, s.literacy_component) : 0;
   // Attendance: (present/total) * 20
   const attendance = s.total_days > 0 ? (s.days_present / s.total_days) * 20 : 0;
   // Quizzes: (Quiz 1 + Quiz 2) / 2, direct /20
@@ -93,8 +95,6 @@ export const calculateWeightedTotal = (s: StudentGradeData): WeightedTotal => {
   const finalExam = s.semester_marks.final_exam_mark ?? 0;
   // Project: direct /10
   const project = s.semester_marks.project_mark ?? 0;
-  // Literacy: direct /10
-  const literacy = s.semester_marks.literacy_mark ?? 0;
 
   const total = Math.round((classwork + homework + attendance + quizzes + finalExam + project + literacy) * 10) / 10;
 

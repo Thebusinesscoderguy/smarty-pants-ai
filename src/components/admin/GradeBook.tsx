@@ -46,7 +46,7 @@ export const GradeBook = () => {
 
   // Daily marks state
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [editingGrades, setEditingGrades] = useState<Record<string, { classwork: string; homework: string }>>({});
+  const [editingGrades, setEditingGrades] = useState<Record<string, { classwork: string; homework: string; literacy: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => { fetchSubjects(); }, [user]);
@@ -144,8 +144,8 @@ export const GradeBook = () => {
         if (sec) studentSectionMap[ss.student_id] = `${t('gradebook.gradePrefix')} ${sec.grade_level} ${sec.section_name}`;
       }
 
-      const dailyMap: Record<string, { classwork_mark: number | null; homework_mark: number | null }> = {};
-      for (const dg of dailyRes.data || []) dailyMap[dg.student_id] = { classwork_mark: dg.classwork_mark, homework_mark: dg.homework_mark };
+      const dailyMap: Record<string, { classwork_mark: number | null; homework_mark: number | null; literacy_mark: number | null }> = {};
+      for (const dg of dailyRes.data || []) dailyMap[dg.student_id] = { classwork_mark: dg.classwork_mark, homework_mark: dg.homework_mark, literacy_mark: dg.literacy_mark };
 
       const studentList: StudentInfo[] = (profRes.data || []).map(p => ({
         student_id: p.id,
@@ -157,10 +157,10 @@ export const GradeBook = () => {
       studentList.sort((a, b) => a.section_label.localeCompare(b.section_label) || a.student_name.localeCompare(b.student_name));
       setStudents(studentList);
 
-      const editing: Record<string, { classwork: string; homework: string }> = {};
+      const editing: Record<string, { classwork: string; homework: string; literacy: string }> = {};
       for (const s of studentList) {
         const d = dailyMap[s.student_id];
-        editing[s.student_id] = { classwork: d?.classwork_mark?.toString() ?? '', homework: d?.homework_mark?.toString() ?? '' };
+        editing[s.student_id] = { classwork: d?.classwork_mark?.toString() ?? '', homework: d?.homework_mark?.toString() ?? '', literacy: d?.literacy_mark?.toString() ?? '' };
       }
       setEditingGrades(editing);
     } catch (e) { console.error(e); } finally { setIsLoading(false); }
@@ -171,12 +171,13 @@ export const GradeBook = () => {
     setIsSaving(true);
     try {
       const upserts = Object.entries(editingGrades)
-        .filter(([_, v]) => v.classwork !== '' || v.homework !== '')
+        .filter(([_, v]) => v.classwork !== '' || v.homework !== '' || v.literacy !== '')
         .map(([studentId, v]) => ({
           school_id: schoolId, student_id: studentId, subject_id: selectedSubject, grade_date: selectedDate,
           semester: activeSemester,
           classwork_mark: v.classwork !== '' ? parseFloat(v.classwork) : null,
           homework_mark: v.homework !== '' ? parseFloat(v.homework) : null,
+          literacy_mark: v.literacy !== '' ? parseFloat(v.literacy) : null,
           created_by: user.id,
         }));
       if (!upserts.length) { toast({ title: t('gradebook.nothingToSave') }); setIsSaving(false); return; }
@@ -294,8 +295,8 @@ export const GradeBook = () => {
 const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGrades, photoUrls }: {
   sectionLabel: string;
   students: StudentInfo[];
-  editingGrades: Record<string, { classwork: string; homework: string }>;
-  setEditingGrades: React.Dispatch<React.SetStateAction<Record<string, { classwork: string; homework: string }>>>;
+  editingGrades: Record<string, { classwork: string; homework: string; literacy: string }>;
+  setEditingGrades: React.Dispatch<React.SetStateAction<Record<string, { classwork: string; homework: string; literacy: string }>>>;
   photoUrls: Record<string, string>;
 }) => {
   const { t } = useLanguage();
@@ -318,6 +319,7 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
                 <TableHead>{t('gradebook.student')}</TableHead>
                 <TableHead className="text-center w-28">{t('gradebook.classwork')}</TableHead>
                 <TableHead className="text-center w-28">{t('gradebook.homework')}</TableHead>
+                <TableHead className="text-center w-28">{t('gradebook.literacy')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -339,6 +341,12 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
                     <Input type="number" min="0" max="10" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
                       value={editingGrades[s.student_id]?.homework ?? ''}
                       onChange={e => setEditingGrades(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], homework: e.target.value } }))}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input type="number" min="0" max="10" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
+                      value={editingGrades[s.student_id]?.literacy ?? ''}
+                      onChange={e => setEditingGrades(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], literacy: e.target.value } }))}
                     />
                   </TableCell>
                 </TableRow>

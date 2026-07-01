@@ -62,18 +62,20 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
       // Period components are scoped by the semester each mark was stamped with (the
       // semester that was active when it was entered) — no date ranges.
       const [dailyRes, attendRes, semRes, rubricRes] = await Promise.all([
-        supabase.from('student_daily_grades').select('student_id, classwork_mark, homework_mark, grade_date').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
+        supabase.from('student_daily_grades').select('student_id, classwork_mark, homework_mark, literacy_mark, grade_date').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
         supabase.from('student_attendance').select('student_id, is_present').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
-        supabase.from('student_semester_marks').select('student_id, project_mark, literacy_mark, final_exam_mark').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
+        supabase.from('student_semester_marks').select('student_id, project_mark, final_exam_mark').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
         supabase.from('rubric_grades').select('student_id, quiz_score').eq('subject_id', subjectId).eq('term', term).eq('academic_year', academicYear).in('student_id', studentIds),
       ]);
 
-      // Collect per-period classwork/homework marks for the two-stage weekly average.
+      // Collect per-period classwork/homework/literacy marks for the two-stage weekly average.
       const cwPeriods: Record<string, { date: string; mark: number }[]> = {};
       const hwPeriods: Record<string, { date: string; mark: number }[]> = {};
+      const litPeriods: Record<string, { date: string; mark: number }[]> = {};
       for (const d of dailyRes.data || []) {
         if (d.classwork_mark != null) (cwPeriods[d.student_id] ||= []).push({ date: d.grade_date, mark: d.classwork_mark });
         if (d.homework_mark != null) (hwPeriods[d.student_id] ||= []).push({ date: d.grade_date, mark: d.homework_mark });
+        if (d.literacy_mark != null) (litPeriods[d.student_id] ||= []).push({ date: d.grade_date, mark: d.literacy_mark });
       }
 
       // Aggregate attendance (single roll-up)
@@ -84,10 +86,10 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
         if (a.is_present) attendAgg[a.student_id].present++;
       }
 
-      // Semester marks
+      // Semester marks (project + final exam only; literacy is now per-period)
       const semMap: Record<string, SemesterMarks> = {};
       for (const s of semRes.data || []) {
-        semMap[s.student_id] = { project_mark: s.project_mark, literacy_mark: s.literacy_mark, final_exam_mark: s.final_exam_mark };
+        semMap[s.student_id] = { project_mark: s.project_mark, final_exam_mark: s.final_exam_mark };
       }
 
       // Quizzes /20 = rubric_grades.quiz_score ((Quiz 1 + Quiz 2) / 2)
@@ -97,17 +99,20 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
       const result: StudentGradeData[] = students.map(s => {
         const cw = cwPeriods[s.student_id] || [];
         const hw = hwPeriods[s.student_id] || [];
+        const lit = litPeriods[s.student_id] || [];
         const a = attendAgg[s.student_id] || { present: 0, total: 0 };
         return {
           ...s,
           classwork_component: twoStageWeeklyAverage(cw) ?? 0,
           homework_component: twoStageWeeklyAverage(hw) ?? 0,
+          literacy_component: twoStageWeeklyAverage(lit) ?? 0,
           classwork_count: cw.length,
           homework_count: hw.length,
+          literacy_count: lit.length,
           days_present: a.present,
           total_days: a.total,
           quiz_component: quizMap[s.student_id] ?? 0,
-          semester_marks: semMap[s.student_id] || { project_mark: null, literacy_mark: null, final_exam_mark: null },
+          semester_marks: semMap[s.student_id] || { project_mark: null, final_exam_mark: null },
         };
       });
 

@@ -106,18 +106,17 @@ export const ENTITIES: EntityDescriptor[] = [
   {
     key: 'semester_marks',
     label: 'Semester Marks',
-    description: 'Project / literacy / final exam marks per semester',
+    description: 'Project / final exam marks per semester',
     columns: [
       { key: 'student_id', label: 'Student ID', type: 'string', required: true },
       { key: 'subject_id', label: 'Subject ID', type: 'string', required: true },
       { key: 'semester', label: 'Semester', type: 'enum', enumValues: ['S1', 'S2'], required: true, example: 'S1' },
       { key: 'project_mark', label: 'Project /10', type: 'number' },
-      { key: 'literacy_mark', label: 'Literacy /10', type: 'number' },
       { key: 'final_exam_mark', label: 'Final Exam /20', type: 'number' },
     ],
     fetch: async ({ schoolId }) => {
       const { data } = await (supabase as any).from('student_semester_marks')
-        .select('student_id,subject_id,semester,project_mark,literacy_mark,final_exam_mark').eq('school_id', schoolId);
+        .select('student_id,subject_id,semester,project_mark,final_exam_mark').eq('school_id', schoolId);
       return data || [];
     },
     upsert: async (rows, { schoolId, userId }) =>

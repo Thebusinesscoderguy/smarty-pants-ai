@@ -3595,6 +3595,7 @@ export type Database = {
           grade_date: string
           homework_mark: number | null
           id: string
+          literacy_mark: number | null
           notes: string | null
           school_id: string
           semester: string
@@ -3609,6 +3610,7 @@ export type Database = {
           grade_date?: string
           homework_mark?: number | null
           id?: string
+          literacy_mark?: number | null
           notes?: string | null
           school_id: string
           semester?: string
@@ -3623,6 +3625,7 @@ export type Database = {
           grade_date?: string
           homework_mark?: number | null
           id?: string
+          literacy_mark?: number | null
           notes?: string | null
           school_id?: string
           semester?: string
