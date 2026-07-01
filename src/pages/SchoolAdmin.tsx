@@ -22,7 +22,6 @@ import { ReportCardManagement } from '@/components/admin/ReportCardManagement';
 import { ImportExportCenter } from '@/components/admin/ImportExportCenter';
 import { StaffManagement } from '@/components/admin/StaffManagement';
 import { AssignmentManagement } from '@/components/admin/AssignmentManagement';
-import { ReportCardDesigner } from '@/components/admin/ReportCardDesigner';
 import { InvoiceManagement } from '@/components/admin/InvoiceManagement';
 import { BehaviorManagement } from '@/components/admin/BehaviorManagement';
 import { ClassroomObservation } from '@/components/admin/ClassroomObservation';
@@ -218,7 +217,6 @@ const SchoolAdmin = () => {
       items: [
         { value: 'gradebook', label: 'Grade Book', icon: ClipboardList },
         { value: 'report-cards', label: 'Report Cards', icon: FileText },
-        { value: 'report-card-designer', label: 'Report Card Designer', icon: SettingsIcon },
         { value: 'assignments', label: 'Assignments', icon: ListChecks },
         { value: 'assessments', label: 'Assessments', icon: FileCheck },
         { value: 'exam-monitoring', label: 'Exam Monitoring', icon: FileCheck },
@@ -350,7 +348,6 @@ const SchoolAdmin = () => {
               <TabsContent value="billing"><PaymentManagement /></TabsContent>
               <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
               <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
-              <TabsContent value="report-card-designer"><ReportCardDesigner /></TabsContent>
               <TabsContent value="assignments"><AssignmentManagement /></TabsContent>
               <TabsContent value="staff"><StaffManagement /></TabsContent>
               <TabsContent value="fees"><InvoiceManagement /></TabsContent>
