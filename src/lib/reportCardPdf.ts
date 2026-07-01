@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import { ReportCardData as RichReportCardData, ReportCardSubjectRow, termDisplayLabel } from './reportCardData';
 import { CONVERSION_TABLE, EFFORT_LEGEND, letterFromPercent } from './gradeScale';
 import { loadReportCardAssets, rasterizeText, RasterImage } from './reportCardLogos';
+import { DEJAVU_CONDENSED_NORMAL, DEJAVU_CONDENSED_BOLD } from '@/assets/report-card/dejavuFonts';
 
 export type SectionConfig = {
   type: 'header' | 'student_info' | 'subjects_table' | 'attendance' | 'behavior' | 'comments' | 'signature';
@@ -224,7 +225,19 @@ const drawImageFit = (
   doc.addImage(img.dataUrl, 'PNG', dx, y + (maxH - h) / 2, w, h);
 };
 
-const newLandscapeDoc = (): jsPDF => new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+// The reference card embeds DejaVu Sans Condensed (mPDF's default), so we register the
+// same family with jsPDF and use it throughout the landscape layout — the fonts then
+// match the reference exactly instead of approximating with Helvetica.
+const FONT = 'DejaVuSansCondensed';
+
+const newLandscapeDoc = (): jsPDF => {
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  doc.addFileToVFS('DejaVuSansCondensed.ttf', DEJAVU_CONDENSED_NORMAL);
+  doc.addFont('DejaVuSansCondensed.ttf', FONT, 'normal');
+  doc.addFileToVFS('DejaVuSansCondensed-Bold.ttf', DEJAVU_CONDENSED_BOLD);
+  doc.addFont('DejaVuSansCondensed-Bold.ttf', FONT, 'bold');
+  return doc;
+};
 
 /** Single-card PDF for one download. */
 export async function generateReportCardPdf(card: ReportCardInput, settings: any): Promise<jsPDF> {
@@ -265,7 +278,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   }
 
   doc.setTextColor(0, 0, 0);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(15);
   doc.text(settings?.school_name || 'School Report Card', PAGE_W / 2, 14, { align: 'center' });
   doc.setFontSize(11);
@@ -275,7 +288,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   const rawGrade = String(data.grade_label || '');
   const gradeLabel = rawGrade && !/^g/i.test(rawGrade) ? `G${rawGrade}` : rawGrade;
   doc.text(gradeLabel, PAGE_W / 2, 29.5, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
 
   // ---- Grid -----------------------------------------------------------------------------
   const gridX = MARGIN;
@@ -301,7 +314,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   const bandStart = colX[GRID_COLS.findIndex(c => c.band)];
   const lastBandIdx = GRID_COLS.map(c => !!c.band).lastIndexOf(true);
   const bandEnd = colX[lastBandIdx] + GRID_COLS[lastBandIdx].w;
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(7.5);
   doc.text(`${termDisplayLabel(card.term)} ${card.academic_year}`, bandStart + 1.5, headerTop + 3.6);
   doc.setDrawColor(0, 0, 0);
@@ -323,7 +336,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
       doc.setFontSize(7);
     }
   });
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
 
   // ---- Rows -----------------------------------------------------------------------------
   let ry = headerTop + headerH;
@@ -343,7 +356,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
       if (c.left) {
         // Subject: bold English, then the Arabic name (canvas-rasterized for correct RTL
         // shaping) immediately after it, exactly like the reference card.
-        doc.setFont('helvetica', 'bold');
+        doc.setFont(FONT, 'bold');
         doc.setFontSize(7.5);
         const eng = String(value);
         doc.text(eng, colX[i] + 2, midY);
@@ -359,14 +372,14 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
             if (iw > 0) doc.addImage(img.dataUrl, 'PNG', colX[i] + 2 + engW + 2, ry + rowH / 2 - drawH / 2, iw, drawH);
           }
         }
-        doc.setFont('helvetica', 'normal');
+        doc.setFont(FONT, 'normal');
         doc.setFontSize(7);
       } else {
-        if (c.boldData) doc.setFont('helvetica', 'bold');
+        if (c.boldData) doc.setFont(FONT, 'bold');
         if (c.fill === 'dark') doc.setTextColor(70, 70, 70);
         doc.text(String(value), colX[i] + c.w / 2, midY, { align: 'center' });
         doc.setTextColor(0, 0, 0);
-        if (c.boldData) doc.setFont('helvetica', 'normal');
+        if (c.boldData) doc.setFont(FONT, 'normal');
       }
     });
     ry += rowH;
@@ -376,7 +389,13 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   const gridBottom = ry;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.15);
-  GRID_COLS.forEach((_c, i) => { if (i > 0) doc.line(colX[i], headerTop, colX[i], gridBottom); });
+  GRID_COLS.forEach((c, i) => {
+    if (i === 0) return;
+    // Separators between two band columns start BELOW the "Term X" band so the band
+    // reads as one continuous cell (matches the reference).
+    const insideBand = !!GRID_COLS[i - 1].band && !!c.band;
+    doc.line(colX[i], insideBand ? headerTop + bandH : headerTop, colX[i], gridBottom);
+  });
   for (let yy = headerTop + headerH; yy < gridBottom; yy += rowH) doc.line(gridX, yy, gridX + gridW, yy);
   doc.setLineWidth(0.4);
   doc.rect(gridX, headerTop, gridW, gridBottom - headerTop);
@@ -393,10 +412,10 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   doc.setLineWidth(0.2);
   doc.rect(gridX, boxY, gridW, boxH, 'FD');
   doc.setTextColor(0, 0, 0);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(8.5);
   doc.text(`${termDisplayLabel(card.term)} Comment`, gridX + 4, boxY + 4.6);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
   doc.setFontSize(8);
   doc.text(commentLines, gridX + 4, boxY + 8.6);
 
@@ -410,10 +429,10 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   const sideHeader = (label: string, h = 6) => {
     doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
     doc.rect(sx, sy, sw, h, 'FD');
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(FONT, 'bold');
     doc.setFontSize(8);
     doc.text(label, sx + sw / 2, sy + h / 2 + 1.3, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(FONT, 'normal');
     sy += h;
   };
 
@@ -428,12 +447,12 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
     doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
     doc.rect(sx, sy, labelW, 6, 'FD');
     doc.rect(sx + labelW, sy, sw - labelW, 6);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(FONT, 'bold');
     doc.setFontSize(8);
     doc.text(k, sx + 2, sy + 4.2);
-    doc.setFont('helvetica', boldV ? 'bold' : 'normal');
+    doc.setFont(FONT, boldV ? 'bold' : 'normal');
     doc.text(v, sx + labelW + (sw - labelW) / 2, sy + 4.2, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(FONT, 'normal');
     sy += 6;
   }
 
@@ -443,7 +462,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   const cw1 = sw * 0.44, cw2 = sw * 0.17, cw3 = sw * 0.23, cw4 = sw * 0.16;
   const cx1 = sx, cx2 = sx + cw1, cx3 = cx2 + cw2, cx4 = cx3 + cw3;
   const convHdrH = 7;
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(6);
   doc.rect(cx1, sy, cw1, convHdrH); doc.rect(cx2, sy, cw2, convHdrH);
   doc.rect(cx3, sy, cw3, convHdrH); doc.rect(cx4, sy, cw4, convHdrH);
@@ -452,7 +471,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   doc.text('Grade', cx3 + cw3 / 2, sy + 3.1, { align: 'center' });
   doc.text('Letter', cx3 + cw3 / 2, sy + 5.6, { align: 'center' });
   doc.text('GPA', cx4 + cw4 / 2, sy + 4.5, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
   sy += convHdrH;
   const convRowH = 4.4;
   doc.setFontSize(6.4);
@@ -470,12 +489,12 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   sy += 3;
   sideHeader('Conversion Table Behavior');
   const bw1 = sw * 0.42;
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(6);
   doc.rect(sx, sy, bw1, 5); doc.rect(sx + bw1, sy, sw - bw1, 5);
   doc.text('Abbreviation', sx + 1.3, sy + 3.4);
   doc.text('Description', sx + bw1 + 1.3, sy + 3.4);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
   sy += 5;
   doc.setFontSize(6.4);
   for (const e of [...EFFORT_LEGEND].reverse()) {
@@ -498,11 +517,11 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   doc.rect(MARGIN, py, subjW, 7, 'FD');
   doc.rect(MARGIN + subjW, py, commW, 7, 'FD');
   doc.setTextColor(0, 0, 0);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(8.5);
   doc.text('Subject', MARGIN + 2, py + 4.8);
   doc.text('Comment', MARGIN + subjW + 2, py + 4.8);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
   py += 7;
   doc.setFontSize(8);
   for (const row of subjects) {
@@ -511,9 +530,9 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
     if (py + cellH > PAGE_H - 16) { drawFooter(doc, settings, 2, 2); doc.addPage(); py = 14; }
     doc.rect(MARGIN, py, subjW, cellH);
     doc.rect(MARGIN + subjW, py, commW, cellH);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(FONT, 'bold');
     doc.text(row.subject, MARGIN + 2, py + 4.6);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(FONT, 'normal');
     doc.text(lines, MARGIN + subjW + 2, py + 4.6);
     py += cellH;
   }
@@ -526,10 +545,10 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   doc.setDrawColor(190, 190, 190);
   doc.setLineWidth(0.2);
   doc.rect(MARGIN, py, PAGE_W - 2 * MARGIN, p2BoxH, 'FD');
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(FONT, 'bold');
   doc.setFontSize(8.5);
   doc.text(`${termDisplayLabel(card.term)} Comment`, MARGIN + 4, py + 4.6);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(FONT, 'normal');
   doc.setFontSize(8);
   doc.text(p2Lines, MARGIN + 4, py + 8.6);
 
@@ -537,7 +556,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
 }
 
 const drawFooter = (doc: jsPDF, settings: any, page: number, total: number) => {
-  doc.setFontSize(8); doc.setTextColor(130, 130, 130); doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8); doc.setTextColor(130, 130, 130); doc.setFont(FONT, 'normal');
   if (settings?.footer_text) doc.text(String(settings.footer_text), PAGE_W / 2, PAGE_H - 5, { align: 'center', maxWidth: PAGE_W - 40 });
   doc.text(`Page ${page} of ${total}`, PAGE_W - MARGIN, PAGE_H - 5, { align: 'right' });
   doc.setTextColor(0, 0, 0);
