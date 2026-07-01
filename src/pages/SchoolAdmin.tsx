@@ -48,7 +48,7 @@ type TabValue =
   // Academics
   | 'gradebook' | 'assessments' | 'exam-monitoring' | 'grading' | 'subjects'
   | 'lesson-plans' | 'homework' | 'assignments'
-  | 'attendance' | 'report-cards' | 'report-card-designer'
+  | 'attendance' | 'report-cards'
   // Communication
   | 'messages' | 'news'
   // Staff development & conduct
@@ -229,7 +229,6 @@ const SchoolAdmin = () => {
       label: 'Communication',
       icon: MessageCircle,
       items: [
-        { value: 'messages', label: 'Messages', icon: MessageCircle },
         { value: 'news', label: 'News Feed', icon: Newspaper },
       ],
     },
@@ -339,7 +338,6 @@ const SchoolAdmin = () => {
               
               <TabsContent value="lesson-plans"><TeacherLessonPlanGenerator /></TabsContent>
               <TabsContent value="homework"><HomeworkManagement /></TabsContent>
-              <TabsContent value="messages"><ParentTeacherMessaging /></TabsContent>
               <TabsContent value="news"><NewsManagement /></TabsContent>
               <TabsContent value="report-cards"><ReportCardManagement /></TabsContent>
               <TabsContent value="import-export"><ImportExportCenter /></TabsContent>
