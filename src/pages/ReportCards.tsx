@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Download, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import jsPDF from 'jspdf';
-import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
+import { generateReportCardPdf } from '@/lib/reportCardPdf';
+import { termDisplayLabel } from '@/lib/reportCardData';
 import { Header } from '@/components/layout/Header';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -63,13 +63,11 @@ const ReportCards = () => {
     })();
   }, [user]);
 
-  const downloadPdf = (row: Row) => {
+  const downloadPdf = async (row: Row) => {
     const settings = settingsBySchool[row.school_id] || {};
-    const layout: ReportCardLayout = (settings.layout_config?.sections?.length) ? settings.layout_config : defaultLayoutConfig;
-    const doc = new jsPDF();
-    renderReportCardToPdf(doc, {
+    const doc = await generateReportCardPdf({
       name: row.student_name, term: row.term, academic_year: row.academic_year, data: row.data || {},
-    }, settings, layout);
+    }, settings);
     doc.save(`report-${row.student_name}-${row.term}.pdf`);
     toast.success(t('rcv.downloaded'));
   };
@@ -107,11 +105,11 @@ const ReportCards = () => {
                   <div className="flex justify-between items-start gap-3 flex-wrap">
                     <div>
                       <CardTitle className="text-lg">{r.student_name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{r.term} · {r.academic_year}</p>
+                      <p className="text-sm text-muted-foreground">{termDisplayLabel(r.term)} · {r.academic_year}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">{t('rcv.overallPrefix')} {r.data?.overall ?? '-'}%</Badge>
-                      <Badge variant="outline">{t('rcv.attendancePrefix')} {r.data?.attendance_rate ?? '-'}%</Badge>
+                      {r.data?.scoreCardLetter && <Badge variant="outline">{r.data.scoreCardLetter}</Badge>}
                       <Button size="sm" onClick={() => downloadPdf(r)}>
                         <Download className="h-4 w-4 mr-1" />{t('rcv.pdf')}
                       </Button>

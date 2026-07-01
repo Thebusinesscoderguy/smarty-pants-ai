@@ -2710,9 +2710,11 @@ export type Database = {
         Row: {
           academic_year: string
           attendance_score: number
+          comment: string | null
           created_at: string
           created_by: string | null
           cw_score: number
+          effort: string | null
           exam_score: number
           hw_score: number
           id: string
@@ -2732,9 +2734,11 @@ export type Database = {
         Insert: {
           academic_year: string
           attendance_score?: number
+          comment?: string | null
           created_at?: string
           created_by?: string | null
           cw_score?: number
+          effort?: string | null
           exam_score?: number
           hw_score?: number
           id?: string
@@ -2754,9 +2758,11 @@ export type Database = {
         Update: {
           academic_year?: string
           attendance_score?: number
+          comment?: string | null
           created_at?: string
           created_by?: string | null
           cw_score?: number
+          effort?: string | null
           exam_score?: number
           hw_score?: number
           id?: string

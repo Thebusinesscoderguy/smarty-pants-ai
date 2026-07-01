@@ -9,12 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { FileText, Download, CheckCircle2, Pencil, Mail } from 'lucide-react';
-import jsPDF from 'jspdf';
-import { renderReportCardToPdf, defaultLayoutConfig, ReportCardLayout } from '@/lib/reportCardPdf';
+import { generateReportCardPdf, generateReportCardsPdf } from '@/lib/reportCardPdf';
+import { buildStudentReportData, termDisplayLabel, RubricRowInput, ReportCardData } from '@/lib/reportCardData';
+import { academicContext } from './gradebook/types';
+import { useActiveSemester } from '@/hooks/useActiveSemester';
 import { ReportCardEditDialog } from './ReportCardEditDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const RC_TERM_KEY: Record<string, string> = { 'Term 1': 'rc.term1', 'Term 2': 'rc.term2', 'Term 3': 'rc.term3', 'Final': 'rc.final' };
+// report_cards.term stores the semester key ('Semester 1'/'Semester 2'), matching
+// rubric_grades; the UI shows it as "Term 1"/"Term 2" like the reference card.
+const SEMESTER_TERMS = ['Semester 1', 'Semester 2'] as const;
 
 interface Section { id: string; grade_level: string; section_name: string; }
 interface ReportCard { id: string; student_id: string; term: string; academic_year: string; data: any; published: boolean; }
@@ -22,17 +26,44 @@ interface ReportCard { id: string; student_id: string; term: string; academic_ye
 export const ReportCardManagement = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const termLabel = (v: string) => RC_TERM_KEY[v] ? t(RC_TERM_KEY[v]) : v;
+  const termLabel = (v: string) => termDisplayLabel(v);
   const [schoolId, setSchoolId] = useState<string | null>(null);
+  const { activeSemester } = useActiveSemester(schoolId || '');
   const [sections, setSections] = useState<Section[]>([]);
   const [sectionId, setSectionId] = useState('');
-  const [term, setTerm] = useState('Term 1');
-  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [term, setTerm] = useState<string>('Semester 1');
+  const [year, setYear] = useState(academicContext(undefined).academicYear);
   const [cards, setCards] = useState<(ReportCard & { name: string })[]>([]);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [settings, setSettings] = useState<any>({ school_name: '', principal_name: '' });
   const [editing, setEditing] = useState<(ReportCard & { name: string }) | null>(null);
   const [notifying, setNotifying] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // Upload the school's report-card logo to the public school-branding bucket and persist
+  // its URL on report_card_settings so the PDF header renders it for everyone.
+  const uploadLogo = async (file: File) => {
+    if (!schoolId) return;
+    setUploadingLogo(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+      const path = `${schoolId}/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('school-branding')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) { toast.error(upErr.message); return; }
+      const { data: pub } = supabase.storage.from('school-branding').getPublicUrl(path);
+      const url = pub.publicUrl;
+      const next = { ...settings, header_logo_url: url };
+      setSettings(next);
+      const { error } = await supabase.from('report_card_settings').upsert({ school_id: schoolId, ...next });
+      if (error) { toast.error(error.message); return; }
+      toast.success(t('rc.logoUpdated'));
+    } finally { setUploadingLogo(false); }
+  };
+
+  // Default the term to the school's open semester once it loads.
+  useEffect(() => { if (activeSemester) setTerm(academicContext(activeSemester).term); }, [activeSemester]);
 
   useEffect(() => {
     if (!user) return;
@@ -60,51 +91,116 @@ export const ReportCardManagement = () => {
 
   useEffect(() => { loadCards(); }, [schoolId, term, year]);
 
+  // Core: build + upsert report cards for a set of students, reading the real per-subject
+  // grid from rubric_grades (BOTH semesters, so End Year can be computed) + school_subjects
+  // for names. Returns how many cards were written. `studentGrade` maps student -> "G9-A".
+  const generateForStudents = async (
+    studentIds: string[],
+    studentGrade: Map<string, string>,
+    sectionByStudent: Map<string, string | null>,
+  ): Promise<number> => {
+    if (!schoolId || !studentIds.length) return 0;
+
+    const [{ data: profs }, { data: subjectsData }, { data: rubric }, { data: existing }] = await Promise.all([
+      supabase.from('profiles').select('id, display_name').in('id', studentIds),
+      supabase.from('school_subjects').select('id, name').eq('school_id', schoolId),
+      // Both terms of the academic year → End Year = (S1 + S2)/2 per subject.
+      supabase.from('rubric_grades')
+        .select('student_id, subject_id, term, total, exam_score, quiz_score, hw_score, cw_score, project_score, attendance_score, literacy_score, effort, comment')
+        .eq('school_id', schoolId).eq('academic_year', year).in('student_id', studentIds),
+      // Preserve any existing overall term comment across regeneration.
+      supabase.from('report_cards').select('student_id, data').eq('school_id', schoolId).eq('term', term).eq('academic_year', year).in('student_id', studentIds),
+    ]);
+
+    const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || t('rc.unknown')]));
+    const subjectName = new Map((subjectsData || []).map(s => [s.id as string, s.name as string]));
+    const existingComment = new Map((existing || []).map(e => [e.student_id, (e.data as any)?.termComment ?? (e.data as any)?.comments ?? '']));
+
+    const rubricByStudent = new Map<string, RubricRowInput[]>();
+    for (const r of (rubric || []) as any[]) {
+      const arr = rubricByStudent.get(r.student_id) || [];
+      arr.push(r as RubricRowInput);
+      rubricByStudent.set(r.student_id, arr);
+    }
+
+    const rows = studentIds
+      .map(sid => {
+        const rubricRows = rubricByStudent.get(sid) || [];
+        const data = buildStudentReportData({
+          displayName: nameMap.get(sid) || t('rc.unknown'),
+          gradeLabel: studentGrade.get(sid) || '',
+          selectedTerm: term,
+          rows: rubricRows,
+          subjectName: (id) => subjectName.get(id) || id,
+          termComment: existingComment.get(sid) || '',
+        });
+        return { data, sid };
+      })
+      // Only write a card when the student actually has grades this term.
+      .filter(({ data }) => data.subjects.length > 0)
+      .map(({ data, sid }) => ({
+        school_id: schoolId, student_id: sid, section_id: sectionByStudent.get(sid) ?? null,
+        term, academic_year: year, generated_by: user?.id, data: data as any, published: false,
+      }));
+
+    if (!rows.length) return 0;
+    const { error } = await supabase.from('report_cards').upsert(rows, { onConflict: 'student_id,term,academic_year' });
+    if (error) { toast.error(`${t('rc.generateFailed')}: ` + error.message); return 0; }
+    return rows.length;
+  };
+
+  // Resolve section -> "G{grade}-{section}" labels, and each student's section id + label.
+  const buildSectionMaps = async (studentIds: string[]) => {
+    const gradeByStudent = new Map<string, string>();
+    const sectionByStudent = new Map<string, string | null>();
+    if (!studentIds.length) return { gradeByStudent, sectionByStudent };
+    const [{ data: secStud }, { data: secs }] = await Promise.all([
+      supabase.from('section_students').select('section_id, student_id').in('student_id', studentIds),
+      supabase.from('school_sections').select('id, grade_level, section_name').eq('school_id', schoolId!),
+    ]);
+    const secMap = new Map((secs || []).map(s => [s.id, s]));
+    for (const ss of secStud || []) {
+      const sec = secMap.get(ss.section_id);
+      sectionByStudent.set(ss.student_id, ss.section_id);
+      if (sec) gradeByStudent.set(ss.student_id, `${sec.grade_level}-${sec.section_name}`);
+    }
+    return { gradeByStudent, sectionByStudent };
+  };
+
   const generate = async () => {
     if (!schoolId || !sectionId) { toast.error(t('rc.pickSection')); return; }
     setLoading(true);
     try {
       const { data: assigns } = await supabase.from('section_students').select('student_id').eq('section_id', sectionId);
       const studentIds = (assigns || []).map(a => a.student_id);
-      if (!studentIds.length) { toast.error(t('rc.noStudentsInSection')); setLoading(false); return; }
-
-      const { data: profs } = await supabase.from('profiles').select('id, display_name').in('id', studentIds);
-      const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || t('rc.unknown')]));
-
-      // Pull gradebook entries
-      const { data: entries } = await supabase.from('gradebook_entries' as any).select('*').in('student_id', studentIds);
-      // Pull attendance for term (rough: last 90 days)
-      const since = new Date(); since.setDate(since.getDate() - 90);
-      const { data: att } = await supabase.from('attendance_records').select('student_id, status')
-        .in('student_id', studentIds).gte('date', since.toISOString().slice(0, 10));
-
-      const rows = studentIds.map(sid => {
-        const sEntries = (entries || []).filter((e: any) => e.student_id === sid);
-        const subjects: Record<string, { total: number; count: number }> = {};
-        sEntries.forEach((e: any) => {
-          const key = e.subject_id || e.subject || 'General';
-          const score = Number(e.percentage ?? e.score ?? 0);
-          if (!subjects[key]) subjects[key] = { total: 0, count: 0 };
-          subjects[key].total += score; subjects[key].count += 1;
-        });
-        const subjectAvgs = Object.entries(subjects).map(([k, v]) => ({ subject: k, avg: v.count ? Math.round(v.total / v.count) : 0 }));
-        const overall = subjectAvgs.length ? Math.round(subjectAvgs.reduce((s, x) => s + x.avg, 0) / subjectAvgs.length) : 0;
-        const sAtt = (att || []).filter(a => a.student_id === sid);
-        const present = sAtt.filter(a => a.status === 'present' || a.status === 'late').length;
-        const attendanceRate = sAtt.length ? Math.round((present / sAtt.length) * 100) : null;
-        return {
-          school_id: schoolId, student_id: sid, section_id: sectionId, term, academic_year: year,
-          generated_by: user?.id,
-          data: { name: nameMap.get(sid), subjects: subjectAvgs, overall, attendance_rate: attendanceRate },
-          published: false,
-        };
-      });
-
-      const { error } = await supabase.from('report_cards').upsert(rows, { onConflict: 'student_id,term,academic_year' });
-      if (error) { toast.error(`${t('rc.generateFailed')}: ` + error.message); setLoading(false); return; }
-      toast.success(`${t('rc.generatedPre')} ${rows.length} ${t('rc.reportCardsWord')}`);
+      if (!studentIds.length) { toast.error(t('rc.noStudentsInSection')); return; }
+      const { gradeByStudent, sectionByStudent } = await buildSectionMaps(studentIds);
+      const n = await generateForStudents(studentIds, gradeByStudent, sectionByStudent);
+      if (n > 0) toast.success(`${t('rc.generatedPre')} ${n} ${t('rc.reportCardsWord')}`);
+      else toast.error(t('rc.noGradesFound'));
       await loadCards();
     } finally { setLoading(false); }
+  };
+
+  // One-click: generate for every active student in the school, then publish them all.
+  const exportAll = async () => {
+    if (!schoolId) return;
+    setExporting(true);
+    try {
+      const { data: rels } = await supabase.from('school_student_relationships')
+        .select('student_id').eq('school_id', schoolId).eq('is_active', true);
+      const studentIds = Array.from(new Set((rels || []).map(r => r.student_id)));
+      if (!studentIds.length) { toast.error(t('rc.noStudentsInSection')); return; }
+      const { gradeByStudent, sectionByStudent } = await buildSectionMaps(studentIds);
+      const n = await generateForStudents(studentIds, gradeByStudent, sectionByStudent);
+      if (!n) { toast.error(t('rc.noGradesFound')); return; }
+      const { error } = await supabase.from('report_cards')
+        .update({ published: true, published_at: new Date().toISOString() })
+        .eq('school_id', schoolId).eq('term', term).eq('academic_year', year).eq('published', false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`${t('rc.exportedPre')} ${n} ${t('rc.reportCardsWord')}`);
+      await loadCards();
+    } finally { setExporting(false); }
   };
 
   const publishAll = async () => {
@@ -128,27 +224,18 @@ export const ReportCardManagement = () => {
     } catch (e: any) { toast.error(e.message || t('rc.failed')); } finally { setNotifying(false); }
   };
 
-  const layout: ReportCardLayout = (settings?.layout_config && settings.layout_config.sections?.length) ? settings.layout_config : defaultLayoutConfig;
+  const toInput = (card: ReportCard & { name: string }) => ({
+    name: card.name, term: card.term, academic_year: card.academic_year, data: (card.data || {}) as ReportCardData,
+  });
 
-  const renderCardToDoc = (doc: jsPDF, card: ReportCard & { name: string }) => {
-    renderReportCardToPdf(doc, {
-      name: card.name, term: card.term, academic_year: card.academic_year, data: card.data || {},
-    }, settings, layout);
-  };
-
-  const downloadPdf = (card: ReportCard & { name: string }) => {
-    const doc = new jsPDF();
-    renderCardToDoc(doc, card);
+  const downloadPdf = async (card: ReportCard & { name: string }) => {
+    const doc = await generateReportCardPdf(toInput(card), settings);
     doc.save(`report-${card.name}-${card.term}.pdf`);
   };
 
-  const downloadAllPdf = () => {
+  const downloadAllPdf = async () => {
     if (!cards.length) return;
-    const doc = new jsPDF();
-    cards.forEach((c, i) => {
-      if (i > 0) doc.addPage();
-      renderCardToDoc(doc, c);
-    });
+    const doc = await generateReportCardsPdf(cards.map(toInput), settings);
     doc.save(`report-cards-${term}-${year}.pdf`);
     toast.success(`${t('rc.downloadedPre')} ${cards.length} ${t('rc.reportCardsWord')}`);
   };
@@ -160,6 +247,18 @@ export const ReportCardManagement = () => {
         <CardContent className="grid md:grid-cols-2 gap-3">
           <div><Label>{t('rc.schoolName')}</Label><Input value={settings.school_name || ''} onChange={e => setSettings({ ...settings, school_name: e.target.value })} /></div>
           <div><Label>{t('rc.principalName')}</Label><Input value={settings.principal_name || ''} onChange={e => setSettings({ ...settings, principal_name: e.target.value })} /></div>
+          <div className="md:col-span-2">
+            <Label>{t('rc.schoolLogo')}</Label>
+            <div className="flex items-center gap-3 mt-1">
+              {settings.header_logo_url && (
+                <img src={settings.header_logo_url} alt="logo" className="h-12 w-auto object-contain rounded border border-border bg-white p-1" />
+              )}
+              <Input type="file" accept="image/png,image/jpeg,image/svg+xml" className="max-w-xs" disabled={uploadingLogo}
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ''; }} />
+              {uploadingLogo && <span className="text-sm text-muted-foreground">{t('rc.uploading')}</span>}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{t('rc.schoolLogoHint')}</p>
+          </div>
           <div className="md:col-span-2">
             <Button size="sm" variant="outline" onClick={async () => {
               if (!schoolId) return;
@@ -184,12 +283,18 @@ export const ReportCardManagement = () => {
               <Select value={term} onValueChange={setTerm}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-popover">
-                  {['Term 1', 'Term 2', 'Term 3', 'Final'].map(tv => <SelectItem key={tv} value={tv}>{termLabel(tv)}</SelectItem>)}
+                  {SEMESTER_TERMS.map(tv => <SelectItem key={tv} value={tv}>{termLabel(tv)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>{t('rc.academicYear')}</Label><Input value={year} onChange={e => setYear(e.target.value)} /></div>
-            <div className="flex items-end"><Button onClick={generate} disabled={loading} className="w-full">{loading ? t('rc.generating') : t('rc.generate')}</Button></div>
+            <div><Label>{t('rc.academicYear')}</Label><Input value={year} onChange={e => setYear(e.target.value)} placeholder="2025-2026" /></div>
+            <div className="flex items-end"><Button variant="outline" onClick={generate} disabled={loading || exporting} className="w-full">{loading ? t('rc.generating') : t('rc.generateSection')}</Button></div>
+          </div>
+          <div className="flex items-center justify-between gap-3 flex-wrap border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">{t('rc.exportAllHint')}</p>
+            <Button onClick={exportAll} disabled={exporting || loading}>
+              <FileText className="h-4 w-4 mr-1" />{exporting ? t('rc.exporting') : t('rc.exportAll')}
+            </Button>
           </div>
         </CardContent>
       </Card>

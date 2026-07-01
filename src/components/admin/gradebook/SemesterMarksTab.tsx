@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Save, Loader2, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -12,6 +13,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useActiveSemester } from '@/hooks/useActiveSemester';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 import { StudentAvatar } from '@/components/admin/StudentAvatar';
+import { EFFORT_LEGEND } from '@/lib/gradeScale';
+import { academicContext } from './types';
+
+// Sentinel for the Effort dropdown's "no rating" option (Radix Select disallows an
+// empty-string value).
+const EFFORT_NONE = '__none__';
 
 interface StudentInfo {
   student_id: string;
@@ -32,7 +39,7 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
   const { t } = useLanguage();
   const { activeSemester } = useActiveSemester(schoolId);
   const [semester, setSemester] = useState('S1');
-  const [marks, setMarks] = useState<Record<string, { project: string; finalExam: string }>>({});
+  const [marks, setMarks] = useState<Record<string, { project: string; finalExam: string; effort: string; comment: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [ioOpen, setIoOpen] = useState(false);
@@ -47,21 +54,44 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
     loadMarks();
   }, [subjectId, semester]);
 
+  // Effort + per-subject comment live on rubric_grades (the report-card grid row), keyed
+  // by term + academic_year rather than S1/S2 — resolve them the same way every grade
+  // view does so we read/write the exact same row.
+  const { term, academicYear } = academicContext(semester);
+
   const loadMarks = async () => {
     setIsLoading(true);
-    const { data } = await supabase
-      .from('student_semester_marks')
-      .select('student_id, project_mark, final_exam_mark')
-      .eq('subject_id', subjectId)
-      .eq('semester', semester)
-      .in('student_id', students.map(s => s.student_id));
+    const studentIds = students.map(s => s.student_id);
+    const [{ data }, { data: rubric }] = await Promise.all([
+      supabase
+        .from('student_semester_marks')
+        .select('student_id, project_mark, final_exam_mark')
+        .eq('subject_id', subjectId)
+        .eq('semester', semester)
+        .in('student_id', studentIds),
+      supabase
+        .from('rubric_grades')
+        .select('student_id, effort, comment')
+        .eq('subject_id', subjectId)
+        .eq('term', term)
+        .eq('academic_year', academicYear)
+        .in('student_id', studentIds),
+    ]);
 
-    const map: Record<string, { project: string; finalExam: string }> = {};
-    for (const s of students) map[s.student_id] = { project: '', finalExam: '' };
+    const map: Record<string, { project: string; finalExam: string; effort: string; comment: string }> = {};
+    for (const s of students) map[s.student_id] = { project: '', finalExam: '', effort: '', comment: '' };
     for (const d of data || []) {
       map[d.student_id] = {
+        ...map[d.student_id],
         project: d.project_mark?.toString() ?? '',
         finalExam: d.final_exam_mark?.toString() ?? '',
+      };
+    }
+    for (const r of rubric || []) {
+      map[r.student_id] = {
+        ...map[r.student_id],
+        effort: r.effort ?? '',
+        comment: r.comment ?? '',
       };
     }
     setMarks(map);
@@ -84,13 +114,38 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
           created_by: user.id,
         }));
 
-      if (!upserts.length) { toast({ title: t('gradebook.nothingToSave') }); setIsSaving(false); return; }
+      // Effort + comment go on the rubric_grades row. We upsert ONLY these two columns
+      // (plus the row keys), never the score columns — so this write and the Rubric tab's
+      // score write update disjoint parts of the same row and never clobber each other.
+      // ON CONFLICT DO UPDATE leaves omitted columns untouched; a fresh insert defaults
+      // the scores to 0 (harmless — the Rubric tab fills them later).
+      const rubricUpserts = Object.entries(marks)
+        .filter(([_, v]) => v.effort !== '' || v.comment.trim() !== '')
+        .map(([studentId, v]) => ({
+          school_id: schoolId,
+          student_id: studentId,
+          subject_id: subjectId,
+          term,
+          academic_year: academicYear,
+          effort: v.effort !== '' ? v.effort : null,
+          comment: v.comment.trim() !== '' ? v.comment.trim() : null,
+        }));
 
-      const { error } = await supabase
-        .from('student_semester_marks')
-        .upsert(upserts, { onConflict: 'student_id,subject_id,semester' });
+      if (!upserts.length && !rubricUpserts.length) { toast({ title: t('gradebook.nothingToSave') }); setIsSaving(false); return; }
 
-      if (error) throw error;
+      if (upserts.length) {
+        const { error } = await supabase
+          .from('student_semester_marks')
+          .upsert(upserts, { onConflict: 'student_id,subject_id,semester' });
+        if (error) throw error;
+      }
+
+      if (rubricUpserts.length) {
+        const { error: rubricError } = await supabase
+          .from('rubric_grades')
+          .upsert(rubricUpserts, { onConflict: 'student_id,subject_id,term,academic_year' });
+        if (rubricError) throw rubricError;
+      }
       toast({ title: t('gradebook.saved'), description: `${t('gbSemester.savedDescPrefix')} ${semester === 'S1' ? t('gradebook.semester1') : t('gradebook.semester2')}` });
     } catch (e) {
       console.error(e);
@@ -143,6 +198,8 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
                     <TableHead>{t('gradebook.student')}</TableHead>
                     <TableHead className="text-center w-28">{t('gbSemester.projectCol')}</TableHead>
                     <TableHead className="text-center w-28">{t('gbSemester.finalExamCol')}</TableHead>
+                    <TableHead className="text-center w-28">{t('gbSemester.effortCol')}</TableHead>
+                    <TableHead className="text-center min-w-[220px]">{t('gbSemester.commentCol')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -164,6 +221,26 @@ export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: S
                         <Input type="number" min="0" max="20" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
                           value={marks[s.student_id]?.finalExam ?? ''}
                           onChange={e => setMarks(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], finalExam: e.target.value } }))}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Select
+                          value={marks[s.student_id]?.effort ? marks[s.student_id].effort : EFFORT_NONE}
+                          onValueChange={v => setMarks(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], effort: v === EFFORT_NONE ? '' : v } }))}
+                        >
+                          <SelectTrigger className="w-24 mx-auto h-8"><SelectValue placeholder="—" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={EFFORT_NONE}>—</SelectItem>
+                            {EFFORT_LEGEND.map(e => (
+                              <SelectItem key={e.code} value={e.code}>{e.code} · {e.description}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Textarea rows={2} placeholder={t('gbSemester.commentPlaceholder')} className="min-h-[2.25rem] text-sm"
+                          value={marks[s.student_id]?.comment ?? ''}
+                          onChange={e => setMarks(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], comment: e.target.value } }))}
                         />
                       </TableCell>
                     </TableRow>

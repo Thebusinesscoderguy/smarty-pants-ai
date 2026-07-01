@@ -1,7 +1,27 @@
+import { letterFromPercent } from '@/lib/gradeScale';
+
 export interface SchoolSubject {
   id: string;
   name: string;
 }
+
+/**
+ * Maps the school's active semester (S1/S2) to the exact `term` + `academic_year`
+ * keys that rubric_grades rows are stored under. Uses the same Aug-boundary rule the
+ * Rubric/Summary tabs use (academic year starts in August). Centralizing this means the
+ * report card generator, the Rubric tab and the Semester Marks tab all resolve the SAME
+ * rubric_grades row — a mismatch here is exactly why the old generator found nothing.
+ */
+export const academicContext = (
+  activeSemester: string | null | undefined,
+  ref: Date = new Date(),
+): { term: string; academicYear: string } => {
+  const startYear = ref.getMonth() >= 7 ? ref.getFullYear() : ref.getFullYear() - 1;
+  return {
+    academicYear: `${startYear}-${startYear + 1}`,
+    term: activeSemester === 'S2' ? 'Semester 2' : 'Semester 1',
+  };
+};
 
 export interface DailyGrade {
   id?: string;
@@ -132,10 +152,6 @@ export const calculateWeightedTotal = (s: StudentGradeData): WeightedTotal => {
   return { classwork: Math.round(classwork * 10) / 10, homework: Math.round(homework * 10) / 10, attendance: Math.round(attendance * 10) / 10, quizzes: Math.round(quizzes * 10) / 10, finalExam, project, literacy, total };
 };
 
-export const getLetterGrade = (total: number): string => {
-  if (total >= 90) return 'A';
-  if (total >= 80) return 'B';
-  if (total >= 70) return 'C';
-  if (total >= 60) return 'D';
-  return 'F';
-};
+// Delegates to the shared report-card scale so the Summary and the report card
+// letter columns always agree (proper +/- bands, not the old A/B/C/D/F at 90/80/…).
+export const getLetterGrade = (total: number): string => letterFromPercent(total);
