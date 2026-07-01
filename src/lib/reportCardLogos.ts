@@ -121,8 +121,9 @@ export const rasterizeText = (
 
 export interface ReportCardAssets {
   schoolLogo: RasterImage | null;
-  /** Accreditation marks in header order: Ministry of Education, MSA-CESS, Cognia. */
-  accreditation: RasterImage[];
+  /** Accreditation marks, POSITIONAL: [Ministry of Education, MSA-CESS, Cognia]. A failed
+   *  load leaves null in its slot so the others keep their place in the header. */
+  accreditation: (RasterImage | null)[];
 }
 
 export const loadReportCardAssets = async (headerLogoUrl?: string | null): Promise<ReportCardAssets> => {
@@ -134,6 +135,6 @@ export const loadReportCardAssets = async (headerLogoUrl?: string | null): Promi
   ]);
   return {
     schoolLogo: school,
-    accreditation: [moe, msa, cognia].filter((x): x is RasterImage => x !== null),
+    accreditation: [moe, msa, cognia],
   };
 };

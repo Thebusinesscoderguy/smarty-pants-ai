@@ -37,9 +37,11 @@ interface GridCol {
   band?: boolean;          // sits under the "Term X YYYY-YYYY" band (Exams..Literacy)
 }
 
+// NOTE: the reference card also prints an "End Year Grade" column, but the school
+// confirmed that column is an error on their sheet — intentionally omitted here.
 const GRID_COLS: GridCol[] = [
   { key: 'no', header: 'NO', w: 7, rot: false, text: true },
-  { key: 'subject', header: 'SUBJECT', w: 52, rot: false, text: true, left: true },
+  { key: 'subject', header: 'SUBJECT', w: 65, rot: false, text: true, left: true },
   { key: 'exams', header: 'Exams', w: 12, rot: true, band: true },
   { key: 'quizzes', header: 'Quizzes', w: 12, rot: true, band: true },
   { key: 'homework', header: 'Homework', w: 12, rot: true, band: true },
@@ -52,7 +54,6 @@ const GRID_COLS: GridCol[] = [
   { key: 'letter', header: 'Grade Letter', w: 12, rot: true, text: true, fill: 'light', boldData: true },
   { key: 'effort', header: 'Effort', w: 11, rot: true, text: true, fill: 'light', boldData: true },
   { key: 'endYear', header: 'End Year', w: 12, rot: true, fill: 'dark' },
-  { key: 'endYearLetter', header: 'End Year Grade', w: 13, rot: true, text: true, fill: 'dark' },
 ];
 
 const drawImageFit = (
@@ -110,12 +111,14 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
 
   // ---- Header ---------------------------------------------------------------------------
   if (assets.schoolLogo) drawImageFit(doc, assets.schoolLogo, MARGIN + 2, 7, 40, 23, 'left');
-  let rx = PAGE_W - MARGIN;
-  for (const logo of [...assets.accreditation].reverse()) {
-    const ratio = Math.min(18 / logo.width, 14 / logo.height);
-    const w = logo.width * ratio;
-    drawImageFit(doc, logo, rx, 7, 18, 14, 'right');
-    rx -= w + 3;
+  // Accreditation marks, stacked like the reference: Ministry of Education centered on
+  // top, MSA-CESS (left) and Cognia (right) side by side beneath it.
+  {
+    const [moe, msa, cognia] = assets.accreditation;
+    const areaRight = PAGE_W - MARGIN;
+    if (moe) drawImageFit(doc, moe, areaRight - 16, 4, 30, 11, 'center');
+    if (msa) drawImageFit(doc, msa, areaRight - 32, 16, 15, 8, 'left');
+    if (cognia) drawImageFit(doc, cognia, areaRight, 15.5, 14, 9, 'right');
   }
 
   doc.setTextColor(0, 0, 0);
@@ -170,10 +173,10 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
     if (c.rot) {
       doc.text(c.header, center + 1.2, headerTop + headerH - 2, { angle: 90 });
     } else {
+      // NO / SUBJECT sit vertically centered in the header (as on the reference).
       doc.setFontSize(8);
-      const hy = headerTop + headerH - 2.5;
-      if (c.key === 'subject') doc.text(c.header, colX[i] + 2, hy);
-      else doc.text(c.header, center, hy, { align: 'center' });
+      const hy = headerTop + headerH / 2 + 1.4;
+      doc.text(c.header, colX[i] + (c.key === 'subject' ? 2 : 1.5), hy);
       doc.setFontSize(7);
     }
   });
@@ -378,21 +381,7 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
     py += cellH;
   }
 
-  // Overall term comment (same light box as page 1)
-  py += 5;
-  const p2Lines = doc.splitTextToSize(data.termComment || ' ', PAGE_W - 2 * MARGIN - 8);
-  const p2BoxH = 6 + p2Lines.length * 3.6 + 2;
-  doc.setFillColor(BOX[0], BOX[1], BOX[2]);
-  doc.setDrawColor(190, 190, 190);
-  doc.setLineWidth(0.2);
-  doc.rect(MARGIN, py, PAGE_W - 2 * MARGIN, p2BoxH, 'FD');
-  doc.setFont(FONT, 'bold');
-  doc.setFontSize(8.5);
-  doc.text(`${termDisplayLabel(card.term)} Comment`, MARGIN + 4, py + 4.6);
-  doc.setFont(FONT, 'normal');
-  doc.setFontSize(8);
-  doc.text(p2Lines, MARGIN + 4, py + 8.6);
-
+  // No term-comment repeat on page 2 — the reference shows it only once, on page 1.
   drawFooter(doc, settings, 2, 2);
 }
 
