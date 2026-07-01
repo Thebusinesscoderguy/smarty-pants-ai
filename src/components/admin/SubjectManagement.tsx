@@ -12,6 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface SchoolSubject {
   id: string;
   name: string;
+  name_ar: string | null;
   created_at: string;
 }
 
@@ -19,6 +20,7 @@ export const SubjectManagement = () => {
   const [subjects, setSubjects] = useState<SchoolSubject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newSubjectName, setNewSubjectName] = useState('');
+  const [newSubjectNameAr, setNewSubjectNameAr] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -65,10 +67,11 @@ export const SubjectManagement = () => {
       const schoolId = await getSchoolId();
       const { error } = await supabase
         .from('school_subjects')
-        .insert({ school_id: schoolId, name: newSubjectName.trim() });
+        .insert({ school_id: schoolId, name: newSubjectName.trim(), name_ar: newSubjectNameAr.trim() || null });
       if (error) throw error;
       toast({ title: t('subj.added'), description: `${newSubjectName.trim()} ${t('subj.addedDescSuffix')}` });
       setNewSubjectName('');
+      setNewSubjectNameAr('');
       fetchSubjects();
     } catch (error: any) {
       console.error('Error adding subject:', error);
@@ -76,6 +79,14 @@ export const SubjectManagement = () => {
     } finally {
       setIsAdding(false);
     }
+  };
+
+  // Persist an edited Arabic name (used on the bilingual report card grid).
+  const saveArabicName = async (id: string, value: string) => {
+    const name_ar = value.trim() || null;
+    setSubjects(prev => prev.map(s => (s.id === id ? { ...s, name_ar } : s)));
+    const { error } = await supabase.from('school_subjects').update({ name_ar }).eq('id', id);
+    if (error) toast({ title: t('subj.error'), variant: 'destructive' });
   };
 
   const deleteSubject = async (id: string, name: string) => {
@@ -105,13 +116,21 @@ export const SubjectManagement = () => {
       {/* Add Subject */}
       <Card className="bg-card border-border">
         <CardContent className="p-4">
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Input
               placeholder={t('subj.namePlaceholder')}
               value={newSubjectName}
               onChange={(e) => setNewSubjectName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addSubject()}
-              className="flex-1"
+              className="flex-1 min-w-[180px]"
+            />
+            <Input
+              placeholder={t('subj.namePlaceholderAr')}
+              value={newSubjectNameAr}
+              onChange={(e) => setNewSubjectNameAr(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addSubject()}
+              dir="rtl"
+              className="flex-1 min-w-[180px]"
             />
             <Button onClick={addSubject} disabled={isAdding || !newSubjectName.trim()}>
               {isAdding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
@@ -125,14 +144,24 @@ export const SubjectManagement = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {subjects.map((subject) => (
           <Card key={subject.id} className="bg-card border-border">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
+            <CardContent className="p-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   <BookOpen className="h-5 w-5 text-primary" />
                 </div>
-                <span className="font-medium text-foreground">{subject.name}</span>
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-foreground block truncate">{subject.name}</span>
+                  <Input
+                    defaultValue={subject.name_ar || ''}
+                    placeholder={t('subj.namePlaceholderAr')}
+                    dir="rtl"
+                    className="h-7 mt-1 text-sm"
+                    onBlur={(e) => { if ((e.target.value.trim() || null) !== (subject.name_ar || null)) saveArabicName(subject.id, e.target.value); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                  />
+                </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => deleteSubject(subject.id, subject.name)}>
+              <Button variant="ghost" size="icon" className="shrink-0" onClick={() => deleteSubject(subject.id, subject.name)}>
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             </CardContent>

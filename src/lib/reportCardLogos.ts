@@ -89,6 +89,36 @@ const rasterizeLogoUncached = async (url: string, targetH: number): Promise<Rast
   }
 };
 
+// jsPDF's built-in fonts can't shape or bidi-order Arabic. Instead of embedding an
+// Arabic font + a shaping/bidi library, we let the browser's canvas do it (it shapes
+// contextual forms and lays out RTL correctly) and embed the result as a small PNG.
+// Rendered at high px for crispness; caller scales to the target mm height.
+export const rasterizeText = (
+  text: string,
+  opts: { fontPx?: number; family?: string; weight?: string; color?: string; rtl?: boolean } = {},
+): RasterImage | null => {
+  if (!text) return null;
+  const { fontPx = 44, family = '"Segoe UI", "Tahoma", "Arial", sans-serif', weight = 'normal', color = '#111', rtl = true } = opts;
+  const fontStr = `${weight} ${fontPx}px ${family}`;
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  if (!measureCtx) return null;
+  measureCtx.font = fontStr;
+  const w = Math.max(1, Math.ceil(measureCtx.measureText(text).width) + Math.ceil(fontPx * 0.4));
+  const h = Math.ceil(fontPx * 1.35);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.font = fontStr;
+  ctx.direction = rtl ? 'rtl' : 'ltr';
+  ctx.textAlign = rtl ? 'right' : 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = color;
+  ctx.fillText(text, rtl ? w - fontPx * 0.2 : fontPx * 0.2, h / 2);
+  return { dataUrl: canvas.toDataURL('image/png'), width: w, height: h };
+};
+
 export interface ReportCardAssets {
   schoolLogo: RasterImage | null;
   /** Accreditation marks in header order: Ministry of Education, MSA-CESS, Cognia. */

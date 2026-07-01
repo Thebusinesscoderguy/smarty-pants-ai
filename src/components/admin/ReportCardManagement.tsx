@@ -103,7 +103,7 @@ export const ReportCardManagement = () => {
 
     const [{ data: profs }, { data: subjectsData }, { data: rubric }, { data: existing }] = await Promise.all([
       supabase.from('profiles').select('id, display_name').in('id', studentIds),
-      supabase.from('school_subjects').select('id, name').eq('school_id', schoolId),
+      supabase.from('school_subjects').select('id, name, name_ar').eq('school_id', schoolId),
       // Both terms of the academic year → End Year = (S1 + S2)/2 per subject.
       supabase.from('rubric_grades')
         .select('student_id, subject_id, term, total, exam_score, quiz_score, hw_score, cw_score, project_score, attendance_score, literacy_score, effort, comment')
@@ -114,6 +114,7 @@ export const ReportCardManagement = () => {
 
     const nameMap = new Map((profs || []).map(p => [p.id, p.display_name || t('rc.unknown')]));
     const subjectName = new Map((subjectsData || []).map(s => [s.id as string, s.name as string]));
+    const subjectNameAr = new Map((subjectsData || []).map(s => [s.id as string, (s as any).name_ar as string | null]));
     const existingComment = new Map((existing || []).map(e => [e.student_id, (e.data as any)?.termComment ?? (e.data as any)?.comments ?? '']));
 
     const rubricByStudent = new Map<string, RubricRowInput[]>();
@@ -132,6 +133,7 @@ export const ReportCardManagement = () => {
           selectedTerm: term,
           rows: rubricRows,
           subjectName: (id) => subjectName.get(id) || id,
+          subjectNameAr: (id) => subjectNameAr.get(id) ?? null,
           termComment: existingComment.get(sid) || '',
         });
         return { data, sid };

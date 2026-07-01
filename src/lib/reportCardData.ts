@@ -30,6 +30,7 @@ export interface RubricRowInput {
 export interface ReportCardSubjectRow {
   no: number;
   subject: string;
+  subjectAr: string | null;
   exams: number;
   quizzes: number;
   homework: number;
@@ -72,9 +73,10 @@ export function buildStudentReportData(opts: {
   selectedTerm: string; // 'Semester 1' | 'Semester 2'
   rows: RubricRowInput[]; // all rubric rows for this student, both terms, the academic year
   subjectName: (subjectId: string) => string;
+  subjectNameAr?: (subjectId: string) => string | null;
   termComment?: string;
 }): ReportCardData {
-  const { displayName, gradeLabel, selectedTerm, rows, subjectName, termComment = '' } = opts;
+  const { displayName, gradeLabel, selectedTerm, rows, subjectName, subjectNameAr, termComment = '' } = opts;
 
   const bySubject = new Map<string, { s1?: RubricRowInput; s2?: RubricRowInput }>();
   for (const r of rows) {
@@ -93,6 +95,7 @@ export function buildStudentReportData(opts: {
     subjects.push({
       no: 0,
       subject: subjectName(subjectId),
+      subjectAr: subjectNameAr ? subjectNameAr(subjectId) : null,
       exams: round2(cur.exam_score),
       quizzes: round2(cur.quiz_score),
       homework: round2(cur.hw_score),

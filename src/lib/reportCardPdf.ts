@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import { ReportCardData as RichReportCardData, ReportCardSubjectRow, termDisplayLabel } from './reportCardData';
 import { CONVERSION_TABLE, EFFORT_LEGEND, letterFromPercent } from './gradeScale';
-import { loadReportCardAssets, RasterImage } from './reportCardLogos';
+import { loadReportCardAssets, rasterizeText, RasterImage } from './reportCardLogos';
 
 export type SectionConfig = {
   type: 'header' | 'student_info' | 'subjects_table' | 'attendance' | 'behavior' | 'comments' | 'signature';
@@ -194,7 +194,7 @@ interface GridCol {
 
 const GRID_COLS: GridCol[] = [
   { key: 'no', header: 'NO', w: 7, rot: false, text: true },
-  { key: 'subject', header: 'SUBJECT', w: 42, rot: false, text: true, left: true },
+  { key: 'subject', header: 'SUBJECT', w: 52, rot: false, text: true, left: true },
   { key: 'exams', header: 'Exams', w: 12, rot: true },
   { key: 'quizzes', header: 'Quizzes', w: 12, rot: true },
   { key: 'homework', header: 'Homework', w: 12, rot: true },
@@ -266,13 +266,12 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   doc.text(data.student_line || card.name, PAGE_W / 2, 23.5, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.text(data.grade_label || '', PAGE_W / 2, 28.5, { align: 'center' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90, 90, 90);
-  doc.text(`${termDisplayLabel(card.term)} · ${card.academic_year}`, MARGIN, 31);
 
   // ---- Grid -----------------------------------------------------------------------------
   const gridX = MARGIN;
-  const headerTop = 34;
-  const headerH = 24;
+  const headerTop = 33;
+  const headerH = 28;
+  const termStripH = 5;
   const rowH = 7;
   const gridW = GRID_COLS.reduce((s, c) => s + c.w, 0);
 
@@ -280,23 +279,34 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
   doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(gridX, headerTop, gridW, headerH, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7.5);
+
+  // "Term X YYYY-YYYY" sub-band spanning the numeric columns (as on the reference card).
+  const numericStartX = gridX + GRID_COLS[0].w + GRID_COLS[1].w; // after NO + SUBJECT
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold');
+  doc.text(`${termDisplayLabel(card.term)} ${card.academic_year}`, numericStartX + 2, headerTop + termStripH - 1.4);
+  doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.2);
+  doc.line(numericStartX, headerTop + termStripH, gridX + gridW, headerTop + termStripH);
+
+  // Column headers: NO/SUBJECT horizontal (centered over full band); the rest rotated,
+  // sitting below the term sub-band.
+  doc.setFontSize(7);
   let cx = gridX;
   for (const col of GRID_COLS) {
     const center = cx + col.w / 2;
     if (col.rot) {
-      doc.text(col.header, center + 1.3, headerTop + headerH - 2, { angle: 90 });
+      doc.text(col.header, center + 1.2, headerTop + headerH - 2, { angle: 90 });
     } else {
-      doc.setFont('helvetica', 'bold');
-      doc.text(col.header, center, headerTop + headerH - 3, { align: 'center' });
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      const hy = headerTop + headerH / 2 + 1;
+      if (col.left) doc.text(col.header, cx + 2, hy);
+      else doc.text(col.header, center, hy, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     }
     cx += col.w;
   }
 
   // Rows
   doc.setTextColor(20, 20, 20);
-  doc.setFontSize(7.5);
   let ry = headerTop + headerH;
   const subjects = data.subjects || [];
   subjects.forEach((row, i) => {
@@ -308,8 +318,24 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
       const center = colX + col.w / 2;
       const midY = ry + rowH / 2 + 1.2;
       if (col.left) {
-        const clipped = doc.splitTextToSize(String(value), col.w - 3)[0] ?? '';
-        doc.text(clipped, colX + 2, midY);
+        // Bilingual subject cell: English (left) + Arabic (right, rasterized via canvas so
+        // it is correctly shaped/RTL — jsPDF can't do Arabic itself).
+        doc.setFontSize(7.5);
+        const engMax = col.w * (row.subjectAr ? 0.5 : 0.94);
+        const eng = doc.splitTextToSize(String(value), engMax)[0] ?? '';
+        doc.text(eng, colX + 2, midY);
+        if (row.subjectAr) {
+          const img = rasterizeText(row.subjectAr, { fontPx: 40, weight: 'bold' });
+          if (img) {
+            const th = 3.4; // target height in mm
+            const maxIw = col.w - engMax - 3;
+            let iw = img.width * (th / img.height);
+            if (iw > maxIw) iw = maxIw; // shrink to fit remaining cell width
+            const drawH = img.height * (iw / img.width);
+            doc.addImage(img.dataUrl, 'PNG', colX + col.w - iw - 1.5, ry + rowH / 2 - drawH / 2, iw, drawH);
+          }
+        }
+        doc.setFontSize(7);
       } else {
         doc.text(String(value), center, midY, { align: 'center' });
       }
@@ -364,40 +390,49 @@ async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any
     sy += 7;
   }
 
-  // Conversion Table
+  // Conversion Table — 4 columns (Percentage · Grade · Grade Letter · GPA), matching the
+  // reference card (Grade and Grade Letter both show the letter).
   sy += 4;
   doc.setFillColor(accent[0], accent[1], accent[2]); doc.rect(sx, sy, sw, 6, 'F');
   doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
   doc.text('Conversion Table', sx + sw / 2, sy + 4.2, { align: 'center' });
   sy += 6;
-  const c1 = sx, c2 = sx + sw * 0.5, c3 = sx + sw * 0.78;
-  doc.setTextColor(60, 60, 60); doc.setFontSize(6.6);
-  doc.rect(sx, sy, sw, 5);
-  doc.text('Percentage', c1 + 1.5, sy + 3.4);
-  doc.text('Letter', c2 + 1, sy + 3.4);
-  doc.text('GPA', c3 + 1, sy + 3.4);
-  sy += 5;
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 30);
-  const convRowH = 4.6;
+  const cv1 = sx, cv2 = sx + sw * 0.52, cv3 = sx + sw * 0.68, cv4 = sx + sw * 0.86;
+  doc.setTextColor(60, 60, 60); doc.setFontSize(6);
+  doc.rect(sx, sy, sw, 6);
+  doc.text('Percentage', cv1 + 1.3, sy + 3.8);
+  doc.text('Grade', cv2 + 0.8, sy + 3.8);
+  doc.text('Grade\nLetter', cv3 + 0.6, sy + 2.4);
+  doc.text('GPA', cv4 + 0.8, sy + 3.8);
+  sy += 6;
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 30); doc.setFontSize(6.4);
+  const convRowH = 4.4;
   for (const b of CONVERSION_TABLE) {
     doc.rect(sx, sy, sw, convRowH);
-    doc.text(b.range, c1 + 1.5, sy + 3.1);
-    doc.text(b.letter, c2 + 1, sy + 3.1);
-    doc.text(String(b.gpa), c3 + 1, sy + 3.1);
+    doc.text(b.range, cv1 + 1.3, sy + 3.0);
+    doc.text(b.letter, cv2 + 0.8, sy + 3.0);
+    doc.text(b.letter, cv3 + 0.6, sy + 3.0);
+    doc.text(String(b.gpa), cv4 + 0.8, sy + 3.0);
     sy += convRowH;
   }
 
-  // Effort / behavior legend
+  // Behavior / effort legend — titled and column-headed like the reference, listed
+  // worst→best (U … O) to mirror it.
   sy += 4;
   doc.setFillColor(accent[0], accent[1], accent[2]); doc.rect(sx, sy, sw, 6, 'F');
   doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-  doc.text('Effort / Behavior', sx + sw / 2, sy + 4.2, { align: 'center' });
+  doc.text('Conversion Table Behavior', sx + sw / 2, sy + 4.2, { align: 'center' });
   sy += 6;
-  doc.setTextColor(30, 30, 30); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8);
-  for (const e of EFFORT_LEGEND) {
+  doc.setTextColor(60, 60, 60); doc.setFontSize(6);
+  doc.rect(sx, sy, sw, 5);
+  doc.text('Abbreviation', cv1 + 1.3, sy + 3.4);
+  doc.text('Description', cv2 + 0.8, sy + 3.4);
+  sy += 5;
+  doc.setFontSize(6.6); doc.setTextColor(30, 30, 30);
+  for (const e of [...EFFORT_LEGEND].reverse()) {
     doc.rect(sx, sy, sw, convRowH);
-    doc.setFont('helvetica', 'bold'); doc.text(e.code, c1 + 1.5, sy + 3.1);
-    doc.setFont('helvetica', 'normal'); doc.text(e.description, c2 - 6, sy + 3.1);
+    doc.setFont('helvetica', 'bold'); doc.text(e.code, cv1 + 1.3, sy + 3.0);
+    doc.setFont('helvetica', 'normal'); doc.text(e.description, cv2 + 0.8, sy + 3.0);
     sy += convRowH;
   }
 

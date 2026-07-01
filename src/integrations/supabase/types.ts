@@ -3380,18 +3380,21 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          name_ar: string | null
           school_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          name_ar?: string | null
           school_id: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          name_ar?: string | null
           school_id?: string
         }
         Relationships: [
