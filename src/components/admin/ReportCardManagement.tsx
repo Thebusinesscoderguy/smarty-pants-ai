@@ -107,7 +107,8 @@ export const ReportCardManagement = () => {
       // Both terms of the academic year → End Year = (S1 + S2)/2 per subject.
       supabase.from('rubric_grades')
         .select('student_id, subject_id, term, total, exam_score, quiz_score, hw_score, cw_score, project_score, attendance_score, literacy_score, effort, comment')
-        .eq('school_id', schoolId).eq('academic_year', year).in('student_id', studentIds),
+        .eq('school_id', schoolId).eq('academic_year', year)
+        .in('term', SEMESTER_TERMS as unknown as string[]).in('student_id', studentIds),
       // Preserve any existing overall term comment across regeneration.
       supabase.from('report_cards').select('student_id, data').eq('school_id', schoolId).eq('term', term).eq('academic_year', year).in('student_id', studentIds),
     ]);

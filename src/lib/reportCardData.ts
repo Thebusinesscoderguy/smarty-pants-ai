@@ -80,6 +80,9 @@ export function buildStudentReportData(opts: {
 
   const bySubject = new Map<string, { s1?: RubricRowInput; s2?: RubricRowInput }>();
   for (const r of rows) {
+    // Only exact semester keys count; rows under legacy/foreign term labels (e.g. '1')
+    // must not silently overwrite a real semester's marks.
+    if (r.term !== 'Semester 1' && r.term !== 'Semester 2') continue;
     const e = bySubject.get(r.subject_id) ?? {};
     if (r.term === 'Semester 2') e.s2 = r;
     else e.s1 = r;
