@@ -9,8 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
-import { StudentGradeData, SemesterMarks, calculateWeightedTotal, getLetterGrade } from './types';
+import { StudentGradeData, SemesterMarks, calculateWeightedTotal, getLetterGrade, twoStageWeeklyAverage } from './types';
 import { StudentAvatar } from '@/components/admin/StudentAvatar';
+import { SemesterDatesConfig } from './SemesterDatesConfig';
 
 interface StudentInfo {
   student_id: string;
@@ -28,7 +29,7 @@ interface SemesterSummaryTabProps {
 }
 
 export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId, photoUrls }: SemesterSummaryTabProps) => {
-  const { user } = useAuth();
+  const { user, isSchoolAdmin } = useAuth();
   const { t } = useLanguage();
   const [semester, setSemester] = useState('S1');
   const [gradeData, setGradeData] = useState<StudentGradeData[]>([]);
@@ -44,23 +45,48 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
     try {
       const studentIds = students.map(s => s.student_id);
 
-      const [dailyRes, attendRes, semRes, quizRes, testRes] = await Promise.all([
-        supabase.from('student_daily_grades').select('student_id, classwork_mark, homework_mark').eq('subject_id', subjectId).in('student_id', studentIds),
-        supabase.from('student_attendance').select('student_id, is_present').eq('subject_id', subjectId).in('student_id', studentIds),
-        supabase.from('student_semester_marks').select('student_id, project_mark, literacy_mark, final_exam_mark').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
-        supabase.from('quiz_attempts').select('user_id, score, total_possible').in('user_id', studentIds),
-        supabase.from('test_attempts').select('student_id, percentage').in('student_id', studentIds),
-      ]);
+      // Academic year + rubric term key, derived exactly like RubricTab (Aug boundary).
+      const now = new Date();
+      const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+      const academicYear = `${startYear}-${startYear + 1}`;
+      const term = semester === 'S1' ? 'Semester 1' : 'Semester 2';
 
-      // Aggregate daily grades
-      const dailyAgg: Record<string, { cwTotal: number; cwCount: number; hwTotal: number; hwCount: number }> = {};
-      for (const d of dailyRes.data || []) {
-        if (!dailyAgg[d.student_id]) dailyAgg[d.student_id] = { cwTotal: 0, cwCount: 0, hwTotal: 0, hwCount: 0 };
-        if (d.classwork_mark != null) { dailyAgg[d.student_id].cwTotal += d.classwork_mark; dailyAgg[d.student_id].cwCount++; }
-        if (d.homework_mark != null) { dailyAgg[d.student_id].hwTotal += d.homework_mark; dailyAgg[d.student_id].hwCount++; }
+      // Semester date bounds for period-based components. If unset, fall back to all-time.
+      const { data: dateRow } = await supabase
+        .from('school_semester_dates')
+        .select('start_date, end_date')
+        .eq('school_id', schoolId)
+        .eq('academic_year', academicYear)
+        .eq('semester', semester)
+        .maybeSingle();
+
+      let dailyQ = supabase.from('student_daily_grades')
+        .select('student_id, classwork_mark, homework_mark, grade_date')
+        .eq('subject_id', subjectId).in('student_id', studentIds);
+      let attendQ = supabase.from('student_attendance')
+        .select('student_id, is_present, attendance_date')
+        .eq('subject_id', subjectId).in('student_id', studentIds);
+      if (dateRow) {
+        dailyQ = dailyQ.gte('grade_date', dateRow.start_date).lte('grade_date', dateRow.end_date);
+        attendQ = attendQ.gte('attendance_date', dateRow.start_date).lte('attendance_date', dateRow.end_date);
       }
 
-      // Aggregate attendance
+      const [dailyRes, attendRes, semRes, rubricRes] = await Promise.all([
+        dailyQ,
+        attendQ,
+        supabase.from('student_semester_marks').select('student_id, project_mark, literacy_mark, final_exam_mark').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
+        supabase.from('rubric_grades').select('student_id, quiz_score').eq('subject_id', subjectId).eq('term', term).eq('academic_year', academicYear).in('student_id', studentIds),
+      ]);
+
+      // Collect per-period classwork/homework marks for the two-stage weekly average.
+      const cwPeriods: Record<string, { date: string; mark: number }[]> = {};
+      const hwPeriods: Record<string, { date: string; mark: number }[]> = {};
+      for (const d of dailyRes.data || []) {
+        if (d.classwork_mark != null) (cwPeriods[d.student_id] ||= []).push({ date: d.grade_date, mark: d.classwork_mark });
+        if (d.homework_mark != null) (hwPeriods[d.student_id] ||= []).push({ date: d.grade_date, mark: d.homework_mark });
+      }
+
+      // Aggregate attendance (single roll-up)
       const attendAgg: Record<string, { present: number; total: number }> = {};
       for (const a of attendRes.data || []) {
         if (!attendAgg[a.student_id]) attendAgg[a.student_id] = { present: 0, total: 0 };
@@ -74,31 +100,23 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
         semMap[s.student_id] = { project_mark: s.project_mark, literacy_mark: s.literacy_mark, final_exam_mark: s.final_exam_mark };
       }
 
-      // Normal exams
-      const examAgg: Record<string, { total: number; count: number }> = {};
-      for (const q of quizRes.data || []) {
-        if (!examAgg[q.user_id]) examAgg[q.user_id] = { total: 0, count: 0 };
-        if (q.total_possible > 0) { examAgg[q.user_id].total += (q.score / q.total_possible) * 100; examAgg[q.user_id].count++; }
-      }
-      for (const t of testRes.data || []) {
-        if (!examAgg[t.student_id]) examAgg[t.student_id] = { total: 0, count: 0 };
-        if (t.percentage) { examAgg[t.student_id].total += t.percentage; examAgg[t.student_id].count++; }
-      }
+      // Quizzes /20 = rubric_grades.quiz_score ((Quiz 1 + Quiz 2) / 2)
+      const quizMap: Record<string, number> = {};
+      for (const r of rubricRes.data || []) quizMap[r.student_id] = r.quiz_score ?? 0;
 
       const result: StudentGradeData[] = students.map(s => {
-        const d = dailyAgg[s.student_id] || { cwTotal: 0, cwCount: 0, hwTotal: 0, hwCount: 0 };
+        const cw = cwPeriods[s.student_id] || [];
+        const hw = hwPeriods[s.student_id] || [];
         const a = attendAgg[s.student_id] || { present: 0, total: 0 };
-        const e = examAgg[s.student_id] || { total: 0, count: 0 };
         return {
           ...s,
-          classwork_avg: d.cwCount > 0 ? d.cwTotal / d.cwCount : 0,
-          homework_avg: d.hwCount > 0 ? d.hwTotal / d.hwCount : 0,
-          classwork_count: d.cwCount,
-          homework_count: d.hwCount,
+          classwork_component: twoStageWeeklyAverage(cw) ?? 0,
+          homework_component: twoStageWeeklyAverage(hw) ?? 0,
+          classwork_count: cw.length,
+          homework_count: hw.length,
           days_present: a.present,
           total_days: a.total,
-          normal_exam_avg: e.count > 0 ? e.total / e.count : 0,
-          normal_exam_count: e.count,
+          quiz_component: quizMap[s.student_id] ?? 0,
           semester_marks: semMap[s.student_id] || { project_mark: null, literacy_mark: null, final_exam_mark: null },
         };
       });
@@ -113,10 +131,10 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
   };
 
   const exportCSV = () => {
-    const headers = ['Section', 'Student', 'Classwork /10', 'Homework /10', 'Attendance /20', 'Normal Exams /20', 'Final Exam /20', 'Project /10', 'Literacy /10', 'Total /100', 'Grade'];
+    const headers = ['Section', 'Student', 'Classwork /10', 'Homework /10', 'Attendance /20', 'Quizzes /20', 'Final Exam /20', 'Project /10', 'Literacy /10', 'Total /100', 'Grade'];
     const rows = gradeData.map(s => {
       const w = calculateWeightedTotal(s);
-      return [s.section_label, s.student_name, w.classwork, w.homework, w.attendance, w.normalExams, w.finalExam, w.project, w.literacy, w.total, getLetterGrade(w.total)];
+      return [s.section_label, s.student_name, w.classwork, w.homework, w.attendance, w.quizzes, w.finalExam, w.project, w.literacy, w.total, getLetterGrade(w.total)];
     });
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -147,6 +165,7 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
 
   return (
     <div className="space-y-4">
+      {isSchoolAdmin && <SemesterDatesConfig schoolId={schoolId} />}
       <div className="flex items-center gap-3 flex-wrap">
         <Select value={semester} onValueChange={setSemester}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -164,7 +183,7 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
         <span>📝 {t('gbSummary.sumClasswork')}</span>
         <span>📚 {t('gbSummary.sumHomework')}</span>
         <span>✅ {t('gbSummary.sumAttendance')}</span>
-        <span>📊 {t('gbSummary.sumNormalExams')}</span>
+        <span>📊 {t('gbSummary.sumQuizzes')}</span>
         <span>🎓 {t('gbSummary.sumFinalExam')}</span>
         <span>🔬 {t('gbSummary.sumProject')}</span>
         <span>📖 {t('gbSummary.sumLiteracy')}</span>
@@ -212,7 +231,7 @@ const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge, photoUrls 
                 <TableHead className="text-center">{t('gbSummary.colCW')}</TableHead>
                 <TableHead className="text-center">{t('gbSummary.colHW')}</TableHead>
                 <TableHead className="text-center">{t('gbSummary.colAttend')}</TableHead>
-                <TableHead className="text-center">{t('gbSummary.colExams')}</TableHead>
+                <TableHead className="text-center">{t('gbSummary.colQuizzes')}</TableHead>
                 <TableHead className="text-center">{t('gbSummary.colFinal')}</TableHead>
                 <TableHead className="text-center">{t('gbSummary.colProj')}</TableHead>
                 <TableHead className="text-center">{t('gbSummary.colLit')}</TableHead>
@@ -235,7 +254,7 @@ const SectionSummaryTable = ({ sectionLabel, students, getGradeBadge, photoUrls 
                     <TableCell className="text-center">{w.classwork}</TableCell>
                     <TableCell className="text-center">{w.homework}</TableCell>
                     <TableCell className="text-center">{w.attendance}</TableCell>
-                    <TableCell className="text-center">{w.normalExams}</TableCell>
+                    <TableCell className="text-center">{w.quizzes}</TableCell>
                     <TableCell className="text-center">{w.finalExam}</TableCell>
                     <TableCell className="text-center">{w.project}</TableCell>
                     <TableCell className="text-center">{w.literacy}</TableCell>

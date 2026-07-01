@@ -2797,6 +2797,50 @@ export type Database = {
           },
         ]
       }
+      school_semester_dates: {
+        Row: {
+          academic_year: string
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          school_id: string
+          semester: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          school_id: string
+          semester: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          school_id?: string
+          semester?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_semester_dates_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_accounts: {
         Row: {
           admin_user_id: string

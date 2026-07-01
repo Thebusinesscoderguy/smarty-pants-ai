@@ -327,13 +327,13 @@ const DailySectionTable = ({ sectionLabel, students, editingGrades, setEditingGr
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Input type="number" min="0" max="100" placeholder="—" className="w-20 mx-auto text-center h-8"
+                    <Input type="number" min="0" max="10" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
                       value={editingGrades[s.student_id]?.classwork ?? ''}
                       onChange={e => setEditingGrades(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], classwork: e.target.value } }))}
                     />
                   </TableCell>
                   <TableCell className="text-center">
-                    <Input type="number" min="0" max="100" placeholder="—" className="w-20 mx-auto text-center h-8"
+                    <Input type="number" min="0" max="10" step="0.5" placeholder="—" className="w-20 mx-auto text-center h-8"
                       value={editingGrades[s.student_id]?.homework ?? ''}
                       onChange={e => setEditingGrades(prev => ({ ...prev, [s.student_id]: { ...prev[s.student_id], homework: e.target.value } }))}
                     />

@@ -26,17 +26,17 @@ export interface StudentGradeData {
   student_name: string;
   student_photo_path: string | null;
   section_label: string;
-  // Daily averages (will be scaled to /10)
-  classwork_avg: number;
-  homework_avg: number;
+  // Classwork/Homework: two-stage weekly→semester average, already on the /10 scale
+  // (see twoStageWeeklyAverage). Counts are kept for empty-state display.
+  classwork_component: number;
+  homework_component: number;
   classwork_count: number;
   homework_count: number;
-  // Attendance: days_present / total_days * 20
+  // Attendance: days_present / total_days * 20 (single roll-up)
   days_present: number;
   total_days: number;
-  // Normal exams /20 (from quiz/test attempts)
-  normal_exam_avg: number;
-  normal_exam_count: number;
+  // Quizzes /20 = (Quiz 1 + Quiz 2) / 2, from rubric_grades.quiz_score
+  quiz_component: number;
   // Semester marks (teacher input)
   semester_marks: SemesterMarks;
 }
@@ -45,22 +45,50 @@ export interface WeightedTotal {
   classwork: number;    // /10
   homework: number;     // /10
   attendance: number;   // /20
-  normalExams: number;  // /20
+  quizzes: number;      // /20
   finalExam: number;    // /20
   project: number;      // /10
   literacy: number;     // /10
   total: number;        // /100
 }
 
+/**
+ * Two-stage average for period marks (out of 10):
+ *   1. Group period marks by ISO week (Monday of the mark's week).
+ *   2. Average the marks within each week → weekly mark.
+ *   3. Average the weekly marks → the semester component (/10).
+ * This is NOT a flat average of all period marks. Returns null when there are none.
+ */
+export const twoStageWeeklyAverage = (periods: { date: string; mark: number }[]): number | null => {
+  if (!periods.length) return null;
+  const weeks: Record<string, { sum: number; count: number }> = {};
+  for (const p of periods) {
+    const key = weekKey(p.date);
+    const w = weeks[key] || (weeks[key] = { sum: 0, count: 0 });
+    w.sum += p.mark;
+    w.count += 1;
+  }
+  const weekly = Object.values(weeks).map(w => w.sum / w.count);
+  return weekly.reduce((a, b) => a + b, 0) / weekly.length;
+};
+
+// Stable key for the ISO week a date falls in: the date of that week's Monday (UTC).
+const weekKey = (dateStr: string): string => {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  const day = d.getUTCDay(); // 0=Sun..6=Sat
+  const diffToMonday = (day + 6) % 7; // days since Monday
+  d.setUTCDate(d.getUTCDate() - diffToMonday);
+  return d.toISOString().slice(0, 10);
+};
+
 export const calculateWeightedTotal = (s: StudentGradeData): WeightedTotal => {
-  // Classwork: avg of daily marks scaled to /10
-  const classwork = s.classwork_count > 0 ? Math.min(10, (s.classwork_avg / 100) * 10) : 0;
-  // Homework: avg of daily marks scaled to /10
-  const homework = s.homework_count > 0 ? Math.min(10, (s.homework_avg / 100) * 10) : 0;
+  // Classwork/Homework: already the two-stage /10 component; clamp to the max.
+  const classwork = s.classwork_count > 0 ? Math.min(10, s.classwork_component) : 0;
+  const homework = s.homework_count > 0 ? Math.min(10, s.homework_component) : 0;
   // Attendance: (present/total) * 20
   const attendance = s.total_days > 0 ? (s.days_present / s.total_days) * 20 : 0;
-  // Normal exams: avg percentage scaled to /20
-  const normalExams = s.normal_exam_count > 0 ? Math.min(20, (s.normal_exam_avg / 100) * 20) : 0;
+  // Quizzes: (Quiz 1 + Quiz 2) / 2, direct /20
+  const quizzes = Math.min(20, s.quiz_component);
   // Final exam: direct /20
   const finalExam = s.semester_marks.final_exam_mark ?? 0;
   // Project: direct /10
@@ -68,9 +96,9 @@ export const calculateWeightedTotal = (s: StudentGradeData): WeightedTotal => {
   // Literacy: direct /10
   const literacy = s.semester_marks.literacy_mark ?? 0;
 
-  const total = Math.round((classwork + homework + attendance + normalExams + finalExam + project + literacy) * 10) / 10;
+  const total = Math.round((classwork + homework + attendance + quizzes + finalExam + project + literacy) * 10) / 10;
 
-  return { classwork: Math.round(classwork * 10) / 10, homework: Math.round(homework * 10) / 10, attendance: Math.round(attendance * 10) / 10, normalExams: Math.round(normalExams * 10) / 10, finalExam, project, literacy, total };
+  return { classwork: Math.round(classwork * 10) / 10, homework: Math.round(homework * 10) / 10, attendance: Math.round(attendance * 10) / 10, quizzes: Math.round(quizzes * 10) / 10, finalExam, project, literacy, total };
 };
 
 export const getLetterGrade = (total: number): string => {
