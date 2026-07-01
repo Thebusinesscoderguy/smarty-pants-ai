@@ -1986,8 +1986,6 @@ export const translations: TranslationData = {
     'observation.statusAcknowledged': 'Acknowledged',
 
     // ===== Rubric (Grade Book) =====
-    'rubric.term': 'Term',
-    'rubric.academicYear': 'Academic year',
     'rubric.autofillAttendance': 'Auto-fill Attendance /20',
     'rubric.save': 'Save Rubric',
     'rubric.legendComponents': 'Exam /20 · Quizzes /20 · Attendance /20 · Literacy /10 · Project /10 · Classwork /10 · Homework /10 = ',
@@ -5231,8 +5229,6 @@ export const translations: TranslationData = {
     'observation.statusAcknowledged': 'تم الاطّلاع',
 
     // ===== Rubric (Grade Book) =====
-    'rubric.term': 'الفصل الدراسي',
-    'rubric.academicYear': 'العام الدراسي',
     'rubric.autofillAttendance': 'تعبئة الحضور تلقائيًا /20',
     'rubric.save': 'حفظ التقييم',
     'rubric.legendComponents': 'الاختبار /20 · الاختبارات القصيرة /20 · الحضور /20 · القراءة والكتابة /10 · المشروع /10 · العمل الصفي /10 · الواجب /10 = ',

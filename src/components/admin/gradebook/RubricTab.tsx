@@ -67,17 +67,11 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
   const { activeSemester } = useActiveSemester(schoolId);
   const now = new Date();
   const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
-  const [term, setTerm] = useState('Semester 1');
-  const [academicYear, setAcademicYear] = useState(`${startYear}-${startYear + 1}`);
-  const [termInit, setTermInit] = useState(false);
-
-  // Default the term to the school's open semester so quizzes flow to it; still editable.
-  useEffect(() => {
-    if (!termInit && activeSemester) {
-      setTerm(activeSemester === 'S1' ? 'Semester 1' : 'Semester 2');
-      setTermInit(true);
-    }
-  }, [activeSemester, termInit]);
+  // term/academic_year are derived, never teacher-entered. They come from the same
+  // active-semester + Aug-boundary source the Summary queries with, so quizzes always
+  // match — no visible field, no override, no typo.
+  const academicYear = `${startYear}-${startYear + 1}`;
+  const term = activeSemester === 'S1' ? 'Semester 1' : 'Semester 2';
   const [grades, setGrades] = useState<Record<string, Row>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isDeriving, setIsDeriving] = useState(false);
@@ -188,7 +182,7 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
         .from('rubric_grades')
         .upsert(upserts, { onConflict: 'student_id,subject_id,term,academic_year' });
       if (error) throw error;
-      toast({ title: t('rubric.saved'), description: `${t('rubric.savedDescPrefix')} ${term} ${academicYear}` });
+      toast({ title: t('rubric.saved'), description: `${t('rubric.savedDescPrefix')} ${activeSemester === 'S1' ? t('gradebook.semester1') : t('gradebook.semester2')}` });
       load();
     } catch (e) {
       console.error(e);
@@ -204,8 +198,6 @@ export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <Input value={term} onChange={e => setTerm(e.target.value)} className="w-40" placeholder={t('rubric.term')} />
-        <Input value={academicYear} onChange={e => setAcademicYear(e.target.value)} className="w-36" placeholder={t('rubric.academicYear')} />
         <Button variant="outline" onClick={deriveAttendance} disabled={isDeriving}>
           {isDeriving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CalendarCheck className="h-4 w-4 mr-2" />}
           {t('rubric.autofillAttendance')}
