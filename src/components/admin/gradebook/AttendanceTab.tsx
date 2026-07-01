@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActiveSemester } from '@/hooks/useActiveSemester';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 import { StudentAvatar } from '@/components/admin/StudentAvatar';
 
@@ -35,6 +36,7 @@ interface AttendanceTabProps {
 export const AttendanceTab = ({ subjectId, students, schoolId, photoUrls }: AttendanceTabProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { activeSemester } = useActiveSemester(schoolId);
   // Attendance is always marked for today; the date is fixed (no picker).
   const today = new Date().toISOString().split('T')[0];
   const [attendance, setAttendance] = useState<Record<string, boolean>>({});
@@ -89,6 +91,7 @@ export const AttendanceTab = ({ subjectId, students, schoolId, photoUrls }: Atte
         student_id: studentId,
         subject_id: subjectId,
         attendance_date: today,
+        semester: activeSemester,
         is_present: isPresent,
         reason_id: isPresent ? null : (reasons[studentId] || null),
         created_by: user.id,

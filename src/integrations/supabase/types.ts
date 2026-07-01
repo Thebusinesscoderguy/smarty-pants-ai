@@ -2797,45 +2797,30 @@ export type Database = {
           },
         ]
       }
-      school_semester_dates: {
+      school_semester_state: {
         Row: {
-          academic_year: string
-          created_at: string
-          created_by: string | null
-          end_date: string
-          id: string
+          active_semester: string
           school_id: string
-          semester: string
-          start_date: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
-          academic_year: string
-          created_at?: string
-          created_by?: string | null
-          end_date: string
-          id?: string
+          active_semester?: string
           school_id: string
-          semester: string
-          start_date: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
-          academic_year?: string
-          created_at?: string
-          created_by?: string | null
-          end_date?: string
-          id?: string
+          active_semester?: string
           school_id?: string
-          semester?: string
-          start_date?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "school_semester_dates_school_id_fkey"
+            foreignKeyName: "school_semester_state_school_id_fkey"
             columns: ["school_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "school_accounts"
             referencedColumns: ["id"]
           },
@@ -3520,6 +3505,7 @@ export type Database = {
           is_present: boolean
           reason_id: string | null
           school_id: string
+          semester: string
           student_id: string
           subject_id: string
         }
@@ -3531,6 +3517,7 @@ export type Database = {
           is_present?: boolean
           reason_id?: string | null
           school_id: string
+          semester?: string
           student_id: string
           subject_id: string
         }
@@ -3542,6 +3529,7 @@ export type Database = {
           is_present?: boolean
           reason_id?: string | null
           school_id?: string
+          semester?: string
           student_id?: string
           subject_id?: string
         }
@@ -3609,6 +3597,7 @@ export type Database = {
           id: string
           notes: string | null
           school_id: string
+          semester: string
           student_id: string
           subject_id: string
           updated_at: string
@@ -3622,6 +3611,7 @@ export type Database = {
           id?: string
           notes?: string | null
           school_id: string
+          semester?: string
           student_id: string
           subject_id: string
           updated_at?: string
@@ -3635,6 +3625,7 @@ export type Database = {
           id?: string
           notes?: string | null
           school_id?: string
+          semester?: string
           student_id?: string
           subject_id?: string
           updated_at?: string

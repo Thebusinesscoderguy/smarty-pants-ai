@@ -14,7 +14,7 @@ export interface SchoolOnboardingProgress {
   completed_at: string | null;
 }
 
-export const STEP_KEYS = ['welcome', 'roster', 'teachers', 'gradebook', 'semester', 'curriculum', 'live'] as const;
+export const STEP_KEYS = ['welcome', 'roster', 'teachers', 'gradebook', 'curriculum', 'live'] as const;
 export type StepKey = typeof STEP_KEYS[number];
 
 export const useSchoolOnboarding = () => {

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActiveSemester } from '@/hooks/useActiveSemester';
 
 const COMP_LABEL_KEY: Record<string, string> = {
   exam_score: 'rubric.exam', quiz1_score: 'rubric.quiz1', quiz2_score: 'rubric.quiz2', attendance_score: 'rubric.attendance',
@@ -63,10 +64,20 @@ const rowTotal = (row: Row): number =>
 export const RubricTab = ({ subjectId, students, schoolId }: RubricTabProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { activeSemester } = useActiveSemester(schoolId);
   const now = new Date();
   const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
   const [term, setTerm] = useState('Semester 1');
   const [academicYear, setAcademicYear] = useState(`${startYear}-${startYear + 1}`);
+  const [termInit, setTermInit] = useState(false);
+
+  // Default the term to the school's open semester so quizzes flow to it; still editable.
+  useEffect(() => {
+    if (!termInit && activeSemester) {
+      setTerm(activeSemester === 'S1' ? 'Semester 1' : 'Semester 2');
+      setTermInit(true);
+    }
+  }, [activeSemester, termInit]);
   const [grades, setGrades] = useState<Record<string, Row>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isDeriving, setIsDeriving] = useState(false);

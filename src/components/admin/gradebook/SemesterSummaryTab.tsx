@@ -11,7 +11,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { StudentGradeData, SemesterMarks, calculateWeightedTotal, getLetterGrade, twoStageWeeklyAverage } from './types';
 import { StudentAvatar } from '@/components/admin/StudentAvatar';
-import { SemesterDatesConfig } from './SemesterDatesConfig';
+import { SemesterControl } from './SemesterControl';
+import { useActiveSemester } from '@/hooks/useActiveSemester';
 
 interface StudentInfo {
   student_id: string;
@@ -31,9 +32,16 @@ interface SemesterSummaryTabProps {
 export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId, photoUrls }: SemesterSummaryTabProps) => {
   const { user, isSchoolAdmin } = useAuth();
   const { t } = useLanguage();
+  const { activeSemester, setActiveSemester } = useActiveSemester(schoolId);
   const [semester, setSemester] = useState('S1');
   const [gradeData, setGradeData] = useState<StudentGradeData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [semesterInit, setSemesterInit] = useState(false);
+
+  // Default the view to the school's open semester once it loads; the user can still switch.
+  useEffect(() => {
+    if (!semesterInit && activeSemester) { setSemester(activeSemester); setSemesterInit(true); }
+  }, [activeSemester, semesterInit]);
 
   useEffect(() => {
     if (students.length > 0) loadSummary();
@@ -51,29 +59,11 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
       const academicYear = `${startYear}-${startYear + 1}`;
       const term = semester === 'S1' ? 'Semester 1' : 'Semester 2';
 
-      // Semester date bounds for period-based components. If unset, fall back to all-time.
-      const { data: dateRow } = await supabase
-        .from('school_semester_dates')
-        .select('start_date, end_date')
-        .eq('school_id', schoolId)
-        .eq('academic_year', academicYear)
-        .eq('semester', semester)
-        .maybeSingle();
-
-      let dailyQ = supabase.from('student_daily_grades')
-        .select('student_id, classwork_mark, homework_mark, grade_date')
-        .eq('subject_id', subjectId).in('student_id', studentIds);
-      let attendQ = supabase.from('student_attendance')
-        .select('student_id, is_present, attendance_date')
-        .eq('subject_id', subjectId).in('student_id', studentIds);
-      if (dateRow) {
-        dailyQ = dailyQ.gte('grade_date', dateRow.start_date).lte('grade_date', dateRow.end_date);
-        attendQ = attendQ.gte('attendance_date', dateRow.start_date).lte('attendance_date', dateRow.end_date);
-      }
-
+      // Period components are scoped by the semester each mark was stamped with (the
+      // semester that was active when it was entered) — no date ranges.
       const [dailyRes, attendRes, semRes, rubricRes] = await Promise.all([
-        dailyQ,
-        attendQ,
+        supabase.from('student_daily_grades').select('student_id, classwork_mark, homework_mark, grade_date').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
+        supabase.from('student_attendance').select('student_id, is_present').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
         supabase.from('student_semester_marks').select('student_id, project_mark, literacy_mark, final_exam_mark').eq('subject_id', subjectId).eq('semester', semester).in('student_id', studentIds),
         supabase.from('rubric_grades').select('student_id, quiz_score').eq('subject_id', subjectId).eq('term', term).eq('academic_year', academicYear).in('student_id', studentIds),
       ]);
@@ -165,7 +155,7 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
 
   return (
     <div className="space-y-4">
-      {isSchoolAdmin && <SemesterDatesConfig schoolId={schoolId} />}
+      {isSchoolAdmin && <SemesterControl schoolId={schoolId} activeSemester={activeSemester} onChanged={setActiveSemester} />}
       <div className="flex items-center gap-3 flex-wrap">
         <Select value={semester} onValueChange={setSemester}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>

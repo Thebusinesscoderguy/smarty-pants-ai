@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActiveSemester } from '@/hooks/useActiveSemester';
 import { DataPortabilityDialog } from '@/components/admin/data-portability/DataPortabilityDialog';
 import { StudentAvatar } from '@/components/admin/StudentAvatar';
 
@@ -29,11 +30,18 @@ interface SemesterMarksTabProps {
 export const SemesterMarksTab = ({ subjectId, students, schoolId, photoUrls }: SemesterMarksTabProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { activeSemester } = useActiveSemester(schoolId);
   const [semester, setSemester] = useState('S1');
   const [marks, setMarks] = useState<Record<string, { project: string; literacy: string; finalExam: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [ioOpen, setIoOpen] = useState(false);
+  const [semesterInit, setSemesterInit] = useState(false);
+
+  // Default entry to the school's open semester once it loads; still switchable.
+  useEffect(() => {
+    if (!semesterInit && activeSemester) { setSemester(activeSemester); setSemesterInit(true); }
+  }, [activeSemester, semesterInit]);
 
   useEffect(() => {
     loadMarks();

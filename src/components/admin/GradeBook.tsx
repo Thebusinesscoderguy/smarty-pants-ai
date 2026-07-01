@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActiveSemester } from '@/hooks/useActiveSemester';
 import { AttendanceTab } from './gradebook/AttendanceTab';
 import { RubricTab } from './gradebook/RubricTab';
 import { SemesterMarksTab } from './gradebook/SemesterMarksTab';
@@ -34,6 +35,7 @@ export const GradeBook = () => {
   const [activeTab, setActiveTab] = useState('daily');
   const { user, isSchoolAdmin, isTeacher, teacherInfo } = useAuth();
   const { t } = useLanguage();
+  const { activeSemester } = useActiveSemester(schoolId);
 
   // Staff-only signed URLs for private student photos, resolved once and shared
   // across every roster tab below.
@@ -172,6 +174,7 @@ export const GradeBook = () => {
         .filter(([_, v]) => v.classwork !== '' || v.homework !== '')
         .map(([studentId, v]) => ({
           school_id: schoolId, student_id: studentId, subject_id: selectedSubject, grade_date: selectedDate,
+          semester: activeSemester,
           classwork_mark: v.classwork !== '' ? parseFloat(v.classwork) : null,
           homework_mark: v.homework !== '' ? parseFloat(v.homework) : null,
           created_by: user.id,
