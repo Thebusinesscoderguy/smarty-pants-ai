@@ -15,8 +15,7 @@ import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummary
 import { AssignedExamsList } from '@/components/exam/AssignedExamsList';
 import { AssignmentList } from '@/components/student/AssignmentList';
 import { HomeworkList } from '@/components/student/HomeworkList';
-import { RecentGradesCard } from '@/components/family/RecentGradesCard';
-import { SemesterMarksCard } from '@/components/family/SemesterMarksCard';
+import { PublishedGradesFeed } from '@/components/family/PublishedGradesFeed';
 import { ReportCardsCard } from '@/components/family/ReportCardsCard';
 
 /**
@@ -100,7 +99,6 @@ export const StudentDashboard = () => {
             <TabsContent value="overview">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {studentId && <AttendanceSummaryCard studentId={studentId} />}
-                {studentId && <RecentGradesCard studentId={studentId} />}
                 {studentId && <ReportCardsCard studentId={studentId} onOpen={() => setActiveTab('report-cards')} />}
               </div>
               <div className="mt-6">
@@ -120,10 +118,7 @@ export const StudentDashboard = () => {
             </TabsContent>
 
             <TabsContent value="grades">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {studentId && <RecentGradesCard studentId={studentId} />}
-                {studentId && <SemesterMarksCard studentId={studentId} />}
-              </div>
+              {studentId && <PublishedGradesFeed studentId={studentId} />}
             </TabsContent>
 
             <TabsContent value="attendance">

@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { StudentGradeData, SemesterMarks, calculateWeightedTotal, getLetterGrade, twoStageWeeklyAverage } from './types';
 import { StudentAvatar } from '@/components/admin/StudentAvatar';
 import { SemesterControl } from './SemesterControl';
+import { GradePublishControl } from './GradePublishControl';
 import { useActiveSemester } from '@/hooks/useActiveSemester';
 
 interface StudentInfo {
@@ -59,6 +60,14 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
       const academicYear = `${startYear}-${startYear + 1}`;
       const term = semester === 'S1' ? 'Semester 1' : 'Semester 2';
 
+      // Term start anchors the weekly grouping so it matches the published roll-up.
+      const { data: gradeSettings } = await supabase
+        .from('school_grade_settings')
+        .select('term_start_date')
+        .eq('school_id', schoolId)
+        .maybeSingle();
+      const termStart = gradeSettings?.term_start_date ?? null;
+
       // Period components are scoped by the semester each mark was stamped with (the
       // semester that was active when it was entered) — no date ranges.
       const [dailyRes, attendRes, semRes, rubricRes] = await Promise.all([
@@ -103,9 +112,9 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
         const a = attendAgg[s.student_id] || { present: 0, total: 0 };
         return {
           ...s,
-          classwork_component: twoStageWeeklyAverage(cw) ?? 0,
-          homework_component: twoStageWeeklyAverage(hw) ?? 0,
-          literacy_component: twoStageWeeklyAverage(lit) ?? 0,
+          classwork_component: twoStageWeeklyAverage(cw, termStart) ?? 0,
+          homework_component: twoStageWeeklyAverage(hw, termStart) ?? 0,
+          literacy_component: twoStageWeeklyAverage(lit, termStart) ?? 0,
           classwork_count: cw.length,
           homework_count: hw.length,
           literacy_count: lit.length,
@@ -161,6 +170,7 @@ export const SemesterSummaryTab = ({ subjectId, subjectName, students, schoolId,
   return (
     <div className="space-y-4">
       {isSchoolAdmin && <SemesterControl schoolId={schoolId} activeSemester={activeSemester} onChanged={setActiveSemester} />}
+      <GradePublishControl schoolId={schoolId} subjectId={subjectId} isAdmin={isSchoolAdmin} />
       <div className="flex items-center gap-3 flex-wrap">
         <Select value={semester} onValueChange={setSemester}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>

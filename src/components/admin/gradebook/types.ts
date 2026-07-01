@@ -55,16 +55,20 @@ export interface WeightedTotal {
 
 /**
  * Two-stage average for period marks (out of 10):
- *   1. Group period marks by ISO week (Monday of the mark's week).
+ *   1. Group period marks by week (see weekKey — anchored to the term start when given,
+ *      so the Summary and the publish roll-up group identically; else ISO-Monday).
  *   2. Average the marks within each week → weekly mark.
  *   3. Average the weekly marks → the semester component (/10).
  * This is NOT a flat average of all period marks. Returns null when there are none.
  */
-export const twoStageWeeklyAverage = (periods: { date: string; mark: number }[]): number | null => {
+export const twoStageWeeklyAverage = (
+  periods: { date: string; mark: number }[],
+  termStart?: string | null,
+): number | null => {
   if (!periods.length) return null;
   const weeks: Record<string, { sum: number; count: number }> = {};
   for (const p of periods) {
-    const key = weekKey(p.date);
+    const key = weekKey(p.date, termStart);
     const w = weeks[key] || (weeks[key] = { sum: 0, count: 0 });
     w.sum += p.mark;
     w.count += 1;
@@ -73,13 +77,40 @@ export const twoStageWeeklyAverage = (periods: { date: string; mark: number }[])
   return weekly.reduce((a, b) => a + b, 0) / weekly.length;
 };
 
-// Stable key for the ISO week a date falls in: the date of that week's Monday (UTC).
-const weekKey = (dateStr: string): string => {
+// ---- Riyadh / term-start week helpers -------------------------------------------------
+// Stored grade dates are naive calendar days (the Riyadh day they were entered), so week
+// math is plain date arithmetic. Only "today" is converted from the clock (riyadhToday).
+
+const MS_DAY = 86400000;
+// Whole calendar-days between two YYYY-MM-DD dates (parsed as UTC midnight to avoid drift).
+const dayDiff = (a: string, b: string): number =>
+  Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / MS_DAY);
+// Calendar weekday (0=Sun..6=Sat) for a date-only value.
+const calDow = (dateStr: string): number => new Date(`${dateStr}T00:00:00Z`).getUTCDay();
+
+// Group key for a date: a 7-day block index from the term start, else ISO-Monday date.
+const weekKey = (dateStr: string, termStart?: string | null): string => {
+  if (termStart) return String(Math.floor(dayDiff(dateStr, termStart) / 7));
   const d = new Date(`${dateStr}T00:00:00Z`);
-  const day = d.getUTCDay(); // 0=Sun..6=Sat
-  const diffToMonday = (day + 6) % 7; // days since Monday
-  d.setUTCDate(d.getUTCDate() - diffToMonday);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
   return d.toISOString().slice(0, 10);
+};
+
+// 1-based term-week number for a date, from the term start.
+export const weekNumber = (dateStr: string, termStart: string): number =>
+  Math.floor(dayDiff(dateStr, termStart) / 7) + 1;
+
+// Today's Riyadh calendar date as YYYY-MM-DD (explicit Asia/Riyadh, not browser TZ).
+export const riyadhToday = (): string =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' }).format(new Date());
+
+// Client mirror of the server publish gate: P0 = first Wednesday on/after the term start;
+// open on Wednesdays every 14 days from P0. `todayStr` must be the Riyadh calendar date.
+export const isPublishDay = (todayStr: string, termStart: string): boolean => {
+  if (calDow(todayStr) !== 3) return false; // 3 = Wednesday
+  const p0Offset = ((3 - calDow(termStart)) + 7) % 7;
+  const sinceP0 = dayDiff(todayStr, termStart) - p0Offset;
+  return sinceP0 >= 0 && sinceP0 % 14 === 0;
 };
 
 export const calculateWeightedTotal = (s: StudentGradeData): WeightedTotal => {

@@ -2797,6 +2797,104 @@ export type Database = {
           },
         ]
       }
+      school_grade_settings: {
+        Row: {
+          school_id: string
+          term_start_date: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          school_id: string
+          term_start_date?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          school_id?: string
+          term_start_date?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_grade_settings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      published_grades: {
+        Row: {
+          component: string
+          id: string
+          is_weekly: boolean
+          mark_max: number | null
+          mark_value: number | null
+          occurred_on: string | null
+          published_at: string
+          published_by: string | null
+          school_id: string
+          semester: string
+          student_id: string
+          subject_id: string
+          teacher_id: string | null
+          title: string | null
+          week_number: number | null
+        }
+        Insert: {
+          component: string
+          id?: string
+          is_weekly: boolean
+          mark_max?: number | null
+          mark_value?: number | null
+          occurred_on?: string | null
+          published_at?: string
+          published_by?: string | null
+          school_id: string
+          semester: string
+          student_id: string
+          subject_id: string
+          teacher_id?: string | null
+          title?: string | null
+          week_number?: number | null
+        }
+        Update: {
+          component?: string
+          id?: string
+          is_weekly?: boolean
+          mark_max?: number | null
+          mark_value?: number | null
+          occurred_on?: string | null
+          published_at?: string
+          published_by?: string | null
+          school_id?: string
+          semester?: string
+          student_id?: string
+          subject_id?: string
+          teacher_id?: string | null
+          title?: string | null
+          week_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "published_grades_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "published_grades_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "school_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_semester_state: {
         Row: {
           active_semester: string
@@ -4769,6 +4867,10 @@ export type Database = {
       can_manage_test: {
         Args: { _test_id: string; _user_id: string }
         Returns: boolean
+      }
+      publish_grades: {
+        Args: { p_subject_id: string }
+        Returns: number
       }
       check_ai_rate_limit: {
         Args: {

@@ -1,7 +1,6 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { RecentGradesCard } from '@/components/family/RecentGradesCard';
-import { SemesterMarksCard } from '@/components/family/SemesterMarksCard';
+import { PublishedGradesFeed } from '@/components/family/PublishedGradesFeed';
 import { ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -45,10 +44,7 @@ const StudentGrades = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecentGradesCard studentId={user.id} />
-          <SemesterMarksCard studentId={user.id} />
-        </div>
+        <PublishedGradesFeed studentId={user.id} />
       </main>
       <Footer />
     </div>

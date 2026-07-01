@@ -17,7 +17,7 @@ import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummary
 import { NewsFeed } from '@/components/news/NewsFeed';
 import { ParentTeacherMessaging } from '@/components/admin/ParentTeacherMessaging';
 import { BehaviorCard } from '@/components/family/BehaviorCard';
-import { RecentGradesCard } from '@/components/family/RecentGradesCard';
+import { PublishedGradesFeed } from '@/components/family/PublishedGradesFeed';
 import { ReportCardsCard } from '@/components/family/ReportCardsCard';
 import { EmptyHint } from '@/components/family/EmptyHint';
 import { supabase } from '@/integrations/supabase/client';
@@ -219,14 +219,13 @@ const FamilyHub = () => {
                     <TabsContent value="overview">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <AttendanceSummaryCard studentId={selectedChild.id} studentName={selectedChild.name} />
-                        <RecentGradesCard studentId={selectedChild.id} />
                         <BehaviorCard studentId={selectedChild.id} />
                         <ReportCardsCard studentId={selectedChild.id} onOpen={() => setActiveTab('report-cards')} />
                       </div>
                     </TabsContent>
 
                     <TabsContent value="grades">
-                      <RecentGradesCard studentId={selectedChild.id} />
+                      <PublishedGradesFeed studentId={selectedChild.id} />
                     </TabsContent>
 
                     <TabsContent value="attendance">
