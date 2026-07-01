@@ -9,6 +9,7 @@ import { WelcomeStep } from '@/components/school-onboarding/steps/WelcomeStep';
 import { RosterStep } from '@/components/school-onboarding/steps/RosterStep';
 import { TeachersStep } from '@/components/school-onboarding/steps/TeachersStep';
 import { GradebookStep } from '@/components/school-onboarding/steps/GradebookStep';
+import { SemesterDatesStep } from '@/components/school-onboarding/steps/SemesterDatesStep';
 import { CurriculumStep } from '@/components/school-onboarding/steps/CurriculumStep';
 import { LiveStep } from '@/components/school-onboarding/steps/LiveStep';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,6 +19,7 @@ const STEP_TITLE_KEYS: Record<typeof STEP_KEYS[number], { titleKey: string; subK
   roster: { titleKey: 'so.rosterTitle', subKey: 'so.rosterSub' },
   teachers: { titleKey: 'so.teachersTitle', subKey: 'so.teachersSub' },
   gradebook: { titleKey: 'so.gradebookTitle', subKey: 'so.gradebookSub' },
+  semester: { titleKey: 'so.semesterTitle', subKey: 'so.semesterSub' },
   curriculum: { titleKey: 'so.curriculumTitle', subKey: 'so.curriculumSub' },
   live: { titleKey: '', subKey: '' },
 };
@@ -90,6 +92,12 @@ const SchoolOnboarding = () => {
       content = <GradebookStep onChoice={(s) => updateProgress({ gradebook_status: s })} />;
       nextDisabled = progress.gradebook_status === 'pending';
       onSkip = async () => { await updateProgress({ gradebook_status: 'fresh' }); await markStepComplete('gradebook'); goNext(); };
+      break;
+    case 'semester':
+      content = <SemesterDatesStep schoolId={schoolId} />;
+      // Term dates: S1 asked up front, S2 optional. Never hard-blocks — the gradebook
+      // falls back to all-time for any semester without dates, so "set later" is safe.
+      onSkip = async () => { await markStepComplete('semester'); goNext(); };
       break;
     case 'curriculum':
       content = <CurriculumStep onComplete={async () => { await markStepComplete('curriculum'); goNext(); }} />;

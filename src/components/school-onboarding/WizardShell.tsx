@@ -9,6 +9,7 @@ const STEP_LABELS: Record<StepKey, string> = {
   roster: 'Students',
   teachers: 'Teachers',
   gradebook: 'Gradebook',
+  semester: 'Semester dates',
   curriculum: 'Curriculum',
   live: "You're live",
 };
