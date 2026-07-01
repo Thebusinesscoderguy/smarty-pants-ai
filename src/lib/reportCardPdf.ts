@@ -190,24 +190,27 @@ interface GridCol {
   rot: boolean;   // rotated (vertical) header
   text?: boolean; // render value as-is (letters/effort/subject) rather than a 2dp number
   left?: boolean; // left-align (subject)
+  fill?: 'light' | 'dark'; // column shading (matches the reference card)
+  boldData?: boolean;      // bold cell values (Term Total / Term% / Grade Letter / Effort)
+  band?: boolean;          // sits under the "Term X YYYY-YYYY" band (Exams..Literacy)
 }
 
 const GRID_COLS: GridCol[] = [
   { key: 'no', header: 'NO', w: 7, rot: false, text: true },
   { key: 'subject', header: 'SUBJECT', w: 52, rot: false, text: true, left: true },
-  { key: 'exams', header: 'Exams', w: 12, rot: true },
-  { key: 'quizzes', header: 'Quizzes', w: 12, rot: true },
-  { key: 'homework', header: 'Homework', w: 12, rot: true },
-  { key: 'classwork', header: 'Classwork', w: 12, rot: true },
-  { key: 'projects', header: 'Projects', w: 12, rot: true },
-  { key: 'attendance', header: 'Attendance', w: 12, rot: true },
-  { key: 'literacy', header: 'Literacy', w: 12, rot: true },
-  { key: 'termTotal', header: 'Term Total', w: 13, rot: true },
-  { key: 'termPct', header: 'Term%', w: 12, rot: true },
-  { key: 'letter', header: 'Grade Letter', w: 12, rot: true, text: true },
-  { key: 'effort', header: 'Effort', w: 11, rot: true, text: true },
-  { key: 'endYear', header: 'End Year', w: 12, rot: true },
-  { key: 'endYearLetter', header: 'End Year Grade', w: 13, rot: true, text: true },
+  { key: 'exams', header: 'Exams', w: 12, rot: true, band: true },
+  { key: 'quizzes', header: 'Quizzes', w: 12, rot: true, band: true },
+  { key: 'homework', header: 'Homework', w: 12, rot: true, band: true },
+  { key: 'classwork', header: 'Classwork', w: 12, rot: true, band: true },
+  { key: 'projects', header: 'Projects', w: 12, rot: true, band: true },
+  { key: 'attendance', header: 'Attendance', w: 12, rot: true, band: true },
+  { key: 'literacy', header: 'Literacy', w: 12, rot: true, band: true },
+  { key: 'termTotal', header: 'Term Total', w: 13, rot: true, fill: 'light', boldData: true },
+  { key: 'termPct', header: 'Term%', w: 12, rot: true, fill: 'light', boldData: true },
+  { key: 'letter', header: 'Grade Letter', w: 12, rot: true, text: true, fill: 'light', boldData: true },
+  { key: 'effort', header: 'Effort', w: 11, rot: true, text: true, fill: 'light', boldData: true },
+  { key: 'endYear', header: 'End Year', w: 12, rot: true, fill: 'dark' },
+  { key: 'endYearLetter', header: 'End Year Grade', w: 13, rot: true, text: true, fill: 'dark' },
 ];
 
 const drawImageFit = (
@@ -243,233 +246,292 @@ export async function generateReportCardsPdf(cards: ReportCardInput[], settings:
 /** Draws one card (2 pages) starting on the doc's CURRENT page. */
 async function renderReportCard(doc: jsPDF, card: ReportCardInput, settings: any): Promise<void> {
   const data = (card.data || {}) as RichReportCardData;
-  const accent = hexToRgb(settings?.accent_color || '#1f3b73');
   const assets = await loadReportCardAssets(settings?.header_logo_url);
 
-  // ---- Header ---------------------------------------------------------------------------
-  if (assets.schoolLogo) drawImageFit(doc, assets.schoolLogo, MARGIN, 6, 44, 18, 'left');
+  // The reference card is monochrome: black text, thin black borders, light-gray fills on
+  // the summary columns/headers and a darker gray on the End Year pair. No accent color.
+  const LIGHT: [number, number, number] = [217, 217, 217];
+  const DARK: [number, number, number] = [166, 166, 166];
+  const BOX: [number, number, number] = [243, 243, 243];
 
+  // ---- Header ---------------------------------------------------------------------------
+  if (assets.schoolLogo) drawImageFit(doc, assets.schoolLogo, MARGIN + 2, 7, 40, 23, 'left');
   let rx = PAGE_W - MARGIN;
   for (const logo of [...assets.accreditation].reverse()) {
-    const ratio = Math.min(20 / logo.width, 16 / logo.height);
+    const ratio = Math.min(18 / logo.width, 14 / logo.height);
     const w = logo.width * ratio;
-    drawImageFit(doc, logo, rx, 6, 20, 16, 'right');
+    drawImageFit(doc, logo, rx, 7, 18, 14, 'right');
     rx -= w + 3;
   }
 
-  doc.setTextColor(accent[0], accent[1], accent[2]);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
-  doc.text(settings?.school_name || 'School Report Card', PAGE_W / 2, 12, { align: 'center' });
-  doc.setTextColor(30, 30, 30); doc.setFontSize(11);
-  doc.text('Term Report Card', PAGE_W / 2, 18, { align: 'center' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  doc.text(data.student_line || card.name, PAGE_W / 2, 23.5, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
-  doc.text(data.grade_label || '', PAGE_W / 2, 28.5, { align: 'center' });
+  doc.setFontSize(15);
+  doc.text(settings?.school_name || 'School Report Card', PAGE_W / 2, 14, { align: 'center' });
+  doc.setFontSize(11);
+  doc.text('Term Report Card', PAGE_W / 2, 19.5, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text(data.student_line || card.name, PAGE_W / 2, 24.5, { align: 'center' });
+  const rawGrade = String(data.grade_label || '');
+  const gradeLabel = rawGrade && !/^g/i.test(rawGrade) ? `G${rawGrade}` : rawGrade;
+  doc.text(gradeLabel, PAGE_W / 2, 29.5, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
 
   // ---- Grid -----------------------------------------------------------------------------
   const gridX = MARGIN;
   const headerTop = 33;
-  const headerH = 28;
-  const termStripH = 5;
-  const rowH = 7;
+  const headerH = 26;
+  const bandH = 5;
+  const rowH = 6;
   const gridW = GRID_COLS.reduce((s, c) => s + c.w, 0);
 
-  // Header band
-  doc.setFillColor(accent[0], accent[1], accent[2]);
-  doc.rect(gridX, headerTop, gridW, headerH, 'F');
-  doc.setTextColor(255, 255, 255);
+  // Column x positions.
+  const colX: number[] = [];
+  { let x = gridX; for (const c of GRID_COLS) { colX.push(x); x += c.w; } }
 
-  // "Term X YYYY-YYYY" sub-band spanning the numeric columns (as on the reference card).
-  const numericStartX = gridX + GRID_COLS[0].w + GRID_COLS[1].w; // after NO + SUBJECT
-  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold');
-  doc.text(`${termDisplayLabel(card.term)} ${card.academic_year}`, numericStartX + 2, headerTop + termStripH - 1.4);
-  doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.2);
-  doc.line(numericStartX, headerTop + termStripH, gridX + gridW, headerTop + termStripH);
+  // Shaded header cells (full header height) for the summary/end-year columns.
+  GRID_COLS.forEach((c, i) => {
+    if (!c.fill) return;
+    const f = c.fill === 'dark' ? DARK : LIGHT;
+    doc.setFillColor(f[0], f[1], f[2]);
+    doc.rect(colX[i], headerTop, c.w, headerH, 'F');
+  });
 
-  // Column headers: NO/SUBJECT horizontal (centered over full band); the rest rotated,
-  // sitting below the term sub-band.
+  // "Term X YYYY-YYYY" band across the mark columns (Exams..Literacy) only.
+  const bandStart = colX[GRID_COLS.findIndex(c => c.band)];
+  const lastBandIdx = GRID_COLS.map(c => !!c.band).lastIndexOf(true);
+  const bandEnd = colX[lastBandIdx] + GRID_COLS[lastBandIdx].w;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.text(`${termDisplayLabel(card.term)} ${card.academic_year}`, bandStart + 1.5, headerTop + 3.6);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.15);
+  doc.line(bandStart, headerTop + bandH, bandEnd, headerTop + bandH);
+
+  // Column header labels: NO/SUBJECT horizontal bold; the rest rotated bold. Band columns
+  // start below the term band; the shaded summary columns use the full header height.
   doc.setFontSize(7);
-  let cx = gridX;
-  for (const col of GRID_COLS) {
-    const center = cx + col.w / 2;
-    if (col.rot) {
-      doc.text(col.header, center + 1.2, headerTop + headerH - 2, { angle: 90 });
+  GRID_COLS.forEach((c, i) => {
+    const center = colX[i] + c.w / 2;
+    if (c.rot) {
+      doc.text(c.header, center + 1.2, headerTop + headerH - 2, { angle: 90 });
     } else {
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-      const hy = headerTop + headerH / 2 + 1;
-      if (col.left) doc.text(col.header, cx + 2, hy);
-      else doc.text(col.header, center, hy, { align: 'center' });
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+      doc.setFontSize(8);
+      const hy = headerTop + headerH - 2.5;
+      if (c.key === 'subject') doc.text(c.header, colX[i] + 2, hy);
+      else doc.text(c.header, center, hy, { align: 'center' });
+      doc.setFontSize(7);
     }
-    cx += col.w;
-  }
+  });
+  doc.setFont('helvetica', 'normal');
 
-  // Rows
-  doc.setTextColor(20, 20, 20);
+  // ---- Rows -----------------------------------------------------------------------------
   let ry = headerTop + headerH;
   const subjects = data.subjects || [];
-  subjects.forEach((row, i) => {
-    if (i % 2 === 1) { doc.setFillColor(244, 246, 250); doc.rect(gridX, ry, gridW, rowH, 'F'); }
-    let colX = gridX;
-    for (const col of GRID_COLS) {
-      const raw = (row as any)[col.key];
-      const value = col.text ? (raw ?? '') : fmt(raw as number);
-      const center = colX + col.w / 2;
-      const midY = ry + rowH / 2 + 1.2;
-      if (col.left) {
-        // Bilingual subject cell: English (left) + Arabic (right, rasterized via canvas so
-        // it is correctly shaped/RTL — jsPDF can't do Arabic itself).
+  doc.setFontSize(7);
+  for (const row of subjects) {
+    GRID_COLS.forEach((c, i) => {
+      if (!c.fill) return;
+      const f = c.fill === 'dark' ? DARK : LIGHT;
+      doc.setFillColor(f[0], f[1], f[2]);
+      doc.rect(colX[i], ry, c.w, rowH, 'F');
+    });
+    GRID_COLS.forEach((c, i) => {
+      const raw = (row as any)[c.key];
+      const value = c.text ? (raw ?? '') : fmt(raw as number);
+      const midY = ry + rowH / 2 + 1.1;
+      if (c.left) {
+        // Subject: bold English, then the Arabic name (canvas-rasterized for correct RTL
+        // shaping) immediately after it, exactly like the reference card.
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        const engMax = col.w * (row.subjectAr ? 0.5 : 0.94);
-        const eng = doc.splitTextToSize(String(value), engMax)[0] ?? '';
-        doc.text(eng, colX + 2, midY);
+        const eng = String(value);
+        doc.text(eng, colX[i] + 2, midY);
         if (row.subjectAr) {
           const img = rasterizeText(row.subjectAr, { fontPx: 40, weight: 'bold' });
           if (img) {
-            const th = 3.4; // target height in mm
-            const maxIw = col.w - engMax - 3;
+            const engW = doc.getTextWidth(eng);
+            const th = 3.4;
             let iw = img.width * (th / img.height);
-            if (iw > maxIw) iw = maxIw; // shrink to fit remaining cell width
-            const drawH = img.height * (iw / img.width);
-            doc.addImage(img.dataUrl, 'PNG', colX + col.w - iw - 1.5, ry + rowH / 2 - drawH / 2, iw, drawH);
+            const maxIw = c.w - engW - 6;
+            if (iw > maxIw) iw = Math.max(0, maxIw);
+            const drawH = iw > 0 ? img.height * (iw / img.width) : 0;
+            if (iw > 0) doc.addImage(img.dataUrl, 'PNG', colX[i] + 2 + engW + 2, ry + rowH / 2 - drawH / 2, iw, drawH);
           }
         }
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
       } else {
-        doc.text(String(value), center, midY, { align: 'center' });
+        if (c.boldData) doc.setFont('helvetica', 'bold');
+        if (c.fill === 'dark') doc.setTextColor(70, 70, 70);
+        doc.text(String(value), colX[i] + c.w / 2, midY, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+        if (c.boldData) doc.setFont('helvetica', 'normal');
       }
-      colX += col.w;
-    }
+    });
     ry += rowH;
-  });
-
-  // Grid borders
-  doc.setDrawColor(200, 205, 215);
-  doc.setLineWidth(0.15);
-  const gridBottom = ry;
-  let lineX = gridX;
-  for (let i = 0; i <= GRID_COLS.length; i++) {
-    doc.line(lineX, headerTop, lineX, gridBottom);
-    if (i < GRID_COLS.length) lineX += GRID_COLS[i].w;
   }
-  for (let yy = headerTop + headerH; yy <= gridBottom; yy += rowH) doc.line(gridX, yy, gridX + gridW, yy);
-  doc.setDrawColor(accent[0], accent[1], accent[2]); doc.setLineWidth(0.4);
+
+  // ---- Grid borders (thin black inner, heavier outer) ------------------------------------
+  const gridBottom = ry;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.15);
+  GRID_COLS.forEach((_c, i) => { if (i > 0) doc.line(colX[i], headerTop, colX[i], gridBottom); });
+  for (let yy = headerTop + headerH; yy < gridBottom; yy += rowH) doc.line(gridX, yy, gridX + gridW, yy);
+  doc.setLineWidth(0.4);
   doc.rect(gridX, headerTop, gridW, gridBottom - headerTop);
+  doc.setLineWidth(0.15);
+  doc.line(gridX, headerTop + headerH, gridX + gridW, headerTop + headerH);
 
-  // Term comment under the grid (page 1)
-  let ty = gridBottom + 6;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(accent[0], accent[1], accent[2]);
-  doc.text(`${termDisplayLabel(card.term)} Comment`, gridX, ty);
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40); doc.setFontSize(8.5);
-  const tc = doc.splitTextToSize(data.termComment || '—', gridW);
-  doc.text(tc, gridX, ty + 4.5);
+  // ---- Term comment box (light gray, full grid width) ------------------------------------
+  const commentText = data.termComment || '';
+  const commentLines = doc.splitTextToSize(commentText || ' ', gridW - 8);
+  const boxH = 6 + commentLines.length * 3.6 + 2;
+  const boxY = gridBottom + 5;
+  doc.setFillColor(BOX[0], BOX[1], BOX[2]);
+  doc.setDrawColor(190, 190, 190);
+  doc.setLineWidth(0.2);
+  doc.rect(gridX, boxY, gridW, boxH, 'FD');
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.text(`${termDisplayLabel(card.term)} Comment`, gridX + 4, boxY + 4.6);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text(commentLines, gridX + 4, boxY + 8.6);
 
-  // ---- Right sidebar --------------------------------------------------------------------
+  // ---- Right sidebar ----------------------------------------------------------------------
   const sx = gridX + gridW + 4;
   const sw = PAGE_W - MARGIN - sx;
   let sy = headerTop;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.15);
+
+  const sideHeader = (label: string, h = 6) => {
+    doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
+    doc.rect(sx, sy, sw, h, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(label, sx + sw / 2, sy + h / 2 + 1.3, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    sy += h;
+  };
 
   // Score Card
-  doc.setFillColor(accent[0], accent[1], accent[2]);
-  doc.rect(sx, sy, sw, 7, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('Score Card', sx + sw / 2, sy + 5, { align: 'center' });
-  sy += 7;
-  doc.setDrawColor(200, 205, 215); doc.setLineWidth(0.2);
-  doc.setTextColor(30, 30, 30); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  const scRows: [string, string][] = [
-    ['Average', fmt(data.overall)],
-    ['Grade Letter', data.scoreCardLetter || ''],
+  sideHeader('Score Card');
+  const scRows: [string, string, boolean][] = [
+    ['Average', fmt(data.overall), false],
+    ['Grade Letter', data.scoreCardLetter || '', true],
   ];
-  for (const [k, v] of scRows) {
-    doc.rect(sx, sy, sw, 7);
-    doc.text(k, sx + 2, sy + 5);
-    doc.setFont('helvetica', 'bold'); doc.text(v, sx + sw - 2, sy + 5, { align: 'right' });
+  for (const [k, v, boldV] of scRows) {
+    const labelW = sw * 0.62;
+    doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
+    doc.rect(sx, sy, labelW, 6, 'FD');
+    doc.rect(sx + labelW, sy, sw - labelW, 6);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(k, sx + 2, sy + 4.2);
+    doc.setFont('helvetica', boldV ? 'bold' : 'normal');
+    doc.text(v, sx + labelW + (sw - labelW) / 2, sy + 4.2, { align: 'center' });
     doc.setFont('helvetica', 'normal');
-    sy += 7;
+    sy += 6;
   }
 
-  // Conversion Table — 4 columns (Percentage · Grade · Grade Letter · GPA), matching the
-  // reference card (Grade and Grade Letter both show the letter).
-  sy += 4;
-  doc.setFillColor(accent[0], accent[1], accent[2]); doc.rect(sx, sy, sw, 6, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-  doc.text('Conversion Table', sx + sw / 2, sy + 4.2, { align: 'center' });
-  sy += 6;
-  const cv1 = sx, cv2 = sx + sw * 0.52, cv3 = sx + sw * 0.68, cv4 = sx + sw * 0.86;
-  doc.setTextColor(60, 60, 60); doc.setFontSize(6);
-  doc.rect(sx, sy, sw, 6);
-  doc.text('Percentage', cv1 + 1.3, sy + 3.8);
-  doc.text('Grade', cv2 + 0.8, sy + 3.8);
-  doc.text('Grade\nLetter', cv3 + 0.6, sy + 2.4);
-  doc.text('GPA', cv4 + 0.8, sy + 3.8);
-  sy += 6;
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 30); doc.setFontSize(6.4);
+  // Conversion Table (Percentage / Grade / Grade Letter / GPA — like the reference)
+  sy += 3;
+  sideHeader('Conversion Table');
+  const cw1 = sw * 0.44, cw2 = sw * 0.17, cw3 = sw * 0.23, cw4 = sw * 0.16;
+  const cx1 = sx, cx2 = sx + cw1, cx3 = cx2 + cw2, cx4 = cx3 + cw3;
+  const convHdrH = 7;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6);
+  doc.rect(cx1, sy, cw1, convHdrH); doc.rect(cx2, sy, cw2, convHdrH);
+  doc.rect(cx3, sy, cw3, convHdrH); doc.rect(cx4, sy, cw4, convHdrH);
+  doc.text('Percentage', cx1 + 1.3, sy + 4.5);
+  doc.text('Grade', cx2 + cw2 / 2, sy + 4.5, { align: 'center' });
+  doc.text('Grade', cx3 + cw3 / 2, sy + 3.1, { align: 'center' });
+  doc.text('Letter', cx3 + cw3 / 2, sy + 5.6, { align: 'center' });
+  doc.text('GPA', cx4 + cw4 / 2, sy + 4.5, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  sy += convHdrH;
   const convRowH = 4.4;
+  doc.setFontSize(6.4);
   for (const b of CONVERSION_TABLE) {
-    doc.rect(sx, sy, sw, convRowH);
-    doc.text(b.range, cv1 + 1.3, sy + 3.0);
-    doc.text(b.letter, cv2 + 0.8, sy + 3.0);
-    doc.text(b.letter, cv3 + 0.6, sy + 3.0);
-    doc.text(String(b.gpa), cv4 + 0.8, sy + 3.0);
+    doc.rect(cx1, sy, cw1, convRowH); doc.rect(cx2, sy, cw2, convRowH);
+    doc.rect(cx3, sy, cw3, convRowH); doc.rect(cx4, sy, cw4, convRowH);
+    doc.text(b.range, cx1 + 1.3, sy + 3.0);
+    doc.text(b.letter, cx2 + cw2 / 2, sy + 3.0, { align: 'center' });
+    doc.text(b.letter, cx3 + cw3 / 2, sy + 3.0, { align: 'center' });
+    doc.text(String(b.gpa), cx4 + 1.2, sy + 3.0);
     sy += convRowH;
   }
 
-  // Behavior / effort legend — titled and column-headed like the reference, listed
-  // worst→best (U … O) to mirror it.
-  sy += 4;
-  doc.setFillColor(accent[0], accent[1], accent[2]); doc.rect(sx, sy, sw, 6, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-  doc.text('Conversion Table Behavior', sx + sw / 2, sy + 4.2, { align: 'center' });
-  sy += 6;
-  doc.setTextColor(60, 60, 60); doc.setFontSize(6);
-  doc.rect(sx, sy, sw, 5);
-  doc.text('Abbreviation', cv1 + 1.3, sy + 3.4);
-  doc.text('Description', cv2 + 0.8, sy + 3.4);
+  // Behavior legend (worst -> best, like the reference)
+  sy += 3;
+  sideHeader('Conversion Table Behavior');
+  const bw1 = sw * 0.42;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6);
+  doc.rect(sx, sy, bw1, 5); doc.rect(sx + bw1, sy, sw - bw1, 5);
+  doc.text('Abbreviation', sx + 1.3, sy + 3.4);
+  doc.text('Description', sx + bw1 + 1.3, sy + 3.4);
+  doc.setFont('helvetica', 'normal');
   sy += 5;
-  doc.setFontSize(6.6); doc.setTextColor(30, 30, 30);
+  doc.setFontSize(6.4);
   for (const e of [...EFFORT_LEGEND].reverse()) {
-    doc.rect(sx, sy, sw, convRowH);
-    doc.setFont('helvetica', 'bold'); doc.text(e.code, cv1 + 1.3, sy + 3.0);
-    doc.setFont('helvetica', 'normal'); doc.text(e.description, cv2 + 0.8, sy + 3.0);
+    doc.rect(sx, sy, bw1, convRowH); doc.rect(sx + bw1, sy, sw - bw1, convRowH);
+    doc.text(e.code, sx + 1.3, sy + 3.0);
+    doc.text(e.description, sx + bw1 + 1.3, sy + 3.0);
     sy += convRowH;
   }
 
   drawFooter(doc, settings, 1, 2);
 
-  // ---- Page 2: per-subject comments -----------------------------------------------------
+  // ---- Page 2: per-subject comments -------------------------------------------------------
   doc.addPage();
-  doc.setTextColor(accent[0], accent[1], accent[2]); doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
-  doc.text('Teacher Comments', MARGIN, 16);
-  const subjW = 55;
+  const subjW = 60;
   const commW = PAGE_W - 2 * MARGIN - subjW;
-  let py = 22;
-  doc.setFillColor(accent[0], accent[1], accent[2]); doc.rect(MARGIN, py, subjW + commW, 7, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFontSize(9);
-  doc.text('Subject', MARGIN + 2, py + 5);
-  doc.text('Comment', MARGIN + subjW + 2, py + 5);
+  let py = 14;
+  doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.15);
+  doc.rect(MARGIN, py, subjW, 7, 'FD');
+  doc.rect(MARGIN + subjW, py, commW, 7, 'FD');
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.text('Subject', MARGIN + 2, py + 4.8);
+  doc.text('Comment', MARGIN + subjW + 2, py + 4.8);
+  doc.setFont('helvetica', 'normal');
   py += 7;
-  doc.setTextColor(30, 30, 30); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-  doc.setDrawColor(200, 205, 215); doc.setLineWidth(0.15);
+  doc.setFontSize(8);
   for (const row of subjects) {
-    const lines = doc.splitTextToSize(row.comment || '—', commW - 4);
-    const cellH = Math.max(8, lines.length * 4.2 + 3);
-    if (py + cellH > PAGE_H - 14) { drawFooter(doc, settings, 2, 2); doc.addPage(); py = 16; }
+    const lines = doc.splitTextToSize(row.comment || ' ', commW - 4);
+    const cellH = Math.max(7, lines.length * 3.8 + 3.2);
+    if (py + cellH > PAGE_H - 16) { drawFooter(doc, settings, 2, 2); doc.addPage(); py = 14; }
     doc.rect(MARGIN, py, subjW, cellH);
     doc.rect(MARGIN + subjW, py, commW, cellH);
-    doc.setFont('helvetica', 'bold'); doc.text(row.subject, MARGIN + 2, py + 5);
-    doc.setFont('helvetica', 'normal'); doc.text(lines, MARGIN + subjW + 2, py + 5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(row.subject, MARGIN + 2, py + 4.6);
+    doc.setFont('helvetica', 'normal');
+    doc.text(lines, MARGIN + subjW + 2, py + 4.6);
     py += cellH;
   }
 
-  // Overall term comment box
-  py += 6;
-  doc.setFont('helvetica', 'bold'); doc.setTextColor(accent[0], accent[1], accent[2]); doc.setFontSize(10);
-  doc.text(`${termDisplayLabel(card.term)} Comment`, MARGIN, py);
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40); doc.setFontSize(9);
-  const overallLines = doc.splitTextToSize(data.termComment || '—', PAGE_W - 2 * MARGIN);
-  doc.text(overallLines, MARGIN, py + 5);
+  // Overall term comment (same light box as page 1)
+  py += 5;
+  const p2Lines = doc.splitTextToSize(data.termComment || ' ', PAGE_W - 2 * MARGIN - 8);
+  const p2BoxH = 6 + p2Lines.length * 3.6 + 2;
+  doc.setFillColor(BOX[0], BOX[1], BOX[2]);
+  doc.setDrawColor(190, 190, 190);
+  doc.setLineWidth(0.2);
+  doc.rect(MARGIN, py, PAGE_W - 2 * MARGIN, p2BoxH, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.text(`${termDisplayLabel(card.term)} Comment`, MARGIN + 4, py + 4.6);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text(p2Lines, MARGIN + 4, py + 8.6);
 
   drawFooter(doc, settings, 2, 2);
 }
@@ -478,4 +540,5 @@ const drawFooter = (doc: jsPDF, settings: any, page: number, total: number) => {
   doc.setFontSize(8); doc.setTextColor(130, 130, 130); doc.setFont('helvetica', 'normal');
   if (settings?.footer_text) doc.text(String(settings.footer_text), PAGE_W / 2, PAGE_H - 5, { align: 'center', maxWidth: PAGE_W - 40 });
   doc.text(`Page ${page} of ${total}`, PAGE_W - MARGIN, PAGE_H - 5, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
 };
