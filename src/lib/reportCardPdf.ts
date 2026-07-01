@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import { ReportCardData as RichReportCardData, ReportCardSubjectRow, termDisplayLabel } from './reportCardData';
-import { CONVERSION_TABLE, EFFORT_LEGEND } from './gradeScale';
+import { CONVERSION_TABLE, EFFORT_LEGEND, letterFromPercent } from './gradeScale';
 import { loadReportCardAssets, RasterImage } from './reportCardLogos';
 
 export type SectionConfig = {
@@ -42,7 +42,8 @@ export interface ReportCardData {
   };
 }
 
-const letterGrade = (pct: number) => pct >= 90 ? 'A' : pct >= 80 ? 'B' : pct >= 70 ? 'C' : pct >= 60 ? 'D' : 'F';
+// Use the single shared scale everywhere (no crude 90/80/70/60 bands anywhere).
+const letterGrade = (pct: number) => letterFromPercent(pct);
 
 const hexToRgb = (hex: string): [number, number, number] => {
   const h = hex.replace('#', '');
